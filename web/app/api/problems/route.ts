@@ -1,0 +1,109 @@
+import { NextResponse } from 'next/server';
+import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
+import { CreateProblemDto } from '@/lib/schemas';
+import { movePathsToProblemWithUser } from '@/lib/storage/move';
+
+export async function GET(req: Request) {
+  const { user, supabase } = await requireUser();
+  if (!user) return unauthorised();
+
+  const { searchParams } = new URL(req.url);
+  const subjectId = searchParams.get('subject_id');
+
+  let query = supabase.from('problems').select('*').eq('user_id', user.id);
+  if (subjectId) query = query.eq('subject_id', subjectId);
+
+  const { data, error } = await query.order('created_at', {
+    ascending: false,
+  });
+  if (error)
+    return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json({ data });
+}
+
+export async function POST(req: Request) {
+  const { user, supabase } = await requireUser();
+  if (!user) return unauthorised();
+
+  const body = await req.json().catch(() => ({}));
+  const parsed = CreateProblemDto.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.flatten() },
+      { status: 400 }
+    );
+  }
+
+  const { tag_ids, assets, solution_assets, ...problem } = parsed.data;
+
+  // 1) Create minimal row
+  const { data: created, error: insErr } = await supabase
+    .from('problems')
+    .insert({
+      ...problem,
+      user_id: user.id,
+      assets: [],
+      solution_assets: [],
+    })
+    .select()
+    .single();
+
+  if (insErr)
+    return NextResponse.json({ error: insErr.message }, { status: 500 });
+
+  // 2) Attempt to move staged assets using the **user** client
+  const stagedProblemPaths = (assets ?? []).map((a: any) => a.path as string);
+  const stagedSolutionPaths = (solution_assets ?? []).map(
+    (a: any) => a.path as string
+  );
+
+  const movedProblem = await movePathsToProblemWithUser(
+    supabase,
+    stagedProblemPaths,
+    created.id,
+    user.id
+  );
+  const movedSolution = await movePathsToProblemWithUser(
+    supabase,
+    stagedSolutionPaths,
+    created.id,
+    user.id
+  );
+
+  // If a move fails for any item, keep its original staged path (so you don't lose references)
+  const finalProblemPaths = movedProblem.map(m => (m.ok ? m.to : m.from));
+  const finalSolutionPaths = movedSolution.map(m => (m.ok ? m.to : m.from));
+
+  // 3) Update row with final/staged paths
+  const { data: updated, error: updErr } = await supabase
+    .from('problems')
+    .update({
+      assets: finalProblemPaths.map(p => ({ path: p })),
+      solution_assets: finalSolutionPaths.map(p => ({ path: p })),
+    })
+    .eq('id', created.id)
+    .eq('user_id', user.id)
+    .select()
+    .single();
+
+  if (updErr) {
+    return NextResponse.json(
+      { data: { ...created, assets, solution_assets } },
+      { status: 201 }
+    );
+  }
+
+  // Link tags if present
+  if (tag_ids?.length) {
+    await supabase.from('problem_tag').insert(
+      tag_ids.map((tag_id: string) => ({
+        user_id: user.id,
+        problem_id: created.id,
+        tag_id,
+      }))
+    );
+  }
+
+  return NextResponse.json({ data: updated }, { status: 201 });
+}
