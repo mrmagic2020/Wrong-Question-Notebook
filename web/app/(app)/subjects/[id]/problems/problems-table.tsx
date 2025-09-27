@@ -15,8 +15,20 @@ export default function ProblemsTable({
 }) {
   const [editingProblem, setEditingProblem] = useState<any | null>(null);
 
-  const handleEdit = (problem: any) => {
-    setEditingProblem(problem);
+  const handleEdit = async (problem: any) => {
+    // Fetch the full problem data with tags
+    try {
+      const response = await fetch(`/api/problems/${problem.id}`);
+      const data = await response.json();
+      if (data.data) {
+        setEditingProblem(data.data);
+      } else {
+        setEditingProblem(problem); // fallback to original data
+      }
+    } catch (error) {
+      console.error('Failed to fetch problem details:', error);
+      setEditingProblem(problem); // fallback to original data
+    }
   };
 
   const handleCancelEdit = () => {
@@ -44,7 +56,6 @@ export default function ProblemsTable({
               <th className="px-4 py-2">Title</th>
               <th className="px-4 py-2">Type</th>
               <th className="px-4 py-2">Tags</th>
-              <th className="px-4 py-2">Status</th>
               <th className="px-4 py-2 w-44">Actions</th>
             </tr>
           </thead>
@@ -60,7 +71,7 @@ export default function ProblemsTable({
               ))
             ) : (
               <tr>
-                <td className="px-4 py-6 text-gray-500" colSpan={5}>
+                <td className="px-4 py-6 text-gray-500" colSpan={4}>
                   No problems yet.
                 </td>
               </tr>

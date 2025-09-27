@@ -39,31 +39,8 @@ export default function ProblemRow({
   onEdit?: (problem: any) => void;
 }) {
   const router = useRouter();
-  const [status, setStatus] = useState(
-    problem.status as 'wrong' | 'needs_review' | 'mastered'
-  );
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-
-  async function updateStatus(next: 'wrong' | 'needs_review' | 'mastered') {
-    setBusy(true);
-    setErr(null);
-    try {
-      const res = await fetch(`/api/problems/${problem.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: next }),
-      });
-      const j = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(j?.error ?? 'Update failed');
-      setStatus(next);
-      router.refresh();
-    } catch (e: any) {
-      setErr(e.message);
-    } finally {
-      setBusy(false);
-    }
-  }
 
   async function remove() {
     if (!confirm('Delete this problem?')) return;
@@ -100,19 +77,14 @@ export default function ProblemRow({
         )}
       </td>
       <td className="px-4 py-2">
-        <select
-          className="rounded-md border px-2 py-1"
-          value={status}
-          onChange={e => updateStatus(e.target.value as any)}
-          disabled={busy}
-        >
-          <option value="needs_review">needs_review</option>
-          <option value="wrong">wrong</option>
-          <option value="mastered">mastered</option>
-        </select>
-      </td>
-      <td className="px-4 py-2">
         <div className="flex gap-2">
+          <button
+            onClick={() => router.push(`/subjects/${problem.subject_id}/problems/${problem.id}/review`)}
+            disabled={busy}
+            className="rounded-md border px-3 py-1 text-green-600 disabled:opacity-60 hover:bg-green-50"
+          >
+            Review
+          </button>
           {onEdit && (
             <button
               onClick={() => onEdit(problem)}

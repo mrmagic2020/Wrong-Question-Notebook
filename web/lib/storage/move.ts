@@ -52,3 +52,47 @@ export async function movePathsToProblemWithUser(
 
   return results;
 }
+
+/**
+ * Clean up staging files after they've been moved to final locations.
+ * This helps prevent access to old staging files that are no longer referenced.
+ */
+export async function cleanupStagingFiles(
+  supabase: SupabaseClient,
+  stagingId: string,
+  userId: string
+) {
+  const stagingPrefix = `user/${userId}/staging/${stagingId}/`;
+  
+  try {
+    // List all files in the staging directory
+    const { data: files, error: listError } = await supabase.storage
+      .from(BUCKET)
+      .list(stagingPrefix, { limit: 1000 });
+
+    if (listError) {
+      console.error('Error listing staging files:', listError);
+      return { success: false, error: listError.message };
+    }
+
+    if (!files || files.length === 0) {
+      return { success: true, deletedCount: 0 };
+    }
+
+    // Delete all staging files
+    const filePaths = files.map(file => `${stagingPrefix}${file.name}`);
+    const { error: deleteError } = await supabase.storage
+      .from(BUCKET)
+      .remove(filePaths);
+
+    if (deleteError) {
+      console.error('Error deleting staging files:', deleteError);
+      return { success: false, error: deleteError.message };
+    }
+
+    return { success: true, deletedCount: files.length };
+  } catch (error) {
+    console.error('Unexpected error cleaning up staging files:', error);
+    return { success: false, error: 'Unexpected error during cleanup' };
+  }
+}

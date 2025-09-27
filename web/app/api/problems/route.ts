@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
 import { CreateProblemDto } from '@/lib/schemas';
-import { movePathsToProblemWithUser } from '@/lib/storage/move';
+import { movePathsToProblemWithUser, cleanupStagingFiles } from '@/lib/storage/move';
 
 export async function GET(req: Request) {
   const { user, supabase } = await requireUser();
@@ -103,6 +103,22 @@ export async function POST(req: Request) {
         tag_id,
       }))
     );
+  }
+
+  // Clean up staging files after successful problem creation
+  // Extract staging ID from any staged path (they should all have the same staging ID)
+  const allStagedPaths = [...stagedProblemPaths, ...stagedSolutionPaths];
+  if (allStagedPaths.length > 0) {
+    const firstStagedPath = allStagedPaths[0];
+    const pathParts = firstStagedPath.split('/');
+    const stagingId = pathParts[3]; // user/{uid}/staging/{stagingId}/...
+    
+    if (stagingId) {
+      // Clean up staging files in the background (don't wait for it)
+      cleanupStagingFiles(supabase, stagingId, user.id).catch(error => {
+        console.error('Failed to cleanup staging files:', error);
+      });
+    }
   }
 
   return NextResponse.json({ data: updated }, { status: 201 });

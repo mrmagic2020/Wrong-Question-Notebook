@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { FormEvent, useEffect, useState, useMemo } from 'react';
+import { FormEvent, useEffect, useState, useMemo, useRef } from 'react';
 import FileManager from '@/components/ui/file-manager';
 import { PROBLEM_TYPE_VALUES, type ProblemType } from '@/lib/schemas';
 
@@ -42,21 +42,20 @@ export default function ProblemForm({
       .catch(() => {});
   }, [subjectId]);
 
-  // Load problem's existing tags when in edit mode
-  useEffect(() => {
-    if (problem && tags.length > 0) {
-      // Get the tags that belong to this problem
-      fetch(`/api/problems/${problem.id}`)
-        .then(r => r.json())
-        .then(j => {
-          if (j.data && j.data.tags) {
-            const tagIds = j.data.tags.map((tag: any) => tag.id);
-            setSelectedTagIds(tagIds);
-          }
-        })
-        .catch(() => {});
+  // Tag picker - initialize with problem's existing tags if available
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>(() => {
+    // If we have problem data with tags, use those; otherwise start empty
+    if (problem && problem.tags) {
+      return problem.tags.map((tag: any) => tag.id);
     }
-  }, [problem, tags.length]);
+    return [];
+  });
+  
+  function toggleTag(id: string) {
+    setSelectedTagIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  }
 
   // Form expansion state (only for create mode)
   const [isExpanded, setIsExpanded] = useState(isEditMode);
@@ -69,20 +68,22 @@ export default function ProblemForm({
   );
   const [autoMark, setAutoMark] = useState(problem?.auto_mark || false);
 
-  // Auto-update auto-mark based on problem type
+  // Auto-update auto-mark based on problem type (only for new problems)
   useEffect(() => {
-    switch (problemType) {
-      case 'mcq':
-        setAutoMark(true);
-        break;
-      case 'short':
-        setAutoMark(false);
-        break;
-      case 'extended':
-        setAutoMark(false);
-        break;
+    if (!isEditMode) {
+      switch (problemType) {
+        case 'mcq':
+          setAutoMark(true);
+          break;
+        case 'short':
+          setAutoMark(false);
+          break;
+        case 'extended':
+          setAutoMark(false);
+          break;
+      }
     }
-  }, [problemType]);
+  }, [problemType, isEditMode]);
 
   // Auto-mark behavior based on problem type
   const autoMarkValue = useMemo(() => {
@@ -102,10 +103,12 @@ export default function ProblemForm({
 
   // Correct answer inputs
   const [mcqChoice, setMcqChoice] = useState(
-    problem?.correct_answer?.type === 'mcq' ? problem.correct_answer.choice : ''
+    problem?.correct_answer?.type === 'mcq' ? problem.correct_answer.choice : 
+    typeof problem?.correct_answer === 'string' ? problem.correct_answer : ''
   );
   const [shortText, setShortText] = useState(
-    problem?.correct_answer?.type === 'short' ? problem.correct_answer.text : ''
+    problem?.correct_answer?.type === 'short' ? problem.correct_answer.text : 
+    typeof problem?.correct_answer === 'string' ? problem.correct_answer : ''
   );
 
   // Assets
@@ -117,22 +120,14 @@ export default function ProblemForm({
     problem?.solution_assets?.map((asset: any) => ({ path: asset.path, name: asset.path.split('/').pop() || '' })) || []
   );
 
-  // Tag picker
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
-  function toggleTag(id: string) {
-    setSelectedTagIds(prev =>
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-    );
-  }
-
   const correctAnswer = useMemo(() => {
     switch (problemType) {
       case 'mcq':
-        return { type: 'mcq', choice: mcqChoice };
+        return mcqChoice;
       case 'short':
-        return { type: 'short', text: shortText };
+        return shortText;
       case 'extended':
-        return { type: 'extended' };
+        return undefined;
     }
   }, [problemType, mcqChoice, shortText]);
 
@@ -152,7 +147,7 @@ export default function ProblemForm({
       assets,
       solution_text: solutionText || undefined,
       solution_assets,
-      tag_ids: selectedTagIds.length ? selectedTagIds : undefined,
+      tag_ids: selectedTagIds, // Always send the array, even if empty
     };
 
     // Add subject_id for create operations

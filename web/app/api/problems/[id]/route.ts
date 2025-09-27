@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
 import { UpdateProblemDto } from '@/lib/schemas';
 import { deleteProblemFiles } from '@/lib/storage/delete';
-import { movePathsToProblemWithUser } from '@/lib/storage/move';
+import { movePathsToProblemWithUser, cleanupStagingFiles } from '@/lib/storage/move';
 
 export async function GET(
   _req: Request,
@@ -133,6 +133,21 @@ export async function PATCH(
       })
       .eq('id', id)
       .eq('user_id', user.id);
+
+    // Clean up staging files after successful update
+    const allStagedPaths = [...stagedProblemPaths, ...stagedSolutionPaths];
+    if (allStagedPaths.length > 0) {
+      const firstStagedPath = allStagedPaths[0];
+      const pathParts = firstStagedPath.split('/');
+      const stagingId = pathParts[3]; // user/{uid}/staging/{stagingId}/...
+      
+      if (stagingId) {
+        // Clean up staging files in the background (don't wait for it)
+        cleanupStagingFiles(supabase, stagingId, user.id).catch(error => {
+          console.error('Failed to cleanup staging files:', error);
+        });
+      }
+    }
   }
 
   // Reset tags if provided
