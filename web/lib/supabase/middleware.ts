@@ -110,6 +110,13 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
+  // Redirect authenticated users away from the landing page to subjects
+  if (user && request.nextUrl.pathname === '/') {
+    const url = request.nextUrl.clone();
+    url.pathname = '/subjects';
+    return NextResponse.redirect(url);
+  }
+
   if (
     request.nextUrl.pathname !== '/' &&
     !user &&
