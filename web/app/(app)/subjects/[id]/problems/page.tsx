@@ -52,7 +52,7 @@ async function loadData(subjectId: string) {
 export default async function SubjectProblemsPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
   const { subject, problems, tagsByProblem } = await loadData(id);
@@ -61,7 +61,10 @@ export default async function SubjectProblemsPage({
     return (
       <div className="space-y-4">
         <p className="text-muted-foreground">Subject not found.</p>
-        <Link href="/subjects" className="text-primary underline hover:text-primary/80 transition-colors">
+        <Link
+          href="/subjects"
+          className="text-primary underline hover:text-primary/80 transition-colors"
+        >
           Back to Subjects
         </Link>
       </div>
@@ -77,7 +80,10 @@ export default async function SubjectProblemsPage({
             Problems are isolated to this subject.
           </p>
         </div>
-        <Link href="/subjects" className="text-sm text-primary underline hover:text-primary/80 transition-colors">
+        <Link
+          href="/subjects"
+          className="text-sm text-primary underline hover:text-primary/80 transition-colors"
+        >
           ← Back to Subjects
         </Link>
       </div>

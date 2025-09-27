@@ -17,19 +17,22 @@ const statusOptions: {
     value: 'wrong',
     label: 'Wrong',
     description: 'I got this problem wrong',
-    color: 'bg-red-100 dark:bg-red-950/20 text-red-800 dark:text-red-200 border-red-200 dark:border-red-800',
+    color:
+      'bg-red-100 dark:bg-red-950/20 text-red-800 dark:text-red-200 border-red-200 dark:border-red-800',
   },
   {
     value: 'needs_review',
     label: 'Needs Review',
     description: 'I need to review this problem',
-    color: 'bg-yellow-100 dark:bg-yellow-950/20 text-yellow-800 dark:text-yellow-200 border-yellow-200 dark:border-yellow-800',
+    color:
+      'bg-yellow-100 dark:bg-yellow-950/20 text-yellow-800 dark:text-yellow-200 border-yellow-200 dark:border-yellow-800',
   },
   {
     value: 'mastered',
     label: 'Mastered',
     description: 'I have mastered this problem',
-    color: 'bg-green-100 dark:bg-green-950/20 text-green-800 dark:text-green-200 border-green-200 dark:border-green-800',
+    color:
+      'bg-green-100 dark:bg-green-950/20 text-green-800 dark:text-green-200 border-green-200 dark:border-green-800',
   },
 ];
 

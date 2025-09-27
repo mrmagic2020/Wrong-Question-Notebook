@@ -1,0 +1,11 @@
+# *
+User-agent: *
+Allow: /
+Disallow: /protected/
+Disallow: /api/
+
+# Host
+Host: https://your-domain.vercel.app
+
+# Sitemaps
+Sitemap: https://your-domain.vercel.app/sitemap.xml

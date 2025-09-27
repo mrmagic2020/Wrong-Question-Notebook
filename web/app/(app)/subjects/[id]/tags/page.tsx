@@ -19,15 +19,19 @@ async function load(subjectId: string) {
 export default async function SubjectTagsPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { subject, tags } = await load(params.id);
+  const { id } = await params;
+  const { subject, tags } = await load(id);
 
   if (!subject) {
     return (
       <div className="space-y-4">
         <p className="text-muted-foreground">Subject not found.</p>
-        <Link href="/subjects" className="text-primary underline hover:text-primary/80 transition-colors">
+        <Link
+          href="/subjects"
+          className="text-primary underline hover:text-primary/80 transition-colors"
+        >
           Back to Subjects
         </Link>
       </div>
@@ -39,7 +43,9 @@ export default async function SubjectTagsPage({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">{subject.name} — Tags</h1>
-          <p className="text-muted-foreground">Tags are scoped to this subject.</p>
+          <p className="text-muted-foreground">
+            Tags are scoped to this subject.
+          </p>
         </div>
         <Link
           href={`/subjects/${subject.id}/problems`}

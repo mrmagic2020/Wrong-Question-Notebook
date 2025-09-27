@@ -26,7 +26,7 @@ const eslintConfig = [
 
       // General code quality rules
       'prefer-const': 'error',
-      'no-console': 'warn',
+      'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
       'no-debugger': 'error',
 
       // React specific rules

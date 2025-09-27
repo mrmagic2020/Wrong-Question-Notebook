@@ -26,7 +26,9 @@ export default async function SubjectsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Subjects</h1>
-        <p className="text-muted-foreground">Create, rename, or delete subjects.</p>
+        <p className="text-muted-foreground">
+          Create, rename, or delete subjects.
+        </p>
       </div>
 
       <div className="rounded-lg border bg-card p-4">

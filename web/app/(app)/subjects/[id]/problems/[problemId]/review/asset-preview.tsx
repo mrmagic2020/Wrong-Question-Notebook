@@ -86,7 +86,9 @@ export default function AssetPreview({ asset }: AssetPreviewProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-red-100 dark:bg-red-950/20 rounded flex items-center justify-center">
-              <span className="text-red-600 dark:text-red-400 text-xs font-bold">PDF</span>
+              <span className="text-red-600 dark:text-red-400 text-xs font-bold">
+                PDF
+              </span>
             </div>
             <div>
               <p className="text-sm font-medium text-foreground truncate">

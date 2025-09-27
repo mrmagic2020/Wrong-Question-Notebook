@@ -25,7 +25,10 @@ export default async function ProblemsChooser() {
       </ul>
       <p className="text-muted-foreground">
         Tip: add a subject first on the{' '}
-        <Link href="/subjects" className="underline text-primary hover:text-primary/80 transition-colors">
+        <Link
+          href="/subjects"
+          className="underline text-primary hover:text-primary/80 transition-colors"
+        >
           Subjects
         </Link>{' '}
         page.

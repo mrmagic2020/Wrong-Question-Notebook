@@ -68,7 +68,10 @@ export default async function GlobalTagsPage() {
       {subjects?.length === 0 ? (
         <div className="rounded-lg border bg-card p-6 text-muted-foreground">
           No subjects yet. Create one on the{' '}
-          <Link href="/subjects" className="underline text-primary hover:text-primary/80 transition-colors">
+          <Link
+            href="/subjects"
+            className="underline text-primary hover:text-primary/80 transition-colors"
+          >
             Subjects
           </Link>{' '}
           page.

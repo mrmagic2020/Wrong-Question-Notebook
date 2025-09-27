@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 export default async function Page() {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
-  
+
   // If user is already logged in, redirect to subjects page
   if (data?.claims) {
     redirect('/subjects');

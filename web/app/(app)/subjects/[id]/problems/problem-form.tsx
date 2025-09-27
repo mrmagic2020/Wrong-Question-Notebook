@@ -314,7 +314,9 @@ export default function ProblemForm({
 
       {/* content */}
       <div className="flex items-start gap-3">
-        <label className="w-32 text-sm text-muted-foreground pt-2">Content</label>
+        <label className="w-32 text-sm text-muted-foreground pt-2">
+          Content
+        </label>
         <textarea
           className="flex-1 rounded-md border border-input bg-background px-3 py-2 h-28 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           placeholder="Type the problem text (Markdown/LaTeX supported) - Optional"
@@ -388,7 +390,9 @@ export default function ProblemForm({
       {/* correct answer (conditional) */}
       {problemType === 'mcq' && (
         <div className="flex items-center gap-3">
-          <label className="w-32 text-sm text-muted-foreground">Correct choice</label>
+          <label className="w-32 text-sm text-muted-foreground">
+            Correct choice
+          </label>
           <input
             className="w-32 rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             placeholder="e.g. A, B, α, etc."
@@ -399,7 +403,9 @@ export default function ProblemForm({
       )}
       {problemType === 'short' && (
         <div className="flex items-center gap-3">
-          <label className="w-32 text-sm text-muted-foreground">Correct text</label>
+          <label className="w-32 text-sm text-muted-foreground">
+            Correct text
+          </label>
           <input
             className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             placeholder="Short expected answer"
@@ -441,7 +447,10 @@ export default function ProblemForm({
         <div className="flex flex-wrap gap-3">
           {tags.length ? (
             tags.map(t => (
-              <label key={t.id} className="flex items-center gap-2 text-foreground">
+              <label
+                key={t.id}
+                className="flex items-center gap-2 text-foreground"
+              >
                 <input
                   type="checkbox"
                   checked={selectedTagIds.includes(t.id)}

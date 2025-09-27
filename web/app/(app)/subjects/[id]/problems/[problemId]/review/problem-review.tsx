@@ -155,7 +155,9 @@ export default function ProblemReview({
 
       {/* Problem Content */}
       <div className="bg-card rounded-lg border border-border p-6">
-        <h2 className="text-lg font-medium mb-4 text-card-foreground">Problem</h2>
+        <h2 className="text-lg font-medium mb-4 text-card-foreground">
+          Problem
+        </h2>
         {problem.content && (
           <div className="prose max-w-none mb-4">
             <div dangerouslySetInnerHTML={{ __html: problem.content }} />
@@ -177,7 +179,9 @@ export default function ProblemReview({
 
       {/* Answer Section */}
       <div className="bg-card rounded-lg border border-border p-6">
-        <h2 className="text-lg font-medium mb-4 text-card-foreground">Your Answer</h2>
+        <h2 className="text-lg font-medium mb-4 text-card-foreground">
+          Your Answer
+        </h2>
 
         {!problem.auto_mark && (
           <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-md">
@@ -263,7 +267,9 @@ export default function ProblemReview({
 
       {/* Status Update */}
       <div className="bg-card rounded-lg border border-border p-6">
-        <h2 className="text-lg font-medium mb-4 text-card-foreground">Problem Status</h2>
+        <h2 className="text-lg font-medium mb-4 text-card-foreground">
+          Problem Status
+        </h2>
         <StatusSelector
           currentStatus={problem.status}
           onStatusChange={handleStatusUpdate}

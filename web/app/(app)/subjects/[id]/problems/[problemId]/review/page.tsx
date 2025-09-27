@@ -49,7 +49,7 @@ async function loadData(subjectId: string, problemId: string) {
 export default async function ProblemReviewPage({
   params,
 }: {
-  params: { id: string; problemId: string };
+  params: Promise<{ id: string; problemId: string }>;
 }) {
   const { id: subjectId, problemId } = await params;
   const { problem, subject, allProblems } = await loadData(

@@ -10,7 +10,8 @@ const defaultUrl = process.env.VERCEL_URL
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
   title: 'Wrong Question Notebook - Master Your Learning',
-  description: 'Organize problems by subject, track your progress, and build your knowledge systematically',
+  description:
+    'Organize problems by subject, track your progress, and build your knowledge systematically',
 };
 
 const geistSans = Geist({

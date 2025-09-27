@@ -4,7 +4,7 @@ import { hasEnvVars } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
-import { BookOpen, NotebookPen, Target, Users, Zap, CheckCircle } from 'lucide-react';
+import { BookOpen, NotebookPen, Target, Zap } from 'lucide-react';
 
 export default function Home() {
   return (
@@ -15,7 +15,9 @@ export default function Home() {
           <div className="w-full max-w-6xl flex justify-between items-center p-3 px-6 text-sm">
             <div className="flex gap-2 items-center font-bold text-xl">
               <NotebookPen className="h-6 w-6 text-blue-600" />
-              <Link href={'/'} className="text-gray-900 dark:text-white">Wrong Question Notebook</Link>
+              <Link href={'/'} className="text-gray-900 dark:text-white">
+                Wrong Question Notebook
+              </Link>
             </div>
             <div className="flex items-center gap-4">
               {hasEnvVars && <AuthButton />}
@@ -32,7 +34,8 @@ export default function Home() {
                 Master Your Learning
               </h1>
               <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                Organize problems by subject, track your progress, and build your knowledge systematically
+                Organize problems by subject, track your progress, and build
+                your knowledge systematically
               </p>
             </div>
 
@@ -40,7 +43,12 @@ export default function Home() {
               <Button asChild size="lg" className="text-lg px-8 py-6">
                 <Link href="/auth/sign-up">Get Started Free</Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="text-lg px-8 py-6">
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="text-lg px-8 py-6"
+              >
                 <Link href="/auth/login">Sign In</Link>
               </Button>
             </div>
@@ -70,10 +78,13 @@ export default function Home() {
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-4">
                     <BookOpen className="h-8 w-8 text-blue-600" />
-                    <h3 className="text-xl font-semibold">Organize by Subject</h3>
+                    <h3 className="text-xl font-semibold">
+                      Organize by Subject
+                    </h3>
                   </div>
                   <p className="text-gray-600 dark:text-gray-300">
-                    Create subjects for different topics and organize your problems systematically
+                    Create subjects for different topics and organize your
+                    problems systematically
                   </p>
                 </CardContent>
               </Card>
@@ -85,7 +96,8 @@ export default function Home() {
                     <h3 className="text-xl font-semibold">Track Progress</h3>
                   </div>
                   <p className="text-gray-600 dark:text-gray-300">
-                    Monitor your learning journey and identify areas that need more attention
+                    Monitor your learning journey and identify areas that need
+                    more attention
                   </p>
                 </CardContent>
               </Card>
@@ -97,7 +109,8 @@ export default function Home() {
                     <h3 className="text-xl font-semibold">Quick Access</h3>
                   </div>
                   <p className="text-gray-600 dark:text-gray-300">
-                    Find and review problems instantly with powerful search and filtering
+                    Find and review problems instantly with powerful search and
+                    filtering
                   </p>
                 </CardContent>
               </Card>
@@ -113,13 +126,19 @@ export default function Home() {
                 Ready to transform your learning?
               </h2>
               <p className="text-xl text-gray-600 dark:text-gray-300">
-                Join thousands of learners who are already organizing their knowledge effectively
+                Join thousands of learners who are already organizing their
+                knowledge effectively
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button asChild size="lg" className="text-lg px-8 py-6">
                   <Link href="/auth/sign-up">Start Your Journey</Link>
                 </Button>
-                <Button asChild variant="outline" size="lg" className="text-lg px-8 py-6">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="text-lg px-8 py-6"
+                >
                   <Link href="/auth/login">Sign In</Link>
                 </Button>
               </div>
@@ -136,7 +155,8 @@ export default function Home() {
                 <span className="font-semibold">Wrong Question Notebook</span>
               </div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                © 2024 Wrong Question Notebook. Built with Next.js and Supabase.
+                © 2024 Wrong Question Notebook. Built with Next.js and
+                Supabase.
               </p>
             </div>
           </div>
