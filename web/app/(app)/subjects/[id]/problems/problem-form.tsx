@@ -39,20 +39,36 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
   const [status, setStatus] = useState<'wrong' | 'needs_review' | 'mastered'>(
     'needs_review'
   );
+  const [autoMark, setAutoMark] = useState(false);
+
+  // Auto-update auto-mark based on problem type
+  useEffect(() => {
+    switch (problemType) {
+      case 'mcq':
+        setAutoMark(true);
+        break;
+      case 'short':
+        setAutoMark(false);
+        break;
+      case 'extended':
+        setAutoMark(false);
+        break;
+    }
+  }, [problemType]);
 
   // Auto-mark behavior based on problem type
   const autoMarkValue = useMemo(() => {
     switch (problemType) {
       case 'mcq':
-        return true;
+        return autoMark;
       case 'short':
-        return false;
+        return autoMark;
       case 'extended':
-        return false;
+        return false; // Always false for extended response
       default:
         return false;
     }
-  }, [problemType]);
+  }, [problemType, autoMark]);
 
   const isAutoMarkDisabled = problemType === 'extended';
 
@@ -136,6 +152,7 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
     setSelectedTagIds([]);
     setProblemType('short');
     setStatus('needs_review');
+    setAutoMark(false);
 
     router.refresh();
   }
@@ -244,7 +261,7 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
             type="checkbox"
             checked={autoMarkValue}
             disabled={isAutoMarkDisabled}
-            onChange={() => {}} // Controlled by problem type
+            onChange={e => setAutoMark(e.target.checked)}
           />
           Auto-mark during revision
           {isAutoMarkDisabled && (
