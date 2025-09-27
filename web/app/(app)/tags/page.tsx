@@ -12,14 +12,14 @@ function TagCapsules({ tags }: { tags: { id: string; name: string }[] }) {
       {shown.map(t => (
         <span
           key={t.id}
-          className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs bg-gray-50"
+          className="inline-flex items-center rounded-full border border-border bg-muted px-2 py-0.5 text-xs text-muted-foreground"
           title={t.name}
         >
           {t.name.length > 22 ? t.name.slice(0, 22) + '…' : t.name}
         </span>
       ))}
       {extra > 0 && (
-        <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs bg-gray-100">
+        <span className="inline-flex items-center rounded-full border border-border bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
           +{extra} more
         </span>
       )}
@@ -59,16 +59,16 @@ export default async function GlobalTagsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Tags by Subject</h1>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           View all tags grouped by subject. Use the links to manage or add tags
           for a specific subject.
         </p>
       </div>
 
       {subjects?.length === 0 ? (
-        <div className="rounded-lg border bg-white p-6 text-gray-600">
+        <div className="rounded-lg border bg-card p-6 text-muted-foreground">
           No subjects yet. Create one on the{' '}
-          <Link href="/subjects" className="underline">
+          <Link href="/subjects" className="underline text-primary hover:text-primary/80 transition-colors">
             Subjects
           </Link>{' '}
           page.
@@ -78,12 +78,12 @@ export default async function GlobalTagsPage() {
           {subjects?.map((s: any) => {
             const tags = bySubject.get(s.id) ?? [];
             return (
-              <div key={s.id} className="rounded-lg border bg-white p-4">
+              <div key={s.id} className="rounded-lg border bg-card p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-base font-medium">
+                    <h2 className="text-base font-medium text-card-foreground">
                       {s.name}{' '}
-                      <span className="ml-2 text-xs text-gray-500">
+                      <span className="ml-2 text-xs text-muted-foreground">
                         ({tags.length} tag
                         {tags.length === 1 ? '' : 's'})
                       </span>
@@ -92,13 +92,13 @@ export default async function GlobalTagsPage() {
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/subjects/${s.id}/tags`}
-                      className="rounded-md border px-3 py-1 text-sm"
+                      className="rounded-md border border-border bg-background px-3 py-1 text-sm text-foreground hover:bg-muted transition-colors"
                     >
                       Manage tags
                     </Link>
                     <Link
                       href={`/subjects/${s.id}/problems`}
-                      className="rounded-md border px-3 py-1 text-sm"
+                      className="rounded-md border border-border bg-background px-3 py-1 text-sm text-foreground hover:bg-muted transition-colors"
                     >
                       View problems
                     </Link>
@@ -109,7 +109,7 @@ export default async function GlobalTagsPage() {
                   {tags.length ? (
                     <TagCapsules tags={tags} />
                   ) : (
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-muted-foreground">
                       No tags yet. Click{' '}
                       <span className="font-medium">Manage tags</span> to add
                       some.

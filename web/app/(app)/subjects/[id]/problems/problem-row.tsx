@@ -14,14 +14,14 @@ function TagCapsules({ tags }: { tags: { id: string; name: string }[] }) {
       {shown.map(t => (
         <span
           key={t.id}
-          className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs bg-gray-50"
+          className="inline-flex items-center rounded-full border border-border bg-muted px-2 py-0.5 text-xs text-muted-foreground"
           title={t.name}
         >
           {t.name.length > 18 ? t.name.slice(0, 18) + '…' : t.name}
         </span>
       ))}
       {extra > 0 && (
-        <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs bg-gray-100">
+        <span className="inline-flex items-center rounded-full border border-border bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
           +{extra} more
         </span>
       )}
@@ -61,19 +61,19 @@ export default function ProblemRow({
   }
 
   return (
-    <tr className="border-t align-top">
+    <tr className="border-t border-border align-top">
       <td className="px-4 py-2 max-w-[32rem]">
-        <div className="truncate" title={problem.title}>
+        <div className="truncate text-foreground" title={problem.title}>
           {problem.title}
         </div>
-        {err && <div className="mt-1 text-xs text-red-600">{err}</div>}
+        {err && <div className="mt-1 text-xs text-destructive">{err}</div>}
       </td>
-      <td className="px-4 py-2">{problem.problem_type}</td>
+      <td className="px-4 py-2 text-foreground">{problem.problem_type}</td>
       <td className="px-4 py-2">
         {tags.length ? (
           <TagCapsules tags={tags} />
         ) : (
-          <span className="text-gray-400">—</span>
+          <span className="text-muted-foreground">—</span>
         )}
       </td>
       <td className="px-4 py-2">
@@ -85,7 +85,7 @@ export default function ProblemRow({
               )
             }
             disabled={busy}
-            className="rounded-md border px-3 py-1 text-green-600 disabled:opacity-60 hover:bg-green-50"
+            className="rounded-md border border-border bg-background px-3 py-1 text-green-600 dark:text-green-400 disabled:opacity-60 hover:bg-green-50 dark:hover:bg-green-950/20 transition-colors"
           >
             Review
           </button>
@@ -93,7 +93,7 @@ export default function ProblemRow({
             <button
               onClick={() => onEdit(problem)}
               disabled={busy}
-              className="rounded-md border px-3 py-1 text-blue-600 disabled:opacity-60 hover:bg-blue-50"
+              className="rounded-md border border-border bg-background px-3 py-1 text-blue-600 dark:text-blue-400 disabled:opacity-60 hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-colors"
             >
               Edit
             </button>
@@ -101,7 +101,7 @@ export default function ProblemRow({
           <button
             onClick={remove}
             disabled={busy}
-            className="rounded-md border px-3 py-1 text-red-600 disabled:opacity-60"
+            className="rounded-md border border-destructive bg-destructive/10 dark:bg-destructive/20 px-3 py-1 text-destructive dark:text-red-400 hover:bg-destructive/20 dark:hover:bg-destructive/30 disabled:opacity-60 transition-colors"
           >
             Delete
           </button>

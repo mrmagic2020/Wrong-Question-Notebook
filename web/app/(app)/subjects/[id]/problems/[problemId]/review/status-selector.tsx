@@ -17,19 +17,19 @@ const statusOptions: {
     value: 'wrong',
     label: 'Wrong',
     description: 'I got this problem wrong',
-    color: 'bg-red-100 text-red-800 border-red-200',
+    color: 'bg-red-100 dark:bg-red-950/20 text-red-800 dark:text-red-200 border-red-200 dark:border-red-800',
   },
   {
     value: 'needs_review',
     label: 'Needs Review',
     description: 'I need to review this problem',
-    color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    color: 'bg-yellow-100 dark:bg-yellow-950/20 text-yellow-800 dark:text-yellow-200 border-yellow-200 dark:border-yellow-800',
   },
   {
     value: 'mastered',
     label: 'Mastered',
     description: 'I have mastered this problem',
-    color: 'bg-green-100 text-green-800 border-green-200',
+    color: 'bg-green-100 dark:bg-green-950/20 text-green-800 dark:text-green-200 border-green-200 dark:border-green-800',
   },
 ];
 
@@ -39,7 +39,7 @@ export default function StatusSelector({
 }: StatusSelectorProps) {
   return (
     <div className="space-y-3">
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-muted-foreground">
         Update the status of this problem based on your performance:
       </p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -49,7 +49,7 @@ export default function StatusSelector({
             className={`flex items-start p-3 border rounded-lg cursor-pointer transition-all ${
               currentStatus === option.value
                 ? `${option.color} border-current`
-                : 'border-gray-200 hover:border-gray-300'
+                : 'border-border hover:border-border/80'
             }`}
           >
             <input
@@ -62,7 +62,7 @@ export default function StatusSelector({
             />
             <div className="flex-1">
               <div className="font-medium text-sm">{option.label}</div>
-              <div className="text-xs text-gray-600 mt-1">
+              <div className="text-xs text-muted-foreground mt-1">
                 {option.description}
               </div>
             </div>

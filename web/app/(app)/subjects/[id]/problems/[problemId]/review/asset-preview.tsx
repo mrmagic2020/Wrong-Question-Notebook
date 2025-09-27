@@ -31,20 +31,20 @@ export default function AssetPreview({ asset }: AssetPreviewProps) {
   if (isImage) {
     if (imageError) {
       return (
-        <div className="border rounded-lg overflow-hidden">
-          <div className="p-4 text-center text-gray-500 bg-gray-50">
+        <div className="border border-border rounded-lg overflow-hidden">
+          <div className="p-4 text-center text-muted-foreground bg-muted">
             <p className="text-sm">Image preview unavailable</p>
             <a
               href={getFileUrl(asset.path)}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 underline text-sm"
+              className="text-primary underline text-sm hover:text-primary/80 transition-colors"
             >
               View image
             </a>
           </div>
-          <div className="p-2 bg-gray-50 border-t">
-            <p className="text-xs text-gray-600 truncate">
+          <div className="p-2 bg-muted border-t border-border">
+            <p className="text-xs text-muted-foreground truncate">
               {getFileName(asset.path)}
             </p>
           </div>
@@ -53,7 +53,7 @@ export default function AssetPreview({ asset }: AssetPreviewProps) {
     }
 
     return (
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border border-border rounded-lg overflow-hidden">
         <a
           href={getFileUrl(asset.path)}
           target="_blank"
@@ -65,16 +65,16 @@ export default function AssetPreview({ asset }: AssetPreviewProps) {
             alt={getFileName(asset.path)}
             width={800}
             height={256}
-            className="w-full h-auto max-h-64 object-contain bg-gray-50"
+            className="w-full h-auto max-h-64 object-contain bg-muted"
             unoptimized
             onError={() => setImageError(true)}
           />
         </a>
-        <div className="p-2 bg-gray-50 border-t">
-          <p className="text-xs text-gray-600 truncate">
+        <div className="p-2 bg-muted border-t border-border">
+          <p className="text-xs text-muted-foreground truncate">
             {getFileName(asset.path)}
           </p>
-          <p className="text-xs text-blue-600 mt-1">Click to view full size</p>
+          <p className="text-xs text-primary mt-1">Click to view full size</p>
         </div>
       </div>
     );
@@ -82,24 +82,24 @@ export default function AssetPreview({ asset }: AssetPreviewProps) {
 
   if (isPdf) {
     return (
-      <div className="border rounded-lg p-4 bg-gray-50">
+      <div className="border border-border rounded-lg p-4 bg-muted">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-red-100 rounded flex items-center justify-center">
-              <span className="text-red-600 text-xs font-bold">PDF</span>
+            <div className="w-8 h-8 bg-red-100 dark:bg-red-950/20 rounded flex items-center justify-center">
+              <span className="text-red-600 dark:text-red-400 text-xs font-bold">PDF</span>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-900 truncate">
+              <p className="text-sm font-medium text-foreground truncate">
                 {getFileName(asset.path)}
               </p>
-              <p className="text-xs text-gray-500">PDF Document</p>
+              <p className="text-xs text-muted-foreground">PDF Document</p>
             </div>
           </div>
           <a
             href={getFileUrl(asset.path)}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+            className="px-3 py-1 bg-primary text-primary-foreground text-xs rounded hover:bg-primary/90 transition-colors"
           >
             View PDF
           </a>
@@ -110,24 +110,24 @@ export default function AssetPreview({ asset }: AssetPreviewProps) {
 
   // Fallback for unknown file types
   return (
-    <div className="border rounded-lg p-4 bg-gray-50">
+    <div className="border border-border rounded-lg p-4 bg-muted">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gray-100 rounded flex items-center justify-center">
-            <span className="text-gray-600 text-xs">📄</span>
+          <div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
+            <span className="text-muted-foreground text-xs">📄</span>
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-900 truncate">
+            <p className="text-sm font-medium text-foreground truncate">
               {getFileName(asset.path)}
             </p>
-            <p className="text-xs text-gray-500">File</p>
+            <p className="text-xs text-muted-foreground">File</p>
           </div>
         </div>
         <a
           href={getFileUrl(asset.path)}
           target="_blank"
           rel="noopener noreferrer"
-          className="px-3 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700 transition-colors"
+          className="px-3 py-1 bg-secondary text-secondary-foreground text-xs rounded hover:bg-secondary/80 transition-colors"
         >
           View File
         </a>

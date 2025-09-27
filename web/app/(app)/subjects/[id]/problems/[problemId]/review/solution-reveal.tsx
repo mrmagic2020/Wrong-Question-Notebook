@@ -21,13 +21,13 @@ export default function SolutionReveal({
   const hasSolution = solutionText || solutionAssets.length > 0;
 
   return (
-    <div className="bg-white rounded-lg border p-6">
+    <div className="bg-card rounded-lg border border-border p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-medium">Solution</h2>
+        <h2 className="text-lg font-medium text-card-foreground">Solution</h2>
         {hasSolution && (
           <button
             onClick={onToggle}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
           >
             {isRevealed ? 'Hide Solution' : 'Reveal Solution'}
           </button>
@@ -35,8 +35,8 @@ export default function SolutionReveal({
       </div>
 
       {!hasSolution ? (
-        <div className="text-center py-8 text-gray-500">
-          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+        <div className="text-center py-8 text-muted-foreground">
+          <div className="w-16 h-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
             <span className="text-2xl">📝</span>
           </div>
           <p className="text-sm">No solution provided for this problem</p>
@@ -63,7 +63,7 @@ export default function SolutionReveal({
           )}
         </div>
       ) : (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-muted-foreground">
           <p className="text-sm">
             Click "Reveal Solution" to view the solution
           </p>

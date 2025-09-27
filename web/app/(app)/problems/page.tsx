@@ -15,7 +15,7 @@ export default async function ProblemsChooser() {
         {(subjects ?? []).map((s: any) => (
           <li key={s.id}>
             <Link
-              className="text-blue-600 underline"
+              className="text-primary underline hover:text-primary/80 transition-colors"
               href={`/subjects/${s.id}/problems`}
             >
               {s.name}
@@ -23,9 +23,9 @@ export default async function ProblemsChooser() {
           </li>
         ))}
       </ul>
-      <p className="text-gray-600">
+      <p className="text-muted-foreground">
         Tip: add a subject first on the{' '}
-        <Link href="/subjects" className="underline">
+        <Link href="/subjects" className="underline text-primary hover:text-primary/80 transition-colors">
           Subjects
         </Link>{' '}
         page.

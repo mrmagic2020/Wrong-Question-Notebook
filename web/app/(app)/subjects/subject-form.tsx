@@ -38,17 +38,17 @@ export default function SubjectForm() {
         value={name}
         onChange={e => setName(e.target.value)}
         placeholder="e.g. Mathematics"
-        className="w-64 rounded-md border px-3 py-2"
+        className="w-64 rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
         required
       />
       <button
         type="submit"
         disabled={busy}
-        className="rounded-md bg-black px-4 py-2 text-white disabled:opacity-60"
+        className="rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors"
       >
         {busy ? 'Adding…' : 'Add'}
       </button>
-      {error && <span className="text-sm text-red-600">{error}</span>}
+      {error && <span className="text-sm text-destructive">{error}</span>}
     </form>
   );
 }

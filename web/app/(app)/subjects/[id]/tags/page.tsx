@@ -26,8 +26,8 @@ export default async function SubjectTagsPage({
   if (!subject) {
     return (
       <div className="space-y-4">
-        <p className="text-gray-600">Subject not found.</p>
-        <Link href="/subjects" className="text-blue-600 underline">
+        <p className="text-muted-foreground">Subject not found.</p>
+        <Link href="/subjects" className="text-primary underline hover:text-primary/80 transition-colors">
           Back to Subjects
         </Link>
       </div>
@@ -39,27 +39,27 @@ export default async function SubjectTagsPage({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">{subject.name} — Tags</h1>
-          <p className="text-gray-600">Tags are scoped to this subject.</p>
+          <p className="text-muted-foreground">Tags are scoped to this subject.</p>
         </div>
         <Link
           href={`/subjects/${subject.id}/problems`}
-          className="text-sm text-blue-600 underline"
+          className="text-sm text-primary underline hover:text-primary/80 transition-colors"
         >
           ← Back to Problems
         </Link>
       </div>
 
-      <div className="rounded-lg border bg-white p-4">
-        <h2 className="mb-3 font-medium">Add a tag</h2>
+      <div className="rounded-lg border bg-card p-4">
+        <h2 className="mb-3 font-medium text-card-foreground">Add a tag</h2>
         <TagForm subjectId={subject.id} />
       </div>
 
-      <div className="rounded-lg border bg-white overflow-hidden">
+      <div className="rounded-lg border bg-card overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left">
+          <thead className="bg-muted text-left">
             <tr>
-              <th className="px-4 py-2">Name</th>
-              <th className="px-4 py-2 w-48">Actions</th>
+              <th className="px-4 py-2 text-muted-foreground">Name</th>
+              <th className="px-4 py-2 w-48 text-muted-foreground">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -67,7 +67,7 @@ export default async function SubjectTagsPage({
               tags.map((t: any) => <TagRow key={t.id} tag={t} />)
             ) : (
               <tr>
-                <td className="px-4 py-6 text-gray-500" colSpan={2}>
+                <td className="px-4 py-6 text-muted-foreground" colSpan={2}>
                   No tags yet.
                 </td>
               </tr>

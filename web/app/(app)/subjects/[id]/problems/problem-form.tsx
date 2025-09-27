@@ -275,7 +275,7 @@ export default function ProblemForm({
         <button
           type="button"
           onClick={() => setIsExpanded(true)}
-          className="flex-1 rounded-md border border-dashed border-gray-300 px-4 py-3 text-left text-gray-600 hover:border-gray-400 hover:text-gray-800"
+          className="flex-1 rounded-md border border-dashed border-border px-4 py-3 text-left text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors"
         >
           + Add a new problem
         </button>
@@ -286,12 +286,12 @@ export default function ProblemForm({
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       {isEditMode && (
-        <div className="flex items-center justify-between border-b pb-2">
-          <h3 className="font-medium text-gray-900">Edit Problem</h3>
+        <div className="flex items-center justify-between border-b border-border pb-2">
+          <h3 className="font-medium text-foreground">Edit Problem</h3>
           <button
             type="button"
             onClick={() => onCancel?.()}
-            className="text-sm text-gray-500 hover:text-gray-700"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             Cancel
           </button>
@@ -300,10 +300,10 @@ export default function ProblemForm({
 
       {/* title */}
       <div className="flex items-center gap-3">
-        <label className="w-32 text-sm text-gray-600">Title</label>
+        <label className="w-32 text-sm text-muted-foreground">Title</label>
         <input
           type="text"
-          className="flex-1 rounded-md border px-3 py-2"
+          className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           placeholder="Short descriptive title for the problem"
           value={title}
           onChange={e => setTitle(e.target.value)}
@@ -314,9 +314,9 @@ export default function ProblemForm({
 
       {/* content */}
       <div className="flex items-start gap-3">
-        <label className="w-32 text-sm text-gray-600 pt-2">Content</label>
+        <label className="w-32 text-sm text-muted-foreground pt-2">Content</label>
         <textarea
-          className="flex-1 rounded-md border px-3 py-2 h-28"
+          className="flex-1 rounded-md border border-input bg-background px-3 py-2 h-28 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           placeholder="Type the problem text (Markdown/LaTeX supported) - Optional"
           value={content}
           onChange={e => setContent(e.target.value)}
@@ -325,7 +325,7 @@ export default function ProblemForm({
 
       {/* problem assets */}
       <div className="flex items-start gap-3">
-        <label className="w-32 text-sm text-gray-600 pt-2">
+        <label className="w-32 text-sm text-muted-foreground pt-2">
           Problem assets
         </label>
         <div className="flex-1">
@@ -341,9 +341,9 @@ export default function ProblemForm({
       {/* type + auto-mark + status */}
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600">Type</label>
+          <label className="text-sm text-muted-foreground">Type</label>
           <select
-            className="rounded-md border px-2 py-1"
+            className="rounded-md border border-input bg-background px-2 py-1 text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             value={problemType}
             onChange={e => setProblemType(e.target.value as ProblemType)}
           >
@@ -355,25 +355,26 @@ export default function ProblemForm({
           </select>
         </div>
 
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex items-center gap-2 text-sm text-muted-foreground">
           <input
             type="checkbox"
             checked={autoMarkValue}
             disabled={isAutoMarkDisabled}
             onChange={e => setAutoMark(e.target.checked)}
+            className="rounded border-input text-primary focus:ring-2 focus:ring-ring focus:ring-offset-2"
           />
           Auto-mark during revision
           {isAutoMarkDisabled && (
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-muted-foreground">
               (not available for extended response)
             </span>
           )}
         </label>
 
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600">Status</label>
+          <label className="text-sm text-muted-foreground">Status</label>
           <select
-            className="rounded-md border px-2 py-1"
+            className="rounded-md border border-input bg-background px-2 py-1 text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             value={status}
             onChange={e => setStatus(e.target.value as any)}
           >
@@ -387,9 +388,9 @@ export default function ProblemForm({
       {/* correct answer (conditional) */}
       {problemType === 'mcq' && (
         <div className="flex items-center gap-3">
-          <label className="w-32 text-sm text-gray-600">Correct choice</label>
+          <label className="w-32 text-sm text-muted-foreground">Correct choice</label>
           <input
-            className="w-32 rounded-md border px-3 py-2"
+            className="w-32 rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             placeholder="e.g. A, B, α, etc."
             value={mcqChoice}
             onChange={e => setMcqChoice(e.target.value)}
@@ -398,9 +399,9 @@ export default function ProblemForm({
       )}
       {problemType === 'short' && (
         <div className="flex items-center gap-3">
-          <label className="w-32 text-sm text-gray-600">Correct text</label>
+          <label className="w-32 text-sm text-muted-foreground">Correct text</label>
           <input
-            className="flex-1 rounded-md border px-3 py-2"
+            className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             placeholder="Short expected answer"
             value={shortText}
             onChange={e => setShortText(e.target.value)}
@@ -410,18 +411,18 @@ export default function ProblemForm({
 
       {/* solution text + assets */}
       <div className="flex items-start gap-3">
-        <label className="w-32 text-sm text-gray-600 pt-2">
+        <label className="w-32 text-sm text-muted-foreground pt-2">
           Solution (text)
         </label>
         <textarea
-          className="flex-1 rounded-md border px-3 py-2 h-24"
+          className="flex-1 rounded-md border border-input bg-background px-3 py-2 h-24 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           placeholder="Optional: typed solution (Markdown/LaTeX)"
           value={solutionText}
           onChange={e => setSolutionText(e.target.value)}
         />
       </div>
       <div className="flex items-start gap-3">
-        <label className="w-32 text-sm text-gray-600 pt-2">
+        <label className="w-32 text-sm text-muted-foreground pt-2">
           Solution assets
         </label>
         <div className="flex-1">
@@ -436,21 +437,22 @@ export default function ProblemForm({
 
       {/* tag picker */}
       <div className="flex items-start gap-3">
-        <label className="w-32 text-sm text-gray-600 pt-1">Tags</label>
+        <label className="w-32 text-sm text-muted-foreground pt-1">Tags</label>
         <div className="flex flex-wrap gap-3">
           {tags.length ? (
             tags.map(t => (
-              <label key={t.id} className="flex items-center gap-2">
+              <label key={t.id} className="flex items-center gap-2 text-foreground">
                 <input
                   type="checkbox"
                   checked={selectedTagIds.includes(t.id)}
                   onChange={() => toggleTag(t.id)}
+                  className="rounded border-input text-primary focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 />
                 <span>{t.name}</span>
               </label>
             ))
           ) : (
-            <div className="text-gray-500">No tags yet.</div>
+            <div className="text-muted-foreground">No tags yet.</div>
           )}
         </div>
       </div>
@@ -458,7 +460,7 @@ export default function ProblemForm({
       <div className="flex gap-3">
         <button
           type="submit"
-          className="rounded-md bg-black px-4 py-2 text-white"
+          className="rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90 transition-colors"
         >
           {isEditMode ? 'Update problem' : 'Add problem'}
         </button>
@@ -466,7 +468,7 @@ export default function ProblemForm({
           <button
             type="button"
             onClick={() => setIsExpanded(false)}
-            className="rounded-md border px-4 py-2 text-gray-600"
+            className="rounded-md border border-border bg-background px-4 py-2 text-foreground hover:bg-muted transition-colors"
           >
             Cancel
           </button>

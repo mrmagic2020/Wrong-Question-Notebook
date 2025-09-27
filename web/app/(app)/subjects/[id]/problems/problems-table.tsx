@@ -39,7 +39,7 @@ export default function ProblemsTable({
     <>
       {/* Edit form (when editing) */}
       {editingProblem && (
-        <div className="rounded-lg border bg-white p-4 mb-6">
+        <div className="rounded-lg border bg-card p-4 mb-6">
           <ProblemForm
             subjectId={subjectId}
             problem={editingProblem}
@@ -49,14 +49,14 @@ export default function ProblemsTable({
       )}
 
       {/* Problems table */}
-      <div className="rounded-lg border bg-white overflow-hidden">
+      <div className="rounded-lg border bg-card overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left">
+          <thead className="bg-muted text-left">
             <tr>
-              <th className="px-4 py-2">Title</th>
-              <th className="px-4 py-2">Type</th>
-              <th className="px-4 py-2">Tags</th>
-              <th className="px-4 py-2 w-44">Actions</th>
+              <th className="px-4 py-2 text-muted-foreground">Title</th>
+              <th className="px-4 py-2 text-muted-foreground">Type</th>
+              <th className="px-4 py-2 text-muted-foreground">Tags</th>
+              <th className="px-4 py-2 w-44 text-muted-foreground">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -71,7 +71,7 @@ export default function ProblemsTable({
               ))
             ) : (
               <tr>
-                <td className="px-4 py-6 text-gray-500" colSpan={4}>
+                <td className="px-4 py-6 text-muted-foreground" colSpan={4}>
                   No problems yet.
                 </td>
               </tr>

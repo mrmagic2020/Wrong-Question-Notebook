@@ -26,20 +26,20 @@ export default async function SubjectsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Subjects</h1>
-        <p className="text-gray-600">Create, rename, or delete subjects.</p>
+        <p className="text-muted-foreground">Create, rename, or delete subjects.</p>
       </div>
 
-      <div className="rounded-lg border bg-white p-4">
-        <h2 className="mb-3 font-medium">Add a subject</h2>
+      <div className="rounded-lg border bg-card p-4">
+        <h2 className="mb-3 font-medium text-card-foreground">Add a subject</h2>
         <SubjectForm />
       </div>
 
-      <div className="rounded-lg border bg-white p-0 overflow-hidden">
+      <div className="rounded-lg border bg-card overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left">
+          <thead className="bg-muted text-left">
             <tr>
-              <th className="px-4 py-2">Name</th>
-              <th className="px-4 py-2 w-48">Actions</th>
+              <th className="px-4 py-2 text-muted-foreground">Name</th>
+              <th className="px-4 py-2 w-48 text-muted-foreground">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -47,7 +47,7 @@ export default async function SubjectsPage() {
               data.map(s => <SubjectRow key={s.id} subject={s} />)
             ) : (
               <tr>
-                <td className="px-4 py-6 text-gray-500" colSpan={2}>
+                <td className="px-4 py-6 text-muted-foreground" colSpan={2}>
                   No subjects yet.
                 </td>
               </tr>

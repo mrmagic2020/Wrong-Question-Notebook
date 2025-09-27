@@ -32,14 +32,14 @@ export default function AnswerInput({
     case 'mcq':
       return (
         <div className="space-y-2">
-          <p className="text-sm text-gray-600">Enter your answer:</p>
+          <p className="text-sm text-muted-foreground">Enter your answer:</p>
           <input
             type="text"
             value={value || ''}
             onChange={e => handleMcqChange(e.target.value)}
             disabled={disabled}
             placeholder="Type your answer here..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-3 py-2 border border-input bg-background text-foreground placeholder:text-muted-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
       );
@@ -47,14 +47,14 @@ export default function AnswerInput({
     case 'short':
       return (
         <div className="space-y-2">
-          <p className="text-sm text-gray-600">Enter your answer:</p>
+          <p className="text-sm text-muted-foreground">Enter your answer:</p>
           <input
             type="text"
             value={value || ''}
             onChange={e => handleShortAnswerChange(e.target.value)}
             disabled={disabled}
             placeholder="Type your answer here..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-3 py-2 border border-input bg-background text-foreground placeholder:text-muted-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
       );
@@ -62,21 +62,21 @@ export default function AnswerInput({
     case 'extended':
       return (
         <div className="space-y-2">
-          <p className="text-sm text-gray-600">Write your response:</p>
+          <p className="text-sm text-muted-foreground">Write your response:</p>
           <textarea
             value={value || ''}
             onChange={e => handleExtendedResponseChange(e.target.value)}
             disabled={disabled}
             placeholder="Write your detailed response here..."
             rows={6}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed resize-vertical"
+            className="w-full px-3 py-2 border border-input bg-background text-foreground placeholder:text-muted-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed resize-vertical"
           />
         </div>
       );
 
     default:
       return (
-        <div className="text-gray-500 text-sm">
+        <div className="text-muted-foreground text-sm">
           No answer input available for this problem type.
         </div>
       );

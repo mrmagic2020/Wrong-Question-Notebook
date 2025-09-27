@@ -127,13 +127,13 @@ export default function ProblemReview({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">{problem.title}</h1>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             {subject.name} • {problem.problem_type.toUpperCase()}
           </p>
         </div>
         <Link
           href={`/subjects/${subject.id}/problems`}
-          className="text-sm text-blue-600 underline"
+          className="text-sm text-primary underline hover:text-primary/80 transition-colors"
         >
           ← Back to Problems
         </Link>
@@ -145,7 +145,7 @@ export default function ProblemReview({
           {problem.tags.map(tag => (
             <span
               key={tag.id}
-              className="inline-flex items-center rounded-full border px-2 py-1 text-xs bg-gray-50"
+              className="inline-flex items-center rounded-full border border-border bg-muted px-2 py-1 text-xs text-muted-foreground"
             >
               {tag.name}
             </span>
@@ -154,8 +154,8 @@ export default function ProblemReview({
       )}
 
       {/* Problem Content */}
-      <div className="bg-white rounded-lg border p-6">
-        <h2 className="text-lg font-medium mb-4">Problem</h2>
+      <div className="bg-card rounded-lg border border-border p-6">
+        <h2 className="text-lg font-medium mb-4 text-card-foreground">Problem</h2>
         {problem.content && (
           <div className="prose max-w-none mb-4">
             <div dangerouslySetInnerHTML={{ __html: problem.content }} />
@@ -176,12 +176,12 @@ export default function ProblemReview({
       </div>
 
       {/* Answer Section */}
-      <div className="bg-white rounded-lg border p-6">
-        <h2 className="text-lg font-medium mb-4">Your Answer</h2>
+      <div className="bg-card rounded-lg border border-border p-6">
+        <h2 className="text-lg font-medium mb-4 text-card-foreground">Your Answer</h2>
 
         {!problem.auto_mark && (
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-            <p className="text-sm text-blue-800">
+          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-md">
+            <p className="text-sm text-blue-800 dark:text-blue-200">
               This problem requires manual review. Enter your answer below and
               click "View Solution" to check your work.
             </p>
@@ -203,7 +203,7 @@ export default function ProblemReview({
             <button
               onClick={handleAnswerSubmit}
               disabled={isSubmitting || !userAnswer || submittedAnswer !== null}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
             >
               {isSubmitting ? 'Submitting...' : 'Submit Answer'}
             </button>
@@ -212,7 +212,7 @@ export default function ProblemReview({
           {!problem.auto_mark && userAnswer && (
             <button
               onClick={() => setShowSolution(true)}
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+              className="px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-md hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
             >
               View Solution
             </button>
@@ -224,31 +224,31 @@ export default function ProblemReview({
           <div
             className={`mt-4 p-4 rounded-md ${
               isCorrect
-                ? 'bg-green-50 border border-green-200'
-                : 'bg-red-50 border border-red-200'
+                ? 'bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800'
+                : 'bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800'
             }`}
           >
             <div className="flex items-center gap-2">
               <span
-                className={`text-lg ${isCorrect ? 'text-green-600' : 'text-red-600'}`}
+                className={`text-lg ${isCorrect ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
               >
                 {isCorrect ? '✓' : '✗'}
               </span>
               <span
-                className={`font-medium ${isCorrect ? 'text-green-800' : 'text-red-800'}`}
+                className={`font-medium ${isCorrect ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}`}
               >
                 {isCorrect ? 'Correct!' : 'Incorrect'}
               </span>
             </div>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Your answer: {JSON.stringify(submittedAnswer)}
             </p>
           </div>
         )}
 
         {error && (
-          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-red-800 text-sm">{error}</p>
+          <div className="mt-4 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-md">
+            <p className="text-red-800 dark:text-red-200 text-sm">{error}</p>
           </div>
         )}
       </div>
@@ -262,8 +262,8 @@ export default function ProblemReview({
       />
 
       {/* Status Update */}
-      <div className="bg-white rounded-lg border p-6">
-        <h2 className="text-lg font-medium mb-4">Problem Status</h2>
+      <div className="bg-card rounded-lg border border-border p-6">
+        <h2 className="text-lg font-medium mb-4 text-card-foreground">Problem Status</h2>
         <StatusSelector
           currentStatus={problem.status}
           onStatusChange={handleStatusUpdate}
@@ -271,23 +271,23 @@ export default function ProblemReview({
       </div>
 
       {/* Navigation */}
-      <div className="flex justify-between items-center bg-white rounded-lg border p-4">
+      <div className="flex justify-between items-center bg-card rounded-lg border border-border p-4">
         <button
           onClick={() => prevProblem && navigateToProblem(prevProblem.id)}
           disabled={!prevProblem}
-          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-secondary/80 transition-colors"
         >
           ← Previous
         </button>
 
-        <span className="text-sm text-gray-600">
+        <span className="text-sm text-muted-foreground">
           {currentIndex + 1} of {allProblems.length}
         </span>
 
         <button
           onClick={() => nextProblem && navigateToProblem(nextProblem.id)}
           disabled={!nextProblem}
-          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-secondary/80 transition-colors"
         >
           Next →
         </button>

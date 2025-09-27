@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { AuthButton } from '@/components/auth-button';
 import { NotebookPen } from 'lucide-react';
+import { ThemeSwitcher } from '@/components/theme-switcher';
 import '@/app/globals.css';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -36,7 +37,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 Problems
               </Link>
             </div>
-            <AuthButton />
+            <div className="flex items-center gap-4">
+              <AuthButton />
+              <ThemeSwitcher />
+            </div>
           </div>
         </nav>
       </header>

@@ -60,8 +60,8 @@ export default async function SubjectProblemsPage({
   if (!subject) {
     return (
       <div className="space-y-4">
-        <p className="text-gray-600">Subject not found.</p>
-        <Link href="/subjects" className="text-blue-600 underline">
+        <p className="text-muted-foreground">Subject not found.</p>
+        <Link href="/subjects" className="text-primary underline hover:text-primary/80 transition-colors">
           Back to Subjects
         </Link>
       </div>
@@ -73,18 +73,18 @@ export default async function SubjectProblemsPage({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">{subject.name} — Problems</h1>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Problems are isolated to this subject.
           </p>
         </div>
-        <Link href="/subjects" className="text-sm text-blue-600 underline">
+        <Link href="/subjects" className="text-sm text-primary underline hover:text-primary/80 transition-colors">
           ← Back to Subjects
         </Link>
       </div>
 
       {/* Create form with subject fixed */}
-      <div className="rounded-lg border bg-white p-4">
-        <h2 className="mb-3 font-medium">Add a problem</h2>
+      <div className="rounded-lg border bg-card p-4">
+        <h2 className="mb-3 font-medium text-card-foreground">Add a problem</h2>
         {/* Pass subjectId; form will hide the subject selector */}
         <ProblemForm subjectId={subject.id} />
       </div>

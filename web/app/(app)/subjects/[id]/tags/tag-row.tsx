@@ -49,18 +49,18 @@ export default function TagRow({ tag }: { tag: any }) {
   }
 
   return (
-    <tr className="border-t">
+    <tr className="border-t border-border">
       <td className="px-4 py-2 align-middle">
         {editing ? (
           <input
             value={name}
             onChange={e => setName(e.target.value)}
-            className="rounded-md border px-2 py-1"
+            className="rounded-md border border-input bg-background px-2 py-1 text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           />
         ) : (
-          <span>{tag.name}</span>
+          <span className="text-foreground">{tag.name}</span>
         )}
-        {err && <div className="mt-1 text-xs text-red-600">{err}</div>}
+        {err && <div className="mt-1 text-xs text-destructive">{err}</div>}
       </td>
       <td className="px-4 py-2 align-middle">
         <div className="flex gap-2">
@@ -69,13 +69,13 @@ export default function TagRow({ tag }: { tag: any }) {
               <button
                 onClick={save}
                 disabled={busy}
-                className="rounded-md bg-black px-3 py-1 text-white disabled:opacity-60"
+                className="rounded-md bg-primary px-3 py-1 text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors"
               >
                 Save
               </button>
               <button
                 onClick={() => setEditing(false)}
-                className="rounded-md border px-3 py-1"
+                className="rounded-md border border-border bg-background px-3 py-1 text-foreground hover:bg-muted transition-colors"
               >
                 Cancel
               </button>
@@ -84,14 +84,14 @@ export default function TagRow({ tag }: { tag: any }) {
             <>
               <button
                 onClick={() => setEditing(true)}
-                className="rounded-md border px-3 py-1"
+                className="rounded-md border border-border bg-background px-3 py-1 text-foreground hover:bg-muted transition-colors"
               >
                 Rename
               </button>
               <button
                 onClick={remove}
                 disabled={busy}
-                className="rounded-md border px-3 py-1 text-red-600 disabled:opacity-60"
+                className="rounded-md border border-destructive bg-destructive/10 dark:bg-destructive/20 px-3 py-1 text-destructive dark:text-red-400 hover:bg-destructive/20 dark:hover:bg-destructive/30 disabled:opacity-60 transition-colors"
               >
                 Delete
               </button>
