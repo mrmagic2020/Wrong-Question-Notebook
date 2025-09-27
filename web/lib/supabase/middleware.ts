@@ -55,7 +55,7 @@ export async function updateSession(request: NextRequest) {
       updateLastLoginEdge(
         user.sub,
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY!
       ).catch(console.warn);
     } catch {
       // Ignore errors in login tracking
