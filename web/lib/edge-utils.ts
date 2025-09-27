@@ -10,23 +10,27 @@
 export async function updateLastLoginEdge(
   userId: string,
   supabaseUrl: string,
-  supabaseAnonKey: string
+  supabaseAnonKey: string,
+  userToken?: string
 ): Promise<void> {
   try {
+    // Skip if no user token is provided
+    if (!userToken) {
+      return;
+    }
+
     // Create a minimal fetch request to update last login
-    const response = await fetch(`${supabaseUrl}/rest/v1/user_profiles`, {
+    const response = await fetch(`${supabaseUrl}/rest/v1/user_profiles?id=eq.${userId}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${supabaseAnonKey}`,
+        Authorization: `Bearer ${userToken}`,
         apikey: supabaseAnonKey,
         Prefer: 'return=minimal',
       },
       body: JSON.stringify({
         last_login_at: new Date().toISOString(),
       }),
-      // Add RLS filter to only update the current user's record
-      // This requires the user to be authenticated via the Authorization header
     });
 
     if (!response.ok) {

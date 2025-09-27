@@ -51,11 +51,16 @@ export async function updateSession(request: NextRequest) {
   // Update last login timestamp for authenticated users
   if (user && user.sub) {
     try {
+      // Get the user's JWT token from the session
+      const { data: { session } } = await supabase.auth.getSession();
+      const userToken = session?.access_token;
+      
       // Use Edge Runtime compatible approach to update last login
       updateLastLoginEdge(
         user.sub,
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY!
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY!,
+        userToken
       ).catch(console.warn);
     } catch {
       // Ignore errors in login tracking
