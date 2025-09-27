@@ -24,35 +24,41 @@ export async function GET(
   }
 
   // Additional security: Verify the user actually owns a problem that references this asset
-  // This prevents access to staging files or assets from other users' problems
-  const { data: problems, error: problemsError } = await supabase
-    .from('problems')
-    .select('id, assets, solution_assets')
-    .eq('user_id', user.id);
+  // OR the file is in staging (temporary uploads during form editing)
+  const isStagingFile = decodedPath.includes('/staging/');
+  
+  if (!isStagingFile) {
+    // For non-staging files, verify they are referenced in a problem
+    const { data: problems, error: problemsError } = await supabase
+      .from('problems')
+      .select('id, assets, solution_assets')
+      .eq('user_id', user.id);
 
-  if (problemsError) {
-    console.error('Error checking problem ownership:', problemsError);
-    return NextResponse.json(
-      { error: 'Failed to verify file ownership' },
-      { status: 500 }
-    );
+    if (problemsError) {
+      console.error('Error checking problem ownership:', problemsError);
+      return NextResponse.json(
+        { error: 'Failed to verify file ownership' },
+        { status: 500 }
+      );
+    }
+
+    // Check if this file path is referenced in any of the user's problems
+    const isAssetReferenced = problems?.some(problem => {
+      const allAssets = [
+        ...(problem.assets || []),
+        ...(problem.solution_assets || []),
+      ];
+      return allAssets.some(asset => asset.path === decodedPath);
+    });
+
+    if (!isAssetReferenced) {
+      return NextResponse.json(
+        { error: 'File not found or unauthorized' },
+        { status: 404 }
+      );
+    }
   }
-
-  // Check if this file path is referenced in any of the user's problems
-  const isAssetReferenced = problems?.some(problem => {
-    const allAssets = [
-      ...(problem.assets || []),
-      ...(problem.solution_assets || []),
-    ];
-    return allAssets.some(asset => asset.path === decodedPath);
-  });
-
-  if (!isAssetReferenced) {
-    return NextResponse.json(
-      { error: 'File not found or unauthorized' },
-      { status: 404 }
-    );
-  }
+  // For staging files, we only need to verify the user prefix (already done above)
 
   try {
     // Use server-side Supabase client to download the file content

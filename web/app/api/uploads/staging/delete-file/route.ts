@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
 import { createClient } from '@/lib/supabase/server';
+import { withSecurity } from '@/lib/security-middleware';
+import { validateFilePath } from '@/lib/file-security';
 
 const BUCKET = 'problem-uploads';
 
-export async function DELETE(req: Request) {
+async function deleteFile(req: Request) {
   const { user } = await requireUser();
   if (!user) return unauthorised();
 
@@ -14,6 +16,14 @@ export async function DELETE(req: Request) {
   if (!path || typeof path !== 'string') {
     return NextResponse.json(
       { error: 'File path is required' },
+      { status: 400 }
+    );
+  }
+
+  // Validate file path to prevent directory traversal
+  if (!validateFilePath(path)) {
+    return NextResponse.json(
+      { error: 'Invalid file path' },
       { status: 400 }
     );
   }
@@ -49,3 +59,5 @@ export async function DELETE(req: Request) {
     );
   }
 }
+
+export const DELETE = withSecurity(deleteFile, { rateLimitType: 'fileUpload' });

@@ -5,8 +5,9 @@ import {
   movePathsToProblemWithUser,
   cleanupStagingFiles,
 } from '@/lib/storage/move';
+import { withSecurity } from '@/lib/security-middleware';
 
-export async function GET(req: Request) {
+async function getProblems(req: Request) {
   const { user, supabase } = await requireUser();
   if (!user) return unauthorised();
 
@@ -25,15 +26,19 @@ export async function GET(req: Request) {
   return NextResponse.json({ data });
 }
 
-export async function POST(req: Request) {
+export const GET = withSecurity(getProblems, { rateLimitType: 'readOnly' });
+
+async function createProblem(req: Request) {
   const { user, supabase } = await requireUser();
   if (!user) return unauthorised();
 
   const body = await req.json().catch(() => ({}));
+  
+  // Validate request body using Zod schema
   const parsed = CreateProblemDto.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
-      { error: parsed.error.flatten() },
+      { error: 'Invalid request body', details: parsed.error.flatten() },
       { status: 400 }
     );
   }
@@ -126,3 +131,8 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ data: updated }, { status: 201 });
 }
+
+export const POST = withSecurity(createProblem, { 
+  rateLimitType: 'problemCreation',
+  enableFileValidation: false 
+});
