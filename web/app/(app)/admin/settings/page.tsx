@@ -1,12 +1,18 @@
 import { createClient } from '@/lib/supabase/server';
 import { getAdminSettings } from '@/lib/user-management';
 import { AdminSettingsForm } from '@/components/admin/admin-settings-form';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Settings } from 'lucide-react';
 
 export default async function AdminSettingsPage() {
   const supabase = await createClient();
-  
+
   // Get current user
   const { data: authData } = await supabase.auth.getUser();
   if (!authData.user) {

@@ -9,7 +9,7 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const supabase = await createClient();
-  
+
   // Check if user is authenticated
   const { data: authData, error: authError } = await supabase.auth.getUser();
   if (authError || !authData.user) {
@@ -26,9 +26,7 @@ export default async function AdminLayout({
     <div className="flex h-screen bg-background">
       <AdminSidebar />
       <main className="flex-1 overflow-auto">
-        <div className="container mx-auto p-6">
-          {children}
-        </div>
+        <div className="container mx-auto p-6">{children}</div>
       </main>
     </div>
   );

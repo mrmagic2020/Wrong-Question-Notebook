@@ -8,25 +8,25 @@ export const SECURITY_CONFIG = {
       windowMs: 15 * 60 * 1000, // 15 minutes
       maxRequests: 100, // 100 requests per 15 minutes
     },
-    
+
     // File upload endpoints (more restrictive)
     fileUpload: {
       windowMs: 60 * 60 * 1000, // 1 hour
       maxRequests: 20, // 20 uploads per hour
     },
-    
+
     // Authentication endpoints (very restrictive)
     auth: {
       windowMs: 15 * 60 * 1000, // 15 minutes
       maxRequests: 5, // 5 auth attempts per 15 minutes
     },
-    
+
     // Problem creation (moderate)
     problemCreation: {
       windowMs: 60 * 60 * 1000, // 1 hour
       maxRequests: 50, // 50 problems per hour
     },
-    
+
     // Read-only endpoints (less restrictive)
     readOnly: {
       windowMs: 5 * 60 * 1000, // 5 minutes
@@ -41,16 +41,16 @@ export const SECURITY_CONFIG = {
       images: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
       documents: ['application/pdf'],
     },
-    
+
     // Maximum file sizes (in bytes)
     maxSizes: {
       image: 5 * 1024 * 1024, // 5MB
       document: 10 * 1024 * 1024, // 10MB
     },
-    
+
     // Allowed file extensions
     allowedExtensions: ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.pdf'],
-    
+
     // Security headers for file responses
     securityHeaders: {
       'X-Content-Type-Options': 'nosniff',
@@ -63,25 +63,35 @@ export const SECURITY_CONFIG = {
   requestValidation: {
     // Maximum request size (in bytes)
     maxRequestSize: 50 * 1024 * 1024, // 50MB
-    
+
     // Maximum JSON body size (in bytes)
     maxJsonBodySize: 1024 * 1024, // 1MB
-    
+
     // Required headers
     requiredHeaders: ['user-agent'],
-    
+
     // Suspicious patterns to block
     suspiciousPatterns: {
-      sqlInjection: /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)/i,
+      sqlInjection:
+        /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)/i,
       xss: /<script|javascript:|on\w+\s*=/i,
       pathTraversal: /\.\.\/|\.\.\\|\.\.%2f|\.\.%5c/i,
       commandInjection: /[;&|`$()]/,
     },
-    
+
     // Suspicious user agents
     suspiciousUserAgents: [
-      'sqlmap', 'nikto', 'nmap', 'masscan', 'zap', 'burp',
-      'w3af', 'acunetix', 'nessus', 'scanner', 'bot',
+      'sqlmap',
+      'nikto',
+      'nmap',
+      'masscan',
+      'zap',
+      'burp',
+      'w3af',
+      'acunetix',
+      'nessus',
+      'scanner',
+      'bot',
     ],
   },
 
@@ -93,16 +103,16 @@ export const SECURITY_CONFIG = {
       'https://your-domain.vercel.app',
       'https://wrong-question-notebook.vercel.app',
     ],
-    
+
     allowedMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    
+
     allowedHeaders: [
       'Content-Type',
       'Authorization',
       'X-Requested-With',
       'X-User-ID',
     ],
-    
+
     credentials: true,
   },
 
@@ -128,13 +138,13 @@ export const SECURITY_CONFIG = {
     // Usage thresholds (percentage)
     warningThreshold: 80, // Warn at 80% of limits
     criticalThreshold: 95, // Critical at 95% of limits
-    
+
     // Rate limit violation thresholds
     rateLimitViolations: {
       warning: 10, // Warn after 10 violations per hour
       critical: 50, // Critical after 50 violations per hour
     },
-    
+
     // Security event thresholds
     securityEvents: {
       suspiciousRequests: 5, // Alert after 5 suspicious requests per hour
@@ -160,7 +170,9 @@ export const SECURITY_CONFIG = {
 
 // Helper functions
 export function isAllowedOrigin(origin: string): boolean {
-  return (SECURITY_CONFIG.cors.allowedOrigins as readonly string[]).includes(origin);
+  return (SECURITY_CONFIG.cors.allowedOrigins as readonly string[]).includes(
+    origin
+  );
 }
 
 export function isSuspiciousUserAgent(userAgent: string): boolean {
@@ -178,8 +190,12 @@ export function getSecurityHeaders(): Record<string, string> {
   return { ...SECURITY_CONFIG.securityHeaders };
 }
 
-export function getFileSecurityHeaders(filename: string, mimeType: string): Record<string, string> {
-  const headers: Record<string, string> = { ...SECURITY_CONFIG.fileUpload.securityHeaders };
+export function getFileSecurityHeaders(
+  filename: string
+): Record<string, string> {
+  const headers: Record<string, string> = {
+    ...SECURITY_CONFIG.fileUpload.securityHeaders,
+  };
   headers['Content-Disposition'] = `inline; filename="${filename}"`;
   return headers;
 }

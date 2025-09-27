@@ -1,19 +1,21 @@
 import { createClient } from '@/lib/supabase/server';
-import { 
-  UserProfileType, 
-  UserRoleType, 
-  ExtendedUser, 
+import {
+  UserProfileType,
+  UserRoleType,
+  ExtendedUser,
   UserStatisticsType,
   UserActivityLogType,
-  AdminSettingsType 
+  AdminSettingsType,
 } from '@/lib/types';
 
 /**
  * Get user profile by ID
  */
-export async function getUserProfile(userId: string): Promise<UserProfileType | null> {
+export async function getUserProfile(
+  userId: string
+): Promise<UserProfileType | null> {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
     .from('user_profiles')
     .select('*')
@@ -30,9 +32,11 @@ export async function getUserProfile(userId: string): Promise<UserProfileType | 
 /**
  * Get user profile by ID using service role (for admin operations)
  */
-export async function getUserProfileWithServiceRole(userId: string): Promise<UserProfileType | null> {
+export async function getUserProfileWithServiceRole(
+  userId: string
+): Promise<UserProfileType | null> {
   const serviceSupabase = createServiceClient();
-  
+
   const { data, error } = await serviceSupabase
     .from('user_profiles')
     .select('*')
@@ -50,6 +54,7 @@ export async function getUserProfileWithServiceRole(userId: string): Promise<Use
  * Create service role client for admin operations
  */
 function createServiceClient() {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { createClient } = require('@supabase/supabase-js');
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -57,8 +62,8 @@ function createServiceClient() {
     {
       auth: {
         autoRefreshToken: false,
-        persistSession: false
-      }
+        persistSession: false,
+      },
     }
   );
 }
@@ -66,9 +71,11 @@ function createServiceClient() {
 /**
  * Get extended user information including auth data and profile
  */
-export async function getExtendedUser(userId: string): Promise<ExtendedUser | null> {
+export async function getExtendedUser(
+  userId: string
+): Promise<ExtendedUser | null> {
   const supabase = await createClient();
-  
+
   // Get auth user data
   const { data: authData, error: authError } = await supabase.auth.getUser();
   if (authError || !authData.user || authData.user.id !== userId) {
@@ -77,12 +84,13 @@ export async function getExtendedUser(userId: string): Promise<ExtendedUser | nu
 
   // Get user profile
   const profile = await getUserProfile(userId);
-  
+
   return {
     id: authData.user.id,
     email: authData.user.email!,
     profile,
-    isAdmin: profile?.user_role === 'admin' || profile?.user_role === 'super_admin',
+    isAdmin:
+      profile?.user_role === 'admin' || profile?.user_role === 'super_admin',
     isSuperAdmin: profile?.user_role === 'super_admin',
   };
 }
@@ -92,7 +100,7 @@ export async function getExtendedUser(userId: string): Promise<ExtendedUser | nu
  */
 export async function isCurrentUserAdmin(): Promise<boolean> {
   const supabase = await createClient();
-  
+
   const { data: authData } = await supabase.auth.getUser();
   if (!authData.user) {
     return false;
@@ -106,7 +114,11 @@ export async function isCurrentUserAdmin(): Promise<boolean> {
     .eq('id', authData.user.id)
     .single();
 
-  return profile?.user_role === 'admin' || profile?.user_role === 'super_admin' || false;
+  return (
+    profile?.user_role === 'admin' ||
+    profile?.user_role === 'super_admin' ||
+    false
+  );
 }
 
 /**
@@ -114,7 +126,7 @@ export async function isCurrentUserAdmin(): Promise<boolean> {
  */
 export async function isCurrentUserSuperAdmin(): Promise<boolean> {
   const supabase = await createClient();
-  
+
   const { data: authData } = await supabase.auth.getUser();
   if (!authData.user) {
     return false;
@@ -134,9 +146,12 @@ export async function isCurrentUserSuperAdmin(): Promise<boolean> {
 /**
  * Get all users for admin management
  */
-export async function getAllUsers(limit: number = 50, offset: number = 0): Promise<UserProfileType[]> {
+export async function getAllUsers(
+  limit: number = 50,
+  offset: number = 0
+): Promise<UserProfileType[]> {
   const serviceSupabase = createServiceClient();
-  
+
   const { data, error } = await serviceSupabase
     .from('user_profiles')
     .select('*')
@@ -153,13 +168,18 @@ export async function getAllUsers(limit: number = 50, offset: number = 0): Promi
 /**
  * Search users by username, email, or name
  */
-export async function searchUsers(query: string, limit: number = 20): Promise<UserProfileType[]> {
+export async function searchUsers(
+  query: string,
+  limit: number = 20
+): Promise<UserProfileType[]> {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
     .from('user_profiles')
     .select('*')
-    .or(`username.ilike.%${query}%,first_name.ilike.%${query}%,last_name.ilike.%${query}%`)
+    .or(
+      `username.ilike.%${query}%,first_name.ilike.%${query}%,last_name.ilike.%${query}%`
+    )
     .limit(limit);
 
   if (error || !data) {
@@ -173,11 +193,11 @@ export async function searchUsers(query: string, limit: number = 20): Promise<Us
  * Update user profile
  */
 export async function updateUserProfile(
-  userId: string, 
+  userId: string,
   updates: Partial<UserProfileType>
 ): Promise<UserProfileType | null> {
   const serviceSupabase = createServiceClient();
-  
+
   const { data, error } = await serviceSupabase
     .from('user_profiles')
     .update(updates)
@@ -195,9 +215,12 @@ export async function updateUserProfile(
 /**
  * Update user role (admin only)
  */
-export async function updateUserRole(userId: string, newRole: UserRoleType): Promise<boolean> {
+export async function updateUserRole(
+  userId: string,
+  newRole: UserRoleType
+): Promise<boolean> {
   const serviceSupabase = createServiceClient();
-  
+
   const { error } = await serviceSupabase
     .from('user_profiles')
     .update({ user_role: newRole })
@@ -211,7 +234,7 @@ export async function updateUserRole(userId: string, newRole: UserRoleType): Pro
  */
 export async function toggleUserActive(userId: string): Promise<boolean> {
   const serviceSupabase = createServiceClient();
-  
+
   // First get current status
   const profile = await getUserProfileWithServiceRole(userId);
   if (!profile) {
@@ -230,29 +253,77 @@ export async function toggleUserActive(userId: string): Promise<boolean> {
  * Get user statistics for admin dashboard
  */
 export async function getUserStatistics(): Promise<UserStatisticsType | null> {
-  const supabase = await createClient();
-  
-  const { data, error } = await supabase.rpc('get_user_statistics');
+  const serviceSupabase = createServiceClient();
 
-  if (error || !data) {
-    return null;
+  try {
+    // Get total users
+    const { count: totalUsers } = await serviceSupabase
+      .from('user_profiles')
+      .select('*', { count: 'exact', head: true });
+
+    // Get active users
+    const { count: activeUsers } = await serviceSupabase
+      .from('user_profiles')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_active', true);
+
+    // Get admin users
+    const { count: adminUsers } = await serviceSupabase
+      .from('user_profiles')
+      .select('*', { count: 'exact', head: true })
+      .in('user_role', ['admin', 'super_admin']);
+
+    // Get new users today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const { count: newUsersToday } = await serviceSupabase
+      .from('user_profiles')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', today.toISOString());
+
+    // Get new users this week
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const { count: newUsersThisWeek } = await serviceSupabase
+      .from('user_profiles')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', weekAgo.toISOString());
+
+    return {
+      total_users: totalUsers || 0,
+      active_users: activeUsers || 0,
+      admin_users: adminUsers || 0,
+      new_users_today: newUsersToday || 0,
+      new_users_this_week: newUsersThisWeek || 0,
+    };
+  } catch (error) {
+    console.error('Error getting user statistics:', error);
+    return {
+      total_users: 0,
+      active_users: 0,
+      admin_users: 0,
+      new_users_today: 0,
+      new_users_this_week: 0,
+    };
   }
-
-  return data[0] || null;
 }
 
 /**
  * Get recent user activity
  */
-export async function getRecentActivity(limit: number = 20): Promise<UserActivityLogType[]> {
-  const supabase = await createClient();
-  
-  const { data, error } = await supabase
+export async function getRecentActivity(
+  limit: number = 20
+): Promise<UserActivityLogType[]> {
+  const serviceSupabase = createServiceClient();
+
+  const { data, error } = await serviceSupabase
     .from('user_activity_log')
-    .select(`
+    .select(
+      `
       *,
       user_profiles!inner(username, first_name, last_name)
-    `)
+    `
+    )
     .order('created_at', { ascending: false })
     .limit(limit);
 
@@ -272,9 +343,9 @@ export async function logUserActivity(
   resourceId?: string,
   details?: Record<string, any>
 ): Promise<boolean> {
-  const supabase = await createClient();
-  
-  const { error } = await supabase.rpc('log_user_activity', {
+  const serviceSupabase = createServiceClient();
+
+  const { error } = await serviceSupabase.rpc('log_user_activity', {
     p_action: action,
     p_resource_type: resourceType,
     p_resource_id: resourceId,
@@ -288,9 +359,9 @@ export async function logUserActivity(
  * Get admin settings
  */
 export async function getAdminSettings(): Promise<AdminSettingsType[]> {
-  const supabase = await createClient();
-  
-  const { data, error } = await supabase
+  const serviceSupabase = createServiceClient();
+
+  const { data, error } = await serviceSupabase
     .from('admin_settings')
     .select('*')
     .order('key');
@@ -306,11 +377,11 @@ export async function getAdminSettings(): Promise<AdminSettingsType[]> {
  * Update admin setting
  */
 export async function updateAdminSetting(
-  key: string, 
+  key: string,
   value: Record<string, any>
 ): Promise<AdminSettingsType | null> {
   const serviceSupabase = createServiceClient();
-  
+
   const { data: authData } = await serviceSupabase.auth.getUser();
   if (!authData.user) {
     return null;
@@ -318,7 +389,7 @@ export async function updateAdminSetting(
 
   const { data, error } = await serviceSupabase
     .from('admin_settings')
-    .update({ 
+    .update({
       value,
       updated_by: authData.user.id,
     })
@@ -336,10 +407,12 @@ export async function updateAdminSetting(
 /**
  * Get users by role
  */
-export async function getUsersByRole(role: UserRoleType): Promise<UserProfileType[]> {
-  const supabase = await createClient();
-  
-  const { data, error } = await supabase
+export async function getUsersByRole(
+  role: UserRoleType
+): Promise<UserProfileType[]> {
+  const serviceSupabase = createServiceClient();
+
+  const { data, error } = await serviceSupabase
     .from('user_profiles')
     .select('*')
     .eq('user_role', role)
@@ -355,10 +428,13 @@ export async function getUsersByRole(role: UserRoleType): Promise<UserProfileTyp
 /**
  * Get user activity for a specific user
  */
-export async function getUserActivity(userId: string, limit: number = 50): Promise<UserActivityLogType[]> {
-  const supabase = await createClient();
-  
-  const { data, error } = await supabase
+export async function getUserActivity(
+  userId: string,
+  limit: number = 50
+): Promise<UserActivityLogType[]> {
+  const serviceSupabase = createServiceClient();
+
+  const { data, error } = await serviceSupabase
     .from('user_activity_log')
     .select('*')
     .eq('user_id', userId)
@@ -377,7 +453,7 @@ export async function getUserActivity(userId: string, limit: number = 50): Promi
  */
 export async function deleteUser(userId: string): Promise<boolean> {
   const serviceSupabase = createServiceClient();
-  
+
   try {
     // 1. Delete all user's storage files first
     await deleteUserStorageFiles(userId);
@@ -427,8 +503,9 @@ export async function deleteUser(userId: string): Promise<boolean> {
     }
 
     // 6. Finally, delete user from auth (this requires service role)
-    const { error: authError } = await serviceSupabase.auth.admin.deleteUser(userId);
-    
+    const { error: authError } =
+      await serviceSupabase.auth.admin.deleteUser(userId);
+
     if (authError) {
       console.error('Error deleting auth user:', authError);
       return false;
@@ -446,11 +523,11 @@ export async function deleteUser(userId: string): Promise<boolean> {
  */
 async function deleteUserStorageFiles(userId: string): Promise<void> {
   const serviceSupabase = createServiceClient();
-  
+
   try {
     // Recursively delete all files in the user's directory
     await deleteDirectoryRecursive(`user/${userId}`);
-    
+
     async function deleteDirectoryRecursive(path: string) {
       const { data: items, error: listError } = await serviceSupabase.storage
         .from('problem-uploads')
@@ -469,10 +546,10 @@ async function deleteUserStorageFiles(userId: string): Promise<void> {
       }
 
       const filesToDelete: string[] = [];
-      
+
       for (const item of items) {
         const itemPath = `${path}/${item.name}`;
-        
+
         if (item.metadata?.mimetype) {
           // It's a file
           filesToDelete.push(itemPath);
@@ -505,7 +582,7 @@ async function deleteUserStorageFiles(userId: string): Promise<void> {
  */
 export async function updateLastLogin(userId: string): Promise<boolean> {
   const serviceSupabase = createServiceClient();
-  
+
   const { error } = await serviceSupabase
     .from('user_profiles')
     .update({ last_login_at: new Date().toISOString() })

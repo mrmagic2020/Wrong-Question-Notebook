@@ -32,7 +32,7 @@ export function trackUsage(
 ): void {
   const now = Date.now();
   const key = `user:${userId}`;
-  
+
   // Get or create usage metrics
   let metrics = usageStore.get(key);
   if (!metrics) {
@@ -134,39 +134,56 @@ export function getUsagePercentage(userId: string): {
 }
 
 // Clean up old usage data
-setInterval(() => {
-  const now = Date.now();
-  const oneDayAgo = now - 24 * 60 * 60 * 1000;
-  
-  for (const [key, metrics] of usageStore.entries()) {
-    if (metrics.lastUpdated < oneDayAgo) {
-      usageStore.delete(key);
+setInterval(
+  () => {
+    const now = Date.now();
+    const oneDayAgo = now - 24 * 60 * 60 * 1000;
+
+    for (const [key, metrics] of usageStore.entries()) {
+      if (metrics.lastUpdated < oneDayAgo) {
+        usageStore.delete(key);
+      }
     }
-  }
-}, 60 * 60 * 1000); // Run every hour
+  },
+  60 * 60 * 1000
+); // Run every hour
 
 // Usage monitoring middleware
 export function withUsageMonitoring(
   handler: (req: NextRequest, ...args: any[]) => Promise<Response>
 ) {
   return async (req: NextRequest, ...args: any[]): Promise<Response> => {
-    const startTime = Date.now();
-    
+    // const startTime = Date.now();
+
     try {
       const response = await handler(req, ...args);
-      
+
       // Track usage
       const userId = req.headers.get('x-user-id') || 'anonymous';
-      const responseSize = parseInt(response.headers.get('content-length') || '0');
+      const responseSize = parseInt(
+        response.headers.get('content-length') || '0'
+      );
       trackUsage(userId, req, responseSize);
-      
+
       // Add usage headers
       const usage = getUsagePercentage(userId);
-      response.headers.set('X-Usage-Vercel-Bandwidth', usage.vercel.bandwidth.toFixed(2));
-      response.headers.set('X-Usage-Vercel-Requests', usage.vercel.requests.toFixed(2));
-      response.headers.set('X-Usage-Supabase-Storage', usage.supabase.storage.toFixed(2));
-      response.headers.set('X-Usage-Supabase-Requests', usage.supabase.requests.toFixed(2));
-      
+      response.headers.set(
+        'X-Usage-Vercel-Bandwidth',
+        usage.vercel.bandwidth.toFixed(2)
+      );
+      response.headers.set(
+        'X-Usage-Vercel-Requests',
+        usage.vercel.requests.toFixed(2)
+      );
+      response.headers.set(
+        'X-Usage-Supabase-Storage',
+        usage.supabase.storage.toFixed(2)
+      );
+      response.headers.set(
+        'X-Usage-Supabase-Requests',
+        usage.supabase.requests.toFixed(2)
+      );
+
       return response;
     } catch (error) {
       console.error('Usage monitoring error:', error);

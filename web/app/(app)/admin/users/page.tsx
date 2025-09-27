@@ -1,13 +1,19 @@
 import { createClient } from '@/lib/supabase/server';
 import { getAllUsers } from '@/lib/user-management';
 import { UserManagementTable } from '@/components/admin/user-management-table';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Search } from 'lucide-react';
 
 export default async function AdminUsersPage() {
   const supabase = await createClient();
-  
+
   // Get current user
   const { data: authData } = await supabase.auth.getUser();
   if (!authData.user) {
@@ -15,7 +21,7 @@ export default async function AdminUsersPage() {
   }
 
   // Fetch users data
-  const users = await getAllUsers(100, 0);
+  const users = await getAllUsers();
 
   return (
     <div className="space-y-6">

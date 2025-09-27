@@ -4,13 +4,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Settings, 
+import {
+  LayoutDashboard,
+  Users,
+  Settings,
   Activity,
   Shield,
-  LogOut
+  LogOut,
 } from 'lucide-react';
 
 const adminNavItems = [
@@ -52,9 +52,9 @@ export function AdminSidebar() {
           <span className="font-semibold">Admin Panel</span>
         </div>
       </div>
-      
+
       <nav className="space-y-1 px-4">
-        {adminNavItems.map((item) => {
+        {adminNavItems.map(item => {
           const isActive = pathname === item.href;
           return (
             <Link key={item.href} href={item.href}>

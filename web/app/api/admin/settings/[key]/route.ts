@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { isCurrentUserSuperAdmin, updateAdminSetting } from '@/lib/user-management';
+import {
+  isCurrentUserSuperAdmin,
+  updateAdminSetting,
+} from '@/lib/user-management';
 import { UpdateAdminSettingsDto } from '@/lib/types';
 
 export async function PATCH(

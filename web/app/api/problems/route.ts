@@ -33,7 +33,7 @@ async function createProblem(req: Request) {
   if (!user) return unauthorised();
 
   const body = await req.json().catch(() => ({}));
-  
+
   // Validate request body using Zod schema
   const parsed = CreateProblemDto.safeParse(body);
   if (!parsed.success) {
@@ -132,7 +132,7 @@ async function createProblem(req: Request) {
   return NextResponse.json({ data: updated }, { status: 201 });
 }
 
-export const POST = withSecurity(createProblem, { 
+export const POST = withSecurity(createProblem, {
   rateLimitType: 'problemCreation',
-  enableFileValidation: false 
+  enableFileValidation: false,
 });

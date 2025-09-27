@@ -22,10 +22,7 @@ async function deleteFile(req: Request) {
 
   // Validate file path to prevent directory traversal
   if (!validateFilePath(path)) {
-    return NextResponse.json(
-      { error: 'Invalid file path' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'Invalid file path' }, { status: 400 });
   }
 
   // Verify the path belongs to the current user's staging area

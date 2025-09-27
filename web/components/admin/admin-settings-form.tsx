@@ -5,7 +5,13 @@ import { AdminSettingsType } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
@@ -16,13 +22,15 @@ interface AdminSettingsFormProps {
 }
 
 export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
-  const [modifiedSettings, setModifiedSettings] = useState<Record<string, any>>({});
+  const [modifiedSettings, setModifiedSettings] = useState<Record<string, any>>(
+    {}
+  );
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSettingChange = (key: string, value: any) => {
     setModifiedSettings(prev => ({
       ...prev,
-      [key]: value
+      [key]: value,
     }));
   };
 
@@ -43,7 +51,10 @@ export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
 
   const renderSettingField = (setting: AdminSettingsType) => {
     const key = setting.key;
-    const currentValue = modifiedSettings[key] !== undefined ? modifiedSettings[key] : setting.value;
+    const currentValue =
+      modifiedSettings[key] !== undefined
+        ? modifiedSettings[key]
+        : setting.value;
 
     switch (key) {
       case 'site_maintenance':
@@ -54,7 +65,7 @@ export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
               <Switch
                 id={`${key}-enabled`}
                 checked={currentValue.enabled || false}
-                onCheckedChange={(enabled) => 
+                onCheckedChange={enabled =>
                   handleSettingChange(key, { ...currentValue, enabled })
                 }
               />
@@ -64,8 +75,11 @@ export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
               <Textarea
                 id={`${key}-message`}
                 value={currentValue.message || ''}
-                onChange={(e) => 
-                  handleSettingChange(key, { ...currentValue, message: e.target.value })
+                onChange={e =>
+                  handleSettingChange(key, {
+                    ...currentValue,
+                    message: e.target.value,
+                  })
                 }
                 placeholder="Enter maintenance message..."
                 rows={3}
@@ -82,18 +96,23 @@ export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
               <Switch
                 id={`${key}-enabled`}
                 checked={currentValue.enabled !== false}
-                onCheckedChange={(enabled) => 
+                onCheckedChange={enabled =>
                   handleSettingChange(key, { ...currentValue, enabled })
                 }
               />
             </div>
             <div className="flex items-center justify-between">
-              <Label htmlFor={`${key}-verify`}>Require Email Verification</Label>
+              <Label htmlFor={`${key}-verify`}>
+                Require Email Verification
+              </Label>
               <Switch
                 id={`${key}-verify`}
                 checked={currentValue.require_email_verification !== false}
-                onCheckedChange={(require_email_verification) => 
-                  handleSettingChange(key, { ...currentValue, require_email_verification })
+                onCheckedChange={require_email_verification =>
+                  handleSettingChange(key, {
+                    ...currentValue,
+                    require_email_verification,
+                  })
                 }
               />
             </div>
@@ -108,8 +127,10 @@ export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
               id={`${key}-size`}
               type="number"
               value={currentValue.size_mb || 10}
-              onChange={(e) => 
-                handleSettingChange(key, { size_mb: parseInt(e.target.value) || 10 })
+              onChange={e =>
+                handleSettingChange(key, {
+                  size_mb: parseInt(e.target.value) || 10,
+                })
               }
               min="1"
               max="100"
@@ -125,8 +146,10 @@ export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
               id={`${key}-hours`}
               type="number"
               value={currentValue.hours || 24}
-              onChange={(e) => 
-                handleSettingChange(key, { hours: parseInt(e.target.value) || 24 })
+              onChange={e =>
+                handleSettingChange(key, {
+                  hours: parseInt(e.target.value) || 24,
+                })
               }
               min="1"
               max="168"
@@ -140,7 +163,7 @@ export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
             <Label>Raw Value</Label>
             <Textarea
               value={JSON.stringify(currentValue, null, 2)}
-              onChange={(e) => {
+              onChange={e => {
                 try {
                   const parsed = JSON.parse(e.target.value);
                   handleSettingChange(key, parsed);
@@ -174,20 +197,20 @@ export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
       </div>
 
       <div className="grid gap-6">
-        {settings.map((setting) => (
+        {settings.map(setting => (
           <Card key={setting.id}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
-                {setting.key.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                {setting.key
+                  .replace('_', ' ')
+                  .replace(/\b\w/g, l => l.toUpperCase())}
               </CardTitle>
               {setting.description && (
                 <CardDescription>{setting.description}</CardDescription>
               )}
             </CardHeader>
-            <CardContent>
-              {renderSettingField(setting)}
-            </CardContent>
+            <CardContent>{renderSettingField(setting)}</CardContent>
           </Card>
         ))}
       </div>

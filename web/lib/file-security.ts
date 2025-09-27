@@ -1,5 +1,3 @@
-import { NextRequest } from 'next/server';
-
 // Allowed file types and their MIME types
 export const ALLOWED_FILE_TYPES = {
   images: {
@@ -119,7 +117,7 @@ export function isDocumentFile(mimeType: string): boolean {
 }
 
 // Security headers for file responses
-export function getFileSecurityHeaders(filename: string, mimeType: string) {
+export function getFileSecurityHeaders(filename: string) {
   const headers: Record<string, string> = {
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
@@ -127,25 +125,23 @@ export function getFileSecurityHeaders(filename: string, mimeType: string) {
     'Content-Disposition': `inline; filename="${sanitizeFilename(filename)}"`,
   };
 
-  // Add specific security headers based on file type
-  if (isImageFile(mimeType)) {
-    headers['Content-Security-Policy'] = "default-src 'none'; img-src 'self' data:";
-  } else if (isDocumentFile(mimeType)) {
-    headers['Content-Security-Policy'] = "default-src 'none'; object-src 'self'";
-  }
-
   return headers;
 }
 
 // Validate file path to prevent directory traversal
 export function validateFilePath(filePath: string): boolean {
   // Check for directory traversal attempts
-  if (filePath.includes('..') || filePath.includes('~') || filePath.startsWith('/')) {
+  if (
+    filePath.includes('..') ||
+    filePath.includes('~') ||
+    filePath.startsWith('/')
+  ) {
     return false;
   }
 
   // Check for allowed path pattern (user/{userId}/...)
-  const userPathPattern = /^user\/[a-f0-9-]+\/(staging|problems)\/[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+$/;
+  const userPathPattern =
+    /^user\/[a-f0-9-]+\/(staging|problems)\/[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+$/;
   return userPathPattern.test(filePath);
 }
 
@@ -153,12 +149,11 @@ export function validateFilePath(filePath: string): boolean {
 export function generateSecureFilePath(
   userId: string,
   category: 'staging' | 'problems',
-  stagingId?: string,
-  filename?: string
+  stagingId?: string
 ): string {
   const timestamp = Date.now();
   const randomId = Math.random().toString(36).substring(2, 15);
-  
+
   if (category === 'staging') {
     return `user/${userId}/staging/${stagingId || randomId}/${timestamp}_${randomId}`;
   } else {

@@ -53,7 +53,7 @@ export async function updateSession(request: NextRequest) {
     try {
       // Use a non-blocking approach to update last login
       updateLastLogin(user.sub).catch(console.error);
-    } catch (error) {
+    } catch {
       // Ignore errors in login tracking
     }
   }
@@ -97,9 +97,9 @@ export async function updateSession(request: NextRequest) {
         url.pathname = '/subjects';
         return NextResponse.redirect(url);
       }
-    } catch (error) {
+    } catch {
       // If there's an error checking profile, redirect to subjects
-      console.error('Admin check error:', error);
+      console.error('Admin check error');
       const url = request.nextUrl.clone();
       url.pathname = '/subjects';
       return NextResponse.redirect(url);

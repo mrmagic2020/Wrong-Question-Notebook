@@ -46,7 +46,7 @@ export const UserActivityLog = z.object({
   action: z.string(),
   resource_type: z.string().nullable(),
   resource_id: z.string().uuid().nullable(),
-  details: z.record(z.any()).nullable(),
+  details: z.record(z.string(), z.any()).nullable(),
   ip_address: z.string().nullable(),
   user_agent: z.string().nullable(),
   created_at: z.string().datetime(),
@@ -58,7 +58,7 @@ export type UserActivityLogType = z.infer<typeof UserActivityLog>;
 export const AdminSettings = z.object({
   id: z.string().uuid(),
   key: z.string(),
-  value: z.record(z.any()),
+  value: z.record(z.string(), z.any()),
   description: z.string().nullable(),
   updated_by: z.string().uuid().nullable(),
   created_at: z.string().datetime(),
@@ -98,12 +98,12 @@ export const UpdateUserProfileDto = CreateUserProfileDto.partial().extend({
 
 export const CreateAdminSettingsDto = z.object({
   key: z.string().min(1).max(100),
-  value: z.record(z.any()),
+  value: z.record(z.string(), z.any()),
   description: z.string().optional(),
 });
 
 export const UpdateAdminSettingsDto = z.object({
-  value: z.record(z.any()),
+  value: z.record(z.string(), z.any()),
   description: z.string().optional(),
 });
 

@@ -5,30 +5,30 @@ import { UserProfileType, UserRoleType } from '@/lib/types';
 import { formatDisplayDate } from '@/lib/date-utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from '@/components/ui/table';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { 
-  MoreHorizontal, 
-  User, 
-  Shield, 
-  Eye, 
-  Edit, 
+import {
+  MoreHorizontal,
+  User,
+  Shield,
+  Eye,
+  Edit,
   Ban,
   CheckCircle,
-  AlertCircle,
-  Trash2
+  // AlertCircle,
+  Trash2,
 } from 'lucide-react';
 
 interface UserManagementTableProps {
@@ -60,12 +60,12 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
         const error = await response.json();
         alert(`Failed to update role: ${error.error}`);
       }
-    } catch (error) {
+    } catch {
       alert('Error updating user role');
     }
   };
 
-  const handleToggleActive = async (userId: string, isActive: boolean) => {
+  const handleToggleActive = async (userId: string) => {
     try {
       const response = await fetch(`/api/admin/users/${userId}/toggle-active`, {
         method: 'PATCH',
@@ -77,7 +77,7 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
         const error = await response.json();
         alert(`Failed to toggle user status: ${error.error}`);
       }
-    } catch (error) {
+    } catch {
       alert('Error toggling user status');
     }
   };
@@ -102,7 +102,7 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
         const error = await response.json();
         alert(`Failed to delete user: ${error.error}`);
       }
-    } catch (error) {
+    } catch {
       alert('Error deleting user');
     } finally {
       setDeletingUsers(prev => {
@@ -112,7 +112,6 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
       });
     }
   };
-
 
   const getRoleIcon = (role: UserRoleType) => {
     switch (role) {
@@ -147,7 +146,7 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
                 <input
                   type="checkbox"
                   className="rounded"
-                  onChange={(e) => {
+                  onChange={e => {
                     if (e.target.checked) {
                       setSelectedUsers(new Set(users.map(u => u.id)));
                     } else {
@@ -165,14 +164,14 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map((user) => (
+            {users.map(user => (
               <TableRow key={user.id}>
                 <TableCell>
                   <input
                     type="checkbox"
                     className="rounded"
                     checked={selectedUsers.has(user.id)}
-                    onChange={(e) => {
+                    onChange={e => {
                       const newSelected = new Set(selectedUsers);
                       if (e.target.checked) {
                         newSelected.add(user.id);
@@ -190,7 +189,9 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
                     </div>
                     <div>
                       <p className="font-medium">
-                        {user.username || `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'No name'}
+                        {user.username ||
+                          `${user.first_name || ''} ${user.last_name || ''}`.trim() ||
+                          'No name'}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {user.id.slice(0, 8)}...
@@ -222,7 +223,9 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
                   </div>
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  {formatDisplayDate(user.last_login_at)}
+                  {user.last_login_at
+                    ? formatDisplayDate(user.last_login_at)
+                    : 'Never'}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
                   {formatDisplayDate(user.created_at)}
@@ -245,7 +248,7 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
                       </DropdownMenuItem>
                       {user.user_role !== 'super_admin' && (
                         <DropdownMenuItem
-                          onClick={() => handleToggleActive(user.id, user.is_active)}
+                          onClick={() => handleToggleActive(user.id)}
                         >
                           {user.is_active ? (
                             <>
@@ -263,7 +266,9 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
                       {user.user_role !== 'super_admin' && (
                         <>
                           <DropdownMenuItem
-                            onClick={() => handleRoleChange(user.id, 'moderator')}
+                            onClick={() =>
+                              handleRoleChange(user.id, 'moderator')
+                            }
                           >
                             Make Moderator
                           </DropdownMenuItem>
@@ -281,12 +286,19 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
                       )}
                       {user.user_role !== 'super_admin' && (
                         <DropdownMenuItem
-                          onClick={() => handleDeleteUser(user.id, user.username || 'Unknown User')}
+                          onClick={() =>
+                            handleDeleteUser(
+                              user.id,
+                              user.username || 'Unknown User'
+                            )
+                          }
                           className="text-red-600 focus:text-red-600"
                           disabled={deletingUsers.has(user.id)}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
-                          {deletingUsers.has(user.id) ? 'Deleting...' : 'Delete User'}
+                          {deletingUsers.has(user.id)
+                            ? 'Deleting...'
+                            : 'Delete User'}
                         </DropdownMenuItem>
                       )}
                     </DropdownMenuContent>

@@ -26,7 +26,7 @@ export async function GET(
   // Additional security: Verify the user actually owns a problem that references this asset
   // OR the file is in staging (temporary uploads during form editing)
   const isStagingFile = decodedPath.includes('/staging/');
-  
+
   if (!isStagingFile) {
     // For non-staging files, verify they are referenced in a problem
     const { data: problems, error: problemsError } = await supabase

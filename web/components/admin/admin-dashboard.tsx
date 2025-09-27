@@ -1,10 +1,5 @@
-import { createClient } from '@/lib/supabase/server';
-import {
-  getUserStatistics,
-  getRecentActivity,
-  getAdminSettings,
-} from '@/lib/user-management';
-// import { AdminDashboard } from '@/components/admin/admin-dashboard';
+'use client';
+
 import {
   Card,
   CardContent,
@@ -13,40 +8,44 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Users, Activity, Settings, Shield } from 'lucide-react';
-import { formatDisplayDateTime } from '@/lib/date-utils';
+// import { Button } from '@/components/ui/button';
+import {
+  Users,
+  Activity,
+  Settings,
+  Shield,
+  TrendingUp,
+  // AlertTriangle,
+} from 'lucide-react';
 
-export default async function AdminDashboardPage() {
-  const supabase = await createClient();
+interface AdminDashboardProps {
+  statistics: {
+    total_users: number;
+    active_users: number;
+    admin_users: number;
+    new_users_today: number;
+    new_users_this_week: number;
+  };
+  recentActivity: Array<{
+    id: string;
+    action: string;
+    created_at: string;
+    resource_type?: string;
+  }>;
+  settings: Array<{
+    id: string;
+    key: string;
+    description?: string;
+  }>;
+}
 
-  // Get current user
-  const { data: authData } = await supabase.auth.getUser();
-  if (!authData.user) {
-    return null;
-  }
-
-  // Fetch dashboard data
-  const [statistics, recentActivity, settings] = await Promise.all([
-    getUserStatistics(),
-    getRecentActivity(),
-    getAdminSettings(),
-  ]);
-
+export function AdminDashboard({
+  statistics,
+  recentActivity,
+  settings,
+}: AdminDashboardProps) {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <p className="text-muted-foreground">
-            Welcome back, {authData.user.email}
-          </p>
-        </div>
-        <Badge variant="outline" className="flex items-center gap-2">
-          <Shield className="h-4 w-4" />
-          Administrator
-        </Badge>
-      </div>
-
       {/* Quick Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -95,7 +94,7 @@ export default async function AdminDashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">New This Week</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -125,7 +124,7 @@ export default async function AdminDashboardPage() {
                       {activity.action}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {formatDisplayDateTime(activity.created_at)}
+                      {new Date(activity.created_at).toLocaleString()}
                     </p>
                   </div>
                   {activity.resource_type && (

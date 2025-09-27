@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { isCurrentUserAdmin, getUserProfile, getUserProfileWithServiceRole, updateUserRole } from '@/lib/user-management';
+import {
+  isCurrentUserAdmin,
+  getUserProfile,
+  getUserProfileWithServiceRole,
+  updateUserRole,
+} from '@/lib/user-management';
 import { UserRole } from '@/lib/types';
 
 export async function PATCH(
@@ -42,7 +47,10 @@ export async function PATCH(
     }
 
     const currentUserProfile = await getUserProfile(authData.user.id);
-    if (existingUser.user_role === 'super_admin' && currentUserProfile?.user_role !== 'super_admin') {
+    if (
+      existingUser.user_role === 'super_admin' &&
+      currentUserProfile?.user_role !== 'super_admin'
+    ) {
       return NextResponse.json(
         { error: 'Cannot modify super admin users' },
         { status: 403 }
@@ -65,9 +73,9 @@ export async function PATCH(
       );
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: 'User role updated successfully',
-      role 
+      role,
     });
   } catch (error) {
     console.error('Error updating user role:', error);

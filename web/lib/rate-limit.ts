@@ -17,21 +17,26 @@ interface RateLimitEntry {
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
 // Clean up expired entries every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of rateLimitStore.entries()) {
-    if (now > entry.resetTime) {
-      rateLimitStore.delete(key);
+setInterval(
+  () => {
+    const now = Date.now();
+    for (const [key, entry] of rateLimitStore.entries()) {
+      if (now > entry.resetTime) {
+        rateLimitStore.delete(key);
+      }
     }
-  }
-}, 5 * 60 * 1000);
+  },
+  5 * 60 * 1000
+);
 
 export function createRateLimit(config: RateLimitConfig) {
   return (req: NextRequest): NextResponse | null => {
-    const key = config.keyGenerator ? config.keyGenerator(req) : getDefaultKey(req);
+    const key = config.keyGenerator
+      ? config.keyGenerator(req)
+      : getDefaultKey(req);
     const now = Date.now();
-    const windowStart = now - config.windowMs;
-    
+    // const windowStart = now - config.windowMs;
+
     // Get or create rate limit entry
     let entry = rateLimitStore.get(key);
     if (!entry || now > entry.resetTime) {
@@ -41,14 +46,14 @@ export function createRateLimit(config: RateLimitConfig) {
       };
       rateLimitStore.set(key, entry);
     }
-    
+
     // Increment counter
     entry.count++;
-    
+
     // Check if limit exceeded
     if (entry.count > config.maxRequests) {
       const retryAfter = Math.ceil((entry.resetTime - now) / 1000);
-      
+
       return new NextResponse(
         JSON.stringify({
           error: 'Too Many Requests',
@@ -67,13 +72,16 @@ export function createRateLimit(config: RateLimitConfig) {
         }
       );
     }
-    
+
     // Add rate limit headers
     const response = NextResponse.next();
     response.headers.set('X-RateLimit-Limit', config.maxRequests.toString());
-    response.headers.set('X-RateLimit-Remaining', (config.maxRequests - entry.count).toString());
+    response.headers.set(
+      'X-RateLimit-Remaining',
+      (config.maxRequests - entry.count).toString()
+    );
     response.headers.set('X-RateLimit-Reset', entry.resetTime.toString());
-    
+
     return null; // Allow request to proceed
   };
 }
@@ -92,19 +100,19 @@ export const rateLimitConfigs = {
     windowMs: 15 * 60 * 1000, // 15 minutes
     maxRequests: 100, // 100 requests per 15 minutes
   },
-  
+
   // File upload rate limit (more restrictive)
   fileUpload: {
     windowMs: 60 * 60 * 1000, // 1 hour
     maxRequests: 20, // 20 uploads per hour
   },
-  
+
   // Authentication rate limit (very restrictive)
   auth: {
     windowMs: 15 * 60 * 1000, // 15 minutes
     maxRequests: 5, // 5 auth attempts per 15 minutes
   },
-  
+
   // Problem creation rate limit
   problemCreation: {
     windowMs: 60 * 60 * 1000, // 1 hour
@@ -114,6 +122,8 @@ export const rateLimitConfigs = {
 
 // Helper function to create rate limiters
 export const createApiRateLimit = () => createRateLimit(rateLimitConfigs.api);
-export const createFileUploadRateLimit = () => createRateLimit(rateLimitConfigs.fileUpload);
+export const createFileUploadRateLimit = () =>
+  createRateLimit(rateLimitConfigs.fileUpload);
 export const createAuthRateLimit = () => createRateLimit(rateLimitConfigs.auth);
-export const createProblemCreationRateLimit = () => createRateLimit(rateLimitConfigs.problemCreation);
+export const createProblemCreationRateLimit = () =>
+  createRateLimit(rateLimitConfigs.problemCreation);

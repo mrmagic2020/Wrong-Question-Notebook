@@ -1,13 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRateLimit, createApiRateLimit, createFileUploadRateLimit, createAuthRateLimit } from './rate-limit';
+import {
+  createRateLimit,
+  createApiRateLimit,
+  createFileUploadRateLimit,
+  createAuthRateLimit,
+} from './rate-limit';
 import { validateRequest, getSecurityHeaders } from './request-validation';
-import { validateFileUpload, validateFilePath } from './file-security';
+import { validateFileUpload } from './file-security';
 
 export interface SecurityConfig {
   enableRateLimit?: boolean;
   enableRequestValidation?: boolean;
   enableFileValidation?: boolean;
-  rateLimitType?: 'api' | 'fileUpload' | 'auth' | 'custom' | 'readOnly' | 'problemCreation';
+  rateLimitType?:
+    | 'api'
+    | 'fileUpload'
+    | 'auth'
+    | 'custom'
+    | 'readOnly'
+    | 'problemCreation';
   customRateLimit?: {
     windowMs: number;
     maxRequests: number;
@@ -27,7 +38,7 @@ export function createSecurityMiddleware(config: SecurityConfig = {}) {
     // 1. Request validation
     if (enableRequestValidation) {
       const validation = validateRequest(req);
-      
+
       if (!validation.isValid) {
         console.warn('Request validation failed:', {
           url: req.url,
@@ -93,17 +104,21 @@ export function createSecurityMiddleware(config: SecurityConfig = {}) {
     if (enableFileValidation && req.method === 'POST') {
       const contentType = req.headers.get('content-type');
       // Only validate files for actual file upload endpoints, not JSON API endpoints
-      if (contentType?.includes('multipart/form-data') && req.nextUrl.pathname.includes('/upload')) {
+      if (
+        contentType?.includes('multipart/form-data') &&
+        req.nextUrl.pathname.includes('/upload')
+      ) {
         try {
           const formData = await req.formData();
           const file = formData.get('file') as File;
-          
+
           if (file) {
+            const { ALLOWED_FILE_TYPES } = await import('./file-security');
             const validation = validateFileUpload(file, {
               maxSize: 5 * 1024 * 1024, // 5MB
               allowedTypes: Object.keys({
-                ...require('./file-security').ALLOWED_FILE_TYPES.images,
-                ...require('./file-security').ALLOWED_FILE_TYPES.documents,
+                ...ALLOWED_FILE_TYPES.images,
+                ...ALLOWED_FILE_TYPES.documents,
               }),
             });
 

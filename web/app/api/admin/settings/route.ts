@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { isCurrentUserAdmin, isCurrentUserSuperAdmin, getAdminSettings, updateAdminSetting } from '@/lib/user-management';
-import { CreateAdminSettingsDto, UpdateAdminSettingsDto } from '@/lib/types';
+import {
+  isCurrentUserAdmin,
+  isCurrentUserSuperAdmin,
+  getAdminSettings,
+  // updateAdminSetting,
+} from '@/lib/user-management';
+import { CreateAdminSettingsDto } from '@/lib/types';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Check if user is admin
     const isAdmin = await isCurrentUserAdmin();
@@ -22,7 +27,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     // Check if user is super admin
     const isSuperAdmin = await isCurrentUserSuperAdmin();
@@ -30,7 +35,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
+    const body = await _request.json();
     const validatedData = CreateAdminSettingsDto.parse(body);
 
     const supabase = await createClient();

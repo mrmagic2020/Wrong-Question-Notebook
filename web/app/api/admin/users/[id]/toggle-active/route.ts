@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { isCurrentUserAdmin, getUserProfile, getUserProfileWithServiceRole, toggleUserActive } from '@/lib/user-management';
+import {
+  isCurrentUserAdmin,
+  getUserProfile,
+  getUserProfileWithServiceRole,
+  toggleUserActive,
+} from '@/lib/user-management';
 
 export async function PATCH(
   request: NextRequest,
@@ -30,7 +35,10 @@ export async function PATCH(
     }
 
     const currentUserProfile = await getUserProfile(authData.user.id);
-    if (existingUser.user_role === 'super_admin' && currentUserProfile?.user_role !== 'super_admin') {
+    if (
+      existingUser.user_role === 'super_admin' &&
+      currentUserProfile?.user_role !== 'super_admin'
+    ) {
       return NextResponse.json(
         { error: 'Cannot modify super admin users' },
         { status: 403 }
@@ -53,9 +61,9 @@ export async function PATCH(
       );
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: 'User status updated successfully',
-      isActive: !existingUser.is_active
+      isActive: !existingUser.is_active,
     });
   } catch (error) {
     console.error('Error toggling user status:', error);

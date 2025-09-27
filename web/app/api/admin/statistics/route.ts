@@ -1,7 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { isCurrentUserAdmin, getUserStatistics, getRecentActivity } from '@/lib/user-management';
+import { NextResponse } from 'next/server';
+import {
+  isCurrentUserAdmin,
+  getUserStatistics,
+  // getRecentActivity,
+} from '@/lib/user-management';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Check if user is admin
     const isAdmin = await isCurrentUserAdmin();

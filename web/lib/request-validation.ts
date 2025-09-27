@@ -26,20 +26,14 @@ export const requestValidationSchemas = {
 
 // Security headers validation
 export const securityHeaders = {
-  required: [
-    'x-forwarded-for',
-    'user-agent',
-  ],
-  optional: [
-    'x-real-ip',
-    'x-forwarded-proto',
-    'x-forwarded-host',
-  ],
+  required: ['x-forwarded-for', 'user-agent'],
+  optional: ['x-real-ip', 'x-forwarded-proto', 'x-forwarded-host'],
 };
 
 // Suspicious patterns to detect
 export const suspiciousPatterns = {
-  sqlInjection: /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)/i,
+  sqlInjection:
+    /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)/i,
   xss: /<script|javascript:|on\w+\s*=/i,
   pathTraversal: /\.\.\/|\.\.\\|\.\.%2f|\.\.%5c/i,
   commandInjection: /[;&|`$()]/,
@@ -83,7 +77,8 @@ export function validateRequest(req: NextRequest): ValidationResult {
 
   // Check content length
   const contentLength = parseInt(req.headers.get('content-length') || '0');
-  if (contentLength > 50 * 1024 * 1024) { // 50MB
+  if (contentLength > 50 * 1024 * 1024) {
+    // 50MB
     errors.push('Request too large');
     riskLevel = 'high';
   }
@@ -95,7 +90,7 @@ export function validateRequest(req: NextRequest): ValidationResult {
     riskLevel = 'medium';
   } else {
     // Check for suspicious user agents
-    const isSuspicious = suspiciousPatterns.suspiciousUserAgents.some(ua => 
+    const isSuspicious = suspiciousPatterns.suspiciousUserAgents.some(ua =>
       userAgent.toLowerCase().includes(ua.toLowerCase())
     );
     if (isSuspicious) {
@@ -176,7 +171,10 @@ function isValidReferer(referer: string): boolean {
 }
 
 // Validate request body for specific endpoints
-export function validateRequestBody(body: any, schema: z.ZodSchema): ValidationResult {
+export function validateRequestBody(
+  body: any,
+  schema: z.ZodSchema
+): ValidationResult {
   try {
     schema.parse(body);
     return {
@@ -189,7 +187,9 @@ export function validateRequestBody(body: any, schema: z.ZodSchema): ValidationR
     if (error instanceof z.ZodError) {
       return {
         isValid: false,
-        errors: error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`),
+        errors: error.issues.map(
+          (e: any) => `${e.path.join('.')}: ${e.message}`
+        ),
         warnings: [],
         riskLevel: 'medium',
       };
@@ -204,14 +204,17 @@ export function validateRequestBody(body: any, schema: z.ZodSchema): ValidationR
 }
 
 // Rate limiting key generator based on user and endpoint
-export function generateRateLimitKey(req: NextRequest, userId?: string): string {
+export function generateRateLimitKey(
+  req: NextRequest,
+  userId?: string
+): string {
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
   const endpoint = req.nextUrl.pathname;
-  
+
   if (userId) {
     return `user:${userId}:${endpoint}`;
   }
-  
+
   return `ip:${ip}:${endpoint}`;
 }
 
@@ -222,7 +225,8 @@ export function getSecurityHeaders(): Record<string, string> {
     'X-Frame-Options': 'DENY',
     'X-XSS-Protection': '1; mode=block',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;",
+    'Content-Security-Policy':
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;",
     'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
   };
 }
