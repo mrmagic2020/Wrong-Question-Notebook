@@ -67,14 +67,16 @@ export async function cleanupOldStagingFolders(
   maxAgeHours = 24
 ) {
   const base = `user/${userId}/staging/`;
-  const { data: folders, error } = await supabase.storage.from(BUCKET).list(base, {
-    limit: 1000,
-    sortBy: { column: 'created_at', order: 'asc' },
-  });
+  const { data: folders, error } = await supabase.storage
+    .from(BUCKET)
+    .list(base, {
+      limit: 1000,
+      sortBy: { column: 'created_at', order: 'asc' },
+    });
 
   if (error || !folders) return;
 
-  const cutoffTime = Date.now() - (maxAgeHours * 60 * 60 * 1000);
+  const cutoffTime = Date.now() - maxAgeHours * 60 * 60 * 1000;
   const oldFolders = folders.filter(folder => {
     const folderTime = new Date(folder.created_at).getTime();
     return folderTime < cutoffTime;

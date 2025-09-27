@@ -2,7 +2,11 @@ import { z } from 'zod';
 
 // Database enum values - these should match the PostgreSQL enum type
 export const PROBLEM_TYPE_VALUES = ['mcq', 'short', 'extended'] as const;
-export const PROBLEM_STATUS_VALUES = ['wrong', 'needs_review', 'mastered'] as const;
+export const PROBLEM_STATUS_VALUES = [
+  'wrong',
+  'needs_review',
+  'mastered',
+] as const;
 
 export const ProblemType = z.enum(PROBLEM_TYPE_VALUES);
 export type ProblemType = z.infer<typeof ProblemType>;

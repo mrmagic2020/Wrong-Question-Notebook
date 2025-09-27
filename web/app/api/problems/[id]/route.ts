@@ -2,7 +2,10 @@ import { NextResponse } from 'next/server';
 import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
 import { UpdateProblemDto } from '@/lib/schemas';
 import { deleteProblemFiles } from '@/lib/storage/delete';
-import { movePathsToProblemWithUser, cleanupStagingFiles } from '@/lib/storage/move';
+import {
+  movePathsToProblemWithUser,
+  cleanupStagingFiles,
+} from '@/lib/storage/move';
 
 export async function GET(
   _req: Request,
@@ -36,11 +39,11 @@ export async function GET(
 
   const tags = tagLinks?.map((link: any) => link.tags).filter(Boolean) || [];
 
-  return NextResponse.json({ 
-    data: { 
-      ...problem, 
-      tags 
-    } 
+  return NextResponse.json({
+    data: {
+      ...problem,
+      tags,
+    },
   });
 }
 
@@ -83,26 +86,32 @@ export async function PATCH(
     );
 
     // Filter out only staged files (files that need to be moved)
-    const stagedProblemPaths = allProblemPaths.filter(path => 
+    const stagedProblemPaths = allProblemPaths.filter(path =>
       path.includes('/staging/')
     );
-    const stagedSolutionPaths = allSolutionPaths.filter(path => 
+    const stagedSolutionPaths = allSolutionPaths.filter(path =>
       path.includes('/staging/')
     );
 
     // Move only staged assets to permanent storage
-    const movedProblem = stagedProblemPaths.length > 0 ? await movePathsToProblemWithUser(
-      supabase,
-      stagedProblemPaths,
-      id,
-      user.id
-    ) : [];
-    const movedSolution = stagedSolutionPaths.length > 0 ? await movePathsToProblemWithUser(
-      supabase,
-      stagedSolutionPaths,
-      id,
-      user.id
-    ) : [];
+    const movedProblem =
+      stagedProblemPaths.length > 0
+        ? await movePathsToProblemWithUser(
+            supabase,
+            stagedProblemPaths,
+            id,
+            user.id
+          )
+        : [];
+    const movedSolution =
+      stagedSolutionPaths.length > 0
+        ? await movePathsToProblemWithUser(
+            supabase,
+            stagedSolutionPaths,
+            id,
+            user.id
+          )
+        : [];
 
     // Create mapping from old staged paths to new permanent paths
     const pathMapping = new Map<string, string>();
@@ -140,7 +149,7 @@ export async function PATCH(
       const firstStagedPath = allStagedPaths[0];
       const pathParts = firstStagedPath.split('/');
       const stagingId = pathParts[3]; // user/{uid}/staging/{stagingId}/...
-      
+
       if (stagingId) {
         // Clean up staging files in the background (don't wait for it)
         cleanupStagingFiles(supabase, stagingId, user.id).catch(error => {

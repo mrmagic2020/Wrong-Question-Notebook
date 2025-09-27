@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
 import { CreateProblemDto } from '@/lib/schemas';
-import { movePathsToProblemWithUser, cleanupStagingFiles } from '@/lib/storage/move';
+import {
+  movePathsToProblemWithUser,
+  cleanupStagingFiles,
+} from '@/lib/storage/move';
 
 export async function GET(req: Request) {
   const { user, supabase } = await requireUser();
@@ -112,7 +115,7 @@ export async function POST(req: Request) {
     const firstStagedPath = allStagedPaths[0];
     const pathParts = firstStagedPath.split('/');
     const stagingId = pathParts[3]; // user/{uid}/staging/{stagingId}/...
-    
+
     if (stagingId) {
       // Clean up staging files in the background (don't wait for it)
       cleanupStagingFiles(supabase, stagingId, user.id).catch(error => {

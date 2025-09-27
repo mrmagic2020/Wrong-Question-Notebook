@@ -12,7 +12,6 @@ interface AnswerInputProps {
 
 export default function AnswerInput({
   problemType,
-  correctAnswer,
   value,
   onChange,
   disabled = false,
@@ -37,7 +36,7 @@ export default function AnswerInput({
           <input
             type="text"
             value={value || ''}
-            onChange={(e) => handleMcqChange(e.target.value)}
+            onChange={e => handleMcqChange(e.target.value)}
             disabled={disabled}
             placeholder="Type your answer here..."
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -52,7 +51,7 @@ export default function AnswerInput({
           <input
             type="text"
             value={value || ''}
-            onChange={(e) => handleShortAnswerChange(e.target.value)}
+            onChange={e => handleShortAnswerChange(e.target.value)}
             disabled={disabled}
             placeholder="Type your answer here..."
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -66,7 +65,7 @@ export default function AnswerInput({
           <p className="text-sm text-gray-600">Write your response:</p>
           <textarea
             value={value || ''}
-            onChange={(e) => handleExtendedResponseChange(e.target.value)}
+            onChange={e => handleExtendedResponseChange(e.target.value)}
             disabled={disabled}
             placeholder="Write your detailed response here..."
             rows={6}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { FormEvent, useEffect, useState, useMemo, useRef } from 'react';
+import { FormEvent, useEffect, useState, useMemo } from 'react';
 import FileManager from '@/components/ui/file-manager';
 import { PROBLEM_TYPE_VALUES, type ProblemType } from '@/lib/schemas';
 
@@ -21,14 +21,14 @@ const getProblemTypeDisplayName = (type: ProblemType): string => {
   }
 };
 
-export default function ProblemForm({ 
-  subjectId, 
-  problem = null, 
-  onCancel = null 
-}: { 
-  subjectId: string; 
-  problem?: any | null; 
-  onCancel?: (() => void) | null; 
+export default function ProblemForm({
+  subjectId,
+  problem = null,
+  onCancel = null,
+}: {
+  subjectId: string;
+  problem?: any | null;
+  onCancel?: (() => void) | null;
 }) {
   const router = useRouter();
   const isEditMode = !!problem;
@@ -50,7 +50,7 @@ export default function ProblemForm({
     }
     return [];
   });
-  
+
   function toggleTag(id: string) {
     setSelectedTagIds(prev =>
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
@@ -62,7 +62,9 @@ export default function ProblemForm({
 
   const [title, setTitle] = useState(problem?.title || '');
   const [content, setContent] = useState(problem?.content || '');
-  const [problemType, setProblemType] = useState<ProblemType>(problem?.problem_type || 'short');
+  const [problemType, setProblemType] = useState<ProblemType>(
+    problem?.problem_type || 'short'
+  );
   const [status, setStatus] = useState<'wrong' | 'needs_review' | 'mastered'>(
     problem?.status || 'needs_review'
   );
@@ -103,21 +105,39 @@ export default function ProblemForm({
 
   // Correct answer inputs
   const [mcqChoice, setMcqChoice] = useState(
-    problem?.correct_answer?.type === 'mcq' ? problem.correct_answer.choice : 
-    typeof problem?.correct_answer === 'string' ? problem.correct_answer : ''
+    problem?.correct_answer?.type === 'mcq'
+      ? problem.correct_answer.choice
+      : typeof problem?.correct_answer === 'string'
+        ? problem.correct_answer
+        : ''
   );
   const [shortText, setShortText] = useState(
-    problem?.correct_answer?.type === 'short' ? problem.correct_answer.text : 
-    typeof problem?.correct_answer === 'string' ? problem.correct_answer : ''
+    problem?.correct_answer?.type === 'short'
+      ? problem.correct_answer.text
+      : typeof problem?.correct_answer === 'string'
+        ? problem.correct_answer
+        : ''
   );
 
   // Assets
-  const [problemAssets, setProblemAssets] = useState<Array<{path: string; name: string}>>(
-    problem?.assets?.map((asset: any) => ({ path: asset.path, name: asset.path.split('/').pop() || '' })) || []
+  const [problemAssets, setProblemAssets] = useState<
+    Array<{ path: string; name: string }>
+  >(
+    problem?.assets?.map((asset: any) => ({
+      path: asset.path,
+      name: asset.path.split('/').pop() || '',
+    })) || []
   );
-  const [solutionText, setSolutionText] = useState(problem?.solution_text || '');
-  const [solutionAssets, setSolutionAssets] = useState<Array<{path: string; name: string}>>(
-    problem?.solution_assets?.map((asset: any) => ({ path: asset.path, name: asset.path.split('/').pop() || '' })) || []
+  const [solutionText, setSolutionText] = useState(
+    problem?.solution_text || ''
+  );
+  const [solutionAssets, setSolutionAssets] = useState<
+    Array<{ path: string; name: string }>
+  >(
+    problem?.solution_assets?.map((asset: any) => ({
+      path: asset.path,
+      name: asset.path.split('/').pop() || '',
+    })) || []
   );
 
   const correctAnswer = useMemo(() => {
@@ -166,7 +186,9 @@ export default function ProblemForm({
 
     const j = await res.json().catch(() => ({}));
     if (!res.ok) {
-      alert(j?.error ?? `Failed to ${isEditMode ? 'update' : 'create'} problem`);
+      alert(
+        j?.error ?? `Failed to ${isEditMode ? 'update' : 'create'} problem`
+      );
       return;
     }
 
@@ -176,7 +198,10 @@ export default function ProblemForm({
         method: 'DELETE',
       });
     } catch (error) {
-      console.warn('Failed to cleanup staging files after successful submission:', error);
+      console.warn(
+        'Failed to cleanup staging files after successful submission:',
+        error
+      );
     }
 
     if (isEditMode) {
@@ -272,7 +297,7 @@ export default function ProblemForm({
           </button>
         </div>
       )}
-      
+
       {/* title */}
       <div className="flex items-center gap-3">
         <label className="w-32 text-sm text-gray-600">Title</label>
@@ -339,7 +364,9 @@ export default function ProblemForm({
           />
           Auto-mark during revision
           {isAutoMarkDisabled && (
-            <span className="text-xs text-gray-500">(not available for extended response)</span>
+            <span className="text-xs text-gray-500">
+              (not available for extended response)
+            </span>
           )}
         </label>
 

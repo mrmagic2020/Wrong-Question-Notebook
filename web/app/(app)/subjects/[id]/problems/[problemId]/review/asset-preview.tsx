@@ -1,5 +1,8 @@
 'use client';
 
+import Image from 'next/image';
+import { useState } from 'react';
+
 interface Asset {
   path: string;
   kind?: 'image' | 'pdf';
@@ -10,6 +13,7 @@ interface AssetPreviewProps {
 }
 
 export default function AssetPreview({ asset }: AssetPreviewProps) {
+  const [imageError, setImageError] = useState(false);
   const getFileUrl = (path: string) => {
     // Construct the URL for the file
     return `/api/files/${encodeURIComponent(path)}`;
@@ -19,12 +23,35 @@ export default function AssetPreview({ asset }: AssetPreviewProps) {
     return path.split('/').pop() || 'Unknown file';
   };
 
-  const isImage = asset.kind === 'image' || 
+  const isImage =
+    asset.kind === 'image' ||
     /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(asset.path);
-  const isPdf = asset.kind === 'pdf' || 
-    /\.pdf$/i.test(asset.path);
+  const isPdf = asset.kind === 'pdf' || /\.pdf$/i.test(asset.path);
 
   if (isImage) {
+    if (imageError) {
+      return (
+        <div className="border rounded-lg overflow-hidden">
+          <div className="p-4 text-center text-gray-500 bg-gray-50">
+            <p className="text-sm">Image preview unavailable</p>
+            <a
+              href={getFileUrl(asset.path)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline text-sm"
+            >
+              View image
+            </a>
+          </div>
+          <div className="p-2 bg-gray-50 border-t">
+            <p className="text-xs text-gray-600 truncate">
+              {getFileName(asset.path)}
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="border rounded-lg overflow-hidden">
         <a
@@ -33,29 +60,20 @@ export default function AssetPreview({ asset }: AssetPreviewProps) {
           rel="noopener noreferrer"
           className="block cursor-pointer hover:opacity-90 transition-opacity"
         >
-          <img
+          <Image
             src={getFileUrl(asset.path)}
             alt={getFileName(asset.path)}
+            width={800}
+            height={256}
             className="w-full h-auto max-h-64 object-contain bg-gray-50"
-            onError={(e) => {
-              // Fallback if image fails to load
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              const parent = target.parentElement;
-              if (parent) {
-                parent.innerHTML = `
-                  <div class="p-4 text-center text-gray-500">
-                    <p class="text-sm">Image preview unavailable</p>
-                    <a href="${getFileUrl(asset.path)}" target="_blank" rel="noopener noreferrer" 
-                       class="text-blue-600 underline text-sm">View image</a>
-                  </div>
-                `;
-              }
-            }}
+            unoptimized
+            onError={() => setImageError(true)}
           />
         </a>
         <div className="p-2 bg-gray-50 border-t">
-          <p className="text-xs text-gray-600 truncate">{getFileName(asset.path)}</p>
+          <p className="text-xs text-gray-600 truncate">
+            {getFileName(asset.path)}
+          </p>
           <p className="text-xs text-blue-600 mt-1">Click to view full size</p>
         </div>
       </div>

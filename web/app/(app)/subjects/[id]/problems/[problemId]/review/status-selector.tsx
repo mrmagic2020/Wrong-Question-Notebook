@@ -7,7 +7,12 @@ interface StatusSelectorProps {
   onStatusChange: (status: ProblemStatus) => void;
 }
 
-const statusOptions: { value: ProblemStatus; label: string; description: string; color: string }[] = [
+const statusOptions: {
+  value: ProblemStatus;
+  label: string;
+  description: string;
+  color: string;
+}[] = [
   {
     value: 'wrong',
     label: 'Wrong',
@@ -38,7 +43,7 @@ export default function StatusSelector({
         Update the status of this problem based on your performance:
       </p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        {statusOptions.map((option) => (
+        {statusOptions.map(option => (
           <label
             key={option.value}
             className={`flex items-start p-3 border rounded-lg cursor-pointer transition-all ${
@@ -52,12 +57,14 @@ export default function StatusSelector({
               name="problem-status"
               value={option.value}
               checked={currentStatus === option.value}
-              onChange={(e) => onStatusChange(e.target.value as ProblemStatus)}
+              onChange={e => onStatusChange(e.target.value as ProblemStatus)}
               className="mt-1 mr-3"
             />
             <div className="flex-1">
               <div className="font-medium text-sm">{option.label}</div>
-              <div className="text-xs text-gray-600 mt-1">{option.description}</div>
+              <div className="text-xs text-gray-600 mt-1">
+                {option.description}
+              </div>
             </div>
           </label>
         ))}

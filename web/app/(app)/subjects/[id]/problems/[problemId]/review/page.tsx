@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import ProblemReview from './problem-review';
 
 async function loadData(subjectId: string, problemId: string) {
@@ -39,10 +39,10 @@ async function loadData(subjectId: string, problemId: string) {
 
   const tags = tagLinks?.map((link: any) => link.tags).filter(Boolean) || [];
 
-  return { 
-    problem: { ...problem, tags }, 
-    subject, 
-    allProblems: allProblems || [] 
+  return {
+    problem: { ...problem, tags },
+    subject,
+    allProblems: allProblems || [],
   };
 }
 
@@ -52,7 +52,10 @@ export default async function ProblemReviewPage({
   params: { id: string; problemId: string };
 }) {
   const { id: subjectId, problemId } = await params;
-  const { problem, subject, allProblems } = await loadData(subjectId, problemId);
+  const { problem, subject, allProblems } = await loadData(
+    subjectId,
+    problemId
+  );
 
   if (!problem || !subject) {
     notFound();

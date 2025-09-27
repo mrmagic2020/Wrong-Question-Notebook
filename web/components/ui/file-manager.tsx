@@ -18,12 +18,12 @@ interface FileManagerProps {
   className?: string;
 }
 
-export default function FileManager({ 
-  role, 
-  stagingId, 
-  initialFiles = [], 
+export default function FileManager({
+  role,
+  stagingId,
+  initialFiles = [],
   onFilesChange,
-  className = '' 
+  className = '',
 }: FileManagerProps) {
   const [files, setFiles] = useState<FileAsset[]>(initialFiles);
   const [uploading, setUploading] = useState(false);
@@ -50,12 +50,12 @@ export default function FileManager({
 
     // Store current files before adding uploading ones
     const currentFiles = files;
-    
+
     // Add uploading files to state immediately for better UX
     const uploadingFiles: FileAsset[] = Array.from(selectedFiles).map(file => ({
       path: '',
       name: file.name,
-      uploading: true
+      uploading: true,
     }));
 
     const filesWithUploading = [...currentFiles, ...uploadingFiles];
@@ -63,7 +63,7 @@ export default function FileManager({
 
     try {
       const uploadedPaths = await uploadFiles(selectedFiles, role, stagingId);
-      
+
       // Create final files array with uploaded files
       const finalFiles: FileAsset[] = [
         // Keep existing files (remove any uploading placeholders)
@@ -71,14 +71,14 @@ export default function FileManager({
         // Add successfully uploaded files
         ...uploadedPaths.map((uploadedPath, index) => ({
           path: uploadedPath,
-          name: uploadingFiles[index].name
-        }))
+          name: uploadingFiles[index].name,
+        })),
       ];
 
       updateFiles(finalFiles);
     } catch (err: any) {
       setError(err.message ?? 'Upload failed');
-      
+
       // Remove failed uploading files - keep only the original files
       updateFiles(currentFiles);
     } finally {
@@ -99,7 +99,7 @@ export default function FileManager({
       const response = await fetch('/api/files/delete', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path: fileToDelete.path })
+        body: JSON.stringify({ path: fileToDelete.path }),
       });
 
       if (!response.ok) {
@@ -139,21 +139,33 @@ export default function FileManager({
           ref={fileInputRef}
           type="file"
           multiple
-          onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
+          onChange={e => e.target.files && handleFileUpload(e.target.files)}
           className="hidden"
           accept="image/*,.pdf"
         />
         <div className="space-y-2">
-          <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+          <svg
+            className="mx-auto h-12 w-12 text-gray-400"
+            stroke="currentColor"
+            fill="none"
+            viewBox="0 0 48 48"
+          >
+            <path
+              d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
           <div className="text-sm text-gray-600">
             <span className="font-medium text-blue-600 hover:text-blue-500">
               Click to upload
-            </span>
-            {' '}or drag and drop
+            </span>{' '}
+            or drag and drop
           </div>
-          <p className="text-xs text-gray-500">Images and PDFs up to 10MB each</p>
+          <p className="text-xs text-gray-500">
+            Images and PDFs up to 10MB each
+          </p>
         </div>
       </div>
 
@@ -167,24 +179,55 @@ export default function FileManager({
       {/* File List */}
       {files.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-sm font-medium text-gray-700">Uploaded Files ({files.length})</h4>
+          <h4 className="text-sm font-medium text-gray-700">
+            Uploaded Files ({files.length})
+          </h4>
           <div className="space-y-2">
             {files.map((file, index) => (
-              <div key={`file-${index}-${file.name}`} className="flex items-center justify-between bg-gray-50 rounded-md p-3">
+              <div
+                key={`file-${index}-${file.name}`}
+                className="flex items-center justify-between bg-gray-50 rounded-md p-3"
+              >
                 <div className="flex items-center space-x-3 flex-1 min-w-0">
                   {/* File Icon */}
                   <div className="flex-shrink-0">
-                    {file.name.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/) ? (
-                      <svg className="h-8 w-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                    {file.name
+                      .toLowerCase()
+                      .match(/\.(jpg|jpeg|png|gif|webp)$/) ? (
+                      <svg
+                        className="h-8 w-8 text-green-600"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     ) : file.name.toLowerCase().endsWith('.pdf') ? (
-                      <svg className="h-8 w-8 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                      <svg
+                        className="h-8 w-8 text-red-600"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     ) : (
-                      <svg className="h-8 w-8 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                      <svg
+                        className="h-8 w-8 text-gray-600"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     )}
                   </div>

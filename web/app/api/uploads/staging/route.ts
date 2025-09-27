@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
-import { deleteStagingFolder, cleanupOldStagingFolders } from '@/lib/storage/delete';
+import {
+  deleteStagingFolder,
+  cleanupOldStagingFolders,
+} from '@/lib/storage/delete';
 
 export async function DELETE(req: Request) {
   const { user, supabase } = await requireUser();
@@ -38,7 +41,7 @@ export async function DELETE(req: Request) {
 }
 
 // Clean up old staging folders (safety net)
-export async function POST(req: Request) {
+export async function POST() {
   const { user, supabase } = await requireUser();
   if (!user) return unauthorised();
 

@@ -42,7 +42,7 @@ export async function GET(
   const isAssetReferenced = problems?.some(problem => {
     const allAssets = [
       ...(problem.assets || []),
-      ...(problem.solution_assets || [])
+      ...(problem.solution_assets || []),
     ];
     return allAssets.some(asset => asset.path === decodedPath);
   });
@@ -70,15 +70,12 @@ export async function GET(
     }
 
     if (!data) {
-      return NextResponse.json(
-        { error: 'File not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'File not found' }, { status: 404 });
     }
 
     // Convert blob to buffer
     const buffer = await data.arrayBuffer();
-    
+
     // Determine content type based on file extension
     const getContentType = (path: string) => {
       const ext = path.toLowerCase().split('.').pop();
@@ -107,10 +104,7 @@ export async function GET(
     // Check file size to prevent abuse (limit to 10MB)
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (buffer.byteLength > maxSize) {
-      return NextResponse.json(
-        { error: 'File too large' },
-        { status: 413 }
-      );
+      return NextResponse.json({ error: 'File too large' }, { status: 413 });
     }
 
     // Return the file content with appropriate headers

@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 const BUCKET = 'problem-uploads';
 
 export async function DELETE(req: Request) {
-  const { user, supabase } = await requireUser();
+  const { user } = await requireUser();
   if (!user) return unauthorised();
 
   const body = await req.json().catch(() => ({}));
@@ -30,9 +30,7 @@ export async function DELETE(req: Request) {
   try {
     // Use server-side Supabase client for deletion
     const serverSupabase = await createClient();
-    const { error } = await serverSupabase.storage
-      .from(BUCKET)
-      .remove([path]);
+    const { error } = await serverSupabase.storage.from(BUCKET).remove([path]);
 
     if (error) {
       console.error('Failed to delete file:', error);

@@ -63,7 +63,7 @@ export async function cleanupStagingFiles(
   userId: string
 ) {
   const stagingPrefix = `user/${userId}/staging/${stagingId}/`;
-  
+
   try {
     // List all files in the staging directory
     const { data: files, error: listError } = await supabase.storage

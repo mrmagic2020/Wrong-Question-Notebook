@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
-import { CreateAttemptDto } from '@/lib/schemas';
 
 export async function POST(
   req: Request,
@@ -11,7 +10,7 @@ export async function POST(
 
   const { id: problemId } = await params;
   const body = await req.json().catch(() => ({}));
-  
+
   // Get the problem to check if auto-marking is enabled
   const { data: problem, error: problemError } = await supabase
     .from('problems')
@@ -25,38 +24,45 @@ export async function POST(
   }
 
   if (!problem.auto_mark) {
-    return NextResponse.json({ error: 'Auto-marking is not enabled for this problem' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Auto-marking is not enabled for this problem' },
+      { status: 400 }
+    );
   }
 
   const { submitted_answer } = body;
 
   if (submitted_answer === undefined || submitted_answer === null) {
-    return NextResponse.json({ error: 'Submitted answer is required' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Submitted answer is required' },
+      { status: 400 }
+    );
   }
 
   // Compare answers based on problem type
   let isCorrect = false;
-  
+
   // Extract the actual answer from the correct_answer field
   let correctAnswerValue = '';
   if (problem.correct_answer) {
     if (typeof problem.correct_answer === 'string') {
       // If it's already a string, use it directly
       correctAnswerValue = problem.correct_answer;
-    } else if (typeof problem.correct_answer === 'object' && problem.correct_answer !== null) {
+    } else if (
+      typeof problem.correct_answer === 'object' &&
+      problem.correct_answer !== null
+    ) {
       // If it's an object, extract the choice or value
-      correctAnswerValue = problem.correct_answer.choice || problem.correct_answer.value || String(problem.correct_answer);
+      correctAnswerValue =
+        problem.correct_answer.choice ||
+        problem.correct_answer.value ||
+        String(problem.correct_answer);
     } else {
       // Fallback to string conversion
       correctAnswerValue = String(problem.correct_answer);
     }
   }
-  
-  console.log('Problem type:', problem.problem_type);
-  console.log('User answer:', submitted_answer);
-  console.log('Correct answer object:', problem.correct_answer);
-  console.log('Extracted correct answer:', correctAnswerValue);
-  
+
   if (problem.problem_type === 'mcq') {
     // For MCQ, case-insensitive comparison with trimmed whitespace
     const userAnswer = String(submitted_answer).trim().toLowerCase();
@@ -71,7 +77,7 @@ export async function POST(
     // For extended response, we don't auto-mark
     isCorrect = false;
   }
-  
+
   console.log('Is correct:', isCorrect);
 
   // Create attempt record

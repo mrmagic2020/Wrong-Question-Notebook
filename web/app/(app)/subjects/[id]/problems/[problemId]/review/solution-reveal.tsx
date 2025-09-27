@@ -64,7 +64,9 @@ export default function SolutionReveal({
         </div>
       ) : (
         <div className="text-center py-8 text-gray-500">
-          <p className="text-sm">Click "Reveal Solution" to view the solution</p>
+          <p className="text-sm">
+            Click "Reveal Solution" to view the solution
+          </p>
         </div>
       )}
     </div>

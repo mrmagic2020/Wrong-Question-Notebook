@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ProblemType, ProblemStatus } from '@/lib/schemas';
@@ -57,11 +57,14 @@ export default function ProblemReview({
   // Get current problem index for navigation
   const currentIndex = allProblems.findIndex(p => p.id === problem.id);
   const prevProblem = currentIndex > 0 ? allProblems[currentIndex - 1] : null;
-  const nextProblem = currentIndex < allProblems.length - 1 ? allProblems[currentIndex + 1] : null;
+  const nextProblem =
+    currentIndex < allProblems.length - 1
+      ? allProblems[currentIndex + 1]
+      : null;
 
   const handleAnswerSubmit = async () => {
     if (!problem.auto_mark) return;
-    
+
     setIsSubmitting(true);
     setError(null);
 
@@ -77,7 +80,7 @@ export default function ProblemReview({
       });
 
       const result = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(result.error || 'Failed to submit answer');
       }
@@ -128,7 +131,7 @@ export default function ProblemReview({
             {subject.name} • {problem.problem_type.toUpperCase()}
           </p>
         </div>
-        <Link 
+        <Link
           href={`/subjects/${subject.id}/problems`}
           className="text-sm text-blue-600 underline"
         >
@@ -158,7 +161,7 @@ export default function ProblemReview({
             <div dangerouslySetInnerHTML={{ __html: problem.content }} />
           </div>
         )}
-        
+
         {/* Problem Assets */}
         {problem.assets.length > 0 && (
           <div className="space-y-4">
@@ -175,21 +178,24 @@ export default function ProblemReview({
       {/* Answer Section */}
       <div className="bg-white rounded-lg border p-6">
         <h2 className="text-lg font-medium mb-4">Your Answer</h2>
-        
+
         {!problem.auto_mark && (
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
             <p className="text-sm text-blue-800">
-              This problem requires manual review. Enter your answer below and click "View Solution" to check your work.
+              This problem requires manual review. Enter your answer below and
+              click "View Solution" to check your work.
             </p>
           </div>
         )}
-        
+
         <AnswerInput
           problemType={problem.problem_type}
           correctAnswer={problem.correct_answer}
           value={userAnswer}
           onChange={setUserAnswer}
-          disabled={isSubmitting || (problem.auto_mark && submittedAnswer !== null)}
+          disabled={
+            isSubmitting || (problem.auto_mark && submittedAnswer !== null)
+          }
         />
 
         <div className="mt-4 flex gap-3">
@@ -202,7 +208,7 @@ export default function ProblemReview({
               {isSubmitting ? 'Submitting...' : 'Submit Answer'}
             </button>
           )}
-          
+
           {!problem.auto_mark && userAnswer && (
             <button
               onClick={() => setShowSolution(true)}
@@ -215,14 +221,22 @@ export default function ProblemReview({
 
         {/* Answer Feedback */}
         {submittedAnswer !== null && isCorrect !== null && (
-          <div className={`mt-4 p-4 rounded-md ${
-            isCorrect ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
-          }`}>
+          <div
+            className={`mt-4 p-4 rounded-md ${
+              isCorrect
+                ? 'bg-green-50 border border-green-200'
+                : 'bg-red-50 border border-red-200'
+            }`}
+          >
             <div className="flex items-center gap-2">
-              <span className={`text-lg ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+              <span
+                className={`text-lg ${isCorrect ? 'text-green-600' : 'text-red-600'}`}
+              >
                 {isCorrect ? '✓' : '✗'}
               </span>
-              <span className={`font-medium ${isCorrect ? 'text-green-800' : 'text-red-800'}`}>
+              <span
+                className={`font-medium ${isCorrect ? 'text-green-800' : 'text-red-800'}`}
+              >
                 {isCorrect ? 'Correct!' : 'Incorrect'}
               </span>
             </div>
@@ -265,11 +279,11 @@ export default function ProblemReview({
         >
           ← Previous
         </button>
-        
+
         <span className="text-sm text-gray-600">
           {currentIndex + 1} of {allProblems.length}
         </span>
-        
+
         <button
           onClick={() => nextProblem && navigateToProblem(nextProblem.id)}
           disabled={!nextProblem}
