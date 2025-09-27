@@ -1,9 +1,13 @@
 import { z } from 'zod';
 
-export const ProblemType = z.enum(['mcq', 'fill', 'short', 'extended']);
+// Database enum values - these should match the PostgreSQL enum type
+export const PROBLEM_TYPE_VALUES = ['mcq', 'short', 'extended'] as const;
+export const PROBLEM_STATUS_VALUES = ['wrong', 'needs_review', 'mastered'] as const;
+
+export const ProblemType = z.enum(PROBLEM_TYPE_VALUES);
 export type ProblemType = z.infer<typeof ProblemType>;
 
-export const ProblemStatus = z.enum(['wrong', 'needs_review', 'mastered']);
+export const ProblemStatus = z.enum(PROBLEM_STATUS_VALUES);
 export type ProblemStatus = z.infer<typeof ProblemStatus>;
 
 const Asset = z.object({
@@ -13,7 +17,8 @@ const Asset = z.object({
 
 export const CreateProblemDto = z.object({
   subject_id: z.uuid(),
-  content: z.string().min(1),
+  title: z.string().min(1).max(200),
+  content: z.string().optional(),
   problem_type: ProblemType,
   correct_answer: z.any().optional(),
   auto_mark: z.boolean().default(false),

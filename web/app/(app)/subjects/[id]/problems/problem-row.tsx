@@ -84,7 +84,9 @@ export default function ProblemRow({
   return (
     <tr className="border-t align-top">
       <td className="px-4 py-2 max-w-[32rem]">
-        <div className="whitespace-pre-wrap">{problem.content}</div>
+        <div className="truncate" title={problem.title}>
+          {problem.title}
+        </div>
         {err && <div className="mt-1 text-xs text-red-600">{err}</div>}
       </td>
       <td className="px-4 py-2">{problem.problem_type}</td>

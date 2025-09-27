@@ -94,7 +94,7 @@ export default async function SubjectProblemsPage({
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-left">
             <tr>
-              <th className="px-4 py-2">Content</th>
+              <th className="px-4 py-2">Title</th>
               <th className="px-4 py-2">Type</th>
               <th className="px-4 py-2">Tags</th>
               <th className="px-4 py-2">Status</th>

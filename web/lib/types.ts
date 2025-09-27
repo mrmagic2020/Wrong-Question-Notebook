@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
-export const ProblemType = z.enum(['mcq', 'fill', 'short', 'extended']);
-export type ProblemType = z.infer<typeof ProblemType>;
-
-export const ProblemStatus = z.enum(['wrong', 'needs_review', 'mastered']);
-export type ProblemStatus = z.infer<typeof ProblemStatus>;
+// Import from schemas to maintain consistency
+import { ProblemType, ProblemStatus } from './schemas';
+export { ProblemType, ProblemStatus };
+export type ProblemTypeType = z.infer<typeof ProblemType>;
+export type ProblemStatusType = z.infer<typeof ProblemStatus>;
 
 // Create/Update DTOs
 export const CreateSubjectDto = z.object({
@@ -13,7 +13,7 @@ export const CreateSubjectDto = z.object({
 
 export const CreateProblemDto = z.object({
   subject_id: z.string().uuid(),
-  content: z.string().min(1),
+  content: z.string().optional(),
   assets: z
     .array(
       z.object({

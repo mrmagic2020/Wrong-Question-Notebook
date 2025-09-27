@@ -3,8 +3,23 @@
 import { useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useState, useMemo } from 'react';
 import FileManager from '@/components/ui/file-manager';
+import { PROBLEM_TYPE_VALUES, type ProblemType } from '@/lib/schemas';
 
 type Tag = { id: string; name: string };
+
+// Helper function to get display names for problem types
+const getProblemTypeDisplayName = (type: ProblemType): string => {
+  switch (type) {
+    case 'mcq':
+      return 'Multiple Choice';
+    case 'short':
+      return 'Short Answer';
+    case 'extended':
+      return 'Extended Response';
+    default:
+      return type;
+  }
+};
 
 export default function ProblemForm({ subjectId }: { subjectId: string }) {
   const router = useRouter();
@@ -18,18 +33,31 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
       .catch(() => {});
   }, [subjectId]);
 
+  const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [problemType, setProblemType] = useState<
-    'mcq' | 'fill' | 'short' | 'extended'
-  >('fill');
-  const [autoMark, setAutoMark] = useState(true);
+  const [problemType, setProblemType] = useState<ProblemType>('short');
   const [status, setStatus] = useState<'wrong' | 'needs_review' | 'mastered'>(
     'needs_review'
   );
 
+  // Auto-mark behavior based on problem type
+  const autoMarkValue = useMemo(() => {
+    switch (problemType) {
+      case 'mcq':
+        return true;
+      case 'short':
+        return false;
+      case 'extended':
+        return false;
+      default:
+        return false;
+    }
+  }, [problemType]);
+
+  const isAutoMarkDisabled = problemType === 'extended';
+
   // Correct answer inputs
-  const [mcqChoice, setMcqChoice] = useState('A');
-  const [fillValue, setFillValue] = useState('');
+  const [mcqChoice, setMcqChoice] = useState('');
   const [shortText, setShortText] = useState('');
 
   // Assets
@@ -49,17 +77,12 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
     switch (problemType) {
       case 'mcq':
         return { type: 'mcq', choice: mcqChoice };
-      case 'fill':
-        return {
-          type: 'fill',
-          value: isNaN(Number(fillValue)) ? fillValue : Number(fillValue),
-        };
       case 'short':
         return { type: 'short', text: shortText };
       case 'extended':
         return { type: 'extended' };
     }
-  }, [problemType, mcqChoice, fillValue, shortText]);
+  }, [problemType, mcqChoice, shortText]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -69,10 +92,11 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
 
     const payload = {
       subject_id: subjectId,
-      content,
+      title,
+      content: content || undefined,
       problem_type: problemType,
       correct_answer: problemType === 'extended' ? undefined : correctAnswer,
-      auto_mark: autoMark,
+      auto_mark: autoMarkValue,
       status,
       assets,
       solution_text: solutionText || undefined,
@@ -102,16 +126,15 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
     }
 
     // Reset some fields
+    setTitle('');
     setContent('');
     setProblemAssets([]);
     setSolutionText('');
     setSolutionAssets([]);
-    setFillValue('');
     setShortText('');
-    setMcqChoice('A');
+    setMcqChoice('');
     setSelectedTagIds([]);
-    setProblemType('fill');
-    setAutoMark(true);
+    setProblemType('short');
     setStatus('needs_review');
 
     router.refresh();
@@ -159,15 +182,28 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
+      {/* title */}
+      <div className="flex items-center gap-3">
+        <label className="w-32 text-sm text-gray-600">Title</label>
+        <input
+          type="text"
+          className="flex-1 rounded-md border px-3 py-2"
+          placeholder="Short descriptive title for the problem"
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          maxLength={200}
+          required
+        />
+      </div>
+
       {/* content */}
       <div className="flex items-start gap-3">
         <label className="w-32 text-sm text-gray-600 pt-2">Content</label>
         <textarea
           className="flex-1 rounded-md border px-3 py-2 h-28"
-          placeholder="Type the problem text (Markdown/LaTeX supported)"
+          placeholder="Type the problem text (Markdown/LaTeX supported) - Optional"
           value={content}
           onChange={e => setContent(e.target.value)}
-          required
         />
       </div>
 
@@ -193,22 +229,27 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
           <select
             className="rounded-md border px-2 py-1"
             value={problemType}
-            onChange={e => setProblemType(e.target.value as any)}
+            onChange={e => setProblemType(e.target.value as ProblemType)}
           >
-            <option value="mcq">Multiple Choice</option>
-            <option value="fill">Fill the Gap</option>
-            <option value="short">Short Answer</option>
-            <option value="extended">Extended Response</option>
+            {PROBLEM_TYPE_VALUES.map(type => (
+              <option key={type} value={type}>
+                {getProblemTypeDisplayName(type)}
+              </option>
+            ))}
           </select>
         </div>
 
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
-            checked={autoMark}
-            onChange={e => setAutoMark(e.target.checked)}
+            checked={autoMarkValue}
+            disabled={isAutoMarkDisabled}
+            onChange={() => {}} // Controlled by problem type
           />
           Auto-mark during revision
+          {isAutoMarkDisabled && (
+            <span className="text-xs text-gray-500">(not available for extended response)</span>
+          )}
         </label>
 
         <div className="flex items-center gap-2">
@@ -229,27 +270,11 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
       {problemType === 'mcq' && (
         <div className="flex items-center gap-3">
           <label className="w-32 text-sm text-gray-600">Correct choice</label>
-          <select
-            className="w-32 rounded-md border px-2 py-1"
+          <input
+            className="w-32 rounded-md border px-3 py-2"
+            placeholder="e.g. A, B, α, etc."
             value={mcqChoice}
             onChange={e => setMcqChoice(e.target.value)}
-          >
-            <option>A</option>
-            <option>B</option>
-            <option>C</option>
-            <option>D</option>
-            <option>E</option>
-          </select>
-        </div>
-      )}
-      {problemType === 'fill' && (
-        <div className="flex items-center gap-3">
-          <label className="w-32 text-sm text-gray-600">Correct value</label>
-          <input
-            className="w-64 rounded-md border px-3 py-2"
-            placeholder="e.g. 42 or some text"
-            value={fillValue}
-            onChange={e => setFillValue(e.target.value)}
           />
         </div>
       )}
