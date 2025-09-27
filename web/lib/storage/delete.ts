@@ -44,3 +44,47 @@ export async function deleteProblemFiles(
   if (!allFiles.length) return;
   await supabase.storage.from(BUCKET).remove(allFiles);
 }
+
+export async function deleteStagingFolder(
+  supabase: SupabaseClient,
+  userId: string,
+  stagingId: string
+) {
+  const base = `user/${userId}/staging/${stagingId}/`;
+  const all = await listFilesRecursive(supabase, base);
+  if (all.length) {
+    await supabase.storage.from(BUCKET).remove(all);
+  }
+}
+
+/**
+ * Clean up old staging folders (older than 24 hours) for a user
+ * This is a safety net for cases where cleanup events might have failed
+ */
+export async function cleanupOldStagingFolders(
+  supabase: SupabaseClient,
+  userId: string,
+  maxAgeHours = 24
+) {
+  const base = `user/${userId}/staging/`;
+  const { data: folders, error } = await supabase.storage.from(BUCKET).list(base, {
+    limit: 1000,
+    sortBy: { column: 'created_at', order: 'asc' },
+  });
+
+  if (error || !folders) return;
+
+  const cutoffTime = Date.now() - (maxAgeHours * 60 * 60 * 1000);
+  const oldFolders = folders.filter(folder => {
+    const folderTime = new Date(folder.created_at).getTime();
+    return folderTime < cutoffTime;
+  });
+
+  for (const folder of oldFolders) {
+    const folderPath = `${base}${folder.name}/`;
+    const files = await listFilesRecursive(supabase, folderPath);
+    if (files.length > 0) {
+      await supabase.storage.from(BUCKET).remove(files);
+    }
+  }
+}

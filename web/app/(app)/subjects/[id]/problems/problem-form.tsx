@@ -96,6 +96,15 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
       return;
     }
 
+    // Clean up staging files after successful problem creation
+    try {
+      await fetch(`/api/uploads/staging?stagingId=${stagingId}`, {
+        method: 'DELETE',
+      });
+    } catch (error) {
+      console.warn('Failed to cleanup staging files after successful submission:', error);
+    }
+
     // Reset some fields
     setContent('');
     setAssetPaths('');
@@ -113,8 +122,44 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
   }
 
   const [stagingId] = useState(
-    () => globalThis.crypto?.randomUUID?.() ?? String(Date.now())
+    () => `${Date.now()}-${globalThis.crypto?.randomUUID?.() ?? 'rnd'}`
   );
+
+  // Clean up staging folder when component unmounts or user leaves page
+  useEffect(() => {
+    const cleanupStaging = async () => {
+      try {
+        // Use sendBeacon for more reliable cleanup on page unload
+        if (navigator.sendBeacon) {
+          const formData = new FormData();
+          formData.append('stagingId', stagingId);
+          navigator.sendBeacon('/api/uploads/staging', formData);
+        } else {
+          // Fallback to fetch with keepalive
+          await fetch(`/api/uploads/staging?stagingId=${stagingId}`, {
+            method: 'DELETE',
+            keepalive: true,
+          });
+        }
+      } catch (error) {
+        console.warn('Failed to cleanup staging files:', error);
+      }
+    };
+
+    // Cleanup on page unload/refresh/close (when user truly leaves)
+    const handleBeforeUnload = () => {
+      cleanupStaging();
+    };
+
+    // Add event listener for page unload
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Return cleanup function for component unmount (navigation within app)
+    return () => {
+      cleanupStaging();
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [stagingId]);
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
