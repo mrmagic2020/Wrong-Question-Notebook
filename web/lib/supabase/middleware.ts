@@ -52,9 +52,11 @@ export async function updateSession(request: NextRequest) {
   if (user && user.sub) {
     try {
       // Get the user's JWT token from the session
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       const userToken = session?.access_token;
-      
+
       // Use Edge Runtime compatible approach to update last login
       updateLastLoginEdge(
         user.sub,
@@ -115,12 +117,8 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  // Redirect authenticated users away from the landing page to subjects
-  if (user && request.nextUrl.pathname === '/') {
-    const url = request.nextUrl.clone();
-    url.pathname = '/subjects';
-    return NextResponse.redirect(url);
-  }
+  // Allow authenticated users to access the homepage
+  // (Removed automatic redirect to /subjects)
 
   if (
     request.nextUrl.pathname !== '/' &&

@@ -20,18 +20,21 @@ export async function updateLastLoginEdge(
     }
 
     // Create a minimal fetch request to update last login
-    const response = await fetch(`${supabaseUrl}/rest/v1/user_profiles?id=eq.${userId}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${userToken}`,
-        apikey: supabaseAnonKey,
-        Prefer: 'return=minimal',
-      },
-      body: JSON.stringify({
-        last_login_at: new Date().toISOString(),
-      }),
-    });
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/user_profiles?id=eq.${userId}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${userToken}`,
+          apikey: supabaseAnonKey,
+          Prefer: 'return=minimal',
+        },
+        body: JSON.stringify({
+          last_login_at: new Date().toISOString(),
+        }),
+      }
+    );
 
     if (!response.ok) {
       console.warn('Failed to update last login:', response.status);
