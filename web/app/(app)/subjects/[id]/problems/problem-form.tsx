@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useState, useMemo } from 'react';
-import { uploadFiles } from '@/lib/storage/client';
+import FileManager from '@/components/ui/file-manager';
 
 type Tag = { id: string; name: string };
 
@@ -32,10 +32,10 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
   const [fillValue, setFillValue] = useState('');
   const [shortText, setShortText] = useState('');
 
-  // Assets (paths for now)
-  const [assetPaths, setAssetPaths] = useState('');
+  // Assets
+  const [problemAssets, setProblemAssets] = useState<Array<{path: string; name: string}>>([]);
   const [solutionText, setSolutionText] = useState('');
-  const [solutionAssetPaths, setSolutionAssetPaths] = useState('');
+  const [solutionAssets, setSolutionAssets] = useState<Array<{path: string; name: string}>>([]);
 
   // Tag picker
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
@@ -64,12 +64,8 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
 
-    const assets = assetPaths.trim()
-      ? assetPaths.split(',').map(p => ({ path: p.trim() }))
-      : [];
-    const solution_assets = solutionAssetPaths.trim()
-      ? solutionAssetPaths.split(',').map(p => ({ path: p.trim() }))
-      : [];
+    const assets = problemAssets.map(asset => ({ path: asset.path }));
+    const solution_assets = solutionAssets.map(asset => ({ path: asset.path }));
 
     const payload = {
       subject_id: subjectId,
@@ -107,9 +103,9 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
 
     // Reset some fields
     setContent('');
-    setAssetPaths('');
+    setProblemAssets([]);
     setSolutionText('');
-    setSolutionAssetPaths('');
+    setSolutionAssets([]);
     setFillValue('');
     setShortText('');
     setMcqChoice('A');
@@ -180,46 +176,13 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
         <label className="w-32 text-sm text-gray-600 pt-2">
           Problem assets
         </label>
-        <div className="flex-1 space-y-2">
-          <input
-            type="file"
-            multiple
-            onChange={async e => {
-              const input = e.currentTarget as HTMLInputElement; // capture BEFORE await
-              const files = input.files;
-              if (!files || !files.length) return;
-
-              try {
-                const uploaded = await uploadFiles(files, 'problem', stagingId);
-                const merged = [
-                  ...uploaded.map(p => ({ path: p })),
-                  ...assetPaths
-                    .trim()
-                    .split(',')
-                    .filter(Boolean)
-                    .map(p => ({ path: p.trim() })),
-                ];
-                setAssetPaths(merged.map(o => o.path).join(', '));
-                alert(`Uploaded ${uploaded.length} file(s).`);
-              } catch (err: any) {
-                alert(err.message ?? 'Upload failed');
-              } finally {
-                // Use the captured input reference, not e.currentTarget
-                if (input) input.value = '';
-              }
-            }}
-            className="block"
+        <div className="flex-1">
+          <FileManager
+            role="problem"
+            stagingId={stagingId}
+            initialFiles={problemAssets}
+            onFilesChange={setProblemAssets}
           />
-          <input
-            className="w-full rounded-md border px-3 py-2"
-            placeholder="Paths (auto-filled after upload; can paste more comma-separated)"
-            value={assetPaths}
-            onChange={e => setAssetPaths(e.target.value)}
-          />
-          <p className="text-xs text-gray-500">
-            Upload saves to your private bucket. You can also paste additional
-            stored paths here.
-          </p>
         </div>
       </div>
 
@@ -318,44 +281,12 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
         <label className="w-32 text-sm text-gray-600 pt-2">
           Solution assets
         </label>
-        <div className="flex-1 space-y-2">
-          <input
-            type="file"
-            multiple
-            onChange={async e => {
-              const input = e.currentTarget as HTMLInputElement;
-              const files = input.files;
-              if (!files || !files.length) return;
-
-              try {
-                const uploaded = await uploadFiles(
-                  files,
-                  'solution',
-                  stagingId
-                );
-                const merged = [
-                  ...uploaded.map(p => ({ path: p })),
-                  ...solutionAssetPaths
-                    .trim()
-                    .split(',')
-                    .filter(Boolean)
-                    .map(p => ({ path: p.trim() })),
-                ];
-                setSolutionAssetPaths(merged.map(o => o.path).join(', '));
-                alert(`Uploaded ${uploaded.length} file(s).`);
-              } catch (err: any) {
-                alert(err.message ?? 'Upload failed');
-              } finally {
-                if (input) input.value = '';
-              }
-            }}
-            className="block"
-          />
-          <input
-            className="w-full rounded-md border px-3 py-2"
-            placeholder="Paths (auto-filled after upload; can paste more)"
-            value={solutionAssetPaths}
-            onChange={e => setSolutionAssetPaths(e.target.value)}
+        <div className="flex-1">
+          <FileManager
+            role="solution"
+            stagingId={stagingId}
+            initialFiles={solutionAssets}
+            onFilesChange={setSolutionAssets}
           />
         </div>
       </div>
