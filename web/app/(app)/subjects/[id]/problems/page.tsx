@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
-import ProblemRow from './problem-row';
 import ProblemForm from './problem-form';
 import Link from 'next/link';
+import ProblemsTable from './problems-table';
 
 async function loadData(subjectId: string) {
   const supabase = await createClient();
@@ -90,36 +90,11 @@ export default async function SubjectProblemsPage({
       </div>
 
       {/* Problems table */}
-      <div className="rounded-lg border bg-white overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left">
-            <tr>
-              <th className="px-4 py-2">Title</th>
-              <th className="px-4 py-2">Type</th>
-              <th className="px-4 py-2">Tags</th>
-              <th className="px-4 py-2">Status</th>
-              <th className="px-4 py-2 w-44">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {problems.length ? (
-              problems.map((p: any) => (
-                <ProblemRow
-                  key={p.id}
-                  problem={p}
-                  tags={tagsByProblem.get(p.id) ?? []}
-                />
-              ))
-            ) : (
-              <tr>
-                <td className="px-4 py-6 text-gray-500" colSpan={5}>
-                  No problems yet.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <ProblemsTable
+        problems={problems}
+        tagsByProblem={tagsByProblem}
+        subjectId={subject.id}
+      />
     </div>
   );
 }

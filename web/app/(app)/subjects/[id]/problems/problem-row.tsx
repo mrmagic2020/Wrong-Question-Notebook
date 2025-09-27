@@ -32,9 +32,11 @@ function TagCapsules({ tags }: { tags: { id: string; name: string }[] }) {
 export default function ProblemRow({
   problem,
   tags,
+  onEdit,
 }: {
   problem: any;
   tags: { id: string; name: string }[];
+  onEdit?: (problem: any) => void;
 }) {
   const router = useRouter();
   const [status, setStatus] = useState(
@@ -111,6 +113,15 @@ export default function ProblemRow({
       </td>
       <td className="px-4 py-2">
         <div className="flex gap-2">
+          {onEdit && (
+            <button
+              onClick={() => onEdit(problem)}
+              disabled={busy}
+              className="rounded-md border px-3 py-1 text-blue-600 disabled:opacity-60 hover:bg-blue-50"
+            >
+              Edit
+            </button>
+          )}
           <button
             onClick={remove}
             disabled={busy}

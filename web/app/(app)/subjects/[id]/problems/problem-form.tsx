@@ -21,8 +21,17 @@ const getProblemTypeDisplayName = (type: ProblemType): string => {
   }
 };
 
-export default function ProblemForm({ subjectId }: { subjectId: string }) {
+export default function ProblemForm({ 
+  subjectId, 
+  problem = null, 
+  onCancel = null 
+}: { 
+  subjectId: string; 
+  problem?: any | null; 
+  onCancel?: (() => void) | null; 
+}) {
   const router = useRouter();
+  const isEditMode = !!problem;
 
   // Load tags client-side for simplicity here
   const [tags, setTags] = useState<Tag[]>([]);
@@ -33,13 +42,32 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
       .catch(() => {});
   }, [subjectId]);
 
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [problemType, setProblemType] = useState<ProblemType>('short');
+  // Load problem's existing tags when in edit mode
+  useEffect(() => {
+    if (problem && tags.length > 0) {
+      // Get the tags that belong to this problem
+      fetch(`/api/problems/${problem.id}`)
+        .then(r => r.json())
+        .then(j => {
+          if (j.data && j.data.tags) {
+            const tagIds = j.data.tags.map((tag: any) => tag.id);
+            setSelectedTagIds(tagIds);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [problem, tags.length]);
+
+  // Form expansion state (only for create mode)
+  const [isExpanded, setIsExpanded] = useState(isEditMode);
+
+  const [title, setTitle] = useState(problem?.title || '');
+  const [content, setContent] = useState(problem?.content || '');
+  const [problemType, setProblemType] = useState<ProblemType>(problem?.problem_type || 'short');
   const [status, setStatus] = useState<'wrong' | 'needs_review' | 'mastered'>(
-    'needs_review'
+    problem?.status || 'needs_review'
   );
-  const [autoMark, setAutoMark] = useState(false);
+  const [autoMark, setAutoMark] = useState(problem?.auto_mark || false);
 
   // Auto-update auto-mark based on problem type
   useEffect(() => {
@@ -73,13 +101,21 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
   const isAutoMarkDisabled = problemType === 'extended';
 
   // Correct answer inputs
-  const [mcqChoice, setMcqChoice] = useState('');
-  const [shortText, setShortText] = useState('');
+  const [mcqChoice, setMcqChoice] = useState(
+    problem?.correct_answer?.type === 'mcq' ? problem.correct_answer.choice : ''
+  );
+  const [shortText, setShortText] = useState(
+    problem?.correct_answer?.type === 'short' ? problem.correct_answer.text : ''
+  );
 
   // Assets
-  const [problemAssets, setProblemAssets] = useState<Array<{path: string; name: string}>>([]);
-  const [solutionText, setSolutionText] = useState('');
-  const [solutionAssets, setSolutionAssets] = useState<Array<{path: string; name: string}>>([]);
+  const [problemAssets, setProblemAssets] = useState<Array<{path: string; name: string}>>(
+    problem?.assets?.map((asset: any) => ({ path: asset.path, name: asset.path.split('/').pop() || '' })) || []
+  );
+  const [solutionText, setSolutionText] = useState(problem?.solution_text || '');
+  const [solutionAssets, setSolutionAssets] = useState<Array<{path: string; name: string}>>(
+    problem?.solution_assets?.map((asset: any) => ({ path: asset.path, name: asset.path.split('/').pop() || '' })) || []
+  );
 
   // Tag picker
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
@@ -107,7 +143,6 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
     const solution_assets = solutionAssets.map(asset => ({ path: asset.path }));
 
     const payload = {
-      subject_id: subjectId,
       title,
       content: content || undefined,
       problem_type: problemType,
@@ -120,19 +155,27 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
       tag_ids: selectedTagIds.length ? selectedTagIds : undefined,
     };
 
-    const res = await fetch('/api/problems', {
-      method: 'POST',
+    // Add subject_id for create operations
+    if (!isEditMode) {
+      (payload as any).subject_id = subjectId;
+    }
+
+    const url = isEditMode ? `/api/problems/${problem.id}` : '/api/problems';
+    const method = isEditMode ? 'PATCH' : 'POST';
+
+    const res = await fetch(url, {
+      method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
 
     const j = await res.json().catch(() => ({}));
     if (!res.ok) {
-      alert(j?.error ?? 'Failed to create problem');
+      alert(j?.error ?? `Failed to ${isEditMode ? 'update' : 'create'} problem`);
       return;
     }
 
-    // Clean up staging files after successful problem creation
+    // Clean up staging files after successful problem creation/update
     try {
       await fetch(`/api/uploads/staging?stagingId=${stagingId}`, {
         method: 'DELETE',
@@ -141,18 +184,26 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
       console.warn('Failed to cleanup staging files after successful submission:', error);
     }
 
-    // Reset some fields
-    setTitle('');
-    setContent('');
-    setProblemAssets([]);
-    setSolutionText('');
-    setSolutionAssets([]);
-    setShortText('');
-    setMcqChoice('');
-    setSelectedTagIds([]);
-    setProblemType('short');
-    setStatus('needs_review');
-    setAutoMark(false);
+    if (isEditMode) {
+      // In edit mode, call onCancel to close the form
+      if (onCancel) {
+        onCancel();
+      }
+    } else {
+      // Reset some fields for create mode
+      setTitle('');
+      setContent('');
+      setProblemAssets([]);
+      setSolutionText('');
+      setSolutionAssets([]);
+      setShortText('');
+      setMcqChoice('');
+      setSelectedTagIds([]);
+      setProblemType('short');
+      setStatus('needs_review');
+      setAutoMark(false);
+      setIsExpanded(false);
+    }
 
     router.refresh();
   }
@@ -197,8 +248,36 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
     };
   }, [stagingId]);
 
+  // If not expanded (create mode only), show just the expand button
+  if (!isExpanded && !isEditMode) {
+    return (
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setIsExpanded(true)}
+          className="flex-1 rounded-md border border-dashed border-gray-300 px-4 py-3 text-left text-gray-600 hover:border-gray-400 hover:text-gray-800"
+        >
+          + Add a new problem
+        </button>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
+      {isEditMode && (
+        <div className="flex items-center justify-between border-b pb-2">
+          <h3 className="font-medium text-gray-900">Edit Problem</h3>
+          <button
+            type="button"
+            onClick={() => onCancel?.()}
+            className="text-sm text-gray-500 hover:text-gray-700"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+      
       {/* title */}
       <div className="flex items-center gap-3">
         <label className="w-32 text-sm text-gray-600">Title</label>
@@ -354,13 +433,22 @@ export default function ProblemForm({ subjectId }: { subjectId: string }) {
         </div>
       </div>
 
-      <div>
+      <div className="flex gap-3">
         <button
           type="submit"
           className="rounded-md bg-black px-4 py-2 text-white"
         >
-          Add problem
+          {isEditMode ? 'Update problem' : 'Add problem'}
         </button>
+        {!isEditMode && (
+          <button
+            type="button"
+            onClick={() => setIsExpanded(false)}
+            className="rounded-md border px-4 py-2 text-gray-600"
+          >
+            Cancel
+          </button>
+        )}
       </div>
     </form>
   );

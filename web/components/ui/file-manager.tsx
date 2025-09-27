@@ -95,15 +95,16 @@ export default function FileManager({
     if (fileToDelete.uploading) return; // Can't delete while uploading
 
     try {
-      // Call API to delete the file from staging
-      const response = await fetch('/api/uploads/staging/delete-file', {
+      // Call API to delete the file (works for both staging and permanent files)
+      const response = await fetch('/api/files/delete', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ path: fileToDelete.path })
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete file');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to delete file');
       }
 
       // Remove from local state
