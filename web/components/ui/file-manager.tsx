@@ -48,6 +48,22 @@ export default function FileManager({
     setUploading(true);
     setError(null);
 
+    // Validate file sizes before upload
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    const oversizedFiles: string[] = [];
+    
+    Array.from(selectedFiles).forEach(file => {
+      if (file.size > maxSize) {
+        oversizedFiles.push(file.name);
+      }
+    });
+
+    if (oversizedFiles.length > 0) {
+      setError(`Files too large: ${oversizedFiles.join(', ')}. Maximum file size is 10MB.`);
+      setUploading(false);
+      return;
+    }
+
     // Store current files before adding uploading ones
     const currentFiles = files;
 

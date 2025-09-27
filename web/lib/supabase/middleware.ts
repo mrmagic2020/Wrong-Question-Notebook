@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { hasEnvVars } from '../utils';
+import { updateLastLogin } from '../user-management';
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -46,6 +47,64 @@ export async function updateSession(request: NextRequest) {
   // with the Supabase client, your users may be randomly logged out.
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
+
+  // Update last login timestamp for authenticated users
+  if (user && user.sub) {
+    try {
+      // Use a non-blocking approach to update last login
+      updateLastLogin(user.sub).catch(console.error);
+    } catch (error) {
+      // Ignore errors in login tracking
+    }
+  }
+
+  // Check if user is trying to access admin routes
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    if (!user) {
+      // Redirect to login if not authenticated
+      const url = request.nextUrl.clone();
+      url.pathname = '/auth/login';
+      return NextResponse.redirect(url);
+    }
+
+    // Check if user has admin privileges using service role
+    try {
+      // Create a service role client to bypass RLS
+      const serviceSupabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        {
+          cookies: {
+            getAll() {
+              return request.cookies.getAll();
+            },
+            setAll() {
+              // No-op for service role
+            },
+          },
+        }
+      );
+
+      const { data: profile } = await serviceSupabase
+        .from('user_profiles')
+        .select('user_role')
+        .eq('id', user.sub)
+        .single();
+
+      if (!profile || !['admin', 'super_admin'].includes(profile.user_role)) {
+        // Redirect to subjects page if not admin
+        const url = request.nextUrl.clone();
+        url.pathname = '/subjects';
+        return NextResponse.redirect(url);
+      }
+    } catch (error) {
+      // If there's an error checking profile, redirect to subjects
+      console.error('Admin check error:', error);
+      const url = request.nextUrl.clone();
+      url.pathname = '/subjects';
+      return NextResponse.redirect(url);
+    }
+  }
 
   if (
     request.nextUrl.pathname !== '/' &&
