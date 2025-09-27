@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { hasEnvVars } from '../utils';
-import { updateLastLogin } from '../user-management';
+import { updateLastLoginEdge } from '../edge-utils';
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -51,8 +51,12 @@ export async function updateSession(request: NextRequest) {
   // Update last login timestamp for authenticated users
   if (user && user.sub) {
     try {
-      // Use a non-blocking approach to update last login
-      updateLastLogin(user.sub).catch(console.error);
+      // Use Edge Runtime compatible approach to update last login
+      updateLastLoginEdge(
+        user.sub,
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      ).catch(console.warn);
     } catch {
       // Ignore errors in login tracking
     }
@@ -97,9 +101,9 @@ export async function updateSession(request: NextRequest) {
         url.pathname = '/subjects';
         return NextResponse.redirect(url);
       }
-    } catch {
+    } catch (error) {
       // If there's an error checking profile, redirect to subjects
-      console.error('Admin check error');
+      console.warn('Admin check error:', error);
       const url = request.nextUrl.clone();
       url.pathname = '/subjects';
       return NextResponse.redirect(url);

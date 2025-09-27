@@ -45,6 +45,9 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+
+  // Ensure proper output for Vercel
+  trailingSlash: false,
 };
 
 export default nextConfig;
