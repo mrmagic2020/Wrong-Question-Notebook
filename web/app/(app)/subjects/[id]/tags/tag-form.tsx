@@ -4,10 +4,10 @@ import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
-export default function TagForm({ 
-  subjectId, 
-  onTagCreated 
-}: { 
+export default function TagForm({
+  subjectId,
+  onTagCreated,
+}: {
   subjectId: string;
   onTagCreated?: (tag: any) => void;
 }) {
@@ -18,12 +18,12 @@ export default function TagForm({
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    
+
     if (!name.trim()) {
       toast.error('Please enter a tag name');
       return;
     }
-    
+
     setBusy(true);
     setErr(null);
     try {
@@ -34,13 +34,13 @@ export default function TagForm({
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j?.error ?? 'Failed to create tag');
-      
+
       setName('');
-      
+
       if (onTagCreated) {
         onTagCreated(j.data);
       }
-      
+
       toast.success('Tag created successfully');
       router.refresh();
     } catch (e: any) {

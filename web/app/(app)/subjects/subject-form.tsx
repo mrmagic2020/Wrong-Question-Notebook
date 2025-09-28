@@ -4,7 +4,11 @@ import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
-export default function SubjectForm({ onSubjectCreated }: { onSubjectCreated?: (subject: any) => void }) {
+export default function SubjectForm({
+  onSubjectCreated,
+}: {
+  onSubjectCreated?: (subject: any) => void;
+}) {
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -12,12 +16,12 @@ export default function SubjectForm({ onSubjectCreated }: { onSubjectCreated?: (
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    
+
     if (!name.trim()) {
       toast.error('Please enter a subject name');
       return;
     }
-    
+
     setBusy(true);
     setError(null);
     try {
@@ -30,14 +34,14 @@ export default function SubjectForm({ onSubjectCreated }: { onSubjectCreated?: (
         const j = await res.json().catch(() => ({}));
         throw new Error(j?.error ?? 'Failed to create subject');
       }
-      
+
       const newSubject = await res.json();
       setName('');
-      
+
       if (onSubjectCreated) {
         onSubjectCreated(newSubject.data);
       }
-      
+
       toast.success('Subject created successfully');
       router.refresh();
     } catch (err: any) {

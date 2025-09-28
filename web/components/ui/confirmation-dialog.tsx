@@ -67,7 +67,7 @@ export function ConfirmationDialog({
         className={`mx-4 w-full max-w-md rounded-lg border bg-background p-6 shadow-lg transition-all duration-150 ${
           isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
         }`}
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
         onKeyDown={handleKeyDown}
         tabIndex={-1}
       >

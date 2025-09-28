@@ -4,12 +4,12 @@ import { useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 
-export default function TagRow({ 
-  tag, 
-  onTagDeleted, 
-  onTagUpdated, 
-  showConfirmation 
-}: { 
+export default function TagRow({
+  tag,
+  onTagDeleted,
+  onTagUpdated,
+  showConfirmation,
+}: {
   tag: any;
   onTagDeleted?: (tagId: string) => void;
   onTagUpdated?: (tag: any) => void;
@@ -47,7 +47,7 @@ export default function TagRow({
       setErr('Name cannot be empty');
       return;
     }
-    
+
     setBusy(true);
     setErr(null);
     try {
@@ -58,12 +58,12 @@ export default function TagRow({
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j?.error ?? 'Update failed');
-      
+
       const updatedTag = { ...tag, name: name.trim() };
       if (onTagUpdated) {
         onTagUpdated(updatedTag);
       }
-      
+
       setEditing(false);
       toast.success('Tag renamed successfully');
       router.refresh();
@@ -91,11 +91,11 @@ export default function TagRow({
             });
             const j = await res.json().catch(() => ({}));
             if (!res.ok) throw new Error(j?.error ?? 'Delete failed');
-            
+
             if (onTagDeleted) {
               onTagDeleted(tag.id);
             }
-            
+
             toast.success('Tag deleted successfully');
             router.refresh();
           } catch (e: any) {
@@ -108,30 +108,34 @@ export default function TagRow({
       });
     } else {
       // Fallback to browser confirm if showConfirmation is not available
-      if (confirm(`Are you sure you want to delete "${tag.name}"? This action cannot be undone.`)) {
+      if (
+        confirm(
+          `Are you sure you want to delete "${tag.name}"? This action cannot be undone.`
+        )
+      ) {
         setBusy(true);
         setErr(null);
         fetch(`/api/tags/${tag.id}`, {
           method: 'DELETE',
         })
-        .then(async (res) => {
-          const j = await res.json().catch(() => ({}));
-          if (!res.ok) throw new Error(j?.error ?? 'Delete failed');
-          
-          if (onTagDeleted) {
-            onTagDeleted(tag.id);
-          }
-          
-          toast.success('Tag deleted successfully');
-          router.refresh();
-        })
-        .catch((e: any) => {
-          setErr(e.message);
-          toast.error('Failed to delete tag');
-        })
-        .finally(() => {
-          setBusy(false);
-        });
+          .then(async res => {
+            const j = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(j?.error ?? 'Delete failed');
+
+            if (onTagDeleted) {
+              onTagDeleted(tag.id);
+            }
+
+            toast.success('Tag deleted successfully');
+            router.refresh();
+          })
+          .catch((e: any) => {
+            setErr(e.message);
+            toast.error('Failed to delete tag');
+          })
+          .finally(() => {
+            setBusy(false);
+          });
       }
     }
   };

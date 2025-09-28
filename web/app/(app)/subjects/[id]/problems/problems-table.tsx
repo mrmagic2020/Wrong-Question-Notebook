@@ -38,7 +38,9 @@ export default function ProblemsTable({
   const [tagsByProblem, setTagsByProblem] = useState(initialTagsByProblem);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentFilters, setCurrentFilters] = useState<SearchFilters | null>(null);
+  const [currentFilters, setCurrentFilters] = useState<SearchFilters | null>(
+    null
+  );
 
   // Track if we're in a filtered state
   const [isFiltered, setIsFiltered] = useState(false);
@@ -80,17 +82,17 @@ export default function ProblemsTable({
     setLoading(true);
     setError(null);
     setCurrentFilters(filters); // Store current filters
-    
+
     // Check if we have any active filters
-    const hasActiveFilters = 
+    const hasActiveFilters =
       filters.searchText.trim() !== '' ||
       filters.problemTypes.length > 0 ||
       filters.tagIds.length > 0 ||
       !filters.searchFields.title ||
       !filters.searchFields.content;
-    
+
     setIsFiltered(hasActiveFilters);
-    
+
     // If no active filters, reset to show all problems from initial state
     if (!hasActiveFilters) {
       setProblems(initialProblems);
@@ -98,28 +100,28 @@ export default function ProblemsTable({
       setLoading(false);
       return;
     }
-    
+
     try {
       const params = new URLSearchParams();
       params.set('subject_id', subjectId);
-      
+
       if (filters.searchText.trim()) {
         params.set('search_text', filters.searchText.trim());
         params.set('search_title', filters.searchFields.title.toString());
         params.set('search_content', filters.searchFields.content.toString());
       }
-      
+
       if (filters.problemTypes.length > 0) {
         params.set('problem_types', filters.problemTypes.join(','));
       }
-      
+
       if (filters.tagIds.length > 0) {
         params.set('tag_ids', filters.tagIds.join(','));
       }
 
       const response = await fetch(`/api/problems?${params.toString()}`);
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || 'Failed to fetch problems');
       }
@@ -127,7 +129,7 @@ export default function ProblemsTable({
       // Update problems and tags
       const newProblems = data.data || [];
       const newTagsByProblem = new Map<string, any[]>();
-      
+
       newProblems.forEach((problem: any) => {
         newTagsByProblem.set(problem.id, problem.tags || []);
       });
@@ -143,30 +145,41 @@ export default function ProblemsTable({
   };
 
   // Function to check if a problem matches current filters
-  const problemMatchesFilters = (problem: any, filters: SearchFilters): boolean => {
+  const problemMatchesFilters = (
+    problem: any,
+    filters: SearchFilters
+  ): boolean => {
     // Check text search
     if (filters.searchText.trim()) {
       const searchTerm = filters.searchText.toLowerCase();
       let textMatch = false;
-      
-      if (filters.searchFields.title && problem.title?.toLowerCase().includes(searchTerm)) {
+
+      if (
+        filters.searchFields.title &&
+        problem.title?.toLowerCase().includes(searchTerm)
+      ) {
         textMatch = true;
       }
       if (filters.searchFields.content) {
-        if (problem.content?.toLowerCase().includes(searchTerm) || 
-            problem.solution_text?.toLowerCase().includes(searchTerm)) {
+        if (
+          problem.content?.toLowerCase().includes(searchTerm) ||
+          problem.solution_text?.toLowerCase().includes(searchTerm)
+        ) {
           textMatch = true;
         }
       }
-      
+
       if (!textMatch) return false;
     }
-    
+
     // Check problem type filter
-    if (filters.problemTypes.length > 0 && !filters.problemTypes.includes(problem.problem_type)) {
+    if (
+      filters.problemTypes.length > 0 &&
+      !filters.problemTypes.includes(problem.problem_type)
+    ) {
       return false;
     }
-    
+
     // Check tag filter
     if (filters.tagIds.length > 0) {
       const problemTagIds = problem.tags?.map((tag: any) => tag.id) || [];
@@ -174,7 +187,7 @@ export default function ProblemsTable({
         return false;
       }
     }
-    
+
     return true;
   };
 
@@ -182,8 +195,10 @@ export default function ProblemsTable({
   const handleProblemCreated = (newProblem: any) => {
     // Always add the problem if we're not in a filtered state
     // Only check filters if we're actively filtering
-    const shouldAdd = !isFiltered || (currentFilters && problemMatchesFilters(newProblem, currentFilters));
-    
+    const shouldAdd =
+      !isFiltered ||
+      (currentFilters && problemMatchesFilters(newProblem, currentFilters));
+
     if (shouldAdd) {
       setProblems(prev => [newProblem, ...prev]);
       setTagsByProblem(prev => {
@@ -202,7 +217,7 @@ export default function ProblemsTable({
       newMap.delete(problemId);
       return newMap;
     });
-    
+
     // Notify parent component
     if (onProblemDeleted) {
       onProblemDeleted(problemId);
@@ -212,25 +227,27 @@ export default function ProblemsTable({
   // Handle problem update
   const handleProblemUpdated = (updatedProblem: any) => {
     // Check if we're in a filtered state and if the updated problem matches current filters
-    const shouldShowUpdated = !isFiltered || (currentFilters && problemMatchesFilters(updatedProblem, currentFilters));
-    
+    const shouldShowUpdated =
+      !isFiltered ||
+      (currentFilters && problemMatchesFilters(updatedProblem, currentFilters));
+
     if (shouldShowUpdated) {
       // Update the problem in the list
-      setProblems(prev => 
-        prev.map(p => p.id === updatedProblem.id ? updatedProblem : p)
+      setProblems(prev =>
+        prev.map(p => (p.id === updatedProblem.id ? updatedProblem : p))
       );
     } else {
       // If the updated problem no longer matches filters, remove it from the list
       setProblems(prev => prev.filter(p => p.id !== updatedProblem.id));
     }
-    
+
     // Always update the tags mapping for consistency
     setTagsByProblem(prev => {
       const newMap = new Map(prev);
       newMap.set(updatedProblem.id, updatedProblem.tags || []);
       return newMap;
     });
-    
+
     // Notify parent component
     if (onProblemUpdated) {
       onProblemUpdated(updatedProblem);

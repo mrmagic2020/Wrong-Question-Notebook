@@ -6,12 +6,12 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import { Tooltip } from '@/components/ui/tooltip';
 
-export default function SubjectRow({ 
-  subject, 
-  onSubjectDeleted, 
-  onSubjectUpdated, 
-  showConfirmation 
-}: { 
+export default function SubjectRow({
+  subject,
+  onSubjectDeleted,
+  onSubjectUpdated,
+  showConfirmation,
+}: {
   subject: any;
   onSubjectDeleted?: (subjectId: string) => void;
   onSubjectUpdated?: (subject: any) => void;
@@ -49,7 +49,7 @@ export default function SubjectRow({
       setErr('Name cannot be empty');
       return;
     }
-    
+
     setBusy(true);
     setErr(null);
     try {
@@ -62,12 +62,12 @@ export default function SubjectRow({
         const j = await res.json().catch(() => ({}));
         throw new Error(j?.error ?? 'Update failed');
       }
-      
+
       const updatedSubject = { ...subject, name: name.trim() };
       if (onSubjectUpdated) {
         onSubjectUpdated(updatedSubject);
       }
-      
+
       setEditing(false);
       toast.success('Subject renamed successfully');
       router.refresh();
@@ -97,11 +97,11 @@ export default function SubjectRow({
               const j = await res.json().catch(() => ({}));
               throw new Error(j?.error ?? 'Delete failed');
             }
-            
+
             if (onSubjectDeleted) {
               onSubjectDeleted(subject.id);
             }
-            
+
             toast.success('Subject deleted successfully');
             router.refresh();
           } catch (e: any) {
@@ -114,32 +114,36 @@ export default function SubjectRow({
       });
     } else {
       // Fallback to browser confirm if showConfirmation is not available
-      if (confirm(`Are you sure you want to delete "${subject.name}"? This action cannot be undone.`)) {
+      if (
+        confirm(
+          `Are you sure you want to delete "${subject.name}"? This action cannot be undone.`
+        )
+      ) {
         setBusy(true);
         setErr(null);
         fetch(`/api/subjects/${subject.id}`, {
           method: 'DELETE',
         })
-        .then(async (res) => {
-          if (!res.ok) {
-            const j = await res.json().catch(() => ({}));
-            throw new Error(j?.error ?? 'Delete failed');
-          }
-          
-          if (onSubjectDeleted) {
-            onSubjectDeleted(subject.id);
-          }
-          
-          toast.success('Subject deleted successfully');
-          router.refresh();
-        })
-        .catch((e: any) => {
-          setErr(e.message);
-          toast.error('Failed to delete subject');
-        })
-        .finally(() => {
-          setBusy(false);
-        });
+          .then(async res => {
+            if (!res.ok) {
+              const j = await res.json().catch(() => ({}));
+              throw new Error(j?.error ?? 'Delete failed');
+            }
+
+            if (onSubjectDeleted) {
+              onSubjectDeleted(subject.id);
+            }
+
+            toast.success('Subject deleted successfully');
+            router.refresh();
+          })
+          .catch((e: any) => {
+            setErr(e.message);
+            toast.error('Failed to delete subject');
+          })
+          .finally(() => {
+            setBusy(false);
+          });
       }
     }
   };
@@ -147,19 +151,19 @@ export default function SubjectRow({
   return (
     <tr className="border-t border-border">
       <td className="px-4 py-2 align-middle">
-      {editing ? (
-        <Tooltip content="Press Enter to save or Escape to cancel">
-          <input
-            ref={inputRef}
-            value={name}
-            onChange={e => setName(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={busy}
-            className="rounded-md border border-input bg-background px-2 py-1 text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            placeholder="Enter subject name"
-          />
-        </Tooltip>
-      ) : (
+        {editing ? (
+          <Tooltip content="Press Enter to save or Escape to cancel">
+            <input
+              ref={inputRef}
+              value={name}
+              onChange={e => setName(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={busy}
+              className="rounded-md border border-input bg-background px-2 py-1 text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              placeholder="Enter subject name"
+            />
+          </Tooltip>
+        ) : (
           <span className="text-foreground">{subject.name}</span>
         )}
         {err && <div className="text-xs text-destructive mt-1">{err}</div>}
@@ -202,26 +206,26 @@ export default function SubjectRow({
               </button>
             </>
           ) : (
-          <>
-            <Tooltip content="Click to rename this subject (Enter to save, Escape to cancel)">
-              <button
-                onClick={() => setEditing(true)}
-                disabled={busy}
-                className="rounded-md border border-border bg-background px-3 py-1 text-foreground hover:bg-muted disabled:opacity-60 transition-colors"
-              >
-                Rename
-              </button>
-            </Tooltip>
-            <Tooltip content="Permanently delete this subject and all its problems">
-              <button
-                onClick={handleRemove}
-                disabled={busy}
-                className="rounded-md border border-destructive bg-destructive/10 dark:bg-destructive/20 px-3 py-1 text-destructive dark:text-red-400 hover:bg-destructive/20 dark:hover:bg-destructive/30 disabled:opacity-60 transition-colors"
-              >
-                Delete
-              </button>
-            </Tooltip>
-          </>
+            <>
+              <Tooltip content="Click to rename this subject (Enter to save, Escape to cancel)">
+                <button
+                  onClick={() => setEditing(true)}
+                  disabled={busy}
+                  className="rounded-md border border-border bg-background px-3 py-1 text-foreground hover:bg-muted disabled:opacity-60 transition-colors"
+                >
+                  Rename
+                </button>
+              </Tooltip>
+              <Tooltip content="Permanently delete this subject and all its problems">
+                <button
+                  onClick={handleRemove}
+                  disabled={busy}
+                  className="rounded-md border border-destructive bg-destructive/10 dark:bg-destructive/20 px-3 py-1 text-destructive dark:text-red-400 hover:bg-destructive/20 dark:hover:bg-destructive/30 disabled:opacity-60 transition-colors"
+                >
+                  Delete
+                </button>
+              </Tooltip>
+            </>
           )}
         </div>
       </td>

@@ -46,10 +46,14 @@ export default function ProblemRow({
   const [err, setErr] = useState<string | null>(null);
 
   const handleRemove = async () => {
-    if (!confirm(`Are you sure you want to delete "${problem.title}"? This action cannot be undone.`)) {
+    if (
+      !confirm(
+        `Are you sure you want to delete "${problem.title}"? This action cannot be undone.`
+      )
+    ) {
       return;
     }
-    
+
     setBusy(true);
     setErr(null);
     try {
@@ -58,12 +62,12 @@ export default function ProblemRow({
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j?.error ?? 'Delete failed');
-      
+
       // Notify parent component about deletion
       if (onDelete) {
         onDelete(problem.id);
       }
-      
+
       toast.success('Problem deleted successfully');
       router.refresh();
     } catch (e: any) {

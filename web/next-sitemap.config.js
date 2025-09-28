@@ -3,10 +3,17 @@ module.exports = {
   siteUrl: process.env.SITE_URL || 'https://wqn.magicworks.app/',
   generateRobotsTxt: true,
   generateIndexSitemap: false,
-  exclude: ['/admin/*', '/api/*', '/auth/confirm', '/auth/error', '/auth/sign-up-success', '/auth/update-password'],
-  additionalPaths: async (config) => {
+  exclude: [
+    '/admin/*',
+    '/api/*',
+    '/auth/confirm',
+    '/auth/error',
+    '/auth/sign-up-success',
+    '/auth/update-password',
+  ],
+  additionalPaths: async () => {
     const result = [];
-    
+
     // Add static pages with proper priorities and metadata
     result.push({
       loc: '/',

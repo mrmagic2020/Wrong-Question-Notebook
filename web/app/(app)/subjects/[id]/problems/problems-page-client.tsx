@@ -43,8 +43,8 @@ export default function ProblemsPageClient({
 
   // Handle problem update
   const handleProblemUpdated = (updatedProblem: any) => {
-    setProblems(prev => 
-      prev.map(p => p.id === updatedProblem.id ? updatedProblem : p)
+    setProblems(prev =>
+      prev.map(p => (p.id === updatedProblem.id ? updatedProblem : p))
     );
     setTagsByProblem(prev => {
       const newMap = new Map(prev);
@@ -59,8 +59,8 @@ export default function ProblemsPageClient({
       <div className="rounded-lg border bg-card p-4">
         <h2 className="mb-3 font-medium text-card-foreground">Add a problem</h2>
         {/* Pass subjectId; form will hide the subject selector */}
-        <ProblemForm 
-          subjectId={subjectId} 
+        <ProblemForm
+          subjectId={subjectId}
           onProblemCreated={handleProblemCreated}
         />
       </div>

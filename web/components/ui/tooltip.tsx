@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 
 interface TooltipProps {
   content: string;
@@ -9,11 +9,11 @@ interface TooltipProps {
   delay?: number;
 }
 
-export function Tooltip({ 
-  content, 
-  children, 
-  side = 'top', 
-  delay = 300 
+export function Tooltip({
+  content,
+  children,
+  side = 'top',
+  delay = 300,
 }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -37,12 +37,12 @@ export function Tooltip({
     setIsVisible(false);
   };
 
-  const updatePosition = () => {
+  const updatePosition = useCallback(() => {
     if (!triggerRef.current || !tooltipRef.current) return;
 
     const triggerRect = triggerRef.current.getBoundingClientRect();
     const tooltipRect = tooltipRef.current.getBoundingClientRect();
-    
+
     let x = 0;
     let y = 0;
 
@@ -79,13 +79,13 @@ export function Tooltip({
     }
 
     setPosition({ x, y });
-  };
+  }, [side]);
 
   useEffect(() => {
     if (isVisible) {
       updatePosition();
     }
-  }, [isVisible, side]);
+  }, [isVisible, updatePosition]);
 
   useEffect(() => {
     return () => {
@@ -119,10 +119,13 @@ export function Tooltip({
           {content}
           <div
             className={`absolute w-2 h-2 bg-gray-900 transform rotate-45 ${
-              side === 'top' ? 'bottom-[-4px] left-1/2 -translate-x-1/2' :
-              side === 'bottom' ? 'top-[-4px] left-1/2 -translate-x-1/2' :
-              side === 'left' ? 'right-[-4px] top-1/2 -translate-y-1/2' :
-              'left-[-4px] top-1/2 -translate-y-1/2'
+              side === 'top'
+                ? 'bottom-[-4px] left-1/2 -translate-x-1/2'
+                : side === 'bottom'
+                  ? 'top-[-4px] left-1/2 -translate-x-1/2'
+                  : side === 'left'
+                    ? 'right-[-4px] top-1/2 -translate-y-1/2'
+                    : 'left-[-4px] top-1/2 -translate-y-1/2'
             }`}
           />
         </div>

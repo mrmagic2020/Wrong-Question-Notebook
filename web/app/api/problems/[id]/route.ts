@@ -67,7 +67,7 @@ export async function PATCH(
   const { tag_ids, assets, solution_assets, ...problem } = parsed.data;
 
   // 1) Update the problem row (without assets first)
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('problems')
     .update(problem)
     .eq('id', id)

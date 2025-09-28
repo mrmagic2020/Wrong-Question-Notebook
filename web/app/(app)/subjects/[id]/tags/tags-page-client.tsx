@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import TagForm from './tag-form';
 import TagRow from './tag-row';
@@ -19,16 +18,16 @@ interface Subject {
   name: string;
 }
 
-export default function TagsPageClient({ 
-  initialSubject, 
-  initialTags 
-}: { 
+export default function TagsPageClient({
+  initialSubject,
+  initialTags,
+}: {
   initialSubject: Subject;
   initialTags: Tag[];
 }) {
-  const router = useRouter();
   const [tags, setTags] = useState(initialTags);
-  const { showConfirmation, ConfirmationDialogComponent } = useConfirmationDialog();
+  const { showConfirmation, ConfirmationDialogComponent } =
+    useConfirmationDialog();
 
   const handleTagDeleted = (tagId: string) => {
     setTags(prev => prev.filter(t => t.id !== tagId));
@@ -39,7 +38,7 @@ export default function TagsPageClient({
   };
 
   const handleTagUpdated = (updatedTag: Tag) => {
-    setTags(prev => prev.map(t => t.id === updatedTag.id ? updatedTag : t));
+    setTags(prev => prev.map(t => (t.id === updatedTag.id ? updatedTag : t)));
   };
 
   return (
@@ -47,7 +46,9 @@ export default function TagsPageClient({
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold">{initialSubject.name} — Tags</h1>
+            <h1 className="text-2xl font-semibold">
+              {initialSubject.name} — Tags
+            </h1>
             <p className="text-muted-foreground">
               Tags are scoped to this subject.
             </p>
@@ -62,7 +63,10 @@ export default function TagsPageClient({
 
         <div className="rounded-lg border bg-card p-4">
           <h2 className="mb-3 font-medium text-card-foreground">Add a tag</h2>
-          <TagForm subjectId={initialSubject.id} onTagCreated={handleTagCreated} />
+          <TagForm
+            subjectId={initialSubject.id}
+            onTagCreated={handleTagCreated}
+          />
         </div>
 
         <div className="rounded-lg border bg-card overflow-hidden">
@@ -70,15 +74,17 @@ export default function TagsPageClient({
             <thead className="bg-muted text-left">
               <tr>
                 <th className="px-4 py-2 text-muted-foreground">Name</th>
-                <th className="px-4 py-2 w-48 text-muted-foreground">Actions</th>
+                <th className="px-4 py-2 w-48 text-muted-foreground">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
               {tags.length ? (
                 tags.map((t: any) => (
-                  <TagRow 
-                    key={t.id} 
-                    tag={t} 
+                  <TagRow
+                    key={t.id}
+                    tag={t}
                     onTagDeleted={handleTagDeleted}
                     onTagUpdated={handleTagUpdated}
                     showConfirmation={showConfirmation}

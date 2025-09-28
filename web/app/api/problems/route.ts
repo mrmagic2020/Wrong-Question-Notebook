@@ -199,12 +199,15 @@ async function createProblem(req: Request) {
 
   const tags = tagLinks?.map((link: any) => link.tags).filter(Boolean) || [];
 
-  return NextResponse.json({ 
-    data: {
-      ...updated,
-      tags,
-    }
-  }, { status: 201 });
+  return NextResponse.json(
+    {
+      data: {
+        ...updated,
+        tags,
+      },
+    },
+    { status: 201 }
+  );
 }
 
 export const POST = withSecurity(createProblem, {

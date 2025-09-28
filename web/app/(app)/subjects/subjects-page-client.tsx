@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import SubjectForm from './subject-form';
 import SubjectRow from './subject-row';
 import { useConfirmationDialog } from '@/components/ui/confirmation-dialog';
@@ -12,10 +11,14 @@ interface Subject {
   created_at: string;
 }
 
-export default function SubjectsPageClient({ initialSubjects }: { initialSubjects: Subject[] }) {
-  const router = useRouter();
+export default function SubjectsPageClient({
+  initialSubjects,
+}: {
+  initialSubjects: Subject[];
+}) {
   const [subjects, setSubjects] = useState(initialSubjects);
-  const { showConfirmation, ConfirmationDialogComponent } = useConfirmationDialog();
+  const { showConfirmation, ConfirmationDialogComponent } =
+    useConfirmationDialog();
 
   const handleSubjectDeleted = (subjectId: string) => {
     setSubjects(prev => prev.filter(s => s.id !== subjectId));
@@ -26,7 +29,9 @@ export default function SubjectsPageClient({ initialSubjects }: { initialSubject
   };
 
   const handleSubjectUpdated = (updatedSubject: Subject) => {
-    setSubjects(prev => prev.map(s => s.id === updatedSubject.id ? updatedSubject : s));
+    setSubjects(prev =>
+      prev.map(s => (s.id === updatedSubject.id ? updatedSubject : s))
+    );
   };
 
   return (
@@ -40,7 +45,9 @@ export default function SubjectsPageClient({ initialSubjects }: { initialSubject
         </div>
 
         <div className="rounded-lg border bg-card p-4">
-          <h2 className="mb-3 font-medium text-card-foreground">Add a subject</h2>
+          <h2 className="mb-3 font-medium text-card-foreground">
+            Add a subject
+          </h2>
           <SubjectForm onSubjectCreated={handleSubjectCreated} />
         </div>
 
@@ -49,15 +56,17 @@ export default function SubjectsPageClient({ initialSubjects }: { initialSubject
             <thead className="bg-muted text-left">
               <tr>
                 <th className="px-4 py-2 text-muted-foreground">Name</th>
-                <th className="px-4 py-2 w-48 text-muted-foreground">Actions</th>
+                <th className="px-4 py-2 w-48 text-muted-foreground">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
               {subjects.length ? (
                 subjects.map(s => (
-                  <SubjectRow 
-                    key={s.id} 
-                    subject={s} 
+                  <SubjectRow
+                    key={s.id}
+                    subject={s}
                     onSubjectDeleted={handleSubjectDeleted}
                     onSubjectUpdated={handleSubjectUpdated}
                     showConfirmation={showConfirmation}

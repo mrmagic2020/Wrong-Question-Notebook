@@ -159,7 +159,7 @@ export default function ProblemForm({
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    
+
     if (!title.trim()) {
       toast.error('Please enter a problem title');
       return;
@@ -169,7 +169,9 @@ export default function ProblemForm({
 
     try {
       const assets = problemAssets.map(asset => ({ path: asset.path }));
-      const solution_assets = solutionAssets.map(asset => ({ path: asset.path }));
+      const solution_assets = solutionAssets.map(asset => ({
+        path: asset.path,
+      }));
 
       const payload = {
         title: title.trim(),
@@ -200,10 +202,16 @@ export default function ProblemForm({
 
       const j = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(j?.error ?? `Failed to ${isEditMode ? 'update' : 'create'} problem`);
+        throw new Error(
+          j?.error ?? `Failed to ${isEditMode ? 'update' : 'create'} problem`
+        );
       }
 
-      toast.success(isEditMode ? 'Problem updated successfully' : 'Problem created successfully');
+      toast.success(
+        isEditMode
+          ? 'Problem updated successfully'
+          : 'Problem created successfully'
+      );
 
       // Clean up staging files after successful problem creation/update
       try {
@@ -231,7 +239,7 @@ export default function ProblemForm({
         if (onProblemCreated && j.data) {
           onProblemCreated(j.data);
         }
-        
+
         // Reset some fields for create mode
         setTitle('');
         setContent('');
@@ -249,7 +257,9 @@ export default function ProblemForm({
 
       router.refresh();
     } catch (error: any) {
-      toast.error(error.message || `Failed to ${isEditMode ? 'update' : 'create'} problem`);
+      toast.error(
+        error.message || `Failed to ${isEditMode ? 'update' : 'create'} problem`
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -502,10 +512,13 @@ export default function ProblemForm({
           {isSubmitting && (
             <div className="w-4 h-4 border border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
           )}
-          {isSubmitting 
-            ? (isEditMode ? 'Updating...' : 'Adding...') 
-            : (isEditMode ? 'Update problem' : 'Add problem')
-          }
+          {isSubmitting
+            ? isEditMode
+              ? 'Updating...'
+              : 'Adding...'
+            : isEditMode
+              ? 'Update problem'
+              : 'Add problem'}
         </button>
         {!isEditMode && (
           <button
