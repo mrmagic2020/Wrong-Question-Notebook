@@ -17,9 +17,11 @@ export function SignUpSuccess() {
   const [email, setEmail] = useState('');
   const [isResending, setIsResending] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
-  const [lastResendTime, setLastResendTime] = useState<number | null>(null);
+  const [, setLastResendTime] = useState<number | null>(null);
   const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState<'success' | 'error'>('success');
+  const [messageType, setMessageType] = useState<'success' | 'error'>(
+    'success'
+  );
 
   useEffect(() => {
     // Get email from URL params or localStorage
@@ -45,7 +47,7 @@ export function SignUpSuccess() {
     let interval: NodeJS.Timeout;
     if (resendCooldown > 0) {
       interval = setInterval(() => {
-        setResendCooldown((prev) => {
+        setResendCooldown(prev => {
           if (prev <= 1) {
             setLastResendTime(null);
             localStorage.removeItem('lastResendTime');
@@ -86,7 +88,9 @@ export function SignUpSuccess() {
       localStorage.setItem('lastResendTime', Date.now().toString());
       setResendCooldown(60); // 60 seconds cooldown
     } catch (error: unknown) {
-      setMessage(error instanceof Error ? error.message : 'Failed to resend email');
+      setMessage(
+        error instanceof Error ? error.message : 'Failed to resend email'
+      );
       setMessageType('error');
     } finally {
       setIsResending(false);
@@ -108,8 +112,9 @@ export function SignUpSuccess() {
         <CardContent className="space-y-6">
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-4">
-              Please check your email and click the confirmation link to activate your account.
-              You can then sign in to start organizing your learning.
+              Please check your email and click the confirmation link to
+              activate your account. You can then sign in to start organizing
+              your learning.
             </p>
           </div>
 
@@ -123,7 +128,7 @@ export function SignUpSuccess() {
                 id="email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
                 placeholder="Enter your email address"
                 className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               />
@@ -154,11 +159,13 @@ export function SignUpSuccess() {
             </Button>
 
             {message && (
-              <div className={`text-sm text-center ${
-                messageType === 'success' 
-                  ? 'text-green-600 dark:text-green-400' 
-                  : 'text-red-600 dark:text-red-400'
-              }`}>
+              <div
+                className={`text-sm text-center ${
+                  messageType === 'success'
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-red-600 dark:text-red-400'
+                }`}
+              >
                 {message}
               </div>
             )}
