@@ -1,15 +1,15 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-  siteUrl: process.env.SITE_URL || 'https://your-domain.vercel.app',
+  siteUrl: process.env.SITE_URL || 'https://wqn.magicworks.app/',
   generateRobotsTxt: true,
   generateIndexSitemap: false,
-  exclude: ['/protected/*', '/api/*'],
+  exclude: ['/admin/*', '/api/*'],
   robotsTxtOptions: {
     policies: [
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/protected/', '/api/'],
+        disallow: ['/admin/', '/api/'],
       },
     ],
   },
