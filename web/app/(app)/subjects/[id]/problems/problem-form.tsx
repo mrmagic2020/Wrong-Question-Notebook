@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useState, useMemo } from 'react';
+import { toast } from 'sonner';
 import FileManager from '@/components/ui/file-manager';
 import { PROBLEM_TYPE_VALUES, type ProblemType } from '@/lib/schemas';
 
@@ -71,6 +72,7 @@ export default function ProblemForm({
     problem?.status || 'needs_review'
   );
   const [autoMark, setAutoMark] = useState(problem?.auto_mark || false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Auto-update auto-mark based on problem type (only for new problems)
   useEffect(() => {
@@ -155,84 +157,96 @@ export default function ProblemForm({
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-
-    const assets = problemAssets.map(asset => ({ path: asset.path }));
-    const solution_assets = solutionAssets.map(asset => ({ path: asset.path }));
-
-    const payload = {
-      title,
-      content: content || undefined,
-      problem_type: problemType,
-      correct_answer: problemType === 'extended' ? undefined : correctAnswer,
-      auto_mark: autoMarkValue,
-      status,
-      assets,
-      solution_text: solutionText || undefined,
-      solution_assets,
-      tag_ids: selectedTagIds, // Always send the array, even if empty
-    };
-
-    // Add subject_id for create operations
-    if (!isEditMode) {
-      (payload as any).subject_id = subjectId;
-    }
-
-    const url = isEditMode ? `/api/problems/${problem.id}` : '/api/problems';
-    const method = isEditMode ? 'PATCH' : 'POST';
-
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-
-    const j = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      alert(
-        j?.error ?? `Failed to ${isEditMode ? 'update' : 'create'} problem`
-      );
+    
+    if (!title.trim()) {
+      toast.error('Please enter a problem title');
       return;
     }
 
-    // Clean up staging files after successful problem creation/update
+    setIsSubmitting(true);
+
     try {
-      await fetch(`/api/uploads/staging?stagingId=${stagingId}`, {
-        method: 'DELETE',
+      const assets = problemAssets.map(asset => ({ path: asset.path }));
+      const solution_assets = solutionAssets.map(asset => ({ path: asset.path }));
+
+      const payload = {
+        title: title.trim(),
+        content: content || undefined,
+        problem_type: problemType,
+        correct_answer: problemType === 'extended' ? undefined : correctAnswer,
+        auto_mark: autoMarkValue,
+        status,
+        assets,
+        solution_text: solutionText || undefined,
+        solution_assets,
+        tag_ids: selectedTagIds, // Always send the array, even if empty
+      };
+
+      // Add subject_id for create operations
+      if (!isEditMode) {
+        (payload as any).subject_id = subjectId;
+      }
+
+      const url = isEditMode ? `/api/problems/${problem.id}` : '/api/problems';
+      const method = isEditMode ? 'PATCH' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
-    } catch (error) {
-      console.warn(
-        'Failed to cleanup staging files after successful submission:',
-        error
-      );
-    }
 
-    if (isEditMode) {
-      // In edit mode, call onCancel to close the form
-      if (onCancel) {
-        onCancel();
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(j?.error ?? `Failed to ${isEditMode ? 'update' : 'create'} problem`);
       }
-    } else {
-      // For create mode, notify parent component with new problem data
-      if (onProblemCreated && j.data) {
-        onProblemCreated(j.data);
-      }
-      
-      // Reset some fields for create mode
-      setTitle('');
-      setContent('');
-      setProblemAssets([]);
-      setSolutionText('');
-      setSolutionAssets([]);
-      setShortText('');
-      setMcqChoice('');
-      setSelectedTagIds([]);
-      setProblemType('short');
-      setStatus('needs_review');
-      setAutoMark(false);
-      setIsExpanded(false);
-    }
 
-    router.refresh();
+      toast.success(isEditMode ? 'Problem updated successfully' : 'Problem created successfully');
+
+      // Clean up staging files after successful problem creation/update
+      try {
+        await fetch(`/api/uploads/staging?stagingId=${stagingId}`, {
+          method: 'DELETE',
+        });
+      } catch (error) {
+        console.warn(
+          'Failed to cleanup staging files after successful submission:',
+          error
+        );
+      }
+
+      if (isEditMode) {
+        // In edit mode, call onCancel to close the form
+        if (onCancel) {
+          onCancel();
+        }
+      } else {
+        // For create mode, notify parent component with new problem data
+        if (onProblemCreated && j.data) {
+          onProblemCreated(j.data);
+        }
+        
+        // Reset some fields for create mode
+        setTitle('');
+        setContent('');
+        setProblemAssets([]);
+        setSolutionText('');
+        setSolutionAssets([]);
+        setShortText('');
+        setMcqChoice('');
+        setSelectedTagIds([]);
+        setProblemType('short');
+        setStatus('needs_review');
+        setAutoMark(false);
+        setIsExpanded(false);
+      }
+
+      router.refresh();
+    } catch (error: any) {
+      toast.error(error.message || `Failed to ${isEditMode ? 'update' : 'create'} problem`);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   const [stagingId] = useState(
@@ -476,15 +490,23 @@ export default function ProblemForm({
       <div className="flex gap-3">
         <button
           type="submit"
-          className="rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90 transition-colors"
+          disabled={isSubmitting}
+          className="rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
         >
-          {isEditMode ? 'Update problem' : 'Add problem'}
+          {isSubmitting && (
+            <div className="w-4 h-4 border border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+          )}
+          {isSubmitting 
+            ? (isEditMode ? 'Updating...' : 'Adding...') 
+            : (isEditMode ? 'Update problem' : 'Add problem')
+          }
         </button>
         {!isEditMode && (
           <button
             type="button"
             onClick={() => setIsExpanded(false)}
-            className="rounded-md border border-border bg-background px-4 py-2 text-foreground hover:bg-muted transition-colors"
+            disabled={isSubmitting}
+            className="rounded-md border border-border bg-background px-4 py-2 text-foreground hover:bg-muted disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
             Cancel
           </button>

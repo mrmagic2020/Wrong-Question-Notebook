@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 function TagCapsules({ tags }: { tags: { id: string; name: string }[] }) {
   // Show up to 4 tags, then "+N" more
@@ -44,8 +45,11 @@ export default function ProblemRow({
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  async function remove() {
-    if (!confirm('Delete this problem?')) return;
+  const handleRemove = async () => {
+    if (!confirm(`Are you sure you want to delete "${problem.title}"? This action cannot be undone.`)) {
+      return;
+    }
+    
     setBusy(true);
     setErr(null);
     try {
@@ -60,13 +64,15 @@ export default function ProblemRow({
         onDelete(problem.id);
       }
       
+      toast.success('Problem deleted successfully');
       router.refresh();
     } catch (e: any) {
       setErr(e.message);
+      toast.error('Failed to delete problem');
     } finally {
       setBusy(false);
     }
-  }
+  };
 
   return (
     <tr className="border-t border-border align-top">
@@ -107,7 +113,7 @@ export default function ProblemRow({
             </button>
           )}
           <button
-            onClick={remove}
+            onClick={handleRemove}
             disabled={busy}
             className="rounded-md border border-destructive bg-destructive/10 dark:bg-destructive/20 px-3 py-1 text-destructive dark:text-red-400 hover:bg-destructive/20 dark:hover:bg-destructive/30 disabled:opacity-60 transition-colors"
           >
