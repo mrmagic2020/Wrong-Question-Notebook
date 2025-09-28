@@ -24,12 +24,14 @@ export default function ProblemsTable({
   subjectId,
   availableTags,
   onProblemDeleted = null,
+  onProblemUpdated = null,
 }: {
   initialProblems: any[];
   initialTagsByProblem: Map<string, any[]>;
   subjectId: string;
   availableTags: Tag[];
   onProblemDeleted?: ((problemId: string) => void) | null;
+  onProblemUpdated?: ((updatedProblem: any) => void) | null;
 }) {
   const [editingProblem, setEditingProblem] = useState<any | null>(null);
   const [problems, setProblems] = useState(initialProblems);
@@ -207,6 +209,34 @@ export default function ProblemsTable({
     }
   };
 
+  // Handle problem update
+  const handleProblemUpdated = (updatedProblem: any) => {
+    // Check if we're in a filtered state and if the updated problem matches current filters
+    const shouldShowUpdated = !isFiltered || (currentFilters && problemMatchesFilters(updatedProblem, currentFilters));
+    
+    if (shouldShowUpdated) {
+      // Update the problem in the list
+      setProblems(prev => 
+        prev.map(p => p.id === updatedProblem.id ? updatedProblem : p)
+      );
+    } else {
+      // If the updated problem no longer matches filters, remove it from the list
+      setProblems(prev => prev.filter(p => p.id !== updatedProblem.id));
+    }
+    
+    // Always update the tags mapping for consistency
+    setTagsByProblem(prev => {
+      const newMap = new Map(prev);
+      newMap.set(updatedProblem.id, updatedProblem.tags || []);
+      return newMap;
+    });
+    
+    // Notify parent component
+    if (onProblemUpdated) {
+      onProblemUpdated(updatedProblem);
+    }
+  };
+
   return (
     <>
       {/* Search and Filter Component */}
@@ -231,6 +261,7 @@ export default function ProblemsTable({
             problem={editingProblem}
             onCancel={handleCancelEdit}
             onProblemCreated={handleProblemCreated}
+            onProblemUpdated={handleProblemUpdated}
           />
         </div>
       )}

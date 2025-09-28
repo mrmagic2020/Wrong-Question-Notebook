@@ -27,11 +27,13 @@ export default function ProblemForm({
   problem = null,
   onCancel = null,
   onProblemCreated = null,
+  onProblemUpdated = null,
 }: {
   subjectId: string;
   problem?: any | null;
   onCancel?: (() => void) | null;
   onProblemCreated?: ((newProblem: any) => void) | null;
+  onProblemUpdated?: ((updatedProblem: any) => void) | null;
 }) {
   const router = useRouter();
   const isEditMode = !!problem;
@@ -216,7 +218,11 @@ export default function ProblemForm({
       }
 
       if (isEditMode) {
-        // In edit mode, call onCancel to close the form
+        // In edit mode, notify parent component with updated problem data
+        if (onProblemUpdated && j.data) {
+          onProblemUpdated(j.data);
+        }
+        // Close the form
         if (onCancel) {
           onCancel();
         }

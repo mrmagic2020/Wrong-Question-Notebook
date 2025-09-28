@@ -176,7 +176,33 @@ export async function PATCH(
     }
   }
 
-  return NextResponse.json({ data });
+  // Fetch the updated problem with tags for the response
+  const { data: updatedProblem, error: fetchError } = await supabase
+    .from('problems')
+    .select('*')
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .single();
+
+  if (fetchError) {
+    return NextResponse.json({ error: fetchError.message }, { status: 500 });
+  }
+
+  // Get the tags for this problem
+  const { data: tagLinks } = await supabase
+    .from('problem_tag')
+    .select('tags:tag_id ( id, name )')
+    .eq('problem_id', id)
+    .eq('user_id', user.id);
+
+  const tags = tagLinks?.map((link: any) => link.tags).filter(Boolean) || [];
+
+  return NextResponse.json({
+    data: {
+      ...updatedProblem,
+      tags,
+    },
+  });
 }
 
 export async function DELETE(

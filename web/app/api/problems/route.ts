@@ -190,7 +190,21 @@ async function createProblem(req: Request) {
     }
   }
 
-  return NextResponse.json({ data: updated }, { status: 201 });
+  // Get the tags for the created problem
+  const { data: tagLinks } = await supabase
+    .from('problem_tag')
+    .select('tags:tag_id ( id, name )')
+    .eq('problem_id', created.id)
+    .eq('user_id', user.id);
+
+  const tags = tagLinks?.map((link: any) => link.tags).filter(Boolean) || [];
+
+  return NextResponse.json({ 
+    data: {
+      ...updated,
+      tags,
+    }
+  }, { status: 201 });
 }
 
 export const POST = withSecurity(createProblem, {

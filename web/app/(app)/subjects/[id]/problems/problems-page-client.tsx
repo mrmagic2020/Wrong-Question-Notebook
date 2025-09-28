@@ -41,6 +41,18 @@ export default function ProblemsPageClient({
     });
   };
 
+  // Handle problem update
+  const handleProblemUpdated = (updatedProblem: any) => {
+    setProblems(prev => 
+      prev.map(p => p.id === updatedProblem.id ? updatedProblem : p)
+    );
+    setTagsByProblem(prev => {
+      const newMap = new Map(prev);
+      newMap.set(updatedProblem.id, updatedProblem.tags || []);
+      return newMap;
+    });
+  };
+
   return (
     <>
       {/* Create form with subject fixed */}
@@ -60,6 +72,7 @@ export default function ProblemsPageClient({
         subjectId={subjectId}
         availableTags={availableTags}
         onProblemDeleted={handleProblemDeleted}
+        onProblemUpdated={handleProblemUpdated}
       />
     </>
   );
