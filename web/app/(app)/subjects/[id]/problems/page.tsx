@@ -18,14 +18,22 @@ async function loadData(subjectId: string) {
       subject: null,
       problems: [],
       tagsByProblem: new Map<string, any[]>(),
+      availableTags: [],
     };
 
-  // Problems for this subject
-  const { data: problems } = await supabase
-    .from('problems')
-    .select('*')
-    .eq('subject_id', subjectId)
-    .order('created_at', { ascending: false });
+  // Load problems and tags in parallel
+  const [{ data: problems }, { data: availableTags }] = await Promise.all([
+    supabase
+      .from('problems')
+      .select('*')
+      .eq('subject_id', subjectId)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('tags')
+      .select('id, name')
+      .eq('subject_id', subjectId)
+      .order('name', { ascending: true })
+  ]);
 
   const p = problems ?? [];
   const ids = p.map((x: any) => x.id);
@@ -46,7 +54,12 @@ async function loadData(subjectId: string) {
     });
   }
 
-  return { subject, problems: p, tagsByProblem };
+  return { 
+    subject, 
+    problems: p, 
+    tagsByProblem, 
+    availableTags: availableTags ?? [] 
+  };
 }
 
 export default async function SubjectProblemsPage({
@@ -55,7 +68,7 @@ export default async function SubjectProblemsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { subject, problems, tagsByProblem } = await loadData(id);
+  const { subject, problems, tagsByProblem, availableTags } = await loadData(id);
 
   if (!subject) {
     return (
@@ -95,11 +108,12 @@ export default async function SubjectProblemsPage({
         <ProblemForm subjectId={subject.id} />
       </div>
 
-      {/* Problems table */}
+      {/* Problems table with search */}
       <ProblemsTable
-        problems={problems}
-        tagsByProblem={tagsByProblem}
+        initialProblems={problems}
+        initialTagsByProblem={tagsByProblem}
         subjectId={subject.id}
+        availableTags={availableTags}
       />
     </div>
   );

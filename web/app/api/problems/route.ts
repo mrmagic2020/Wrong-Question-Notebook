@@ -13,17 +13,69 @@ async function getProblems(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const subjectId = searchParams.get('subject_id');
+  const searchText = searchParams.get('search_text');
+  const searchTitle = searchParams.get('search_title') === 'true';
+  const searchContent = searchParams.get('search_content') === 'true';
+  const problemTypes = searchParams.get('problem_types')?.split(',').filter(Boolean) || [];
+  const tagIds = searchParams.get('tag_ids')?.split(',').filter(Boolean) || [];
 
-  let query = supabase.from('problems').select('*').eq('user_id', user.id);
+  let query = supabase.from('problems').select(`
+    *,
+    problem_tag(tags:tag_id(id, name))
+  `).eq('user_id', user.id);
+  
   if (subjectId) query = query.eq('subject_id', subjectId);
+
+  // Apply text search
+  if (searchText && searchText.trim()) {
+    const searchTerm = `%${searchText.trim()}%`;
+    const searchConditions = [];
+    
+    if (searchTitle) {
+      searchConditions.push(`title.ilike.${searchTerm}`);
+    }
+    if (searchContent) {
+      // Search in both problem content and solution text
+      searchConditions.push(`content.ilike.${searchTerm}`);
+      searchConditions.push(`solution_text.ilike.${searchTerm}`);
+    }
+    
+    if (searchConditions.length > 0) {
+      query = query.or(searchConditions.join(','));
+    }
+  }
+
+  // Apply problem type filter
+  if (problemTypes.length > 0) {
+    query = query.in('problem_type', problemTypes);
+  }
 
   const { data, error } = await query.order('created_at', {
     ascending: false,
   });
+  
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ data });
+  // Apply tag filter after fetching data (since we need to handle problems without tags)
+  let filteredData = data || [];
+  if (tagIds.length > 0) {
+    filteredData = filteredData.filter(problem => {
+      const problemTagIds = problem.problem_tag?.map((pt: any) => pt.tags?.id).filter(Boolean) || [];
+      return tagIds.some(tagId => problemTagIds.includes(tagId));
+    });
+  }
+
+  // Group tags by problem for easier frontend consumption
+  const problemsWithTags = filteredData.map(problem => {
+    const tags = problem.problem_tag?.map((pt: any) => pt.tags).filter(Boolean) || [];
+    return {
+      ...problem,
+      tags
+    };
+  });
+
+  return NextResponse.json({ data: problemsWithTags });
 }
 
 export const GET = withSecurity(getProblems, { rateLimitType: 'readOnly' });

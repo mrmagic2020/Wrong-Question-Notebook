@@ -34,7 +34,7 @@ export const securityHeaders = {
 export const suspiciousPatterns = {
   sqlInjection:
     /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)/i,
-  xss: /<script|javascript:|on\w+\s*=/i,
+  xss: /<script[^>]*>|javascript\s*:|on\w+\s*=\s*["']/i,
   pathTraversal: /\.\.\/|\.\.\\|\.\.%2f|\.\.%5c/i,
   commandInjection: /[;&|`$()]/,
   suspiciousUserAgents: [
@@ -50,11 +50,79 @@ export const suspiciousPatterns = {
   ],
 };
 
+// Common query parameter patterns that are safe
+const safeQueryPatterns = {
+  // Common API query parameters
+  apiParams: /^(subject_id|search_text|search_title|search_content|problem_types|tag_ids|page|limit|offset|sort|order)=/i,
+  // Boolean values
+  booleanValues: /^(true|false)$/i,
+  // UUIDs
+  uuid: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+  // Common problem types
+  problemTypes: /^(mcq|short|extended)$/i,
+  // Common sort values
+  sortValues: /^(created_at|updated_at|title|problem_type)$/i,
+  // Common order values
+  orderValues: /^(asc|desc|ascending|descending)$/i,
+};
+
 export interface ValidationResult {
   isValid: boolean;
   errors: string[];
   warnings: string[];
   riskLevel: 'low' | 'medium' | 'high';
+}
+
+// Helper function to check if a query parameter value is safe
+function isSafeQueryValue(key: string, value: string): boolean {
+  // Check if it's a known safe parameter
+  if (safeQueryPatterns.apiParams.test(key + '=')) {
+    // For search_text, allow any text (will be sanitized by the API)
+    if (key === 'search_text') {
+      return true;
+    }
+    // For boolean parameters
+    if (key === 'search_title' || key === 'search_content') {
+      return safeQueryPatterns.booleanValues.test(value);
+    }
+    // For problem_types, allow comma-separated values
+    if (key === 'problem_types') {
+      return value.split(',').every(type => safeQueryPatterns.problemTypes.test(type.trim()));
+    }
+    // For tag_ids, allow comma-separated UUIDs
+    if (key === 'tag_ids') {
+      return value.split(',').every(id => safeQueryPatterns.uuid.test(id.trim()));
+    }
+    // For subject_id, expect a UUID
+    if (key === 'subject_id') {
+      return safeQueryPatterns.uuid.test(value);
+    }
+    // For other parameters, allow alphanumeric and common characters
+    return /^[a-zA-Z0-9_,.-]+$/.test(value);
+  }
+  
+  // For unknown parameters, be more restrictive
+  return /^[a-zA-Z0-9_.-]+$/.test(value);
+}
+
+// Helper function to parse and validate query parameters
+function validateQueryParameters(searchParams: URLSearchParams): { isValid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  
+  for (const [key, value] of searchParams.entries()) {
+    // Skip empty values
+    if (!value) continue;
+    
+    // Check if the parameter value is safe
+    if (!isSafeQueryValue(key, value)) {
+      errors.push(`Suspicious query parameter: ${key}=${value}`);
+    }
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
 }
 
 export function validateRequest(req: NextRequest): ValidationResult {
@@ -101,20 +169,37 @@ export function validateRequest(req: NextRequest): ValidationResult {
 
   // Check for suspicious patterns in URL
   const url = req.url;
-  if (suspiciousPatterns.sqlInjection.test(url)) {
-    errors.push('Potential SQL injection attempt detected');
+  const pathname = req.nextUrl.pathname;
+  
+  // First, validate query parameters intelligently
+  const queryValidation = validateQueryParameters(req.nextUrl.searchParams);
+  if (!queryValidation.isValid) {
+    errors.push(...queryValidation.errors);
     riskLevel = 'high';
   }
-  if (suspiciousPatterns.xss.test(url)) {
-    errors.push('Potential XSS attempt detected');
+  
+  // Check for SQL injection in the path (not query parameters)
+  const pathOnly = pathname;
+  if (suspiciousPatterns.sqlInjection.test(pathOnly)) {
+    errors.push('Potential SQL injection attempt detected in path');
     riskLevel = 'high';
   }
+  
+  // Check for XSS in the path (not query parameters)
+  if (suspiciousPatterns.xss.test(pathOnly)) {
+    errors.push('Potential XSS attempt detected in path');
+    riskLevel = 'high';
+  }
+  
+  // Check for path traversal
   if (suspiciousPatterns.pathTraversal.test(url)) {
     errors.push('Potential path traversal attempt detected');
     riskLevel = 'high';
   }
-  if (suspiciousPatterns.commandInjection.test(url)) {
-    errors.push('Potential command injection attempt detected');
+  
+  // Check for command injection in the path (not query parameters)
+  if (suspiciousPatterns.commandInjection.test(pathOnly)) {
+    errors.push('Potential command injection attempt detected in path');
     riskLevel = 'high';
   }
 
