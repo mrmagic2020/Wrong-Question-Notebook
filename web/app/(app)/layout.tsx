@@ -8,7 +8,7 @@ import '@/app/globals.css';
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <header className="border-b border-b-foreground/10 h-16 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+      <header className="border-b border-b-foreground/10 h-16 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm sticky top-0 z-50">
         <nav className="w-full flex justify-center">
           <div className="w-full max-w-6xl flex justify-between items-center p-3 px-6 text-sm">
             <div className="flex items-center gap-6">
@@ -44,7 +44,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </nav>
       </header>
-      <main className="mx-auto max-w-5xl p-6">{children}</main>
+      <main className="mx-auto max-w-5xl p-6 main-content">{children}</main>
     </div>
   );
 }

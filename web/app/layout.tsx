@@ -42,6 +42,48 @@ export default function RootLayout({
         <Toaster />
         <SpeedInsights />
         <Analytics />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Prevent layout shift by ensuring scrollbar space is always reserved
+              (function() {
+                // Calculate scrollbar width
+                function getScrollbarWidth() {
+                  const outer = document.createElement('div');
+                  outer.style.visibility = 'hidden';
+                  outer.style.overflow = 'scroll';
+                  outer.style.msOverflowStyle = 'scrollbar';
+                  document.body.appendChild(outer);
+                  
+                  const inner = document.createElement('div');
+                  outer.appendChild(inner);
+                  
+                  const scrollbarWidth = outer.offsetWidth - inner.offsetWidth;
+                  outer.parentNode.removeChild(outer);
+                  
+                  return scrollbarWidth;
+                }
+                
+                // Apply scrollbar compensation
+                function applyScrollbarCompensation() {
+                  const scrollbarWidth = getScrollbarWidth();
+                  if (scrollbarWidth > 0) {
+                    document.documentElement.style.setProperty('--scrollbar-width', scrollbarWidth + 'px');
+                  }
+                }
+                
+                // Run on load and resize
+                if (document.readyState === 'loading') {
+                  document.addEventListener('DOMContentLoaded', applyScrollbarCompensation);
+                } else {
+                  applyScrollbarCompensation();
+                }
+                
+                window.addEventListener('resize', applyScrollbarCompensation);
+              })();
+            `,
+          }}
+        />
       </body>
     </html>
   );
