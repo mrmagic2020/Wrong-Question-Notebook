@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -108,7 +108,7 @@ export default function ProblemSearchFilter({
     onSearch(clearedFilters); // Trigger search with cleared filters
   };
 
-  const hasActiveFilters = 
+  const hasActiveFilters =
     filters.searchText.trim() !== '' ||
     filters.problemTypes.length > 0 ||
     filters.tagIds.length > 0 ||
@@ -169,8 +169,8 @@ export default function ProblemSearchFilter({
             id="search-text"
             placeholder="Search problems..."
             value={filters.searchText}
-            onChange={(e) => updateSearchText(e.target.value)}
-            onKeyDown={(e) => {
+            onChange={e => updateSearchText(e.target.value)}
+            onKeyDown={e => {
               if (e.key === 'Enter') {
                 handleSearch();
               }
@@ -181,11 +181,7 @@ export default function ProblemSearchFilter({
             <Search className="h-4 w-4 mr-2" />
             Search
           </Button>
-          <Button 
-            variant="outline" 
-            onClick={clearFilters}
-            className="px-6"
-          >
+          <Button variant="outline" onClick={clearFilters} className="px-6">
             Show All
           </Button>
         </div>
@@ -214,10 +210,12 @@ export default function ProblemSearchFilter({
           <div className="space-y-2">
             <Label>Problem Types</Label>
             <div className="flex flex-wrap gap-2">
-              {PROBLEM_TYPE_VALUES.map((type) => (
+              {PROBLEM_TYPE_VALUES.map(type => (
                 <Button
                   key={type}
-                  variant={filters.problemTypes.includes(type) ? "default" : "outline"}
+                  variant={
+                    filters.problemTypes.includes(type) ? 'default' : 'outline'
+                  }
                   size="sm"
                   onClick={() => toggleProblemType(type)}
                   className="text-xs"
@@ -233,10 +231,12 @@ export default function ProblemSearchFilter({
             <Label>Tags</Label>
             {availableTags.length > 0 ? (
               <div className="flex flex-wrap gap-2">
-                {availableTags.map((tag) => (
+                {availableTags.map(tag => (
                   <Button
                     key={tag.id}
-                    variant={filters.tagIds.includes(tag.id) ? "default" : "outline"}
+                    variant={
+                      filters.tagIds.includes(tag.id) ? 'default' : 'outline'
+                    }
                     size="sm"
                     onClick={() => toggleTag(tag.id)}
                     className="text-xs"
@@ -247,7 +247,14 @@ export default function ProblemSearchFilter({
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">
-                No tags available. <a href={`/subjects/${subjectId}/tags`} className="text-primary underline">Create some tags</a> to filter by them.
+                No tags available.{' '}
+                <a
+                  href={`/subjects/${subjectId}/tags`}
+                  className="text-primary underline"
+                >
+                  Create some tags
+                </a>{' '}
+                to filter by them.
               </p>
             )}
           </div>
@@ -261,28 +268,36 @@ export default function ProblemSearchFilter({
             {filters.searchText.trim() !== '' && (
               <Badge variant="secondary" className="flex items-center gap-1">
                 Search: "{filters.searchText}"
-                <X 
-                  className="h-3 w-3 cursor-pointer" 
+                <X
+                  className="h-3 w-3 cursor-pointer"
                   onClick={() => updateSearchText('')}
                 />
               </Badge>
             )}
-            {filters.problemTypes.map((type) => (
-              <Badge key={type} variant="secondary" className="flex items-center gap-1">
+            {filters.problemTypes.map(type => (
+              <Badge
+                key={type}
+                variant="secondary"
+                className="flex items-center gap-1"
+              >
                 {getProblemTypeDisplayName(type)}
-                <X 
-                  className="h-3 w-3 cursor-pointer" 
+                <X
+                  className="h-3 w-3 cursor-pointer"
                   onClick={() => toggleProblemType(type)}
                 />
               </Badge>
             ))}
-            {filters.tagIds.map((tagId) => {
+            {filters.tagIds.map(tagId => {
               const tag = availableTags.find(t => t.id === tagId);
               return tag ? (
-                <Badge key={tagId} variant="secondary" className="flex items-center gap-1">
+                <Badge
+                  key={tagId}
+                  variant="secondary"
+                  className="flex items-center gap-1"
+                >
                   {tag.name}
-                  <X 
-                    className="h-3 w-3 cursor-pointer" 
+                  <X
+                    className="h-3 w-3 cursor-pointer"
                     onClick={() => toggleTag(tagId)}
                   />
                 </Badge>
@@ -291,8 +306,8 @@ export default function ProblemSearchFilter({
             {!filters.searchFields.title && (
               <Badge variant="secondary" className="flex items-center gap-1">
                 No title search
-                <X 
-                  className="h-3 w-3 cursor-pointer" 
+                <X
+                  className="h-3 w-3 cursor-pointer"
                   onClick={() => toggleSearchField('title')}
                 />
               </Badge>
@@ -300,8 +315,8 @@ export default function ProblemSearchFilter({
             {!filters.searchFields.content && (
               <Badge variant="secondary" className="flex items-center gap-1">
                 No content & solutions search
-                <X 
-                  className="h-3 w-3 cursor-pointer" 
+                <X
+                  className="h-3 w-3 cursor-pointer"
                   onClick={() => toggleSearchField('content')}
                 />
               </Badge>

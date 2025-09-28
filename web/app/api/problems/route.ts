@@ -16,21 +16,27 @@ async function getProblems(req: Request) {
   const searchText = searchParams.get('search_text');
   const searchTitle = searchParams.get('search_title') === 'true';
   const searchContent = searchParams.get('search_content') === 'true';
-  const problemTypes = searchParams.get('problem_types')?.split(',').filter(Boolean) || [];
+  const problemTypes =
+    searchParams.get('problem_types')?.split(',').filter(Boolean) || [];
   const tagIds = searchParams.get('tag_ids')?.split(',').filter(Boolean) || [];
 
-  let query = supabase.from('problems').select(`
+  let query = supabase
+    .from('problems')
+    .select(
+      `
     *,
     problem_tag(tags:tag_id(id, name))
-  `).eq('user_id', user.id);
-  
+  `
+    )
+    .eq('user_id', user.id);
+
   if (subjectId) query = query.eq('subject_id', subjectId);
 
   // Apply text search
   if (searchText && searchText.trim()) {
     const searchTerm = `%${searchText.trim()}%`;
     const searchConditions = [];
-    
+
     if (searchTitle) {
       searchConditions.push(`title.ilike.${searchTerm}`);
     }
@@ -39,7 +45,7 @@ async function getProblems(req: Request) {
       searchConditions.push(`content.ilike.${searchTerm}`);
       searchConditions.push(`solution_text.ilike.${searchTerm}`);
     }
-    
+
     if (searchConditions.length > 0) {
       query = query.or(searchConditions.join(','));
     }
@@ -53,7 +59,7 @@ async function getProblems(req: Request) {
   const { data, error } = await query.order('created_at', {
     ascending: false,
   });
-  
+
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
 
@@ -61,17 +67,20 @@ async function getProblems(req: Request) {
   let filteredData = data || [];
   if (tagIds.length > 0) {
     filteredData = filteredData.filter(problem => {
-      const problemTagIds = problem.problem_tag?.map((pt: any) => pt.tags?.id).filter(Boolean) || [];
+      const problemTagIds =
+        problem.problem_tag?.map((pt: any) => pt.tags?.id).filter(Boolean) ||
+        [];
       return tagIds.some(tagId => problemTagIds.includes(tagId));
     });
   }
 
   // Group tags by problem for easier frontend consumption
   const problemsWithTags = filteredData.map(problem => {
-    const tags = problem.problem_tag?.map((pt: any) => pt.tags).filter(Boolean) || [];
+    const tags =
+      problem.problem_tag?.map((pt: any) => pt.tags).filter(Boolean) || [];
     return {
       ...problem,
-      tags
+      tags,
     };
   });
 

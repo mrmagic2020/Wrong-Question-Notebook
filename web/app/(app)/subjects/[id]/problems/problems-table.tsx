@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import ProblemRow from './problem-row';
 import ProblemForm from './problem-form';
 import ProblemSearchFilter from './problem-search-filter';
@@ -58,28 +58,28 @@ export default function ProblemsTable({
   const handleSearch = async (filters: SearchFilters) => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const params = new URLSearchParams();
       params.set('subject_id', subjectId);
-      
+
       if (filters.searchText.trim()) {
         params.set('search_text', filters.searchText.trim());
         params.set('search_title', filters.searchFields.title.toString());
         params.set('search_content', filters.searchFields.content.toString());
       }
-      
+
       if (filters.problemTypes.length > 0) {
         params.set('problem_types', filters.problemTypes.join(','));
       }
-      
+
       if (filters.tagIds.length > 0) {
         params.set('tag_ids', filters.tagIds.join(','));
       }
 
       const response = await fetch(`/api/problems?${params.toString()}`);
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || 'Failed to fetch problems');
       }
@@ -87,7 +87,7 @@ export default function ProblemsTable({
       // Update problems and tags
       const newProblems = data.data || [];
       const newTagsByProblem = new Map<string, any[]>();
-      
+
       newProblems.forEach((problem: any) => {
         newTagsByProblem.set(problem.id, problem.tags || []);
       });
@@ -143,7 +143,10 @@ export default function ProblemsTable({
           <tbody>
             {loading ? (
               <tr>
-                <td className="px-4 py-6 text-muted-foreground text-center" colSpan={4}>
+                <td
+                  className="px-4 py-6 text-muted-foreground text-center"
+                  colSpan={4}
+                >
                   Searching...
                 </td>
               </tr>

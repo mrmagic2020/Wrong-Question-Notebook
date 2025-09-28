@@ -32,7 +32,7 @@ async function loadData(subjectId: string) {
       .from('tags')
       .select('id, name')
       .eq('subject_id', subjectId)
-      .order('name', { ascending: true })
+      .order('name', { ascending: true }),
   ]);
 
   const p = problems ?? [];
@@ -54,11 +54,11 @@ async function loadData(subjectId: string) {
     });
   }
 
-  return { 
-    subject, 
-    problems: p, 
-    tagsByProblem, 
-    availableTags: availableTags ?? [] 
+  return {
+    subject,
+    problems: p,
+    tagsByProblem,
+    availableTags: availableTags ?? [],
   };
 }
 
@@ -68,7 +68,8 @@ export default async function SubjectProblemsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { subject, problems, tagsByProblem, availableTags } = await loadData(id);
+  const { subject, problems, tagsByProblem, availableTags } =
+    await loadData(id);
 
   if (!subject) {
     return (

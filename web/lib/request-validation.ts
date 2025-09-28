@@ -53,7 +53,8 @@ export const suspiciousPatterns = {
 // Common query parameter patterns that are safe
 const safeQueryPatterns = {
   // Common API query parameters
-  apiParams: /^(subject_id|search_text|search_title|search_content|problem_types|tag_ids|page|limit|offset|sort|order)=/i,
+  apiParams:
+    /^(subject_id|search_text|search_title|search_content|problem_types|tag_ids|page|limit|offset|sort|order)=/i,
   // Boolean values
   booleanValues: /^(true|false)$/i,
   // UUIDs
@@ -87,11 +88,15 @@ function isSafeQueryValue(key: string, value: string): boolean {
     }
     // For problem_types, allow comma-separated values
     if (key === 'problem_types') {
-      return value.split(',').every(type => safeQueryPatterns.problemTypes.test(type.trim()));
+      return value
+        .split(',')
+        .every(type => safeQueryPatterns.problemTypes.test(type.trim()));
     }
     // For tag_ids, allow comma-separated UUIDs
     if (key === 'tag_ids') {
-      return value.split(',').every(id => safeQueryPatterns.uuid.test(id.trim()));
+      return value
+        .split(',')
+        .every(id => safeQueryPatterns.uuid.test(id.trim()));
     }
     // For subject_id, expect a UUID
     if (key === 'subject_id') {
@@ -100,28 +105,31 @@ function isSafeQueryValue(key: string, value: string): boolean {
     // For other parameters, allow alphanumeric and common characters
     return /^[a-zA-Z0-9_,.-]+$/.test(value);
   }
-  
+
   // For unknown parameters, be more restrictive
   return /^[a-zA-Z0-9_.-]+$/.test(value);
 }
 
 // Helper function to parse and validate query parameters
-function validateQueryParameters(searchParams: URLSearchParams): { isValid: boolean; errors: string[] } {
+function validateQueryParameters(searchParams: URLSearchParams): {
+  isValid: boolean;
+  errors: string[];
+} {
   const errors: string[] = [];
-  
+
   for (const [key, value] of searchParams.entries()) {
     // Skip empty values
     if (!value) continue;
-    
+
     // Check if the parameter value is safe
     if (!isSafeQueryValue(key, value)) {
       errors.push(`Suspicious query parameter: ${key}=${value}`);
     }
   }
-  
+
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
   };
 }
 
@@ -170,33 +178,33 @@ export function validateRequest(req: NextRequest): ValidationResult {
   // Check for suspicious patterns in URL
   const url = req.url;
   const pathname = req.nextUrl.pathname;
-  
+
   // First, validate query parameters intelligently
   const queryValidation = validateQueryParameters(req.nextUrl.searchParams);
   if (!queryValidation.isValid) {
     errors.push(...queryValidation.errors);
     riskLevel = 'high';
   }
-  
+
   // Check for SQL injection in the path (not query parameters)
   const pathOnly = pathname;
   if (suspiciousPatterns.sqlInjection.test(pathOnly)) {
     errors.push('Potential SQL injection attempt detected in path');
     riskLevel = 'high';
   }
-  
+
   // Check for XSS in the path (not query parameters)
   if (suspiciousPatterns.xss.test(pathOnly)) {
     errors.push('Potential XSS attempt detected in path');
     riskLevel = 'high';
   }
-  
+
   // Check for path traversal
   if (suspiciousPatterns.pathTraversal.test(url)) {
     errors.push('Potential path traversal attempt detected');
     riskLevel = 'high';
   }
-  
+
   // Check for command injection in the path (not query parameters)
   if (suspiciousPatterns.commandInjection.test(pathOnly)) {
     errors.push('Potential command injection attempt detected in path');

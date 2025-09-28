@@ -1,11 +1,11 @@
 # *
 User-agent: *
 Allow: /
-Disallow: /protected/
+Disallow: /admin/
 Disallow: /api/
 
 # Host
-Host: https://your-domain.vercel.app
+Host: https://wqn.magicworks.app/
 
 # Sitemaps
-Sitemap: https://your-domain.vercel.app/sitemap.xml
+Sitemap: https://wqn.magicworks.app/sitemap.xml
