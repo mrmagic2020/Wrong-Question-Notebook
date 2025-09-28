@@ -25,10 +25,12 @@ export default function ProblemForm({
   subjectId,
   problem = null,
   onCancel = null,
+  onProblemCreated = null,
 }: {
   subjectId: string;
   problem?: any | null;
   onCancel?: (() => void) | null;
+  onProblemCreated?: ((newProblem: any) => void) | null;
 }) {
   const router = useRouter();
   const isEditMode = !!problem;
@@ -210,6 +212,11 @@ export default function ProblemForm({
         onCancel();
       }
     } else {
+      // For create mode, notify parent component with new problem data
+      if (onProblemCreated && j.data) {
+        onProblemCreated(j.data);
+      }
+      
       // Reset some fields for create mode
       setTitle('');
       setContent('');

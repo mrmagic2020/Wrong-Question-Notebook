@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
-import ProblemForm from './problem-form';
 import Link from 'next/link';
-import ProblemsTable from './problems-table';
+import ProblemsPageClient from './problems-page-client';
 
 async function loadData(subjectId: string) {
   const supabase = await createClient();
@@ -102,15 +101,8 @@ export default async function SubjectProblemsPage({
         </Link>
       </div>
 
-      {/* Create form with subject fixed */}
-      <div className="rounded-lg border bg-card p-4">
-        <h2 className="mb-3 font-medium text-card-foreground">Add a problem</h2>
-        {/* Pass subjectId; form will hide the subject selector */}
-        <ProblemForm subjectId={subject.id} />
-      </div>
-
-      {/* Problems table with search */}
-      <ProblemsTable
+      {/* Problems page with create form and search */}
+      <ProblemsPageClient
         initialProblems={problems}
         initialTagsByProblem={tagsByProblem}
         subjectId={subject.id}

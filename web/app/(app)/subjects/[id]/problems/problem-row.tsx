@@ -33,10 +33,12 @@ export default function ProblemRow({
   problem,
   tags,
   onEdit,
+  onDelete,
 }: {
   problem: any;
   tags: { id: string; name: string }[];
   onEdit?: (problem: any) => void;
+  onDelete?: (problemId: string) => void;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -52,6 +54,12 @@ export default function ProblemRow({
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j?.error ?? 'Delete failed');
+      
+      // Notify parent component about deletion
+      if (onDelete) {
+        onDelete(problem.id);
+      }
+      
       router.refresh();
     } catch (e: any) {
       setErr(e.message);
