@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import ProblemForm from './problem-form';
-import ProblemsTable from './problems-table';
+import EnhancedProblemsTable from './enhanced-problems-table';
 
 interface ProblemsPageClientProps {
   initialProblems: any[];
@@ -65,8 +65,8 @@ export default function ProblemsPageClient({
         />
       </div>
 
-      {/* Problems table with search */}
-      <ProblemsTable
+      {/* Enhanced problems table with search */}
+      <EnhancedProblemsTable
         initialProblems={problems}
         initialTagsByProblem={tagsByProblem}
         subjectId={subjectId}
