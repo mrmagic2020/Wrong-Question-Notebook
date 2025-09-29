@@ -34,19 +34,17 @@ export type Problem = {
   tags?: { id: string; name: string }[];
 };
 
-// Helper function to get status badge variant
-const getStatusBadgeVariant = (
-  status: ProblemStatus
-): 'default' | 'secondary' | 'destructive' | 'outline' => {
+// Helper function to get status badge styling with custom colors
+export const getStatusBadgeStyle = (status: ProblemStatus): string => {
   switch (status) {
     case 'wrong':
-      return 'destructive';
+      return 'bg-red-100 text-red-800 border-red-200 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
     case 'needs_review':
-      return 'secondary';
+      return 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
     case 'mastered':
-      return 'default';
+      return 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
     default:
-      return 'outline';
+      return '';
   }
 };
 
@@ -189,7 +187,10 @@ export const columns: ColumnDef<Problem>[] = [
       const status = row.getValue('status') as ProblemStatus;
       return (
         <div className="px-2">
-          <Badge variant={getStatusBadgeVariant(status)}>
+          <Badge 
+            variant="outline" 
+            className={`${getStatusBadgeStyle(status)} font-medium`}
+          >
             {getProblemStatusDisplayName(status)}
           </Badge>
         </div>

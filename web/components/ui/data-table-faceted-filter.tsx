@@ -21,6 +21,20 @@ import {
 } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
 
+// Helper function to get status badge styling with custom colors
+const getStatusBadgeStyle = (status: string): string => {
+  switch (status) {
+    case 'wrong':
+      return 'bg-red-100 text-red-800 border-red-200 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
+    case 'needs_review':
+      return 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
+    case 'mastered':
+      return 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
+    default:
+      return '';
+  }
+};
+
 interface DataTableFacetedFilterProps<TData, TValue> {
   column?: Column<TData, TValue>;
   title?: string;
@@ -94,15 +108,19 @@ export function DataTableFacetedFilter<TData, TValue>({
                 ) : (
                   options
                     .filter(option => selectedValues.has(option.value))
-                    .map(option => (
-                      <Badge
-                        variant="secondary"
-                        key={option.value}
-                        className="rounded-sm px-1 font-normal"
-                      >
-                        {option.label}
-                      </Badge>
-                    ))
+                    .map(option => {
+                      const isStatus = ['wrong', 'needs_review', 'mastered'].includes(option.value);
+                      const statusStyle = isStatus ? getStatusBadgeStyle(option.value) : '';
+                      return (
+                        <Badge
+                          variant={isStatus ? "outline" : "secondary"}
+                          key={option.value}
+                          className={`rounded-sm px-1 font-normal ${statusStyle}`}
+                        >
+                          {option.label}
+                        </Badge>
+                      );
+                    })
                 )}
               </div>
             </>
@@ -120,10 +138,15 @@ export function DataTableFacetedFilter<TData, TValue>({
             <CommandGroup>
               {options.map(option => {
                 const isSelected = selectedValues.has(option.value);
+                const isStatus = ['wrong', 'needs_review', 'mastered'].includes(option.value);
+                const statusStyle = isStatus ? getStatusBadgeStyle(option.value) : '';
                 return (
                   <CommandItem
                     key={option.value}
                     onSelect={() => handleSelect(option.value)}
+                    className={cn(
+                      isStatus && isSelected && statusStyle
+                    )}
                   >
                     <div
                       className={cn(
@@ -138,7 +161,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                     {option.icon && (
                       <option.icon className="text-muted-foreground size-4" />
                     )}
-                    <span>{option.label}</span>
+                    <span className={cn(isStatus && isSelected && 'font-medium')}>{option.label}</span>
                     {facets?.get(option.value) && (
                       <span className="text-muted-foreground ml-auto flex size-4 items-center justify-center font-mono text-xs">
                         {facets.get(option.value)}
