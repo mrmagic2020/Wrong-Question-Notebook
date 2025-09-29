@@ -136,7 +136,10 @@ export const columns: ColumnDef<Problem>[] = [
     cell: ({ row }) => {
       const title = row.getValue('title') as string;
       return (
-        <div className="max-w-[32rem] truncate text-foreground px-2" title={title}>
+        <div
+          className="max-w-[32rem] truncate text-foreground px-2"
+          title={title}
+        >
           {title}
         </div>
       );
@@ -187,8 +190,8 @@ export const columns: ColumnDef<Problem>[] = [
       const status = row.getValue('status') as ProblemStatus;
       return (
         <div className="px-2">
-          <Badge 
-            variant="outline" 
+          <Badge
+            variant="outline"
             className={`${getStatusBadgeStyle(status)} font-medium`}
           >
             {getProblemStatusDisplayName(status)}
@@ -230,49 +233,49 @@ export const columns: ColumnDef<Problem>[] = [
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={async () => {
-                try {
-                  await navigator.clipboard.writeText(problem.id);
-                  toast.success('Problem ID copied to clipboard');
-                } catch {
-                  toast.error('Failed to copy problem ID');
-                }
-              }}
-            >
-              Copy problem ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link
-                href={`/subjects/${problem.subject_id}/problems/${problem.id}/review`}
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(problem.id);
+                    toast.success('Problem ID copied to clipboard');
+                  } catch {
+                    toast.error('Failed to copy problem ID');
+                  }
+                }}
               >
-                Review problem
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                if (meta?.onEdit) {
-                  meta.onEdit(problem);
-                }
-              }}
-            >
-              Edit problem
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                if (meta?.onDelete) {
-                  meta.onDelete(problem.id, problem.title);
-                }
-              }}
-              className="text-destructive"
-            >
-              Delete problem
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+                Copy problem ID
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link
+                  href={`/subjects/${problem.subject_id}/problems/${problem.id}/review`}
+                >
+                  Review problem
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  if (meta?.onEdit) {
+                    meta.onEdit(problem);
+                  }
+                }}
+              >
+                Edit problem
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  if (meta?.onDelete) {
+                    meta.onDelete(problem.id, problem.title);
+                  }
+                }}
+                className="text-destructive"
+              >
+                Delete problem
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       );
     },

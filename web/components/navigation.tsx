@@ -10,10 +10,16 @@ interface NavigationProps {
   sticky?: boolean;
 }
 
-export function Navigation({ showAppLinks = false, className = "", sticky = false }: NavigationProps) {
-  const stickyClass = sticky ? "sticky top-0 z-50" : "";
+export function Navigation({
+  showAppLinks = false,
+  className = '',
+  sticky = false,
+}: NavigationProps) {
+  const stickyClass = sticky ? 'sticky top-0 z-50' : '';
   return (
-    <nav className={`w-full flex justify-center border-b border-b-foreground/10 h-16 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm ${stickyClass} ${className}`}>
+    <nav
+      className={`w-full flex justify-center border-b border-b-foreground/10 h-16 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm ${stickyClass} ${className}`}
+    >
       <div className="w-full max-w-7xl flex justify-between items-center p-3 px-6 text-sm">
         <div className="flex items-center gap-6">
           <div className="flex gap-2 items-center font-bold text-xl">

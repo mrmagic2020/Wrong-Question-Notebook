@@ -41,7 +41,7 @@ export const maliciousPatterns = {
     /--\s*$|#\s*$|\/\*.*\*\//i, // SQL comments
     /(BENCHMARK|SLEEP|WAITFOR)\s*\(/i, // Time-based attacks
   ],
-  
+
   // XSS patterns - more comprehensive
   xss: [
     /<script[^>]*>.*?<\/script>/i,
@@ -55,7 +55,7 @@ export const maliciousPatterns = {
     /expression\s*\(/i, // CSS expressions
     /vbscript\s*:/i,
   ],
-  
+
   // Path traversal patterns
   pathTraversal: [
     /\.\.\/|\.\.\\|\.\.%2f|\.\.%5c/i,
@@ -63,7 +63,7 @@ export const maliciousPatterns = {
     /\.\.%252f|\.\.%255c/i, // Double URL encoded
     /\.\.%c0%af|\.\.%c1%9c/i, // UTF-8 encoded
   ],
-  
+
   // Command injection patterns - more precise to avoid false positives
   commandInjection: [
     /;\s*(rm|cat|ls|pwd|whoami|id|wget|curl|nc|netcat|bash|sh|cmd|powershell)/i, // Command chaining with dangerous commands
@@ -73,14 +73,14 @@ export const maliciousPatterns = {
     /&&\s*(rm|cat|ls|pwd|whoami|id|wget|curl|nc|netcat|bash|sh|cmd|powershell)/i, // Logical AND with dangerous commands
     /\|\|\s*(rm|cat|ls|pwd|whoami|id|wget|curl|nc|netcat|bash|sh|cmd|powershell)/i, // Logical OR with dangerous commands
   ],
-  
+
   // LDAP injection patterns - more specific to avoid false positives
   ldapInjection: [
     /\([^)]*\)\s*=\s*[^)]*\)/, // Malformed LDAP filter
     /\\[0-9a-fA-F]{2}.*\\[0-9a-fA-F]{2}/, // Multiple hex encodings (suspicious)
     /\(.*\*.*\*.*\)/, // Multiple wildcards in LDAP filter
   ],
-  
+
   // NoSQL injection patterns
   noSqlInjection: [
     /\$where/i,
@@ -90,23 +90,56 @@ export const maliciousPatterns = {
     /\$regex\s*:/i,
     /\$exists\s*:/i,
   ],
-  
+
   // Suspicious user agents (security scanners)
   suspiciousUserAgents: [
-    'sqlmap', 'nikto', 'nmap', 'masscan', 'zap', 'burp', 'w3af',
-    'acunetix', 'nessus', 'openvas', 'retina', 'qualys', 'rapid7',
-    'metasploit', 'havij', 'sqlninja', 'pangolin', 'bsqlbf',
+    'sqlmap',
+    'nikto',
+    'nmap',
+    'masscan',
+    'zap',
+    'burp',
+    'w3af',
+    'acunetix',
+    'nessus',
+    'openvas',
+    'retina',
+    'qualys',
+    'rapid7',
+    'metasploit',
+    'havij',
+    'sqlninja',
+    'pangolin',
+    'bsqlbf',
   ],
-  
+
   // Suspicious file extensions
   suspiciousExtensions: [
-    '.php', '.asp', '.aspx', '.jsp', '.cgi', '.pl', '.py', '.rb',
-    '.sh', '.bat', '.cmd', '.exe', '.scr', '.pif', '.com',
+    '.php',
+    '.asp',
+    '.aspx',
+    '.jsp',
+    '.cgi',
+    '.pl',
+    '.py',
+    '.rb',
+    '.sh',
+    '.bat',
+    '.cmd',
+    '.exe',
+    '.scr',
+    '.pif',
+    '.com',
   ],
-  
+
   // Dangerous protocols
   dangerousProtocols: [
-    'javascript:', 'vbscript:', 'data:', 'file:', 'ftp:', 'gopher:',
+    'javascript:',
+    'vbscript:',
+    'data:',
+    'file:',
+    'ftp:',
+    'gopher:',
   ],
 };
 
@@ -116,20 +149,38 @@ const validationHelpers = {
   containsMaliciousPattern: (input: string, patterns: RegExp[]): boolean => {
     return patterns.some(pattern => pattern.test(input));
   },
-  
+
   // Check if a string contains suspicious characters that might indicate injection
   containsSuspiciousChars: (input: string): boolean => {
     // Allow most characters, but block clearly malicious ones
     const suspiciousChars = /[<>'"`\\]|javascript:|vbscript:|data:|file:/i;
     return suspiciousChars.test(input);
   },
-  
+
   // Check if a parameter name is suspicious
   isSuspiciousParamName: (paramName: string): boolean => {
     const suspiciousNames = [
-      'cmd', 'exec', 'eval', 'system', 'shell', 'passwd', 'password',
-      'admin', 'root', 'config', 'database', 'db', 'sql', 'query',
-      'script', 'file', 'path', 'dir', 'directory', 'upload', 'download'
+      'cmd',
+      'exec',
+      'eval',
+      'system',
+      'shell',
+      'passwd',
+      'password',
+      'admin',
+      'root',
+      'config',
+      'database',
+      'db',
+      'sql',
+      'query',
+      'script',
+      'file',
+      'path',
+      'dir',
+      'directory',
+      'upload',
+      'download',
     ];
     // Use word boundaries to avoid false positives (e.g., "description" containing "script")
     return suspiciousNames.some(name => {
@@ -137,7 +188,7 @@ const validationHelpers = {
       return regex.test(paramName);
     });
   },
-  
+
   // Check if a value looks like an attempt to break out of context
   looksLikeInjection: (value: string): boolean => {
     // Check for common injection patterns
@@ -146,10 +197,10 @@ const validationHelpers = {
       /<script/i, // XSS
       /javascript:/i, // XSS
       /\.\.\//, // Path traversal
-      /[;&|`$()]/ // Command injection
+      /[;&|`$()]/, // Command injection
     ];
     return injectionPatterns.some(pattern => pattern.test(value));
-  }
+  },
 };
 
 export interface ValidationResult {
@@ -165,51 +216,77 @@ function isMaliciousQueryValue(key: string, value: string): boolean {
   if (validationHelpers.isSuspiciousParamName(key)) {
     return true;
   }
-  
+
   // Check if value contains malicious patterns
   if (validationHelpers.looksLikeInjection(value)) {
     return true;
   }
-  
+
   // Check for SQL injection patterns
-  if (validationHelpers.containsMaliciousPattern(value, maliciousPatterns.sqlInjection)) {
+  if (
+    validationHelpers.containsMaliciousPattern(
+      value,
+      maliciousPatterns.sqlInjection
+    )
+  ) {
     return true;
   }
-  
+
   // Check for XSS patterns
-  if (validationHelpers.containsMaliciousPattern(value, maliciousPatterns.xss)) {
+  if (
+    validationHelpers.containsMaliciousPattern(value, maliciousPatterns.xss)
+  ) {
     return true;
   }
-  
+
   // Check for path traversal patterns
-  if (validationHelpers.containsMaliciousPattern(value, maliciousPatterns.pathTraversal)) {
+  if (
+    validationHelpers.containsMaliciousPattern(
+      value,
+      maliciousPatterns.pathTraversal
+    )
+  ) {
     return true;
   }
-  
+
   // Check for command injection patterns
-  if (validationHelpers.containsMaliciousPattern(value, maliciousPatterns.commandInjection)) {
+  if (
+    validationHelpers.containsMaliciousPattern(
+      value,
+      maliciousPatterns.commandInjection
+    )
+  ) {
     return true;
   }
-  
+
   // Check for NoSQL injection patterns
-  if (validationHelpers.containsMaliciousPattern(value, maliciousPatterns.noSqlInjection)) {
+  if (
+    validationHelpers.containsMaliciousPattern(
+      value,
+      maliciousPatterns.noSqlInjection
+    )
+  ) {
     return true;
   }
-  
+
   // Check for dangerous protocols
-  if (maliciousPatterns.dangerousProtocols.some(protocol => 
-    value.toLowerCase().includes(protocol.toLowerCase())
-  )) {
+  if (
+    maliciousPatterns.dangerousProtocols.some(protocol =>
+      value.toLowerCase().includes(protocol.toLowerCase())
+    )
+  ) {
     return true;
   }
-  
+
   // Check for suspicious file extensions in the value
-  if (maliciousPatterns.suspiciousExtensions.some(ext => 
-    value.toLowerCase().includes(ext.toLowerCase())
-  )) {
+  if (
+    maliciousPatterns.suspiciousExtensions.some(ext =>
+      value.toLowerCase().includes(ext.toLowerCase())
+    )
+  ) {
     return true;
   }
-  
+
   return false;
 }
 
@@ -269,8 +346,8 @@ export function validateRequest(req: NextRequest): ValidationResult {
     riskLevel = 'medium';
   } else {
     // Check for suspicious user agents
-    const isSuspicious = maliciousPatterns.suspiciousUserAgents.some((ua: string) =>
-      userAgent.toLowerCase().includes(ua.toLowerCase())
+    const isSuspicious = maliciousPatterns.suspiciousUserAgents.some(
+      (ua: string) => userAgent.toLowerCase().includes(ua.toLowerCase())
     );
     if (isSuspicious) {
       errors.push('Suspicious user-agent detected');
@@ -291,39 +368,66 @@ export function validateRequest(req: NextRequest): ValidationResult {
 
   // Check for malicious patterns in the path (blacklist approach)
   const pathOnly = pathname;
-  
+
   // Check for SQL injection in the path
-  if (validationHelpers.containsMaliciousPattern(pathOnly, maliciousPatterns.sqlInjection)) {
+  if (
+    validationHelpers.containsMaliciousPattern(
+      pathOnly,
+      maliciousPatterns.sqlInjection
+    )
+  ) {
     errors.push('SQL injection attempt detected in path');
     riskLevel = 'high';
   }
 
   // Check for XSS in the path
-  if (validationHelpers.containsMaliciousPattern(pathOnly, maliciousPatterns.xss)) {
+  if (
+    validationHelpers.containsMaliciousPattern(pathOnly, maliciousPatterns.xss)
+  ) {
     errors.push('XSS attempt detected in path');
     riskLevel = 'high';
   }
 
   // Check for path traversal
-  if (validationHelpers.containsMaliciousPattern(url, maliciousPatterns.pathTraversal)) {
+  if (
+    validationHelpers.containsMaliciousPattern(
+      url,
+      maliciousPatterns.pathTraversal
+    )
+  ) {
     errors.push('Path traversal attempt detected');
     riskLevel = 'high';
   }
 
   // Check for command injection in the path
-  if (validationHelpers.containsMaliciousPattern(pathOnly, maliciousPatterns.commandInjection)) {
+  if (
+    validationHelpers.containsMaliciousPattern(
+      pathOnly,
+      maliciousPatterns.commandInjection
+    )
+  ) {
     errors.push('Command injection attempt detected in path');
     riskLevel = 'high';
   }
-  
+
   // Check for LDAP injection
-  if (validationHelpers.containsMaliciousPattern(pathOnly, maliciousPatterns.ldapInjection)) {
+  if (
+    validationHelpers.containsMaliciousPattern(
+      pathOnly,
+      maliciousPatterns.ldapInjection
+    )
+  ) {
     errors.push('LDAP injection attempt detected in path');
     riskLevel = 'high';
   }
-  
+
   // Check for NoSQL injection
-  if (validationHelpers.containsMaliciousPattern(pathOnly, maliciousPatterns.noSqlInjection)) {
+  if (
+    validationHelpers.containsMaliciousPattern(
+      pathOnly,
+      maliciousPatterns.noSqlInjection
+    )
+  ) {
     errors.push('NoSQL injection attempt detected in path');
     riskLevel = 'high';
   }
@@ -353,14 +457,26 @@ export function validateRequest(req: NextRequest): ValidationResult {
 function isValidOrigin(origin: string): boolean {
   // Block obviously malicious origins
   const maliciousOrigins = [
-    'javascript:', 'vbscript:', 'data:', 'file:', 'ftp:', 'gopher:',
-    'about:', 'chrome:', 'chrome-extension:', 'moz-extension:'
+    'javascript:',
+    'vbscript:',
+    'data:',
+    'file:',
+    'ftp:',
+    'gopher:',
+    'about:',
+    'chrome:',
+    'chrome-extension:',
+    'moz-extension:',
   ];
-  
-  if (maliciousOrigins.some(malicious => origin.toLowerCase().startsWith(malicious))) {
+
+  if (
+    maliciousOrigins.some(malicious =>
+      origin.toLowerCase().startsWith(malicious)
+    )
+  ) {
     return false;
   }
-  
+
   // Allow localhost for development
   if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
     return true;
@@ -370,7 +486,7 @@ function isValidOrigin(origin: string): boolean {
   if (origin.startsWith('https://')) {
     return true;
   }
-  
+
   // Allow HTTP for development (localhost)
   if (origin.startsWith('http://') && origin.includes('localhost')) {
     return true;
@@ -383,14 +499,26 @@ function isValidOrigin(origin: string): boolean {
 function isValidReferer(referer: string): boolean {
   // Block obviously malicious referers
   const maliciousReferers = [
-    'javascript:', 'vbscript:', 'data:', 'file:', 'ftp:', 'gopher:',
-    'about:', 'chrome:', 'chrome-extension:', 'moz-extension:'
+    'javascript:',
+    'vbscript:',
+    'data:',
+    'file:',
+    'ftp:',
+    'gopher:',
+    'about:',
+    'chrome:',
+    'chrome-extension:',
+    'moz-extension:',
   ];
-  
-  if (maliciousReferers.some(malicious => referer.toLowerCase().startsWith(malicious))) {
+
+  if (
+    maliciousReferers.some(malicious =>
+      referer.toLowerCase().startsWith(malicious)
+    )
+  ) {
     return false;
   }
-  
+
   // Allow localhost for development
   if (referer.includes('localhost') || referer.includes('127.0.0.1')) {
     return true;
@@ -400,7 +528,7 @@ function isValidReferer(referer: string): boolean {
   if (referer.startsWith('https://')) {
     return true;
   }
-  
+
   // Allow HTTP for development (localhost)
   if (referer.startsWith('http://') && referer.includes('localhost')) {
     return true;
@@ -418,7 +546,12 @@ export function validateRequestBody(
   try {
     // First check for malicious patterns in the body
     const bodyString = JSON.stringify(body);
-    if (validationHelpers.containsMaliciousPattern(bodyString, maliciousPatterns.sqlInjection)) {
+    if (
+      validationHelpers.containsMaliciousPattern(
+        bodyString,
+        maliciousPatterns.sqlInjection
+      )
+    ) {
       return {
         isValid: false,
         errors: ['SQL injection attempt detected in request body'],
@@ -426,8 +559,13 @@ export function validateRequestBody(
         riskLevel: 'high',
       };
     }
-    
-    if (validationHelpers.containsMaliciousPattern(bodyString, maliciousPatterns.xss)) {
+
+    if (
+      validationHelpers.containsMaliciousPattern(
+        bodyString,
+        maliciousPatterns.xss
+      )
+    ) {
       return {
         isValid: false,
         errors: ['XSS attempt detected in request body'],
@@ -435,8 +573,13 @@ export function validateRequestBody(
         riskLevel: 'high',
       };
     }
-    
-    if (validationHelpers.containsMaliciousPattern(bodyString, maliciousPatterns.commandInjection)) {
+
+    if (
+      validationHelpers.containsMaliciousPattern(
+        bodyString,
+        maliciousPatterns.commandInjection
+      )
+    ) {
       return {
         isValid: false,
         errors: ['Command injection attempt detected in request body'],
@@ -444,7 +587,7 @@ export function validateRequestBody(
         riskLevel: 'high',
       };
     }
-    
+
     // Then validate against schema
     schema.parse(body);
     return {
@@ -478,44 +621,71 @@ export function validateRequestBodyContent(body: any): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
   let riskLevel: 'low' | 'medium' | 'high' = 'low';
-  
+
   try {
     const bodyString = JSON.stringify(body);
-    
+
     // Check for various injection patterns
-    if (validationHelpers.containsMaliciousPattern(bodyString, maliciousPatterns.sqlInjection)) {
+    if (
+      validationHelpers.containsMaliciousPattern(
+        bodyString,
+        maliciousPatterns.sqlInjection
+      )
+    ) {
       errors.push('SQL injection pattern detected in request body');
       riskLevel = 'high';
     }
-    
-    if (validationHelpers.containsMaliciousPattern(bodyString, maliciousPatterns.xss)) {
+
+    if (
+      validationHelpers.containsMaliciousPattern(
+        bodyString,
+        maliciousPatterns.xss
+      )
+    ) {
       errors.push('XSS pattern detected in request body');
       riskLevel = 'high';
     }
-    
-    if (validationHelpers.containsMaliciousPattern(bodyString, maliciousPatterns.commandInjection)) {
+
+    if (
+      validationHelpers.containsMaliciousPattern(
+        bodyString,
+        maliciousPatterns.commandInjection
+      )
+    ) {
       errors.push('Command injection pattern detected in request body');
       riskLevel = 'high';
     }
-    
-    if (validationHelpers.containsMaliciousPattern(bodyString, maliciousPatterns.pathTraversal)) {
+
+    if (
+      validationHelpers.containsMaliciousPattern(
+        bodyString,
+        maliciousPatterns.pathTraversal
+      )
+    ) {
       errors.push('Path traversal pattern detected in request body');
       riskLevel = 'high';
     }
-    
-    if (validationHelpers.containsMaliciousPattern(bodyString, maliciousPatterns.noSqlInjection)) {
+
+    if (
+      validationHelpers.containsMaliciousPattern(
+        bodyString,
+        maliciousPatterns.noSqlInjection
+      )
+    ) {
       errors.push('NoSQL injection pattern detected in request body');
       riskLevel = 'high';
     }
-    
+
     // Check for dangerous protocols
-    if (maliciousPatterns.dangerousProtocols.some(protocol => 
-      bodyString.toLowerCase().includes(protocol.toLowerCase())
-    )) {
+    if (
+      maliciousPatterns.dangerousProtocols.some(protocol =>
+        bodyString.toLowerCase().includes(protocol.toLowerCase())
+      )
+    ) {
       errors.push('Dangerous protocol detected in request body');
       riskLevel = 'high';
     }
-    
+
     return {
       isValid: errors.length === 0,
       errors,
@@ -525,7 +695,11 @@ export function validateRequestBodyContent(body: any): ValidationResult {
   } catch (error) {
     return {
       isValid: false,
-      errors: ['Unable to parse request body for validation'],
+      errors: [
+        error instanceof Error
+          ? error.message
+          : 'Unable to parse request body for validation',
+      ],
       warnings: [],
       riskLevel: 'medium',
     };

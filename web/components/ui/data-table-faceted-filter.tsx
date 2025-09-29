@@ -109,11 +109,17 @@ export function DataTableFacetedFilter<TData, TValue>({
                   options
                     .filter(option => selectedValues.has(option.value))
                     .map(option => {
-                      const isStatus = ['wrong', 'needs_review', 'mastered'].includes(option.value);
-                      const statusStyle = isStatus ? getStatusBadgeStyle(option.value) : '';
+                      const isStatus = [
+                        'wrong',
+                        'needs_review',
+                        'mastered',
+                      ].includes(option.value);
+                      const statusStyle = isStatus
+                        ? getStatusBadgeStyle(option.value)
+                        : '';
                       return (
                         <Badge
-                          variant={isStatus ? "outline" : "secondary"}
+                          variant={isStatus ? 'outline' : 'secondary'}
                           key={option.value}
                           className={`rounded-sm px-1 font-normal ${statusStyle}`}
                         >
@@ -138,15 +144,17 @@ export function DataTableFacetedFilter<TData, TValue>({
             <CommandGroup>
               {options.map(option => {
                 const isSelected = selectedValues.has(option.value);
-                const isStatus = ['wrong', 'needs_review', 'mastered'].includes(option.value);
-                const statusStyle = isStatus ? getStatusBadgeStyle(option.value) : '';
+                const isStatus = ['wrong', 'needs_review', 'mastered'].includes(
+                  option.value
+                );
+                const statusStyle = isStatus
+                  ? getStatusBadgeStyle(option.value)
+                  : '';
                 return (
                   <CommandItem
                     key={option.value}
                     onSelect={() => handleSelect(option.value)}
-                    className={cn(
-                      isStatus && isSelected && statusStyle
-                    )}
+                    className={cn(isStatus && isSelected && statusStyle)}
                   >
                     <div
                       className={cn(
@@ -161,7 +169,11 @@ export function DataTableFacetedFilter<TData, TValue>({
                     {option.icon && (
                       <option.icon className="text-muted-foreground size-4" />
                     )}
-                    <span className={cn(isStatus && isSelected && 'font-medium')}>{option.label}</span>
+                    <span
+                      className={cn(isStatus && isSelected && 'font-medium')}
+                    >
+                      {option.label}
+                    </span>
                     {facets?.get(option.value) && (
                       <span className="text-muted-foreground ml-auto flex size-4 items-center justify-center font-mono text-xs">
                         {facets.get(option.value)}
