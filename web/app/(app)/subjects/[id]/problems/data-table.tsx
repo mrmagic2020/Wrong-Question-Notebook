@@ -23,13 +23,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { ChevronDown, Settings } from 'lucide-react';
 import { Problem } from './columns';
 
 interface DataTableProps<TData, TValue> {
@@ -45,6 +38,7 @@ interface DataTableProps<TData, TValue> {
   onTableReady?: (table: any) => void;
   onSelectionChange?: (selectedProblems: Problem[]) => void;
   resetSelection?: boolean;
+  onColumnVisibilityChange?: () => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -59,6 +53,7 @@ export function DataTable<TData, TValue>({
   onTableReady,
   onSelectionChange,
   resetSelection = false,
+  onColumnVisibilityChange,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -113,6 +108,13 @@ export function DataTable<TData, TValue>({
       setRowSelection({});
     }
   }, [resetSelection]);
+
+  // Notify parent when column visibility changes
+  React.useEffect(() => {
+    if (onColumnVisibilityChange) {
+      onColumnVisibilityChange();
+    }
+  }, [columnVisibility, onColumnVisibilityChange]);
 
   // Handle bulk operations
   const selectedRows = table.getFilteredSelectedRowModel().rows;
@@ -169,42 +171,6 @@ export function DataTable<TData, TValue>({
                 )}
               </div>
 
-              <div className="flex items-center space-x-2">
-                {/* View Options */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline">
-                      <Settings className="mr-2 h-4 w-4" />
-                      View
-                      <ChevronDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-[200px]">
-                    <div className="p-2">
-                      <div className="text-sm font-medium mb-2">
-                        Toggle columns
-                      </div>
-                      {table
-                        .getAllColumns()
-                        .filter(column => column.getCanHide())
-                        .map(column => {
-                          return (
-                            <DropdownMenuCheckboxItem
-                              key={column.id}
-                              className="capitalize"
-                              checked={column.getIsVisible()}
-                              onCheckedChange={value =>
-                                column.toggleVisibility(!!value)
-                              }
-                            >
-                              {column.id}
-                            </DropdownMenuCheckboxItem>
-                          );
-                        })}
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
             </div>
           </>
         ))}

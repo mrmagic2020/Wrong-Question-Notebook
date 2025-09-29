@@ -50,6 +50,7 @@ export default function EnhancedProblemsTable({
 
   // Table instance state
   const [tableInstance, setTableInstance] = useState<any>(null);
+  const [columnVisibilityKey, setColumnVisibilityKey] = useState(0);
 
   // Reset selection state
   const [resetSelection, setResetSelection] = useState(false);
@@ -327,6 +328,11 @@ export default function EnhancedProblemsTable({
     }
   }, [resetSelection]);
 
+  // Memoize the column visibility change callback to prevent infinite re-renders
+  const handleColumnVisibilityChange = useCallback(() => {
+    setColumnVisibilityKey(prev => prev + 1);
+  }, []);
+
   return (
     <div className="space-y-4">
       {/* Search and Filter with View Options */}
@@ -343,6 +349,7 @@ export default function EnhancedProblemsTable({
         statuses={statuses}
         onStatusesChange={setStatuses}
         table={tableInstance}
+        columnVisibilityKey={columnVisibilityKey}
         selectedProblemIds={selectedProblems.map(p => p.id)}
         onBulkEditTags={handleBulkEditTags}
         onBulkDelete={handleBulkDeleteClick}
@@ -383,6 +390,7 @@ export default function EnhancedProblemsTable({
         onTableReady={setTableInstance}
         onSelectionChange={handleSelectionChange}
         resetSelection={resetSelection}
+        onColumnVisibilityChange={handleColumnVisibilityChange}
       />
 
       {/* Individual Delete Confirmation Dialog */}

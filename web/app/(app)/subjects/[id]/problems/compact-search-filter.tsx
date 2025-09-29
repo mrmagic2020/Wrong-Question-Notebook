@@ -36,6 +36,7 @@ interface CompactSearchFilterProps {
   onStatusesChange: (statuses: string[]) => void;
   // View options props
   table?: any;
+  columnVisibilityKey?: number;
   selectedProblemIds?: string[];
   onBulkEditTags?: (problemIds: string[]) => void;
   onBulkDelete?: (problemIds: string[]) => void;
@@ -56,6 +57,7 @@ export default function CompactSearchFilter({
   statuses,
   onStatusesChange,
   table,
+  columnVisibilityKey = 0,
   selectedProblemIds = [],
   onBulkEditTags,
   onBulkDelete,
@@ -275,7 +277,7 @@ export default function CompactSearchFilter({
                     .map((column: any) => {
                       return (
                         <DropdownMenuCheckboxItem
-                          key={column.id}
+                          key={`${column.id}-${columnVisibilityKey}`}
                           className="capitalize"
                           checked={column.getIsVisible()}
                           onCheckedChange={value =>
