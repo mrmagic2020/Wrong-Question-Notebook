@@ -1,6 +1,4 @@
-import { AuthButton } from '@/components/auth-button';
-import { ThemeSwitcher } from '@/components/theme-switcher';
-import { hasEnvVars } from '@/lib/utils';
+import { Navigation } from '@/components/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
@@ -11,20 +9,7 @@ export default function Home() {
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="flex-1 w-full flex flex-col">
         {/* Navigation */}
-        <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
-          <div className="w-full max-w-6xl flex justify-between items-center p-3 px-6 text-sm">
-            <div className="flex gap-2 items-center font-bold text-xl">
-              <NotebookPen className="h-6 w-6 text-blue-600" />
-              <Link href={'/'} className="text-gray-900 dark:text-white">
-                Wrong Question Notebook
-              </Link>
-            </div>
-            <div className="flex items-center gap-4">
-              {hasEnvVars && <AuthButton />}
-              <ThemeSwitcher />
-            </div>
-          </div>
-        </nav>
+        <Navigation />
 
         {/* Hero Section */}
         <section className="flex-1 flex flex-col items-center justify-center px-6 py-20">
