@@ -5,22 +5,10 @@ import { FormEvent, useEffect, useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import FileManager from '@/components/ui/file-manager';
 import { PROBLEM_TYPE_VALUES, type ProblemType } from '@/lib/schemas';
+import { getProblemTypeDisplayName } from '@/lib/display-utils';
 
 type Tag = { id: string; name: string };
 
-// Helper function to get display names for problem types
-const getProblemTypeDisplayName = (type: ProblemType): string => {
-  switch (type) {
-    case 'mcq':
-      return 'Multiple Choice';
-    case 'short':
-      return 'Short Answer';
-    case 'extended':
-      return 'Extended Response';
-    default:
-      return type;
-  }
-};
 
 export default function ProblemForm({
   subjectId,

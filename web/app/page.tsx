@@ -155,7 +155,7 @@ export default function Home() {
                 <span className="font-semibold">Wrong Question Notebook</span>
               </div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                © 2024 Wrong Question Notebook. Built with Next.js and
+                © 2025 MagicWorks. Built with Next.js and
                 Supabase.
               </p>
             </div>

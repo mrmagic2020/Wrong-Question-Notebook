@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { X, Search, Plus, Settings, ChevronDown } from 'lucide-react';
 import { ProblemType, PROBLEM_TYPE_VALUES } from '@/lib/schemas';
+import { getProblemTypeDisplayName, getStatusDisplayName, getColumnDisplayName } from '@/lib/display-utils';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,31 +43,6 @@ interface CompactSearchFilterProps {
   onBulkDeleteEnabled?: boolean;
 }
 
-const getProblemTypeDisplayName = (type: ProblemType): string => {
-  switch (type) {
-    case 'mcq':
-      return 'Multiple Choice';
-    case 'short':
-      return 'Short Answer';
-    case 'extended':
-      return 'Extended Response';
-    default:
-      return type;
-  }
-};
-
-const getStatusDisplayName = (status: string): string => {
-  switch (status) {
-    case 'wrong':
-      return 'Wrong';
-    case 'needs_review':
-      return 'Needs Review';
-    case 'mastered':
-      return 'Mastered';
-    default:
-      return status;
-  }
-};
 
 export default function CompactSearchFilter({
   onSearch,
@@ -306,7 +282,7 @@ export default function CompactSearchFilter({
                             column.toggleVisibility(!!value)
                           }
                         >
-                          {column.id}
+                          {getColumnDisplayName(column.id)}
                         </DropdownMenuCheckboxItem>
                       );
                     })}

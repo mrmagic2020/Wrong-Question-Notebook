@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ProblemType, ProblemStatus } from '@/lib/schemas';
+import { getProblemTypeDisplayName, getProblemStatusDisplayName } from '@/lib/display-utils';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
@@ -29,33 +30,6 @@ export type Problem = {
   tags?: { id: string; name: string }[];
 };
 
-// Helper function to get display names for problem types
-const getProblemTypeDisplayName = (type: ProblemType): string => {
-  switch (type) {
-    case 'mcq':
-      return 'Multiple Choice';
-    case 'short':
-      return 'Short Answer';
-    case 'extended':
-      return 'Extended Response';
-    default:
-      return type;
-  }
-};
-
-// Helper function to get display names for problem status
-const getProblemStatusDisplayName = (status: ProblemStatus): string => {
-  switch (status) {
-    case 'wrong':
-      return 'Wrong';
-    case 'needs_review':
-      return 'Needs Review';
-    case 'mastered':
-      return 'Mastered';
-    default:
-      return status;
-  }
-};
 
 // Helper function to get status badge variant
 const getStatusBadgeVariant = (
