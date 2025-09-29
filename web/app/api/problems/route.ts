@@ -19,6 +19,27 @@ async function getProblems(req: Request) {
   const problemTypes =
     searchParams.get('problem_types')?.split(',').filter(Boolean) || [];
   const tagIds = searchParams.get('tag_ids')?.split(',').filter(Boolean) || [];
+  const statuses =
+    searchParams.get('statuses')?.split(',').filter(Boolean) || [];
+
+  // Handle tag filtering differently - we need to get problem IDs first, then fetch problems
+  let problemIds: string[] | null = null;
+
+  if (tagIds.length > 0) {
+    // First, get problem IDs that have the specified tags
+    const { data: tagLinks } = await supabase
+      .from('problem_tag')
+      .select('problem_id')
+      .in('tag_id', tagIds)
+      .eq('user_id', user.id);
+
+    problemIds = tagLinks?.map(link => link.problem_id) || [];
+
+    // If no problems have the specified tags, return empty result
+    if (problemIds.length === 0) {
+      return NextResponse.json({ data: [] });
+    }
+  }
 
   let query = supabase
     .from('problems')
@@ -31,6 +52,11 @@ async function getProblems(req: Request) {
     .eq('user_id', user.id);
 
   if (subjectId) query = query.eq('subject_id', subjectId);
+
+  // Apply problem ID filter if we filtered by tags
+  if (problemIds) {
+    query = query.in('id', problemIds);
+  }
 
   // Apply text search
   if (searchText && searchText.trim()) {
@@ -56,6 +82,11 @@ async function getProblems(req: Request) {
     query = query.in('problem_type', problemTypes);
   }
 
+  // Apply status filter
+  if (statuses.length > 0) {
+    query = query.in('status', statuses);
+  }
+
   const { data, error } = await query.order('created_at', {
     ascending: false,
   });
@@ -63,19 +94,8 @@ async function getProblems(req: Request) {
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Apply tag filter after fetching data (since we need to handle problems without tags)
-  let filteredData = data || [];
-  if (tagIds.length > 0) {
-    filteredData = filteredData.filter(problem => {
-      const problemTagIds =
-        problem.problem_tag?.map((pt: any) => pt.tags?.id).filter(Boolean) ||
-        [];
-      return tagIds.some(tagId => problemTagIds.includes(tagId));
-    });
-  }
-
   // Group tags by problem for easier frontend consumption
-  const problemsWithTags = filteredData.map(problem => {
+  const problemsWithTags = (data || []).map(problem => {
     const tags =
       problem.problem_tag?.map((pt: any) => pt.tags).filter(Boolean) || [];
     return {

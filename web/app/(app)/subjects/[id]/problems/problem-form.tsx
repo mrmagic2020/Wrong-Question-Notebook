@@ -9,15 +9,16 @@ import { getProblemTypeDisplayName } from '@/lib/display-utils';
 
 type Tag = { id: string; name: string };
 
-
 export default function ProblemForm({
   subjectId,
+  availableTags = [],
   problem = null,
   onCancel = null,
   onProblemCreated = null,
   onProblemUpdated = null,
 }: {
   subjectId: string;
+  availableTags?: Tag[];
   problem?: any | null;
   onCancel?: (() => void) | null;
   onProblemCreated?: ((newProblem: any) => void) | null;
@@ -26,14 +27,19 @@ export default function ProblemForm({
   const router = useRouter();
   const isEditMode = !!problem;
 
-  // Load tags client-side for simplicity here
-  const [tags, setTags] = useState<Tag[]>([]);
+  // Use provided tags or fallback to client-side fetching
+  const [tags, setTags] = useState<Tag[]>(availableTags);
   useEffect(() => {
-    fetch(`/api/tags?subject_id=${subjectId}`)
-      .then(r => r.json())
-      .then(j => setTags(j.data ?? []))
-      .catch(() => {});
-  }, [subjectId]);
+    if (availableTags.length > 0) {
+      setTags(availableTags);
+    } else {
+      // Fallback to client-side fetching if no tags provided
+      fetch(`/api/tags?subject_id=${subjectId}`)
+        .then(r => r.json())
+        .then(j => setTags(j.data ?? []))
+        .catch(() => {});
+    }
+  }, [availableTags, subjectId]);
 
   // Tag picker - initialize with problem's existing tags if available
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>(() => {

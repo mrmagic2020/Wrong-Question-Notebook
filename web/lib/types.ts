@@ -3,8 +3,6 @@ import { z } from 'zod';
 // Import from schemas to maintain consistency
 import { ProblemType, ProblemStatus } from './schemas';
 export { ProblemType, ProblemStatus };
-export type ProblemTypeType = z.infer<typeof ProblemType>;
-export type ProblemStatusType = z.infer<typeof ProblemStatus>;
 
 // =====================================================
 // User Management Types

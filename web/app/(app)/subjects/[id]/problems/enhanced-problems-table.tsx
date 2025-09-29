@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { DataTable } from './data-table';
 import { columns, Problem } from './columns';
 import CompactSearchFilter from './compact-search-filter';
@@ -38,6 +38,7 @@ export default function EnhancedProblemsTable({
   const [tagsByProblem, setTagsByProblem] = useState(initialTagsByProblem);
   const [error, setError] = useState<string | null>(null);
   const [isFiltered, setIsFiltered] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
   // Search and filter state
   const [searchText, setSearchText] = useState('');
@@ -77,17 +78,21 @@ export default function EnhancedProblemsTable({
     count: 0,
   });
 
-  // Convert problems to the format expected by the data table
-  const tableProblems: Problem[] = problems.map(problem => ({
-    id: problem.id,
-    title: problem.title,
-    problem_type: problem.problem_type,
-    status: problem.status,
-    created_at: problem.created_at,
-    updated_at: problem.updated_at,
-    subject_id: problem.subject_id,
-    tags: tagsByProblem.get(problem.id) || [],
-  }));
+  // Convert problems to the format expected by the data table (memoized)
+  const tableProblems: Problem[] = useMemo(
+    () =>
+      problems.map(problem => ({
+        id: problem.id,
+        title: problem.title,
+        problem_type: problem.problem_type,
+        status: problem.status,
+        created_at: problem.created_at,
+        updated_at: problem.updated_at,
+        subject_id: problem.subject_id,
+        tags: tagsByProblem.get(problem.id) || [],
+      })),
+    [problems, tagsByProblem]
+  );
 
   // Only update from props when not in a filtered state
   useEffect(() => {
@@ -123,6 +128,7 @@ export default function EnhancedProblemsTable({
 
   const handleSearch = async (filters: SearchFilters) => {
     setError(null);
+    setIsSearching(true);
 
     // Check if we have any active filters
     const hasActiveFilters =
@@ -137,6 +143,7 @@ export default function EnhancedProblemsTable({
     if (!hasActiveFilters) {
       setProblems(initialProblems);
       setTagsByProblem(initialTagsByProblem);
+      setIsSearching(false);
       return;
     }
 
@@ -156,6 +163,10 @@ export default function EnhancedProblemsTable({
 
       if (filters.tagIds.length > 0) {
         params.set('tag_ids', filters.tagIds.join(','));
+      }
+
+      if (filters.statuses.length > 0) {
+        params.set('statuses', filters.statuses.join(','));
       }
 
       const response = await fetch(`/api/problems?${params.toString()}`);
@@ -179,6 +190,7 @@ export default function EnhancedProblemsTable({
       setError(err.message);
       console.error('Search error:', err);
     } finally {
+      setIsSearching(false);
     }
   };
 
@@ -259,16 +271,19 @@ export default function EnhancedProblemsTable({
     const { problemIds } = bulkDeleteDialog;
 
     try {
-      // Delete problems one by one
-      for (const problemId of problemIds) {
-        const response = await fetch(`/api/problems/${problemId}`, {
+      // Use Promise.all for concurrent deletion instead of sequential
+      const deletePromises = problemIds.map(problemId =>
+        fetch(`/api/problems/${problemId}`, {
           method: 'DELETE',
-        });
+        }).then(response => {
+          if (!response.ok) {
+            throw new Error(`Failed to delete problem ${problemId}`);
+          }
+          return problemId;
+        })
+      );
 
-        if (!response.ok) {
-          throw new Error(`Failed to delete problem ${problemId}`);
-        }
-      }
+      await Promise.all(deletePromises);
 
       // Update local state
       setProblems(prev => prev.filter(p => !problemIds.includes(p.id)));
@@ -355,6 +370,7 @@ export default function EnhancedProblemsTable({
         onBulkDelete={handleBulkDeleteClick}
         onBulkEditTagsEnabled={true}
         onBulkDeleteEnabled={true}
+        isSearching={isSearching}
       />
 
       {/* Error Display */}
@@ -369,6 +385,7 @@ export default function EnhancedProblemsTable({
         <div className="rounded-lg border bg-card p-4">
           <ProblemForm
             subjectId={subjectId}
+            availableTags={availableTags}
             problem={editingProblem}
             onCancel={handleCancelEdit}
             onProblemCreated={handleProblemCreated}

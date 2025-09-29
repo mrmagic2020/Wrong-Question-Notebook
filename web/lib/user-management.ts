@@ -576,17 +576,3 @@ async function deleteUserStorageFiles(userId: string): Promise<void> {
     console.error('Error in deleteUserStorageFiles:', error);
   }
 }
-
-/**
- * Update last login timestamp
- */
-export async function updateLastLogin(userId: string): Promise<boolean> {
-  const serviceSupabase = createServiceClient();
-
-  const { error } = await serviceSupabase
-    .from('user_profiles')
-    .update({ last_login_at: new Date().toISOString() })
-    .eq('id', userId);
-
-  return !error;
-}

@@ -61,6 +61,7 @@ export default function ProblemsPageClient({
         {/* Pass subjectId; form will hide the subject selector */}
         <ProblemForm
           subjectId={subjectId}
+          availableTags={availableTags}
           onProblemCreated={handleProblemCreated}
         />
       </div>

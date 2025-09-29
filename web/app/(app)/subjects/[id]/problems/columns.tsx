@@ -14,7 +14,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ProblemType, ProblemStatus } from '@/lib/schemas';
-import { getProblemTypeDisplayName, getProblemStatusDisplayName } from '@/lib/display-utils';
+import {
+  getProblemTypeDisplayName,
+  getProblemStatusDisplayName,
+} from '@/lib/display-utils';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
@@ -29,7 +32,6 @@ export type Problem = {
   subject_id: string;
   tags?: { id: string; name: string }[];
 };
-
 
 // Helper function to get status badge variant
 const getStatusBadgeVariant = (
