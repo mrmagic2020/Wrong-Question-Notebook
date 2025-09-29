@@ -59,69 +59,14 @@
 }
 
 @layer base {
+  html {
+    scrollbar-gutter: stable;
+  }
+
   * {
     @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
-  }
-
-  /* Prevent layout shift when scrollbar appears/disappears */
-  html {
-    overflow-y: scroll;
-    /* Reserve space for scrollbar to prevent layout shift */
-    scrollbar-gutter: stable;
-    /* Fallback using CSS custom property from JavaScript */
-    --scrollbar-width: 17px;
-  }
-
-  /* Ensure consistent scrollbar width across browsers */
-  html::-webkit-scrollbar {
-    width: 17px;
-  }
-
-  html::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  html::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    border: 3px solid transparent;
-    background-clip: content-box;
-  }
-
-  html::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0, 0, 0, 0.3);
-  }
-
-  /* Dark mode scrollbar */
-  .dark html::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.2);
-  }
-
-  .dark html::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(255, 255, 255, 0.3);
-  }
-
-  /* Fallback for browsers that don't support scrollbar-gutter */
-  @supports not (scrollbar-gutter: stable) {
-    html {
-      /* Force scrollbar to always be visible */
-      overflow-y: scroll;
-    }
-  }
-
-  /* Additional safety measures */
-  body {
-    /* Ensure body doesn't create additional scrollbars */
-    overflow-x: hidden;
-  }
-
-  /* Ensure main content containers are stable */
-  .main-content {
-    /* This class can be applied to main content areas */
-    width: 100%;
-    max-width: 100%;
   }
 }
