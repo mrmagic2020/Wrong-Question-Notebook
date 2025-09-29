@@ -18,6 +18,7 @@ import {
   getProblemTypeDisplayName,
   getProblemStatusDisplayName,
 } from '@/lib/display-utils';
+import { formatDisplayDate } from '@/lib/date-utils';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
@@ -82,7 +83,7 @@ function DataTableColumnHeader({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 px-2 lg:px-3">
+        <Button variant="ghost" className="h-8 px-2 lg:px-1">
           <span>{title}</span>
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
@@ -137,7 +138,7 @@ export const columns: ColumnDef<Problem>[] = [
     cell: ({ row }) => {
       const title = row.getValue('title') as string;
       return (
-        <div className="max-w-[32rem] truncate text-foreground" title={title}>
+        <div className="max-w-[32rem] truncate text-foreground px-2" title={title}>
           {title}
         </div>
       );
@@ -150,7 +151,11 @@ export const columns: ColumnDef<Problem>[] = [
     ),
     cell: ({ row }) => {
       const type = row.getValue('problem_type') as ProblemType;
-      return <Badge variant="outline">{getProblemTypeDisplayName(type)}</Badge>;
+      return (
+        <div className="px-2">
+          <Badge variant="outline">{getProblemTypeDisplayName(type)}</Badge>
+        </div>
+      );
     },
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id));
@@ -163,7 +168,11 @@ export const columns: ColumnDef<Problem>[] = [
     ),
     cell: ({ row }) => {
       const tags = row.getValue('tags') as { id: string; name: string }[];
-      return <TagCapsules tags={tags || []} />;
+      return (
+        <div className="px-2">
+          <TagCapsules tags={tags || []} />
+        </div>
+      );
     },
     filterFn: (row, id, value) => {
       const tags = row.getValue(id) as { id: string; name: string }[];
@@ -179,13 +188,29 @@ export const columns: ColumnDef<Problem>[] = [
     cell: ({ row }) => {
       const status = row.getValue('status') as ProblemStatus;
       return (
-        <Badge variant={getStatusBadgeVariant(status)}>
-          {getProblemStatusDisplayName(status)}
-        </Badge>
+        <div className="px-2">
+          <Badge variant={getStatusBadgeVariant(status)}>
+            {getProblemStatusDisplayName(status)}
+          </Badge>
+        </div>
       );
     },
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id));
+    },
+  },
+  {
+    accessorKey: 'created_at',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Date Created" />
+    ),
+    cell: ({ row }) => {
+      const createdAt = row.getValue('created_at') as string;
+      return (
+        <div className="text-sm text-muted-foreground px-2">
+          {formatDisplayDate(createdAt)}
+        </div>
+      );
     },
   },
   {
@@ -196,13 +221,14 @@ export const columns: ColumnDef<Problem>[] = [
       const meta = table.options.meta as any;
 
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
+        <div className="px-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem
@@ -246,6 +272,7 @@ export const columns: ColumnDef<Problem>[] = [
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
       );
     },
     enableSorting: false,
