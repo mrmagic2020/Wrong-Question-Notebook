@@ -8,6 +8,8 @@ interface SolutionAsset {
 interface SolutionRevealProps {
   solutionText?: string;
   solutionAssets: SolutionAsset[];
+  correctAnswer?: any;
+  problemType?: string;
   isRevealed: boolean;
   onToggle: () => void;
 }
@@ -15,6 +17,8 @@ interface SolutionRevealProps {
 export default function SolutionReveal({
   solutionText,
   solutionAssets,
+  correctAnswer,
+  problemType,
   isRevealed,
   onToggle,
 }: SolutionRevealProps) {
@@ -43,10 +47,37 @@ export default function SolutionReveal({
         </div>
       ) : isRevealed ? (
         <div className="space-y-4">
+          {/* Correct Answer */}
+          {correctAnswer !== undefined && correctAnswer !== null && (
+            <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-md p-4">
+              <h3 className="font-medium text-green-800 dark:text-green-200 mb-2">
+                Correct Answer
+              </h3>
+              <div className="text-green-700 dark:text-green-300">
+                {problemType === 'extended' ? (
+                  <div className="prose max-w-none">
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: String(correctAnswer),
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <p className="font-mono text-lg">
+                    {JSON.stringify(correctAnswer)}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Solution Text */}
           {solutionText && (
-            <div className="prose max-w-none">
-              <div dangerouslySetInnerHTML={{ __html: solutionText }} />
+            <div className="space-y-2">
+              <h3 className="font-medium">Solution</h3>
+              <div className="prose max-w-none">
+                <div dangerouslySetInnerHTML={{ __html: solutionText }} />
+              </div>
             </div>
           )}
 

@@ -78,8 +78,6 @@ export async function POST(
     isCorrect = false;
   }
 
-  console.log('Is correct:', isCorrect);
-
   // Create attempt record
   const attemptData = {
     problem_id: problemId,

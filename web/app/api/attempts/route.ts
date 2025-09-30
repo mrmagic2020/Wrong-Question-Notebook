@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
 import { CreateAttemptDto } from '@/lib/schemas';
+import { withSecurity } from '@/lib/security-middleware';
 
-export async function GET(req: Request) {
+async function getAttempts(req: Request) {
   const { user, supabase } = await requireUser();
   if (!user) return unauthorised();
 
@@ -12,6 +13,18 @@ export async function GET(req: Request) {
   if (!problem_id) {
     return NextResponse.json(
       { error: 'problem_id is required' },
+      { status: 400 }
+    );
+  }
+
+  // Validate UUID format
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      problem_id
+    )
+  ) {
+    return NextResponse.json(
+      { error: 'Invalid problem ID format' },
       { status: 400 }
     );
   }
@@ -28,7 +41,9 @@ export async function GET(req: Request) {
   return NextResponse.json({ data });
 }
 
-export async function POST(req: Request) {
+export const GET = withSecurity(getAttempts, { rateLimitType: 'readOnly' });
+
+async function createAttempt(req: Request) {
   const { user, supabase } = await requireUser();
   if (!user) return unauthorised();
 
@@ -56,3 +71,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ data }, { status: 201 });
 }
+
+export const POST = withSecurity(createAttempt, { rateLimitType: 'api' });

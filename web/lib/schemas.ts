@@ -32,6 +32,7 @@ export const CreateProblemDto = z.object({
   // NEW:
   solution_text: z.string().optional(),
   solution_assets: z.array(Asset).default([]),
+  last_reviewed_date: z.string().optional(),
 
   tag_ids: z.array(z.uuid()).optional(),
 });

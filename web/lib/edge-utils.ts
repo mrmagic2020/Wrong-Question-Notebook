@@ -47,19 +47,22 @@ export async function updateLastLoginEdge(
 
 /**
  * Check if user is admin using Edge Runtime compatible approach
+ * Note: This function should use service role key for admin checks, not anon key
+ * The current implementation is insecure and should be refactored
  */
 export async function isUserAdminEdge(
   userId: string,
   supabaseUrl: string,
-  supabaseAnonKey: string
+  supabaseServiceKey: string
 ): Promise<boolean> {
   try {
+    // Use service role key instead of anon key for admin checks
     const response = await fetch(
       `${supabaseUrl}/rest/v1/user_profiles?id=eq.${userId}&select=user_role`,
       {
         headers: {
-          Authorization: `Bearer ${supabaseAnonKey}`,
-          apikey: supabaseAnonKey,
+          Authorization: `Bearer ${supabaseServiceKey}`,
+          apikey: supabaseServiceKey,
         },
       }
     );

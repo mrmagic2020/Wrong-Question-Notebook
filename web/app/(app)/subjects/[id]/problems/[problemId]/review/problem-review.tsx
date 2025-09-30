@@ -53,6 +53,9 @@ export default function ProblemReview({
   const [showSolution, setShowSolution] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<ProblemStatus | null>(
+    null
+  );
 
   // Get current problem index for navigation
   const currentIndex = allProblems.findIndex(p => p.id === problem.id);
@@ -95,15 +98,25 @@ export default function ProblemReview({
   };
 
   const handleStatusUpdate = async (newStatus: ProblemStatus) => {
+    setSelectedStatus(newStatus);
+
+    // Always update last_reviewed_date when user selects a status
+    // Only update status if it's different from current
+    const updateData: any = {
+      last_reviewed_date: new Date().toISOString(),
+    };
+
+    if (newStatus !== problem.status) {
+      updateData.status = newStatus;
+    }
+
     try {
-      const response = await fetch(`/api/problems/${problem.id}`, {
+      const response = await fetch(`/api/problems/${problem.id}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          status: newStatus,
-        }),
+        body: JSON.stringify(updateData),
       });
 
       if (!response.ok) {
@@ -114,6 +127,8 @@ export default function ProblemReview({
       router.refresh();
     } catch (err: any) {
       setError(err.message);
+      // Reset selection on error
+      setSelectedStatus(null);
     }
   };
 
@@ -197,8 +212,12 @@ export default function ProblemReview({
           correctAnswer={problem.correct_answer}
           value={userAnswer}
           onChange={setUserAnswer}
+          onSubmit={problem.auto_mark ? handleAnswerSubmit : undefined}
           disabled={
-            isSubmitting || (problem.auto_mark && submittedAnswer !== null)
+            isSubmitting ||
+            (problem.auto_mark &&
+              submittedAnswer !== null &&
+              isCorrect === true)
           }
         />
 
@@ -206,10 +225,18 @@ export default function ProblemReview({
           {problem.auto_mark && (
             <button
               onClick={handleAnswerSubmit}
-              disabled={isSubmitting || !userAnswer || submittedAnswer !== null}
+              disabled={
+                isSubmitting ||
+                !userAnswer ||
+                (submittedAnswer !== null && isCorrect === true)
+              }
               className="px-4 py-2 bg-primary text-primary-foreground rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Answer'}
+              {isSubmitting
+                ? 'Submitting...'
+                : submittedAnswer !== null && isCorrect === false
+                  ? 'Resubmit Answer'
+                  : 'Submit Answer'}
             </button>
           )}
 
@@ -247,6 +274,11 @@ export default function ProblemReview({
             <p className="text-sm text-muted-foreground mt-1">
               Your answer: {JSON.stringify(submittedAnswer)}
             </p>
+            {!isCorrect && problem.auto_mark && (
+              <p className="text-sm text-red-600 dark:text-red-400 mt-2">
+                You can try again with a different answer.
+              </p>
+            )}
           </div>
         )}
 
@@ -261,6 +293,8 @@ export default function ProblemReview({
       <SolutionReveal
         solutionText={problem.solution_text}
         solutionAssets={problem.solution_assets}
+        correctAnswer={problem.correct_answer}
+        problemType={problem.problem_type}
         isRevealed={showSolution}
         onToggle={() => setShowSolution(!showSolution)}
       />
@@ -272,6 +306,7 @@ export default function ProblemReview({
         </h2>
         <StatusSelector
           currentStatus={problem.status}
+          selectedStatus={selectedStatus}
           onStatusChange={handleStatusUpdate}
         />
       </div>

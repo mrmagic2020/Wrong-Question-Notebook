@@ -22,6 +22,58 @@ async function getProblems(req: Request) {
   const statuses =
     searchParams.get('statuses')?.split(',').filter(Boolean) || [];
 
+  // Validate UUID format for subjectId and tagIds
+  if (
+    subjectId &&
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      subjectId
+    )
+  ) {
+    return NextResponse.json(
+      { error: 'Invalid subject ID format' },
+      { status: 400 }
+    );
+  }
+
+  if (tagIds.length > 0) {
+    for (const tagId of tagIds) {
+      if (
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+          tagId
+        )
+      ) {
+        return NextResponse.json(
+          { error: 'Invalid tag ID format' },
+          { status: 400 }
+        );
+      }
+    }
+  }
+
+  // Validate problem types
+  const validProblemTypes = ['mcq', 'short', 'extended'];
+  const invalidTypes = problemTypes.filter(
+    type => !validProblemTypes.includes(type)
+  );
+  if (invalidTypes.length > 0) {
+    return NextResponse.json(
+      { error: `Invalid problem types: ${invalidTypes.join(', ')}` },
+      { status: 400 }
+    );
+  }
+
+  // Validate statuses
+  const validStatuses = ['wrong', 'needs_review', 'mastered'];
+  const invalidStatuses = statuses.filter(
+    status => !validStatuses.includes(status)
+  );
+  if (invalidStatuses.length > 0) {
+    return NextResponse.json(
+      { error: `Invalid statuses: ${invalidStatuses.join(', ')}` },
+      { status: 400 }
+    );
+  }
+
   // Handle tag filtering differently - we need to get problem IDs first, then fetch problems
   let problemIds: string[] | null = null;
 

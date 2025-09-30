@@ -63,12 +63,14 @@ export function getColumnDisplayName(columnId: string): string {
       return 'Tags';
     case 'status':
       return 'Status';
-    case 'actions':
-      return 'Actions';
     case 'created_at':
-      return 'Created';
+      return 'Date Created';
     case 'updated_at':
       return 'Updated';
+    case 'last_reviewed_date':
+      return 'Last Reviewed';
+    case 'actions':
+      return 'Actions';
     default:
       // Convert snake_case to Title Case for unknown columns
       return columnId

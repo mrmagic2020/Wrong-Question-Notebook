@@ -121,7 +121,10 @@ export function getFileSecurityHeaders(filename: string) {
   const headers: Record<string, string> = {
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
+    'X-XSS-Protection': '1; mode=block',
     'Referrer-Policy': 'no-referrer',
+    'Content-Security-Policy': "default-src 'self'",
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
     'Content-Disposition': `inline; filename="${sanitizeFilename(filename)}"`,
   };
 

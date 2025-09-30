@@ -7,6 +7,7 @@ interface AnswerInputProps {
   correctAnswer?: any;
   value: any;
   onChange: (value: any) => void;
+  onSubmit?: () => void;
   disabled?: boolean;
 }
 
@@ -14,6 +15,7 @@ export default function AnswerInput({
   problemType,
   value,
   onChange,
+  onSubmit,
   disabled = false,
 }: AnswerInputProps) {
   const handleMcqChange = (choice: string) => {
@@ -28,6 +30,13 @@ export default function AnswerInput({
     onChange(text);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey && onSubmit && !disabled) {
+      e.preventDefault();
+      onSubmit();
+    }
+  };
+
   switch (problemType) {
     case 'mcq':
       return (
@@ -37,6 +46,7 @@ export default function AnswerInput({
             type="text"
             value={value || ''}
             onChange={e => handleMcqChange(e.target.value)}
+            onKeyDown={handleKeyDown}
             disabled={disabled}
             placeholder="Type your answer here..."
             className="w-full px-3 py-2 border border-input bg-background text-foreground placeholder:text-muted-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
@@ -52,6 +62,7 @@ export default function AnswerInput({
             type="text"
             value={value || ''}
             onChange={e => handleShortAnswerChange(e.target.value)}
+            onKeyDown={handleKeyDown}
             disabled={disabled}
             placeholder="Type your answer here..."
             className="w-full px-3 py-2 border border-input bg-background text-foreground placeholder:text-muted-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
@@ -66,6 +77,7 @@ export default function AnswerInput({
           <textarea
             value={value || ''}
             onChange={e => handleExtendedResponseChange(e.target.value)}
+            onKeyDown={handleKeyDown}
             disabled={disabled}
             placeholder="Write your detailed response here..."
             rows={6}

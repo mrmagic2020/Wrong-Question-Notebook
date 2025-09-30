@@ -4,6 +4,7 @@ import { ProblemStatus } from '@/lib/schemas';
 
 interface StatusSelectorProps {
   currentStatus: ProblemStatus;
+  selectedStatus: ProblemStatus | null;
   onStatusChange: (status: ProblemStatus) => void;
 }
 
@@ -23,7 +24,7 @@ const statusOptions: {
   {
     value: 'needs_review',
     label: 'Needs Review',
-    description: 'I need to review this problem',
+    description: 'I still need to review this problem',
     color:
       'bg-yellow-100 dark:bg-yellow-950/20 text-yellow-800 dark:text-yellow-200 border-yellow-200 dark:border-yellow-800',
   },
@@ -38,19 +39,26 @@ const statusOptions: {
 
 export default function StatusSelector({
   currentStatus,
+  selectedStatus,
   onStatusChange,
 }: StatusSelectorProps) {
   return (
     <div className="space-y-3">
-      <p className="text-sm text-muted-foreground">
-        Update the status of this problem based on your performance:
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          Update the status of this problem based on your performance:
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Current:{' '}
+          <span className="font-medium">{currentStatus.replace('_', ' ')}</span>
+        </p>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {statusOptions.map(option => (
           <label
             key={option.value}
             className={`flex items-start p-3 border rounded-lg cursor-pointer transition-all ${
-              currentStatus === option.value
+              selectedStatus === option.value
                 ? `${option.color} border-current`
                 : 'border-border hover:border-border/80'
             }`}
@@ -59,7 +67,7 @@ export default function StatusSelector({
               type="radio"
               name="problem-status"
               value={option.value}
-              checked={currentStatus === option.value}
+              checked={selectedStatus === option.value}
               onChange={e => onStatusChange(e.target.value as ProblemStatus)}
               className="mt-1 mr-3"
             />

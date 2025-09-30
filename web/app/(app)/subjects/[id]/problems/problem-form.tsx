@@ -167,15 +167,22 @@ export default function ProblemForm({
         path: asset.path,
       }));
 
+      // Sanitize input data
+      const sanitizedTitle = title.trim().substring(0, 30); // Limit title length
+      const sanitizedContent = content ? content.substring(0, 1000) : undefined; // Limit content length
+      const sanitizedSolutionText = solutionText
+        ? solutionText.substring(0, 1000)
+        : undefined; // Limit solution length
+
       const payload = {
-        title: title.trim(),
-        content: content || undefined,
+        title: sanitizedTitle,
+        content: sanitizedContent,
         problem_type: problemType,
         correct_answer: problemType === 'extended' ? undefined : correctAnswer,
         auto_mark: autoMarkValue,
         status,
         assets,
-        solution_text: solutionText || undefined,
+        solution_text: sanitizedSolutionText,
         solution_assets,
         tag_ids: selectedTagIds, // Always send the array, even if empty
       };

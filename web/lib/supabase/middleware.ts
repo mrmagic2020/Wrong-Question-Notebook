@@ -80,6 +80,14 @@ export async function updateSession(request: NextRequest) {
 
     // Check if user has admin privileges using service role
     try {
+      // Validate service role key exists
+      if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        console.error('SUPABASE_SERVICE_ROLE_KEY not configured');
+        const url = request.nextUrl.clone();
+        url.pathname = '/subjects';
+        return NextResponse.redirect(url);
+      }
+
       // Create a service role client to bypass RLS
       const serviceSupabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,

@@ -88,6 +88,7 @@ export default function EnhancedProblemsTable({
         status: problem.status,
         created_at: problem.created_at,
         updated_at: problem.updated_at,
+        last_reviewed_date: problem.last_reviewed_date,
         subject_id: problem.subject_id,
         tags: tagsByProblem.get(problem.id) || [],
       })),

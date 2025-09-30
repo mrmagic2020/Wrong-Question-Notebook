@@ -30,6 +30,7 @@ export type Problem = {
   status: ProblemStatus;
   created_at: string;
   updated_at: string;
+  last_reviewed_date?: string;
   subject_id: string;
   tags?: { id: string; name: string }[];
 };
@@ -218,6 +219,20 @@ export const columns: ColumnDef<Problem>[] = [
     },
   },
   {
+    accessorKey: 'last_reviewed_date',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Last Reviewed" />
+    ),
+    cell: ({ row }) => {
+      const lastReviewedDate = row.getValue('last_reviewed_date') as string;
+      return (
+        <div className="text-sm text-muted-foreground px-2">
+          {lastReviewedDate ? formatDisplayDate(lastReviewedDate) : '—'}
+        </div>
+      );
+    },
+  },
+  {
     id: 'actions',
     header: 'Actions',
     cell: ({ row, table }) => {
@@ -228,7 +243,11 @@ export const columns: ColumnDef<Problem>[] = [
         <div className="px-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                onClick={e => e.stopPropagation()}
+              >
                 <span className="sr-only">Open menu</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
@@ -236,7 +255,8 @@ export const columns: ColumnDef<Problem>[] = [
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem
-                onClick={async () => {
+                onClick={async e => {
+                  e.stopPropagation();
                   try {
                     await navigator.clipboard.writeText(problem.id);
                     toast.success('Problem ID copied to clipboard');
@@ -251,12 +271,14 @@ export const columns: ColumnDef<Problem>[] = [
               <DropdownMenuItem asChild>
                 <Link
                   href={`/subjects/${problem.subject_id}/problems/${problem.id}/review`}
+                  onClick={e => e.stopPropagation()}
                 >
                   Review problem
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => {
+                onClick={e => {
+                  e.stopPropagation();
                   if (meta?.onEdit) {
                     meta.onEdit(problem);
                   }
@@ -265,7 +287,8 @@ export const columns: ColumnDef<Problem>[] = [
                 Edit problem
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => {
+                onClick={e => {
+                  e.stopPropagation();
                   if (meta?.onDelete) {
                     meta.onDelete(problem.id, problem.title);
                   }

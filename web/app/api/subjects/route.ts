@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
+import { withSecurity } from '@/lib/security-middleware';
 
 const CreateSubjectDto = z.object({
   name: z.string().min(1).max(120),
 });
 
-export async function GET() {
+async function getSubjects() {
   const { user, supabase } = await requireUser();
   if (!user) return unauthorised();
 
@@ -21,7 +22,9 @@ export async function GET() {
   return NextResponse.json({ data });
 }
 
-export async function POST(req: Request) {
+export const GET = withSecurity(getSubjects, { rateLimitType: 'readOnly' });
+
+async function createSubject(req: Request) {
   const { user, supabase } = await requireUser();
   if (!user) return unauthorised();
 
@@ -44,3 +47,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ data }, { status: 201 });
 }
+
+export const POST = withSecurity(createSubject, { rateLimitType: 'api' });

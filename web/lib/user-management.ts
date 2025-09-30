@@ -54,6 +54,13 @@ export async function getUserProfileWithServiceRole(
  * Create service role client for admin operations
  */
 function createServiceClient() {
+  // Validate that service role key exists
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error(
+      'SUPABASE_SERVICE_ROLE_KEY environment variable is not set'
+    );
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { createClient } = require('@supabase/supabase-js');
   return createClient(
