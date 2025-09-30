@@ -30,12 +30,8 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   onEdit?: (problem: Problem) => void;
   onDelete?: (problemId: string, problemTitle: string) => void;
-  onBulkDelete?: (problemIds: string[]) => void;
-  onBulkEditTags?: (problemIds: string[]) => void;
   onRowClick?: (problem: Problem) => void;
   availableTags?: { id: string; name: string }[];
-  showHeader?: boolean;
-  customHeader?: React.ReactNode;
   onTableReady?: (table: any) => void;
   onSelectionChange?: (selectedProblems: Problem[]) => void;
   resetSelection?: boolean;
@@ -47,11 +43,7 @@ export function DataTable<TData, TValue>({
   data,
   onEdit,
   onDelete,
-  onBulkDelete,
-  onBulkEditTags,
   onRowClick,
-  showHeader = true,
-  customHeader,
   onTableReady,
   onSelectionChange,
   resetSelection = false,
@@ -118,26 +110,6 @@ export function DataTable<TData, TValue>({
     }
   }, [columnVisibility, onColumnVisibilityChange]);
 
-  // Handle bulk operations
-  const selectedRows = table.getFilteredSelectedRowModel().rows;
-  const selectedProblemIds = selectedRows.map(
-    row => (row.original as Problem).id
-  );
-
-  const handleBulkDelete = () => {
-    if (onBulkDelete && selectedProblemIds.length > 0) {
-      onBulkDelete(selectedProblemIds);
-      setRowSelection({});
-    }
-  };
-
-  const handleBulkEditTags = () => {
-    if (onBulkEditTags && selectedProblemIds.length > 0) {
-      onBulkEditTags(selectedProblemIds);
-      setRowSelection({});
-    }
-  };
-
   const handleRowClick = (problem: Problem) => {
     if (onRowClick) {
       onRowClick(problem);
@@ -146,42 +118,6 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      {customHeader ||
-        (showHeader && (
-          <>
-            {/* Bulk Actions and View Options */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                {/* Bulk Actions */}
-                {selectedProblemIds.length > 0 && (
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-muted-foreground">
-                      {selectedProblemIds.length} selected
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleBulkEditTags}
-                      disabled={!onBulkEditTags}
-                    >
-                      Edit Tags
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleBulkDelete}
-                      disabled={!onBulkDelete}
-                      className="text-destructive hover:bg-destructive/10"
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </>
-        ))}
-
       {/* Table */}
       <div className="rounded-md border">
         <Table>
@@ -244,7 +180,9 @@ export function DataTable<TData, TValue>({
       <div className="flex items-center justify-between space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} of{' '}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+          {table.getFilteredRowModel().rows.length}{' '}
+          {table.getFilteredRowModel().rows.length === 1 ? 'row' : 'rows'}{' '}
+          selected.
         </div>
         <div className="flex items-center space-x-6 lg:space-x-8">
           <div className="flex items-center space-x-2">

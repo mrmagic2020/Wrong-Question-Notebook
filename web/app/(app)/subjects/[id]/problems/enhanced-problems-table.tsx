@@ -406,11 +406,8 @@ export default function EnhancedProblemsTable({
         data={tableProblems}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
-        onBulkDelete={handleBulkDeleteClick}
-        onBulkEditTags={handleBulkEditTags}
         onRowClick={handleRowClick}
         availableTags={availableTags}
-        showHeader={false}
         onTableReady={setTableInstance}
         onSelectionChange={handleSelectionChange}
         resetSelection={resetSelection}
