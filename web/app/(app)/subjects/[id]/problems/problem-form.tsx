@@ -168,17 +168,17 @@ export default function ProblemForm({
       }));
 
       // Sanitize input data
-      const sanitizedTitle = title.trim().substring(0, 30); // Limit title length
-      const sanitizedContent = content ? content.substring(0, 1000) : undefined; // Limit content length
+      const sanitizedTitle = title.trim().substring(0, 30);
+      const sanitizedContent = content ? content.substring(0, 1000) : '';
       const sanitizedSolutionText = solutionText
         ? solutionText.substring(0, 1000)
-        : undefined; // Limit solution length
+        : '';
 
       const payload = {
         title: sanitizedTitle,
         content: sanitizedContent,
         problem_type: problemType,
-        correct_answer: problemType === 'extended' ? undefined : correctAnswer,
+        correct_answer: problemType === 'extended' ? '' : correctAnswer,
         auto_mark: autoMarkValue,
         status,
         assets,
