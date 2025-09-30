@@ -336,6 +336,11 @@ export default function EnhancedProblemsTable({
     setSelectedProblems(selectedProblems);
   }, []);
 
+  const handleRowClick = useCallback((problem: Problem) => {
+    // Navigate to the review page
+    window.location.href = `/subjects/${problem.subject_id}/problems/${problem.id}/review`;
+  }, []);
+
   // Reset the resetSelection flag after it's been triggered
   useEffect(() => {
     if (resetSelection) {
@@ -402,6 +407,7 @@ export default function EnhancedProblemsTable({
         onDelete={handleDeleteClick}
         onBulkDelete={handleBulkDeleteClick}
         onBulkEditTags={handleBulkEditTags}
+        onRowClick={handleRowClick}
         availableTags={availableTags}
         showHeader={false}
         onTableReady={setTableInstance}

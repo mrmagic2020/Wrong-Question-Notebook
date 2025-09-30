@@ -32,6 +32,7 @@ interface DataTableProps<TData, TValue> {
   onDelete?: (problemId: string, problemTitle: string) => void;
   onBulkDelete?: (problemIds: string[]) => void;
   onBulkEditTags?: (problemIds: string[]) => void;
+  onRowClick?: (problem: Problem) => void;
   availableTags?: { id: string; name: string }[];
   showHeader?: boolean;
   customHeader?: React.ReactNode;
@@ -48,6 +49,7 @@ export function DataTable<TData, TValue>({
   onDelete,
   onBulkDelete,
   onBulkEditTags,
+  onRowClick,
   showHeader = true,
   customHeader,
   onTableReady,
@@ -136,6 +138,12 @@ export function DataTable<TData, TValue>({
     }
   };
 
+  const handleRowClick = (problem: Problem) => {
+    if (onRowClick) {
+      onRowClick(problem);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {customHeader ||
@@ -201,6 +209,12 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
+                  className={`${onRowClick ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
+                  onClick={() => {
+                    if (onRowClick) {
+                      handleRowClick(row.original as Problem);
+                    }
+                  }}
                 >
                   {row.getVisibleCells().map(cell => (
                     <TableCell key={cell.id}>
