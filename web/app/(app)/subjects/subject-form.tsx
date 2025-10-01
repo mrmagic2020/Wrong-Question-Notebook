@@ -56,7 +56,7 @@ export default function SubjectForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex items-center gap-3">
+    <form onSubmit={onSubmit} className="form-row">
       <Input
         value={name}
         onChange={e => setName(e.target.value)}
@@ -65,14 +65,11 @@ export default function SubjectForm({
         className="w-64"
         required
       />
-      <Button
-        type="submit"
-        disabled={busy}
-      >
-        {busy && <Loader2Icon className="animate-spin" />}
+      <Button type="submit" disabled={busy}>
+        {busy && <Loader2Icon className="loading-spinner" />}
         {busy ? 'Adding...' : 'Add'}
       </Button>
-      {error && <span className="text-sm text-destructive">{error}</span>}
+      {error && <span className="form-error">{error}</span>}
     </form>
   );
 }

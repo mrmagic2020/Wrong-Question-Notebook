@@ -72,8 +72,8 @@ export default async function SubjectProblemsPage({
 
   if (!subject) {
     return (
-      <div className="space-y-4">
-        <p className="text-muted-foreground">Subject not found.</p>
+      <div className="section-container">
+        <p className="text-body-sm text-muted-foreground">Subject not found.</p>
         <Link
           href="/subjects"
           className="text-primary underline hover:text-primary/80 transition-colors"
@@ -85,11 +85,11 @@ export default async function SubjectProblemsPage({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="section-container">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">{subject.name} — Problems</h1>
-          <p className="text-muted-foreground">
+        <div className="page-header">
+          <h1 className="page-title">{subject.name} — Problems</h1>
+          <p className="page-description">
             Problems are isolated to this subject.
           </p>
         </div>

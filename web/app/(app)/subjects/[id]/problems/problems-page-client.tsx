@@ -56,8 +56,10 @@ export default function ProblemsPageClient({
   return (
     <>
       {/* Create form with subject fixed */}
-      <div className="rounded-lg border bg-card p-4">
-        <h2 className="mb-3 font-medium text-card-foreground">Add a problem</h2>
+      <div className="card-section">
+        <div className="card-section-header">
+          <h2 className="card-section-title">Add a problem</h2>
+        </div>
         {/* Pass subjectId; form will hide the subject selector */}
         <ProblemForm
           subjectId={subjectId}

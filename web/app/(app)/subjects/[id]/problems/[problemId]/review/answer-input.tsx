@@ -1,6 +1,7 @@
 'use client';
 
 import { ProblemType } from '@/lib/schemas';
+import { Input } from '@/components/ui/input';
 
 interface AnswerInputProps {
   problemType: ProblemType;
@@ -42,14 +43,13 @@ export default function AnswerInput({
       return (
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">Enter your answer:</p>
-          <input
+          <Input
             type="text"
             value={value || ''}
             onChange={e => handleMcqChange(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={disabled}
             placeholder="Type your answer here..."
-            className="w-full px-3 py-2 border border-input bg-background text-foreground placeholder:text-muted-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
       );
@@ -58,14 +58,13 @@ export default function AnswerInput({
       return (
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">Enter your answer:</p>
-          <input
+          <Input
             type="text"
             value={value || ''}
             onChange={e => handleShortAnswerChange(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={disabled}
             placeholder="Type your answer here..."
-            className="w-full px-3 py-2 border border-input bg-background text-foreground placeholder:text-muted-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
       );

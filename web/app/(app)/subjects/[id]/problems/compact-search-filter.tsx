@@ -293,7 +293,7 @@ export default function CompactSearchFilter({
 
           {/* View Options */}
           {table && (
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">
                   <Settings className="mr-2 h-4 w-4" />

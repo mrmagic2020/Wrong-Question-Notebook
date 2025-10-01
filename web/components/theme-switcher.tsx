@@ -28,7 +28,7 @@ const ThemeSwitcher = () => {
   const ICON_SIZE = 16;
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size={'sm'}>
           {theme === 'light' ? (

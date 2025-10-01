@@ -55,7 +55,7 @@ export default function TagForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex items-center gap-3">
+    <form onSubmit={onSubmit} className="form-row">
       <Input
         className="w-64"
         placeholder="e.g. Circle theorems"
@@ -65,10 +65,10 @@ export default function TagForm({
         required
       />
       <Button type="submit" disabled={busy} className="">
-        {busy && <Loader2Icon className="animate-spin" />}
+        {busy && <Loader2Icon className="loading-spinner" />}
         {busy ? 'Adding…' : 'Add'}
       </Button>
-      {err && <span className="text-sm text-destructive">{err}</span>}
+      {err && <span className="form-error">{err}</span>}
     </form>
   );
 }

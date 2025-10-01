@@ -9,30 +9,38 @@ export default async function ProblemsChooser() {
     .order('created_at', { ascending: true });
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">Problems by Subject</h1>
-      <ul className="list-disc pl-5">
-        {(subjects ?? []).map((s: any) => (
-          <li key={s.id}>
+    <div className="section-container">
+      <div className="page-header">
+        <h1 className="page-title">Problems by Subject</h1>
+      </div>
+
+      <div className="card-section">
+        <ul className="space-y-2">
+          {(subjects ?? []).map((s: any) => (
+            <li key={s.id}>
+              <Link
+                className="text-primary underline hover:text-primary/80 transition-colors"
+                href={`/subjects/${s.id}/problems`}
+              >
+                {s.name}
+              </Link>
+            </li>
+          ))}
+        </ul>
+
+        <div className="mt-4 pt-4 border-t">
+          <p className="text-body-sm text-muted-foreground">
+            Tip: add a subject first on the{' '}
             <Link
-              className="text-primary underline hover:text-primary/80 transition-colors"
-              href={`/subjects/${s.id}/problems`}
+              href="/subjects"
+              className="underline text-primary hover:text-primary/80 transition-colors"
             >
-              {s.name}
-            </Link>
-          </li>
-        ))}
-      </ul>
-      <p className="text-muted-foreground">
-        Tip: add a subject first on the{' '}
-        <Link
-          href="/subjects"
-          className="underline text-primary hover:text-primary/80 transition-colors"
-        >
-          Subjects
-        </Link>{' '}
-        page.
-      </p>
+              Subjects
+            </Link>{' '}
+            page.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

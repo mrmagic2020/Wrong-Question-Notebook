@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import { ProblemType, ProblemStatus } from '@/lib/schemas';
 import AnswerInput from './answer-input';
 import AssetPreview from './asset-preview';
@@ -223,30 +224,29 @@ export default function ProblemReview({
 
         <div className="mt-4 flex gap-3">
           {problem.auto_mark && (
-            <button
+            <Button
               onClick={handleAnswerSubmit}
               disabled={
                 isSubmitting ||
                 !userAnswer ||
                 (submittedAnswer !== null && isCorrect === true)
               }
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
             >
               {isSubmitting
                 ? 'Submitting...'
                 : submittedAnswer !== null && isCorrect === false
                   ? 'Resubmit Answer'
                   : 'Submit Answer'}
-            </button>
+            </Button>
           )}
 
           {!problem.auto_mark && userAnswer && (
-            <button
+            <Button
               onClick={() => setShowSolution(true)}
-              className="px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-md hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
+              className="bg-green-600 dark:bg-green-700 text-white hover:bg-green-700 dark:hover:bg-green-600"
             >
               View Solution
-            </button>
+            </Button>
           )}
         </div>
 
@@ -313,25 +313,25 @@ export default function ProblemReview({
 
       {/* Navigation */}
       <div className="flex justify-between items-center bg-card rounded-lg border border-border p-4">
-        <button
+        <Button
           onClick={() => prevProblem && navigateToProblem(prevProblem.id)}
           disabled={!prevProblem}
-          className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-secondary/80 transition-colors"
+          variant="secondary"
         >
           ← Previous
-        </button>
+        </Button>
 
         <span className="text-sm text-muted-foreground">
           {currentIndex + 1} of {allProblems.length}
         </span>
 
-        <button
+        <Button
           onClick={() => nextProblem && navigateToProblem(nextProblem.id)}
           disabled={!nextProblem}
-          className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-secondary/80 transition-colors"
+          variant="secondary"
         >
           Next →
-        </button>
+        </Button>
       </div>
     </div>
   );

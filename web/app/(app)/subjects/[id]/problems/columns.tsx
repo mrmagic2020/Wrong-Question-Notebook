@@ -80,7 +80,7 @@ function DataTableColumnHeader({
   title: string;
 }) {
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="h-8 px-2 lg:px-1">
           <span>{title}</span>
@@ -242,7 +242,7 @@ export const columns: ColumnDef<Problem>[] = [
 
       return (
         <div className="px-2">
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"

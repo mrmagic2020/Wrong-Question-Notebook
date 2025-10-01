@@ -4,7 +4,6 @@ import {
   getRecentActivity,
   getAdminSettings,
 } from '@/lib/user-management';
-// import { AdminDashboard } from '@/components/admin/admin-dashboard';
 import {
   Card,
   CardContent,
@@ -33,11 +32,11 @@ export default async function AdminDashboardPage() {
   ]);
 
   return (
-    <div className="space-y-6">
+    <div className="section-container">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <p className="text-muted-foreground">
+        <div className="page-header">
+          <h1 className="page-title">Admin Dashboard</h1>
+          <p className="page-description">
             Welcome back, {authData.user.email}
           </p>
         </div>
@@ -137,7 +136,9 @@ export default async function AdminDashboardPage() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">No recent activity</p>
+            <p className="text-body-sm text-muted-foreground">
+              No recent activity
+            </p>
           )}
         </CardContent>
       </Card>

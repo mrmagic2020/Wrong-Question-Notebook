@@ -43,15 +43,11 @@ export default function TagsPageClient({
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="section-container">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold">
-              {initialSubject.name} — Tags
-            </h1>
-            <p className="text-muted-foreground">
-              Tags are scoped to this subject.
-            </p>
+          <div className="page-header">
+            <h1 className="page-title">{initialSubject.name} — Tags</h1>
+            <p className="page-description">Tags are scoped to this subject.</p>
           </div>
           <Link
             href={`/subjects/${initialSubject.id}/problems`}
@@ -61,22 +57,22 @@ export default function TagsPageClient({
           </Link>
         </div>
 
-        <div className="rounded-lg border bg-card p-4">
-          <h2 className="mb-3 font-medium text-card-foreground">Add a tag</h2>
+        <div className="card-section">
+          <div className="card-section-header">
+            <h2 className="card-section-title">Add a tag</h2>
+          </div>
           <TagForm
             subjectId={initialSubject.id}
             onTagCreated={handleTagCreated}
           />
         </div>
 
-        <div className="rounded-lg border bg-card overflow-hidden">
+        <div className="table-container">
           <table className="w-full text-sm">
-            <thead className="bg-muted text-left">
+            <thead className="table-header">
               <tr>
-                <th className="px-4 py-2 text-muted-foreground">Name</th>
-                <th className="px-4 py-2 w-48 text-muted-foreground">
-                  Actions
-                </th>
+                <th className="table-header-cell">Name</th>
+                <th className="table-header-cell w-48">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -92,7 +88,7 @@ export default function TagsPageClient({
                 ))
               ) : (
                 <tr>
-                  <td className="px-4 py-6 text-muted-foreground" colSpan={2}>
+                  <td className="table-empty" colSpan={2}>
                     No tags yet.
                   </td>
                 </tr>

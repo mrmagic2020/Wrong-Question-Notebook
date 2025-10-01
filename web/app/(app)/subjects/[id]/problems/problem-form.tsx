@@ -4,8 +4,19 @@ import { useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import FileManager from '@/components/ui/file-manager';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { StatusBadge } from '@/components/ui/status-badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { PROBLEM_TYPE_VALUES, type ProblemType } from '@/lib/schemas';
 import { getProblemTypeDisplayName } from '@/lib/display-utils';
+import { Textarea } from '@/components/ui/textarea';
 
 type Tag = { id: string; name: string };
 
@@ -309,39 +320,42 @@ export default function ProblemForm({
   // If not expanded (create mode only), show just the expand button
   if (!isExpanded && !isEditMode) {
     return (
-      <div className="flex items-center gap-3">
-        <button
+      <div className="form-row">
+        <Button
           type="button"
+          variant="outline"
           onClick={() => setIsExpanded(true)}
-          className="flex-1 rounded-md border border-dashed border-border px-4 py-3 text-left text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors"
+          className="flex-1 border-dashed text-muted-foreground hover:border-primary/50 hover:text-foreground justify-start"
         >
           + Add a new problem
-        </button>
+        </Button>
       </div>
     );
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={onSubmit} className="form-container">
       {isEditMode && (
         <div className="flex items-center justify-between border-b border-border pb-2">
-          <h3 className="font-medium text-foreground">Edit Problem</h3>
-          <button
+          <h3 className="heading-xs">Edit Problem</h3>
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => onCancel?.()}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="text-muted-foreground hover:text-foreground"
           >
             Cancel
-          </button>
+          </Button>
         </div>
       )}
 
       {/* title */}
-      <div className="flex items-center gap-3">
-        <label className="w-32 text-sm text-muted-foreground">Title</label>
-        <input
+      <div className="form-row">
+        <label className="form-label">Title</label>
+        <Input
           type="text"
-          className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          className="form-input"
           placeholder="Short descriptive title for the problem"
           value={title}
           onChange={e => setTitle(e.target.value)}
@@ -351,12 +365,10 @@ export default function ProblemForm({
       </div>
 
       {/* content */}
-      <div className="flex items-start gap-3">
-        <label className="w-32 text-sm text-muted-foreground pt-2">
-          Content
-        </label>
-        <textarea
-          className="flex-1 rounded-md border border-input bg-background px-3 py-2 h-28 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+      <div className="form-row-start">
+        <label className="form-label pt-2">Content</label>
+        <Textarea
+          className="form-textarea"
           placeholder="Type the problem text (Markdown/LaTeX supported) - Optional"
           value={content}
           onChange={e => setContent(e.target.value)}
@@ -364,10 +376,8 @@ export default function ProblemForm({
       </div>
 
       {/* problem assets */}
-      <div className="flex items-start gap-3">
-        <label className="w-32 text-sm text-muted-foreground pt-2">
-          Problem assets
-        </label>
+      <div className="form-row-start">
+        <label className="form-label pt-2">Problem assets</label>
         <div className="flex-1">
           <FileManager
             role="problem"
@@ -381,18 +391,22 @@ export default function ProblemForm({
       {/* type + auto-mark + status */}
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2">
-          <label className="text-sm text-muted-foreground">Type</label>
-          <select
-            className="rounded-md border border-input bg-background px-2 py-1 text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          <label className="form-label-top">Type</label>
+          <Select
             value={problemType}
-            onChange={e => setProblemType(e.target.value as ProblemType)}
+            onValueChange={value => setProblemType(value as ProblemType)}
           >
-            {PROBLEM_TYPE_VALUES.map(type => (
-              <option key={type} value={type}>
-                {getProblemTypeDisplayName(type)}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PROBLEM_TYPE_VALUES.map(type => (
+                <SelectItem key={type} value={type}>
+                  {getProblemTypeDisplayName(type)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -401,38 +415,46 @@ export default function ProblemForm({
             checked={autoMarkValue}
             disabled={isAutoMarkDisabled}
             onChange={e => setAutoMark(e.target.checked)}
-            className="rounded border-input text-primary focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            className="form-checkbox"
           />
           Auto-mark during revision
           {isAutoMarkDisabled && (
-            <span className="text-xs text-muted-foreground">
+            <span className="text-body-sm text-muted-foreground">
               (not available for extended response)
             </span>
           )}
         </label>
 
         <div className="flex items-center gap-2">
-          <label className="text-sm text-muted-foreground">Status</label>
-          <select
-            className="rounded-md border border-input bg-background px-2 py-1 text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          <label className="form-label-top">Status</label>
+          <Select
             value={status}
-            onChange={e => setStatus(e.target.value as any)}
+            onValueChange={value => setStatus(value as any)}
           >
-            <option value="needs_review">Needs review</option>
-            <option value="wrong">Wrong</option>
-            <option value="mastered">Mastered</option>
-          </select>
+            <SelectTrigger className="w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="needs_review">
+                <StatusBadge status="needs_review" />
+              </SelectItem>
+              <SelectItem value="wrong">
+                <StatusBadge status="wrong" />
+              </SelectItem>
+              <SelectItem value="mastered">
+                <StatusBadge status="mastered" />
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       {/* correct answer (conditional) */}
       {problemType === 'mcq' && (
-        <div className="flex items-center gap-3">
-          <label className="w-32 text-sm text-muted-foreground">
-            Correct choice
-          </label>
-          <input
-            className="w-32 rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+        <div className="form-row">
+          <label className="form-label">Correct choice</label>
+          <Input
+            className="form-input w-32"
             placeholder="e.g. A, B, α, etc."
             value={mcqChoice}
             onChange={e => setMcqChoice(e.target.value)}
@@ -440,12 +462,10 @@ export default function ProblemForm({
         </div>
       )}
       {problemType === 'short' && (
-        <div className="flex items-center gap-3">
-          <label className="w-32 text-sm text-muted-foreground">
-            Correct text
-          </label>
-          <input
-            className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+        <div className="form-row">
+          <label className="form-label">Correct text</label>
+          <Input
+            className="form-input"
             placeholder="Short expected answer"
             value={shortText}
             onChange={e => setShortText(e.target.value)}
@@ -454,21 +474,17 @@ export default function ProblemForm({
       )}
 
       {/* solution text + assets */}
-      <div className="flex items-start gap-3">
-        <label className="w-32 text-sm text-muted-foreground pt-2">
-          Solution (text)
-        </label>
-        <textarea
-          className="flex-1 rounded-md border border-input bg-background px-3 py-2 h-24 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+      <div className="form-row-start">
+        <label className="form-label pt-2">Solution (text)</label>
+        <Textarea
+          className="form-textarea"
           placeholder="Optional: typed solution (Markdown/LaTeX)"
           value={solutionText}
           onChange={e => setSolutionText(e.target.value)}
         />
       </div>
-      <div className="flex items-start gap-3">
-        <label className="w-32 text-sm text-muted-foreground pt-2">
-          Solution assets
-        </label>
+      <div className="form-row-start">
+        <label className="form-label pt-2">Solution assets</label>
         <div className="flex-1">
           <FileManager
             role="solution"
@@ -480,8 +496,8 @@ export default function ProblemForm({
       </div>
 
       {/* tag picker */}
-      <div className="flex items-start gap-3">
-        <label className="w-32 text-sm text-muted-foreground pt-1">Tags</label>
+      <div className="form-row-start">
+        <label className="form-label pt-1">Tags</label>
         <div className="flex flex-wrap gap-3">
           {tags.length ? (
             tags.map(t => (
@@ -493,26 +509,20 @@ export default function ProblemForm({
                   type="checkbox"
                   checked={selectedTagIds.includes(t.id)}
                   onChange={() => toggleTag(t.id)}
-                  className="rounded border-input text-primary focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  className="form-checkbox"
                 />
                 <span>{t.name}</span>
               </label>
             ))
           ) : (
-            <div className="text-muted-foreground">No tags yet.</div>
+            <p className="text-body-sm text-muted-foreground">No tags yet.</p>
           )}
         </div>
       </div>
 
-      <div className="flex gap-3">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-        >
-          {isSubmitting && (
-            <div className="w-4 h-4 border border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-          )}
+      <div className="form-actions">
+        <Button type="submit" disabled={isSubmitting} className="btn-primary">
+          {isSubmitting && <div className="loading-spinner" />}
           {isSubmitting
             ? isEditMode
               ? 'Updating...'
@@ -520,16 +530,17 @@ export default function ProblemForm({
             : isEditMode
               ? 'Update problem'
               : 'Add problem'}
-        </button>
+        </Button>
         {!isEditMode && (
-          <button
+          <Button
             type="button"
+            variant="outline"
             onClick={() => setIsExpanded(false)}
             disabled={isSubmitting}
-            className="rounded-md border border-border bg-background px-4 py-2 text-foreground hover:bg-muted disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            className="btn-outline"
           >
             Cancel
-          </button>
+          </Button>
         )}
       </div>
     </form>

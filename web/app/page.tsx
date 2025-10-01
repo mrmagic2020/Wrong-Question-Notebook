@@ -13,12 +13,10 @@ export default function Home() {
 
         {/* Hero Section */}
         <section className="flex-1 flex flex-col items-center justify-center px-6 py-20">
-          <div className="max-w-4xl mx-auto text-center space-y-8">
+          <div className="page-container text-center space-y-8">
             <div className="space-y-4">
-              <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Master Your Learning
-              </h1>
-              <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              <h1 className="heading-xl text-gradient">Master Your Learning</h1>
+              <p className="text-body-lg text-muted-foreground max-w-2xl mx-auto">
                 Organize problems by subject, track your progress, and build
                 your knowledge systematically
               </p>

@@ -4,9 +4,9 @@ import '@/app/globals.css';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-background">
       <Navigation showAppLinks={true} sticky={true} />
-      <main className="mx-auto max-w-6xl p-6 main-content">{children}</main>
+      <main className="page-container main-content">{children}</main>
     </div>
   );
 }

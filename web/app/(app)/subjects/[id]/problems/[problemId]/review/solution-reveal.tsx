@@ -1,5 +1,7 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
+
 interface SolutionAsset {
   path: string;
   kind?: 'image' | 'pdf';
@@ -29,12 +31,9 @@ export default function SolutionReveal({
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-medium text-card-foreground">Solution</h2>
         {hasSolution && (
-          <button
-            onClick={onToggle}
-            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
-          >
+          <Button onClick={onToggle} variant="secondary">
             {isRevealed ? 'Hide Solution' : 'Reveal Solution'}
-          </button>
+          </Button>
         )}
       </div>
 

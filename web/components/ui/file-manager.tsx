@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { uploadFiles } from '@/lib/storage/client';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 interface FileAsset {
   path: string;
@@ -26,7 +28,6 @@ export default function FileManager({
   className = '',
 }: FileManagerProps) {
   const [files, setFiles] = useState<FileAsset[]>(initialFiles);
-  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -45,7 +46,6 @@ export default function FileManager({
   const handleFileUpload = async (selectedFiles: FileList) => {
     if (!selectedFiles.length) return;
 
-    setUploading(true);
     setError(null);
 
     // Validate file sizes before upload
@@ -62,7 +62,6 @@ export default function FileManager({
       setError(
         `Files too large: ${oversizedFiles.join(', ')}. Maximum file size is 10MB.`
       );
-      setUploading(false);
       return;
     }
 
@@ -100,7 +99,6 @@ export default function FileManager({
       // Remove failed uploading files - keep only the original files
       updateFiles(currentFiles);
     } finally {
-      setUploading(false);
       // Clear the file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -268,34 +266,35 @@ export default function FileManager({
                 {/* Actions */}
                 <div className="flex items-center space-x-2">
                   {file.path && !file.uploading && (
-                    <a
-                      href={`/api/files/${encodeURIComponent(file.path)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 text-sm"
+                    <Button
+                      asChild
+                      variant="link"
+                      size="sm"
+                      className="text-blue-600 hover:text-blue-800"
                     >
-                      View
-                    </a>
+                      <Link
+                        href={`/api/files/${encodeURIComponent(file.path)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        View
+                      </Link>
+                    </Button>
                   )}
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     onClick={() => handleDeleteFile(file)}
                     disabled={file.uploading}
-                    className="text-red-600 hover:text-red-800 disabled:text-gray-400 disabled:cursor-not-allowed text-sm"
+                    className="text-red-600 hover:text-red-800 disabled:text-gray-400"
                   >
                     Delete
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* Upload Status */}
-      {uploading && (
-        <div className="text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded-md p-3">
-          Uploading files...
         </div>
       )}
     </div>

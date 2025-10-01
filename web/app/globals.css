@@ -70,3 +70,244 @@
     @apply bg-background text-foreground;
   }
 }
+
+html body[data-scroll-locked] {
+  overflow: visible !important;
+  margin-right: 0 !important;
+}
+
+@layer components {
+  /* Typography Classes */
+  .heading-xl {
+    @apply text-4xl font-bold tracking-tight lg:text-5xl;
+  }
+
+  .heading-lg {
+    @apply text-3xl font-bold tracking-tight;
+  }
+
+  .heading-md {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+
+  .heading-sm {
+    @apply text-xl font-semibold tracking-tight;
+  }
+
+  .heading-xs {
+    @apply text-lg font-medium tracking-tight;
+  }
+
+  .text-body-lg {
+    @apply text-lg leading-7;
+  }
+
+  .text-body {
+    @apply text-base leading-6;
+  }
+
+  .text-body-sm {
+    @apply text-sm leading-5;
+  }
+
+  .text-caption {
+    @apply text-xs leading-4 text-muted-foreground;
+  }
+
+  .text-label {
+    @apply text-sm font-medium leading-none;
+  }
+
+  .text-error {
+    @apply text-sm text-destructive;
+  }
+
+  .text-success {
+    @apply text-sm text-green-600 dark:text-green-400;
+  }
+
+  /* Layout Classes */
+  .page-container {
+    @apply mx-auto max-w-6xl p-6;
+  }
+
+  .page-header {
+    @apply mb-6 space-y-2;
+  }
+
+  .page-title {
+    @apply heading-lg text-foreground;
+  }
+
+  .page-description {
+    @apply text-body text-muted-foreground;
+  }
+
+  .section-container {
+    @apply space-y-6;
+  }
+
+  .card-section {
+    @apply rounded-lg border bg-card p-6;
+  }
+
+  .card-section-header {
+    @apply mb-4 space-y-1;
+  }
+
+  .card-section-title {
+    @apply heading-xs text-card-foreground;
+  }
+
+  .card-section-description {
+    @apply text-body-sm text-muted-foreground;
+  }
+
+  /* Form Classes */
+  .form-container {
+    @apply space-y-6;
+  }
+
+  .form-section {
+    @apply space-y-4;
+  }
+
+  .form-row {
+    @apply flex items-center gap-3;
+  }
+
+  .form-row-start {
+    @apply flex items-start gap-3;
+  }
+
+  .form-label {
+    @apply w-32 text-label text-muted-foreground;
+  }
+
+  .form-label-top {
+    @apply text-label text-muted-foreground;
+  }
+
+  .form-input {
+    @apply flex-1 rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .form-textarea {
+    @apply flex-1 rounded-md border border-input bg-background px-3 py-2 h-28 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .form-select {
+    @apply rounded-md border border-input bg-background px-2 py-1 text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .form-checkbox {
+    @apply rounded border-input text-primary focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  }
+
+  .form-actions {
+    @apply flex gap-3 pt-4;
+  }
+
+  .form-error {
+    @apply text-error mt-1;
+  }
+
+  /* Table Classes */
+  .table-container {
+    @apply rounded-lg border bg-card overflow-hidden;
+  }
+
+  .table-header {
+    @apply bg-muted text-left;
+  }
+
+  .table-header-cell {
+    @apply px-4 py-2 text-muted-foreground;
+  }
+
+  .table-cell {
+    @apply px-4 py-2 text-foreground;
+  }
+
+  .table-empty {
+    @apply px-4 py-6 text-muted-foreground text-center;
+  }
+
+  /* Button Variants */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 h-9 px-4 py-2;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2;
+  }
+
+  .btn-destructive {
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 h-9 px-4 py-2;
+  }
+
+  .btn-link {
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 text-primary underline-offset-4 hover:underline h-9 px-4 py-2;
+  }
+
+  /* Status and Badge Classes */
+  .status-needs-review {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400;
+  }
+
+  .status-wrong {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400;
+  }
+
+  .status-mastered {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400;
+  }
+
+  /* Loading and State Classes */
+  .loading-spinner {
+    @apply w-4 h-4 border border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin;
+  }
+
+  .loading-dots {
+    @apply inline-flex items-center gap-1;
+  }
+
+  .loading-dots::after {
+    content: '';
+    @apply w-1 h-1 bg-current rounded-full animate-pulse;
+  }
+
+  /* Interactive Elements */
+  .interactive-hover {
+    @apply transition-colors hover:text-foreground;
+  }
+
+  .interactive-focus {
+    @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  }
+
+  .clickable {
+    @apply cursor-pointer interactive-hover interactive-focus;
+  }
+
+  /* Utility Classes */
+  .text-gradient {
+    @apply bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent;
+  }
+
+  .glass-effect {
+    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm;
+  }
+
+  .shadow-soft {
+    @apply shadow-lg shadow-black/5 dark:shadow-black/20;
+  }
+}

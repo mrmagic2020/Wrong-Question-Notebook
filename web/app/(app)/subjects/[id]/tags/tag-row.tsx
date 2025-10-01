@@ -164,11 +164,7 @@ export default function TagRow({
         <div className="flex gap-2">
           {editing ? (
             <>
-              <Button
-                onClick={save}
-                disabled={busy}
-                className=""
-              >
+              <Button onClick={save} disabled={busy} className="">
                 {busy && <Loader2Icon className="animate-spin" />}
                 {busy ? 'Saving...' : 'Save'}
               </Button>
@@ -192,7 +188,11 @@ export default function TagRow({
               >
                 Rename
               </Button>
-              <Button onClick={handleRemove} disabled={busy} variant="destructive">
+              <Button
+                onClick={handleRemove}
+                disabled={busy}
+                variant="destructive"
+              >
                 {busy && <Loader2Icon className="animate-spin" />}
                 Delete
               </Button>
