@@ -2,7 +2,10 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { Loader2Icon } from 'lucide-react';
 
 export default function SubjectForm({
   onSubjectCreated,
@@ -54,24 +57,21 @@ export default function SubjectForm({
 
   return (
     <form onSubmit={onSubmit} className="flex items-center gap-3">
-      <input
+      <Input
         value={name}
         onChange={e => setName(e.target.value)}
         placeholder="e.g. Mathematics"
         disabled={busy}
-        className="w-64 rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-64"
         required
       />
-      <button
+      <Button
         type="submit"
         disabled={busy}
-        className="rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors flex items-center gap-2"
       >
-        {busy && (
-          <div className="w-4 h-4 border border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-        )}
-        {busy ? 'Adding…' : 'Add'}
-      </button>
+        {busy && <Loader2Icon className="animate-spin" />}
+        {busy ? 'Adding...' : 'Add'}
+      </Button>
       {error && <span className="text-sm text-destructive">{error}</span>}
     </form>
   );

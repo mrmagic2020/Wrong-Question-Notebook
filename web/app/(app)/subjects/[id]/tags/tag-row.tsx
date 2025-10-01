@@ -3,6 +3,9 @@
 import { useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Loader2Icon } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 export default function TagRow({
   tag,
@@ -144,13 +147,12 @@ export default function TagRow({
     <tr className="border-t border-border">
       <td className="px-4 py-2 align-middle">
         {editing ? (
-          <input
+          <Input
             ref={inputRef}
             value={name}
             onChange={e => setName(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={busy}
-            className="rounded-md border border-input bg-background px-2 py-1 text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             placeholder="Enter tag name"
           />
         ) : (
@@ -162,43 +164,38 @@ export default function TagRow({
         <div className="flex gap-2">
           {editing ? (
             <>
-              <button
+              <Button
                 onClick={save}
                 disabled={busy}
-                className="rounded-md bg-primary px-3 py-1 text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors flex items-center gap-1"
+                className=""
               >
-                {busy && (
-                  <div className="w-3 h-3 border border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                )}
+                {busy && <Loader2Icon className="animate-spin" />}
                 {busy ? 'Saving...' : 'Save'}
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => {
                   setEditing(false);
                   setName(tag.name); // Reset to original name
                 }}
                 disabled={busy}
-                className="rounded-md border border-border bg-background px-3 py-1 text-foreground hover:bg-muted disabled:opacity-60 transition-colors"
+                variant="secondary"
               >
                 Cancel
-              </button>
+              </Button>
             </>
           ) : (
             <>
-              <button
+              <Button
                 onClick={() => setEditing(true)}
                 disabled={busy}
-                className="rounded-md border border-border bg-background px-3 py-1 text-foreground hover:bg-muted disabled:opacity-60 transition-colors"
+                variant="outline"
               >
                 Rename
-              </button>
-              <button
-                onClick={handleRemove}
-                disabled={busy}
-                className="rounded-md border border-destructive bg-destructive/10 dark:bg-destructive/20 px-3 py-1 text-destructive dark:text-red-400 hover:bg-destructive/20 dark:hover:bg-destructive/30 disabled:opacity-60 transition-colors"
-              >
+              </Button>
+              <Button onClick={handleRemove} disabled={busy} variant="destructive">
+                {busy && <Loader2Icon className="animate-spin" />}
                 Delete
-              </button>
+              </Button>
             </>
           )}
         </div>

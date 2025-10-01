@@ -1,9 +1,10 @@
 // web/src/app/(app)/tags/page.tsx
+import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 
 function TagCapsules({ tags }: { tags: { id: string; name: string }[] }) {
-  const maxShown = 8; // show up to 8 tags per subject here
+  const maxShown = 7; // show up to 8 tags per subject here
   const shown = tags.slice(0, maxShown);
   const extra = tags.length - shown.length;
 
@@ -93,18 +94,16 @@ export default async function GlobalTagsPage() {
                     </h2>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Link
-                      href={`/subjects/${s.id}/tags`}
-                      className="rounded-md border border-border bg-background px-3 py-1 text-sm text-foreground hover:bg-muted transition-colors"
-                    >
-                      Manage tags
-                    </Link>
-                    <Link
-                      href={`/subjects/${s.id}/problems`}
-                      className="rounded-md border border-border bg-background px-3 py-1 text-sm text-foreground hover:bg-muted transition-colors"
-                    >
-                      View problems
-                    </Link>
+                    <Button asChild variant="outline">
+                      <Link href={`/subjects/${s.id}/tags`}>
+                        Manage tags
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline">
+                      <Link href={`/subjects/${s.id}/problems`}>
+                        View problems
+                      </Link>
+                    </Button>
                   </div>
                 </div>
 

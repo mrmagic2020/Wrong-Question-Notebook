@@ -4,7 +4,10 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { Loader2Icon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
+import { Input } from '@/components/ui/input';
 
 export default function SubjectRow({
   subject,
@@ -20,7 +23,8 @@ export default function SubjectRow({
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(subject.name);
-  const [busy, setBusy] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -50,7 +54,7 @@ export default function SubjectRow({
       return;
     }
 
-    setBusy(true);
+    setRenaming(true);
     setErr(null);
     try {
       const res = await fetch(`/api/subjects/${subject.id}`, {
@@ -75,7 +79,7 @@ export default function SubjectRow({
       setErr(e.message);
       toast.error('Failed to rename subject');
     } finally {
-      setBusy(false);
+      setRenaming(false);
     }
   }
 
@@ -87,7 +91,7 @@ export default function SubjectRow({
         confirmText: 'Delete',
         variant: 'destructive',
         onConfirm: async () => {
-          setBusy(true);
+          setDeleting(true);
           setErr(null);
           try {
             const res = await fetch(`/api/subjects/${subject.id}`, {
@@ -108,7 +112,7 @@ export default function SubjectRow({
             setErr(e.message);
             toast.error('Failed to delete subject');
           } finally {
-            setBusy(false);
+            setDeleting(false);
           }
         },
       });
@@ -119,7 +123,7 @@ export default function SubjectRow({
           `Are you sure you want to delete "${subject.name}"? This action cannot be undone.`
         )
       ) {
-        setBusy(true);
+        setDeleting(true);
         setErr(null);
         fetch(`/api/subjects/${subject.id}`, {
           method: 'DELETE',
@@ -142,7 +146,7 @@ export default function SubjectRow({
             toast.error('Failed to delete subject');
           })
           .finally(() => {
-            setBusy(false);
+            setDeleting(false);
           });
       }
     }
@@ -153,13 +157,12 @@ export default function SubjectRow({
       <td className="px-4 py-2 align-middle">
         {editing ? (
           <Tooltip content="Press Enter to save or Escape to cancel">
-            <input
+            <Input
               ref={inputRef}
               value={name}
               onChange={e => setName(e.target.value)}
               onKeyDown={handleKeyDown}
-              disabled={busy}
-              className="rounded-md border border-input bg-background px-2 py-1 text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={renaming}
               placeholder="Enter subject name"
             />
           </Tooltip>
@@ -170,60 +173,53 @@ export default function SubjectRow({
       </td>
       <td className="px-4 py-2 align-middle">
         <div className="flex gap-2">
-          <Link
-            href={`/subjects/${subject.id}/problems`}
-            className="rounded-md border border-border bg-background px-3 py-1 text-foreground hover:bg-muted transition-colors"
-          >
-            Problems
-          </Link>
-          <Link
-            href={`/subjects/${subject.id}/tags`}
-            className="rounded-md border border-border bg-background px-3 py-1 text-foreground hover:bg-muted transition-colors"
-          >
-            Tags
-          </Link>
+          <Button asChild variant="outline" className="">
+            <Link href={`/subjects/${subject.id}/problems`}>Problems</Link>
+          </Button>
+          <Button asChild variant="outline" className="">
+            <Link href={`/subjects/${subject.id}/tags`}>Tags</Link>
+          </Button>
           {editing ? (
             <>
-              <button
+              <Button
                 onClick={save}
-                disabled={busy}
-                className="rounded-md bg-primary px-3 py-1 text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors flex items-center gap-1"
+                disabled={renaming || deleting}
+                className="flex items-center gap-1"
               >
-                {busy && (
-                  <div className="w-3 h-3 border border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                )}
-                {busy ? 'Saving...' : 'Save'}
-              </button>
-              <button
+                {renaming && <Loader2Icon className="animate-spin" />}
+                {renaming ? 'Saving...' : 'Save'}
+              </Button>
+              <Button
                 onClick={() => {
                   setEditing(false);
                   setName(subject.name); // Reset to original name
                 }}
-                disabled={busy}
-                className="rounded-md border border-border bg-background px-3 py-1 text-foreground hover:bg-muted disabled:opacity-60 transition-colors"
+                disabled={renaming || deleting}
+                variant="secondary"
               >
                 Cancel
-              </button>
+              </Button>
             </>
           ) : (
             <>
               <Tooltip content="Click to rename this subject (Enter to save, Escape to cancel)">
-                <button
+                <Button
                   onClick={() => setEditing(true)}
-                  disabled={busy}
-                  className="rounded-md border border-border bg-background px-3 py-1 text-foreground hover:bg-muted disabled:opacity-60 transition-colors"
+                  disabled={renaming || deleting}
+                  variant="outline"
                 >
                   Rename
-                </button>
+                </Button>
               </Tooltip>
               <Tooltip content="Permanently delete this subject and all its problems">
-                <button
+                <Button
                   onClick={handleRemove}
-                  disabled={busy}
-                  className="rounded-md border border-destructive bg-destructive/10 dark:bg-destructive/20 px-3 py-1 text-destructive dark:text-red-400 hover:bg-destructive/20 dark:hover:bg-destructive/30 disabled:opacity-60 transition-colors"
+                  disabled={renaming || deleting}
+                  variant="destructive"
                 >
+                  {deleting && <Loader2Icon className="animate-spin" />}
                   Delete
-                </button>
+                </Button>
               </Tooltip>
             </>
           )}

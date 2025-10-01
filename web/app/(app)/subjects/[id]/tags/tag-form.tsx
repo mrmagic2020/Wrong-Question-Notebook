@@ -3,6 +3,9 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
+import { Loader2Icon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function TagForm({
   subjectId,
@@ -53,24 +56,18 @@ export default function TagForm({
 
   return (
     <form onSubmit={onSubmit} className="flex items-center gap-3">
-      <input
-        className="w-64 rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+      <Input
+        className="w-64"
         placeholder="e.g. Circle theorems"
         value={name}
         onChange={e => setName(e.target.value)}
         disabled={busy}
         required
       />
-      <button
-        type="submit"
-        disabled={busy}
-        className="rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors flex items-center gap-2"
-      >
-        {busy && (
-          <div className="w-4 h-4 border border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-        )}
+      <Button type="submit" disabled={busy} className="">
+        {busy && <Loader2Icon className="animate-spin" />}
         {busy ? 'Adding…' : 'Add'}
-      </button>
+      </Button>
       {err && <span className="text-sm text-destructive">{err}</span>}
     </form>
   );
