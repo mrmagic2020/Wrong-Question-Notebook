@@ -5,7 +5,6 @@ import {
   ColumnDef,
   ColumnFiltersState,
   SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -13,6 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
+import { useColumnVisibility } from '@/lib/hooks/useColumnVisibility';
 
 import {
   Table,
@@ -36,6 +36,7 @@ interface DataTableProps<TData, TValue> {
   onSelectionChange?: (selectedProblems: Problem[]) => void;
   resetSelection?: boolean;
   onColumnVisibilityChange?: () => void;
+  columnVisibilityStorageKey?: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -48,13 +49,15 @@ export function DataTable<TData, TValue>({
   onSelectionChange,
   resetSelection = false,
   onColumnVisibilityChange,
+  columnVisibilityStorageKey = 'problems-table-column-visibility',
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+  const { columnVisibility, setColumnVisibility } = useColumnVisibility({
+    storageKey: columnVisibilityStorageKey,
+  });
   const [rowSelection, setRowSelection] = React.useState({});
 
   const table = useReactTable({

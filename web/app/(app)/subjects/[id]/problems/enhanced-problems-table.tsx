@@ -412,6 +412,7 @@ export default function EnhancedProblemsTable({
         onSelectionChange={handleSelectionChange}
         resetSelection={resetSelection}
         onColumnVisibilityChange={handleColumnVisibilityChange}
+        columnVisibilityStorageKey={`problems-table-column-visibility-${subjectId}`}
       />
 
       {/* Individual Delete Confirmation Dialog */}
