@@ -51,9 +51,7 @@ interface CompactSearchFilterProps {
   table?: any;
   columnVisibilityKey?: number;
   selectedProblemIds?: string[];
-  onBulkEditTags?: (problemIds: string[]) => void;
   onBulkDelete?: (problemIds: string[]) => void;
-  onBulkEditTagsEnabled?: boolean;
   onBulkDeleteEnabled?: boolean;
   isSearching?: boolean;
 }
@@ -72,9 +70,7 @@ export default function CompactSearchFilter({
   table,
   columnVisibilityKey = 0,
   selectedProblemIds = [],
-  onBulkEditTags,
   onBulkDelete,
-  onBulkEditTagsEnabled = false,
   onBulkDeleteEnabled = false,
   isSearching = false,
 }: CompactSearchFilterProps) {
@@ -268,14 +264,6 @@ export default function CompactSearchFilter({
               <span className="text-sm text-muted-foreground">
                 {selectedProblemIds.length} selected
               </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onBulkEditTags?.(selectedProblemIds)}
-                disabled={!onBulkEditTagsEnabled}
-              >
-                Edit Tags
-              </Button>
               <Button
                 variant="outline"
                 size="sm"

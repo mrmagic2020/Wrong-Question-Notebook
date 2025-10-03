@@ -315,24 +315,6 @@ export default function EnhancedProblemsTable({
     }
   };
 
-  const handleBulkEditTags = async (problemIds: string[]) => {
-    try {
-      // For now, we'll just show a success message
-      // In a real implementation, this would open a tag selection dialog
-      // and update the problems with the selected tags
-      toast.success(
-        `Tag editing for ${problemIds.length} problem${problemIds.length !== 1 ? 's' : ''} - Feature coming soon!`
-      );
-
-      setSelectedProblems([]);
-      setResetSelection(true); // Trigger table selection reset
-    } catch (err: any) {
-      toast.error(`Failed to edit tags: ${err.message}`);
-      console.error('Bulk tag edit error:', err);
-    } finally {
-    }
-  };
-
   const handleSelectionChange = useCallback((selectedProblems: Problem[]) => {
     setSelectedProblems(selectedProblems);
   }, []);
@@ -372,9 +354,7 @@ export default function EnhancedProblemsTable({
         table={tableInstance}
         columnVisibilityKey={columnVisibilityKey}
         selectedProblemIds={selectedProblems.map(p => p.id)}
-        onBulkEditTags={handleBulkEditTags}
         onBulkDelete={handleBulkDeleteClick}
-        onBulkEditTagsEnabled={true}
         onBulkDeleteEnabled={true}
         isSearching={isSearching}
       />
