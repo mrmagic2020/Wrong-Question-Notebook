@@ -1,7 +1,6 @@
 // web/lib/storage/delete.ts
 import type { SupabaseClient } from '@supabase/supabase-js';
-
-const BUCKET = 'problem-uploads';
+import { FILE_CONSTANTS, DATABASE_CONSTANTS } from '../constants';
 
 /**
  * Recursively lists ALL file paths (not folders) under a prefix.
@@ -12,11 +11,13 @@ async function listFilesRecursive(
   prefix: string
 ): Promise<string[]> {
   const files: string[] = [];
-  const { data, error } = await supabase.storage.from(BUCKET).list(prefix, {
-    limit: 1000,
-    offset: 0,
-    sortBy: { column: 'name', order: 'asc' },
-  });
+  const { data, error } = await supabase.storage
+    .from(FILE_CONSTANTS.STORAGE.BUCKET)
+    .list(prefix, {
+      limit: DATABASE_CONSTANTS.PAGINATION.MAX_LIMIT,
+      offset: 0,
+      sortBy: { column: 'name', order: 'asc' },
+    });
   if (error || !data) return files;
 
   for (const entry of data) {
@@ -42,7 +43,7 @@ export async function deleteProblemFiles(
   const base = `user/${userId}/problems/${problemId}/`;
   const allFiles = await listFilesRecursive(supabase, base);
   if (!allFiles.length) return;
-  await supabase.storage.from(BUCKET).remove(allFiles);
+  await supabase.storage.from(FILE_CONSTANTS.STORAGE.BUCKET).remove(allFiles);
 }
 
 export async function deleteStagingFolder(
@@ -53,7 +54,7 @@ export async function deleteStagingFolder(
   const base = `user/${userId}/staging/${stagingId}/`;
   const all = await listFilesRecursive(supabase, base);
   if (all.length) {
-    await supabase.storage.from(BUCKET).remove(all);
+    await supabase.storage.from(FILE_CONSTANTS.STORAGE.BUCKET).remove(all);
   }
 }
 
@@ -64,13 +65,13 @@ export async function deleteStagingFolder(
 export async function cleanupOldStagingFolders(
   supabase: SupabaseClient,
   userId: string,
-  maxAgeHours = 24
+  maxAgeHours = DATABASE_CONSTANTS.STAGING_CLEANUP_HOURS
 ) {
   const base = `user/${userId}/staging/`;
   const { data: folders, error } = await supabase.storage
-    .from(BUCKET)
+    .from(FILE_CONSTANTS.STORAGE.BUCKET)
     .list(base, {
-      limit: 1000,
+      limit: DATABASE_CONSTANTS.PAGINATION.MAX_LIMIT,
       sortBy: { column: 'created_at', order: 'asc' },
     });
 
@@ -86,7 +87,7 @@ export async function cleanupOldStagingFolders(
     const folderPath = `${base}${folder.name}/`;
     const files = await listFilesRecursive(supabase, folderPath);
     if (files.length > 0) {
-      await supabase.storage.from(BUCKET).remove(files);
+      await supabase.storage.from(FILE_CONSTANTS.STORAGE.BUCKET).remove(files);
     }
   }
 }

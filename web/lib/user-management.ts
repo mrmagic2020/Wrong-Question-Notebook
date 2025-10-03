@@ -6,7 +6,9 @@ import {
   UserStatisticsType,
   UserActivityLogType,
   AdminSettingsType,
-} from '@/lib/types';
+} from '@/lib/schemas';
+import { createServiceClient } from './supabase-utils';
+import { DATABASE_CONSTANTS } from './constants';
 
 /**
  * Get user profile by ID
@@ -50,30 +52,7 @@ export async function getUserProfileWithServiceRole(
   return data;
 }
 
-/**
- * Create service role client for admin operations
- */
-function createServiceClient() {
-  // Validate that service role key exists
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error(
-      'SUPABASE_SERVICE_ROLE_KEY environment variable is not set'
-    );
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { createClient } = require('@supabase/supabase-js');
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    }
-  );
-}
+// Service client is now imported from supabase-utils
 
 /**
  * Get extended user information including auth data and profile
@@ -154,7 +133,7 @@ export async function isCurrentUserSuperAdmin(): Promise<boolean> {
  * Get all users for admin management
  */
 export async function getAllUsers(
-  limit: number = 50,
+  limit: number = DATABASE_CONSTANTS.PAGINATION.DEFAULT_LIMIT,
   offset: number = 0
 ): Promise<UserProfileType[]> {
   const serviceSupabase = createServiceClient();
@@ -177,7 +156,7 @@ export async function getAllUsers(
  */
 export async function searchUsers(
   query: string,
-  limit: number = 20
+  limit: number = DATABASE_CONSTANTS.PAGINATION.SEARCH_LIMIT
 ): Promise<UserProfileType[]> {
   const supabase = await createClient();
 
@@ -319,7 +298,7 @@ export async function getUserStatistics(): Promise<UserStatisticsType | null> {
  * Get recent user activity
  */
 export async function getRecentActivity(
-  limit: number = 20
+  limit: number = DATABASE_CONSTANTS.PAGINATION.ACTIVITY_LIMIT
 ): Promise<UserActivityLogType[]> {
   const serviceSupabase = createServiceClient();
 
@@ -437,7 +416,7 @@ export async function getUsersByRole(
  */
 export async function getUserActivity(
   userId: string,
-  limit: number = 50
+  limit: number = DATABASE_CONSTANTS.PAGINATION.DEFAULT_LIMIT
 ): Promise<UserActivityLogType[]> {
   const serviceSupabase = createServiceClient();
 
@@ -539,7 +518,7 @@ async function deleteUserStorageFiles(userId: string): Promise<void> {
       const { data: items, error: listError } = await serviceSupabase.storage
         .from('problem-uploads')
         .list(path, {
-          limit: 1000,
+          limit: DATABASE_CONSTANTS.PAGINATION.MAX_LIMIT,
           offset: 0,
         });
 

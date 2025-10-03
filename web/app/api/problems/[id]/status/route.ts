@@ -1,5 +1,11 @@
 import { NextResponse } from 'next/server';
 import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
+import {
+  createApiErrorResponse,
+  createApiSuccessResponse,
+  handleAsyncError,
+} from '@/lib/common-utils';
+import { PROBLEM_CONSTANTS, ERROR_MESSAGES } from '@/lib/constants';
 
 export async function PATCH(
   req: Request,
@@ -9,21 +15,39 @@ export async function PATCH(
   if (!user) return unauthorised();
 
   const { id: problemId } = await params;
-  const body = await req.json().catch(() => ({}));
+  let body;
+  try {
+    body = await req.json();
+  } catch (error) {
+    return NextResponse.json(
+      createApiErrorResponse(
+        ERROR_MESSAGES.INVALID_REQUEST,
+        400,
+        error as string
+      ),
+      { status: 400 }
+    );
+  }
 
   // Validate the request body
   const { status, last_reviewed_date } = body;
 
   if (!status && !last_reviewed_date) {
     return NextResponse.json(
-      { error: 'Either status or last_reviewed_date must be provided' },
+      createApiErrorResponse(
+        'Either status or last_reviewed_date must be provided',
+        400
+      ),
       { status: 400 }
     );
   }
 
-  if (status && !['wrong', 'needs_review', 'mastered'].includes(status)) {
+  if (
+    status &&
+    !Object.values(PROBLEM_CONSTANTS.STATUS).includes(status as any)
+  ) {
     return NextResponse.json(
-      { error: 'Invalid status value' },
+      createApiErrorResponse('Invalid status value', 400),
       { status: 400 }
     );
   }
@@ -37,22 +61,39 @@ export async function PATCH(
     updateData.last_reviewed_date = last_reviewed_date;
   }
 
-  // Update only the status and/or last_reviewed_date fields
-  const { data, error } = await supabase
-    .from('problems')
-    .update(updateData)
-    .eq('id', problemId)
-    .eq('user_id', user.id)
-    .select()
-    .single();
+  try {
+    // Update only the status and/or last_reviewed_date fields
+    const { data, error } = await supabase
+      .from('problems')
+      .update(updateData)
+      .eq('id', problemId)
+      .eq('user_id', user.id)
+      .select()
+      .single();
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      return NextResponse.json(
+        createApiErrorResponse(
+          ERROR_MESSAGES.DATABASE_ERROR,
+          500,
+          error.message
+        ),
+        { status: 500 }
+      );
+    }
+
+    if (!data) {
+      return NextResponse.json(
+        createApiErrorResponse(ERROR_MESSAGES.NOT_FOUND, 404),
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(createApiSuccessResponse(data));
+  } catch (error) {
+    const { message, status } = handleAsyncError(error);
+    return NextResponse.json(createApiErrorResponse(message, status), {
+      status,
+    });
   }
-
-  if (!data) {
-    return NextResponse.json({ error: 'Problem not found' }, { status: 404 });
-  }
-
-  return NextResponse.json({ data });
 }

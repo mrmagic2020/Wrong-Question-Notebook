@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { UserProfileType, UserRoleType } from '@/lib/types';
-import { formatDisplayDate } from '@/lib/date-utils';
+import { UserProfileType, UserRoleType } from '@/lib/schemas';
+import { formatDisplayDate } from '@/lib/common-utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {

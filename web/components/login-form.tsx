@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { ROUTES, ERROR_MESSAGES } from '@/lib/constants';
 
 export function LoginForm({
   className,
@@ -39,9 +40,11 @@ export function LoginForm({
       });
       if (error) throw error;
       // Redirect to subjects page after successful login
-      router.push('/subjects');
+      router.push(ROUTES.SUBJECTS);
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'An error occurred');
+      setError(
+        error instanceof Error ? error.message : ERROR_MESSAGES.INTERNAL_ERROR
+      );
     } finally {
       setIsLoading(false);
     }

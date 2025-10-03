@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useState } from 'react';
+import { ERROR_MESSAGES } from '@/lib/constants';
 
 export function ForgotPasswordForm({
   className,
@@ -38,7 +39,9 @@ export function ForgotPasswordForm({
       if (error) throw error;
       setSuccess(true);
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'An error occurred');
+      setError(
+        error instanceof Error ? error.message : ERROR_MESSAGES.INTERNAL_ERROR
+      );
     } finally {
       setIsLoading(false);
     }

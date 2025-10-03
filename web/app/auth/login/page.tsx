@@ -2,6 +2,7 @@ import { LoginForm } from '@/components/login-form';
 import { AuthNav } from '@/components/auth-nav';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { ROUTES } from '@/lib/constants';
 
 export default async function Page() {
   const supabase = await createClient();
@@ -9,7 +10,7 @@ export default async function Page() {
 
   // If user is already logged in, redirect to subjects page
   if (data?.claims) {
-    redirect('/subjects');
+    redirect(ROUTES.SUBJECTS);
   }
 
   return (

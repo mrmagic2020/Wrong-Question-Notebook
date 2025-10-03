@@ -14,9 +14,9 @@ import {
 import { ProblemType, PROBLEM_TYPE_VALUES } from '@/lib/schemas';
 import {
   getProblemTypeDisplayName,
-  getStatusDisplayName,
+  getProblemStatusDisplayName,
   getColumnDisplayName,
-} from '@/lib/display-utils';
+} from '@/lib/common-utils';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -149,14 +149,18 @@ export default function CompactSearchFilter({
   }));
 
   const statusOptions = [
-    { label: getStatusDisplayName('wrong'), value: 'wrong', icon: XCircle },
     {
-      label: getStatusDisplayName('needs_review'),
+      label: getProblemStatusDisplayName('wrong'),
+      value: 'wrong',
+      icon: XCircle,
+    },
+    {
+      label: getProblemStatusDisplayName('needs_review'),
       value: 'needs_review',
       icon: Clock,
     },
     {
-      label: getStatusDisplayName('mastered'),
+      label: getProblemStatusDisplayName('mastered'),
       value: 'mastered',
       icon: CheckCircle,
     },

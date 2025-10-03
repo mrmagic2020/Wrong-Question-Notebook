@@ -17,8 +17,8 @@ import { ProblemType, ProblemStatus } from '@/lib/schemas';
 import {
   getProblemTypeDisplayName,
   getProblemStatusDisplayName,
-} from '@/lib/display-utils';
-import { formatDisplayDate } from '@/lib/date-utils';
+  formatDisplayDate,
+} from '@/lib/common-utils';
 import Link from 'next/link';
 import { toast } from 'sonner';
 

@@ -7,6 +7,7 @@ import {
 } from './rate-limit';
 import { validateRequest, getSecurityHeaders } from './request-validation';
 import { validateFileUpload } from './file-security';
+import { FILE_CONSTANTS } from './constants';
 
 export interface SecurityConfig {
   enableRateLimit?: boolean;
@@ -113,12 +114,11 @@ export function createSecurityMiddleware(config: SecurityConfig = {}) {
           const file = formData.get('file') as File;
 
           if (file) {
-            const { ALLOWED_FILE_TYPES } = await import('./file-security');
             const validation = validateFileUpload(file, {
-              maxSize: 5 * 1024 * 1024, // 5MB
+              maxSize: FILE_CONSTANTS.MAX_FILE_SIZE.IMAGE,
               allowedTypes: Object.keys({
-                ...ALLOWED_FILE_TYPES.images,
-                ...ALLOWED_FILE_TYPES.documents,
+                ...FILE_CONSTANTS.ALLOWED_FILE_TYPES.images,
+                ...FILE_CONSTANTS.ALLOWED_FILE_TYPES.documents,
               }),
             });
 

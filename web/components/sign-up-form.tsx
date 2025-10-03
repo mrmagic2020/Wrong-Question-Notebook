@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { ROUTES, ERROR_MESSAGES } from '@/lib/constants';
 
 export function SignUpForm({
   className,
@@ -44,13 +45,15 @@ export function SignUpForm({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/subjects`,
+          emailRedirectTo: `${window.location.origin}${ROUTES.SUBJECTS}`,
         },
       });
       if (error) throw error;
       router.push(`/auth/sign-up-success?email=${encodeURIComponent(email)}`);
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'An error occurred');
+      setError(
+        error instanceof Error ? error.message : ERROR_MESSAGES.INTERNAL_ERROR
+      );
     } finally {
       setIsLoading(false);
     }

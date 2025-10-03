@@ -6,7 +6,7 @@ import {
   getAdminSettings,
   // updateAdminSetting,
 } from '@/lib/user-management';
-import { CreateAdminSettingsDto } from '@/lib/types';
+import { CreateAdminSettingsDto } from '@/lib/schemas';
 
 export async function GET() {
   try {

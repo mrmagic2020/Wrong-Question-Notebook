@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
+import { REQUEST_CONSTANTS, SECURITY_CONSTANTS } from './constants';
 
 // Request validation schemas
 export const requestValidationSchemas = {
@@ -14,20 +15,22 @@ export const requestValidationSchemas = {
   // File upload validation
   fileUpload: z.object({
     contentType: z.string().regex(/^multipart\/form-data/),
-    contentLength: z.number().max(50 * 1024 * 1024), // 50MB max
+    contentLength: z
+      .number()
+      .max(REQUEST_CONSTANTS.MAX_CONTENT_LENGTH.FILE_UPLOAD),
   }),
 
   // API request validation
   apiRequest: z.object({
     contentType: z.string().regex(/^application\/json/),
-    contentLength: z.number().max(1024 * 1024), // 1MB max for JSON
+    contentLength: z.number().max(REQUEST_CONSTANTS.MAX_CONTENT_LENGTH.JSON),
   }),
 };
 
 // Security headers validation
 export const securityHeaders = {
-  required: ['x-forwarded-for', 'user-agent'],
-  optional: ['x-real-ip', 'x-forwarded-proto', 'x-forwarded-host'],
+  required: REQUEST_CONSTANTS.REQUIRED_HEADERS,
+  optional: REQUEST_CONSTANTS.OPTIONAL_HEADERS,
 };
 
 // Malicious patterns to detect (blacklist approach)
@@ -333,8 +336,7 @@ export function validateRequest(req: NextRequest): ValidationResult {
 
   // Check content length
   const contentLength = parseInt(req.headers.get('content-length') || '0');
-  if (contentLength > 50 * 1024 * 1024) {
-    // 50MB
+  if (contentLength > REQUEST_CONSTANTS.MAX_CONTENT_LENGTH.FILE_UPLOAD) {
     errors.push('Request too large');
     riskLevel = 'high';
   }
@@ -723,13 +725,5 @@ export function generateRateLimitKey(
 
 // Security headers for responses
 export function getSecurityHeaders(): Record<string, string> {
-  return {
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'X-XSS-Protection': '1; mode=block',
-    'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Content-Security-Policy':
-      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;",
-    'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-  };
+  return SECURITY_CONSTANTS.SECURITY_HEADERS;
 }

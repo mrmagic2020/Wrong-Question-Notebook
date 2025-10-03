@@ -6,6 +6,11 @@ import {
   movePathsToProblemWithUser,
   cleanupStagingFiles,
 } from '@/lib/storage/move';
+import {
+  createApiErrorResponse,
+  createApiSuccessResponse,
+} from '@/lib/common-utils';
+import { ERROR_MESSAGES } from '@/lib/constants';
 
 export async function GET(
   _req: Request,
@@ -24,11 +29,19 @@ export async function GET(
     .eq('user_id', user.id)
     .single();
 
-  if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    return NextResponse.json(
+      createApiErrorResponse(ERROR_MESSAGES.DATABASE_ERROR, 500, error.message),
+      { status: 500 }
+    );
+  }
 
-  if (!problem)
-    return NextResponse.json({ error: 'Problem not found' }, { status: 404 });
+  if (!problem) {
+    return NextResponse.json(
+      createApiErrorResponse(ERROR_MESSAGES.NOT_FOUND, 404),
+      { status: 404 }
+    );
+  }
 
   // Get the tags for this problem
   const { data: tagLinks } = await supabase
@@ -39,12 +52,12 @@ export async function GET(
 
   const tags = tagLinks?.map((link: any) => link.tags).filter(Boolean) || [];
 
-  return NextResponse.json({
-    data: {
+  return NextResponse.json(
+    createApiSuccessResponse({
       ...problem,
       tags,
-    },
-  });
+    })
+  );
 }
 
 export async function PATCH(
@@ -54,11 +67,28 @@ export async function PATCH(
   const { user, supabase } = await requireUser();
   if (!user) return unauthorised();
 
-  const body = await req.json().catch(() => ({}));
+  let body;
+  try {
+    body = await req.json();
+  } catch (error) {
+    return NextResponse.json(
+      createApiErrorResponse(
+        ERROR_MESSAGES.INVALID_REQUEST,
+        400,
+        error as string
+      ),
+      { status: 400 }
+    );
+  }
+
   const parsed = UpdateProblemDto.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
-      { error: parsed.error.flatten() },
+      createApiErrorResponse(
+        'Invalid request body',
+        400,
+        parsed.error.flatten()
+      ),
       { status: 400 }
     );
   }
@@ -75,8 +105,12 @@ export async function PATCH(
     .select()
     .single();
 
-  if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    return NextResponse.json(
+      createApiErrorResponse(ERROR_MESSAGES.DATABASE_ERROR, 500, error.message),
+      { status: 500 }
+    );
+  }
 
   // 2) Handle asset movement from staging to permanent storage
   if (assets || solution_assets) {
@@ -185,7 +219,14 @@ export async function PATCH(
     .single();
 
   if (fetchError) {
-    return NextResponse.json({ error: fetchError.message }, { status: 500 });
+    return NextResponse.json(
+      createApiErrorResponse(
+        ERROR_MESSAGES.DATABASE_ERROR,
+        500,
+        fetchError.message
+      ),
+      { status: 500 }
+    );
   }
 
   // Get the tags for this problem
@@ -197,12 +238,12 @@ export async function PATCH(
 
   const tags = tagLinks?.map((link: any) => link.tags).filter(Boolean) || [];
 
-  return NextResponse.json({
-    data: {
+  return NextResponse.json(
+    createApiSuccessResponse({
       ...updatedProblem,
       tags,
-    },
-  });
+    })
+  );
 }
 
 export async function DELETE(
@@ -223,7 +264,12 @@ export async function DELETE(
     .eq('id', id)
     .eq('user_id', user.id);
 
-  if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ ok: true });
+  if (error) {
+    return NextResponse.json(
+      createApiErrorResponse(ERROR_MESSAGES.DATABASE_ERROR, 500, error.message),
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json(createApiSuccessResponse({ ok: true }));
 }

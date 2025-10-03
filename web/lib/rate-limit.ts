@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { RATE_LIMIT_CONSTANTS } from './constants';
 
 interface RateLimitConfig {
   windowMs: number; // Time window in milliseconds
@@ -17,17 +18,14 @@ interface RateLimitEntry {
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
 // Clean up expired entries every 5 minutes
-setInterval(
-  () => {
-    const now = Date.now();
-    for (const [key, entry] of rateLimitStore.entries()) {
-      if (now > entry.resetTime) {
-        rateLimitStore.delete(key);
-      }
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of rateLimitStore.entries()) {
+    if (now > entry.resetTime) {
+      rateLimitStore.delete(key);
     }
-  },
-  5 * 60 * 1000
-);
+  }
+}, RATE_LIMIT_CONSTANTS.CLEANUP_INTERVAL);
 
 export function createRateLimit(config: RateLimitConfig) {
   return (req: NextRequest): NextResponse | null => {
@@ -93,37 +91,12 @@ function getDefaultKey(req: NextRequest): string {
   return `rate_limit:${ip}`;
 }
 
-// Predefined rate limit configurations
-export const rateLimitConfigs = {
-  // General API rate limit
-  api: {
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    maxRequests: 100, // 100 requests per 15 minutes
-  },
-
-  // File upload rate limit (more restrictive)
-  fileUpload: {
-    windowMs: 60 * 60 * 1000, // 1 hour
-    maxRequests: 20, // 20 uploads per hour
-  },
-
-  // Authentication rate limit (very restrictive)
-  auth: {
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    maxRequests: 5, // 5 auth attempts per 15 minutes
-  },
-
-  // Problem creation rate limit
-  problemCreation: {
-    windowMs: 60 * 60 * 1000, // 1 hour
-    maxRequests: 50, // 50 problems per hour
-  },
-} as const;
-
 // Helper function to create rate limiters
-export const createApiRateLimit = () => createRateLimit(rateLimitConfigs.api);
+export const createApiRateLimit = () =>
+  createRateLimit(RATE_LIMIT_CONSTANTS.CONFIGURATIONS.api);
 export const createFileUploadRateLimit = () =>
-  createRateLimit(rateLimitConfigs.fileUpload);
-export const createAuthRateLimit = () => createRateLimit(rateLimitConfigs.auth);
+  createRateLimit(RATE_LIMIT_CONSTANTS.CONFIGURATIONS.fileUpload);
+export const createAuthRateLimit = () =>
+  createRateLimit(RATE_LIMIT_CONSTANTS.CONFIGURATIONS.auth);
 export const createProblemCreationRateLimit = () =>
-  createRateLimit(rateLimitConfigs.problemCreation);
+  createRateLimit(RATE_LIMIT_CONSTANTS.CONFIGURATIONS.problemCreation);

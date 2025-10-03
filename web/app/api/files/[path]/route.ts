@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
 import { createClient } from '@/lib/supabase/server';
-
-const BUCKET = 'problem-uploads';
+import { FILE_CONSTANTS, ERROR_MESSAGES } from '@/lib/constants';
+import { createApiErrorResponse, handleAsyncError } from '@/lib/common-utils';
 
 export async function GET(
   req: Request,
@@ -18,7 +18,7 @@ export async function GET(
   const userPrefix = `user/${user.id}/`;
   if (!decodedPath.startsWith(userPrefix)) {
     return NextResponse.json(
-      { error: 'Unauthorized to access this file' },
+      createApiErrorResponse(ERROR_MESSAGES.UNAUTHORIZED, 403),
       { status: 403 }
     );
   }
@@ -37,7 +37,7 @@ export async function GET(
     if (problemsError) {
       console.error('Error checking problem ownership:', problemsError);
       return NextResponse.json(
-        { error: 'Failed to verify file ownership' },
+        createApiErrorResponse(ERROR_MESSAGES.DATABASE_ERROR, 500),
         { status: 500 }
       );
     }
@@ -53,7 +53,7 @@ export async function GET(
 
     if (!isAssetReferenced) {
       return NextResponse.json(
-        { error: 'File not found or unauthorized' },
+        createApiErrorResponse(ERROR_MESSAGES.NOT_FOUND, 404),
         { status: 404 }
       );
     }
@@ -64,19 +64,22 @@ export async function GET(
     // Use server-side Supabase client to download the file content
     const serverSupabase = await createClient();
     const { data, error } = await serverSupabase.storage
-      .from(BUCKET)
+      .from(FILE_CONSTANTS.STORAGE.BUCKET)
       .download(decodedPath);
 
     if (error) {
       console.error('Error downloading file:', error);
       return NextResponse.json(
-        { error: 'Failed to download file' },
+        createApiErrorResponse(ERROR_MESSAGES.FILE_UPLOAD_FAILED, 500),
         { status: 500 }
       );
     }
 
     if (!data) {
-      return NextResponse.json({ error: 'File not found' }, { status: 404 });
+      return NextResponse.json(
+        createApiErrorResponse(ERROR_MESSAGES.NOT_FOUND, 404),
+        { status: 404 }
+      );
     }
 
     // Convert blob to buffer
@@ -107,10 +110,13 @@ export async function GET(
     const contentType = getContentType(decodedPath);
     const fileName = decodedPath.split('/').pop() || 'file';
 
-    // Check file size to prevent abuse (limit to 10MB)
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    // Check file size to prevent abuse
+    const maxSize = FILE_CONSTANTS.MAX_FILE_SIZE.GENERAL;
     if (buffer.byteLength > maxSize) {
-      return NextResponse.json({ error: 'File too large' }, { status: 413 });
+      return NextResponse.json(
+        createApiErrorResponse(ERROR_MESSAGES.FILE_TOO_LARGE, 413),
+        { status: 413 }
+      );
     }
 
     // Return the file content with appropriate headers
@@ -120,17 +126,20 @@ export async function GET(
         'Content-Type': contentType,
         'Content-Length': buffer.byteLength.toString(),
         'Content-Disposition': `inline; filename="${fileName}"`,
-        'Cache-Control': 'private, max-age=300', // 5 minute cache, private only
+        'Cache-Control': `private, max-age=${FILE_CONSTANTS.STORAGE.CACHE_CONTROL}`, // 5 minute cache, private only
         'X-Content-Type-Options': 'nosniff',
-        'X-Frame-Options': 'DENY', // Prevent embedding in iframes
-        'Referrer-Policy': 'no-referrer', // Don't send referrer info
+        'X-Frame-Options': 'DENY',
+        'X-XSS-Protection': '1; mode=block',
+        'Referrer-Policy': 'no-referrer',
+        'Content-Security-Policy': "default-src 'self'",
+        'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
       },
     });
   } catch (error) {
+    const { message, status } = handleAsyncError(error);
     console.error('Unexpected error serving file:', error);
-    return NextResponse.json(
-      { error: 'Failed to serve file' },
-      { status: 500 }
-    );
+    return NextResponse.json(createApiErrorResponse(message, status), {
+      status,
+    });
   }
 }

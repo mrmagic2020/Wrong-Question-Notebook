@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import ProblemsPageClient from './problems-page-client';
+import { ROUTES } from '@/lib/constants';
 
 async function loadData(subjectId: string) {
   const supabase = await createClient();
@@ -75,7 +76,7 @@ export default async function SubjectProblemsPage({
       <div className="section-container">
         <p className="text-body-sm text-muted-foreground">Subject not found.</p>
         <Link
-          href="/subjects"
+          href={ROUTES.SUBJECTS}
           className="text-primary underline hover:text-primary/80 transition-colors"
         >
           Back to Subjects
@@ -94,7 +95,7 @@ export default async function SubjectProblemsPage({
           </p>
         </div>
         <Link
-          href="/subjects"
+          href={ROUTES.SUBJECTS}
           className="text-sm text-primary underline hover:text-primary/80 transition-colors"
         >
           ← Back to Subjects

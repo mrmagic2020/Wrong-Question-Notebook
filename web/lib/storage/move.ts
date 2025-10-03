@@ -1,7 +1,6 @@
 // web/lib/storage/move.ts
 import type { SupabaseClient } from '@supabase/supabase-js';
-
-const BUCKET = 'problem-uploads';
+import { FILE_CONSTANTS, DATABASE_CONSTANTS } from '../constants';
 
 /** From a staged path -> final per-problem path */
 export function toFinalPath(
@@ -37,7 +36,9 @@ export async function movePathsToProblemWithUser(
       continue;
     }
 
-    const { error } = await supabase.storage.from(BUCKET).move(from, to);
+    const { error } = await supabase.storage
+      .from(FILE_CONSTANTS.STORAGE.BUCKET)
+      .move(from, to);
     if (error) {
       results.push({
         from,
@@ -67,8 +68,8 @@ export async function cleanupStagingFiles(
   try {
     // List all files in the staging directory
     const { data: files, error: listError } = await supabase.storage
-      .from(BUCKET)
-      .list(stagingPrefix, { limit: 1000 });
+      .from(FILE_CONSTANTS.STORAGE.BUCKET)
+      .list(stagingPrefix, { limit: DATABASE_CONSTANTS.PAGINATION.MAX_LIMIT });
 
     if (listError) {
       console.error('Error listing staging files:', listError);
@@ -82,7 +83,7 @@ export async function cleanupStagingFiles(
     // Delete all staging files
     const filePaths = files.map(file => `${stagingPrefix}${file.name}`);
     const { error: deleteError } = await supabase.storage
-      .from(BUCKET)
+      .from(FILE_CONSTANTS.STORAGE.BUCKET)
       .remove(filePaths);
 
     if (deleteError) {

@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Users, Activity, Settings, Shield } from 'lucide-react';
-import { formatDisplayDateTime } from '@/lib/date-utils';
+import { formatDisplayDateTime } from '@/lib/common-utils';
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient();

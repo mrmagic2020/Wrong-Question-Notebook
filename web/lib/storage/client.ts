@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
-
-const BUCKET = 'problem-uploads';
+import { FILE_CONSTANTS } from '../constants';
 
 export async function getUserId() {
   const supabase = createClient();
@@ -25,7 +24,7 @@ export async function uploadFiles(
   const base = `user/${uid}/staging/${stagingId}/${role}`;
 
   // Validate file sizes before upload
-  const maxSize = 10 * 1024 * 1024; // 10MB
+  const maxSize = FILE_CONSTANTS.MAX_FILE_SIZE.GENERAL;
   const oversizedFiles: string[] = [];
 
   Array.from(files).forEach(file => {
@@ -44,10 +43,12 @@ export async function uploadFiles(
   for (const f of Array.from(files)) {
     const safeName = f.name.replace(/\s+/g, '_');
     const path = `${base}/${safeName}`;
-    const { error } = await supabase.storage.from(BUCKET).upload(path, f, {
-      cacheControl: '3600',
-      upsert: false,
-    });
+    const { error } = await supabase.storage
+      .from(FILE_CONSTANTS.STORAGE.BUCKET)
+      .upload(path, f, {
+        cacheControl: FILE_CONSTANTS.STORAGE.CACHE_CONTROL,
+        upsert: false,
+      });
     if (error) throw error;
     paths.push(path);
   }
@@ -55,10 +56,13 @@ export async function uploadFiles(
 }
 
 /** Create short-lived signed URLs for display; returns [{ path, url }] */
-export async function signPaths(paths: string[], expiresInSec = 60 * 5) {
+export async function signPaths(
+  paths: string[],
+  expiresInSec = FILE_CONSTANTS.STORAGE.SIGNED_URL_EXPIRES_IN
+) {
   const supabase = createClient();
   const { data, error } = await supabase.storage
-    .from(BUCKET)
+    .from(FILE_CONSTANTS.STORAGE.BUCKET)
     .createSignedUrls(paths, expiresInSec);
   if (error) throw error;
   // data: [{ path, signedUrl, ... }]

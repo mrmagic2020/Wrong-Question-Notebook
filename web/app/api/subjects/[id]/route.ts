@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
 import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
-
-const UpdateSubjectDto = z.object({
-  name: z.string().min(1).max(120).optional(),
-});
+import {
+  createApiErrorResponse,
+  createApiSuccessResponse,
+  handleAsyncError,
+} from '@/lib/common-utils';
+import { ERROR_MESSAGES } from '@/lib/constants';
+import { UpdateSubjectDto } from '@/lib/schemas';
 
 export async function PATCH(
   req: Request,
@@ -13,27 +15,60 @@ export async function PATCH(
   const { user, supabase } = await requireUser();
   if (!user) return unauthorised();
 
-  const body = await req.json().catch(() => ({}));
-  const parsed = UpdateSubjectDto.safeParse(body);
-  if (!parsed.success) {
+  let body;
+  try {
+    body = await req.json();
+  } catch (error) {
     return NextResponse.json(
-      { error: parsed.error.flatten() },
+      createApiErrorResponse(
+        ERROR_MESSAGES.INVALID_REQUEST,
+        400,
+        error as string
+      ),
       { status: 400 }
     );
   }
 
-  const { id } = await params;
-  const { data, error } = await supabase
-    .from('subjects')
-    .update(parsed.data)
-    .eq('id', id)
-    .eq('user_id', user.id)
-    .select()
-    .single();
+  const parsed = UpdateSubjectDto.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      createApiErrorResponse(
+        'Invalid request body',
+        400,
+        parsed.error.flatten()
+      ),
+      { status: 400 }
+    );
+  }
 
-  if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ data });
+  try {
+    const { id } = await params;
+    const { data, error } = await supabase
+      .from('subjects')
+      .update(parsed.data)
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .select()
+      .single();
+
+    if (error) {
+      return NextResponse.json(
+        createApiErrorResponse(
+          ERROR_MESSAGES.DATABASE_ERROR,
+          500,
+          error.message
+        ),
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(createApiSuccessResponse(data));
+  } catch (error) {
+    const { message, status } = handleAsyncError(error);
+    return NextResponse.json(createApiErrorResponse(message, status), {
+      status,
+    });
+  }
 }
 
 export async function DELETE(
@@ -43,14 +78,30 @@ export async function DELETE(
   const { user, supabase } = await requireUser();
   if (!user) return unauthorised();
 
-  const { id } = await params;
-  const { error } = await supabase
-    .from('subjects')
-    .delete()
-    .eq('id', id)
-    .eq('user_id', user.id);
+  try {
+    const { id } = await params;
+    const { error } = await supabase
+      .from('subjects')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id);
 
-  if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ ok: true });
+    if (error) {
+      return NextResponse.json(
+        createApiErrorResponse(
+          ERROR_MESSAGES.DATABASE_ERROR,
+          500,
+          error.message
+        ),
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(createApiSuccessResponse({ ok: true }));
+  } catch (error) {
+    const { message, status } = handleAsyncError(error);
+    return NextResponse.json(createApiErrorResponse(message, status), {
+      status,
+    });
+  }
 }

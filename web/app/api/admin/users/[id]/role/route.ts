@@ -6,7 +6,7 @@ import {
   getUserProfileWithServiceRole,
   updateUserRole,
 } from '@/lib/user-management';
-import { UserRole } from '@/lib/types';
+import { UserRole } from '@/lib/schemas';
 
 export async function PATCH(
   request: NextRequest,

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AdminSettingsType } from '@/lib/types';
+import { AdminSettingsType } from '@/lib/schemas';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

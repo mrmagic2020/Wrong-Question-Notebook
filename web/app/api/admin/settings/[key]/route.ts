@@ -4,7 +4,7 @@ import {
   isCurrentUserSuperAdmin,
   updateAdminSetting,
 } from '@/lib/user-management';
-import { UpdateAdminSettingsDto } from '@/lib/types';
+import { UpdateAdminSettingsDto } from '@/lib/schemas';
 
 export async function PATCH(
   request: NextRequest,

@@ -15,8 +15,9 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PROBLEM_TYPE_VALUES, type ProblemType } from '@/lib/schemas';
-import { getProblemTypeDisplayName } from '@/lib/display-utils';
+import { getProblemTypeDisplayName } from '@/lib/common-utils';
 import { Textarea } from '@/components/ui/textarea';
+import { VALIDATION_CONSTANTS } from '@/lib/constants';
 
 type Tag = { id: string; name: string };
 
@@ -71,7 +72,9 @@ export default function ProblemForm({
   const [isExpanded, setIsExpanded] = useState(isEditMode);
 
   const [title, setTitle] = useState(problem?.title || '');
+  const [titleFocus, setTitleFocus] = useState(false);
   const [content, setContent] = useState(problem?.content || '');
+  const [contentFocus, setContentFocus] = useState(false);
   const [problemType, setProblemType] = useState<ProblemType>(
     problem?.problem_type || 'short'
   );
@@ -142,6 +145,7 @@ export default function ProblemForm({
   const [solutionText, setSolutionText] = useState(
     problem?.solution_text || ''
   );
+  const [solutionTextFocus, setSolutionTextFocus] = useState(false);
   const [solutionAssets, setSolutionAssets] = useState<
     Array<{ path: string; name: string }>
   >(
@@ -179,17 +183,31 @@ export default function ProblemForm({
       }));
 
       // Sanitize input data
-      const sanitizedTitle = title.trim().substring(0, 30);
-      const sanitizedContent = content ? content.substring(0, 1000) : '';
+      const sanitizedTitle = title
+        .trim()
+        .substring(0, VALIDATION_CONSTANTS.STRING_LIMITS.TITLE_MAX);
+      const sanitizedContent = content
+        ? content.substring(0, VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX)
+        : '';
       const sanitizedSolutionText = solutionText
-        ? solutionText.substring(0, 1000)
+        ? solutionText.substring(
+            0,
+            VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX
+          )
+        : '';
+      const sanitizedCorrectAnswer = correctAnswer
+        ? correctAnswer.substring(
+            0,
+            VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX
+          )
         : '';
 
       const payload = {
         title: sanitizedTitle,
         content: sanitizedContent,
         problem_type: problemType,
-        correct_answer: problemType === 'extended' ? '' : correctAnswer,
+        correct_answer:
+          problemType === 'extended' ? '' : sanitizedCorrectAnswer,
         auto_mark: autoMarkValue,
         status,
         assets,
@@ -353,26 +371,53 @@ export default function ProblemForm({
       {/* title */}
       <div className="form-row">
         <label className="form-label">Title</label>
-        <Input
-          type="text"
-          className="form-input"
-          placeholder="Short descriptive title for the problem"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-          maxLength={200}
-          required
-        />
+        <div className="flex-1 relative">
+          <Input
+            type="text"
+            className="form-input w-full"
+            placeholder="Short descriptive title for the problem"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TITLE_MAX}
+            required
+            onFocus={() => setTitleFocus(true)}
+            onBlur={() => setTitleFocus(false)}
+          />
+          {titleFocus && (
+            // title length inside input, bottom-right
+            <span
+              className="absolute bottom-1.5 right-3 text-xs text-muted-foreground pointer-events-none bg-background px-1"
+              style={{ lineHeight: 1 }}
+            >
+              {title.length}/{VALIDATION_CONSTANTS.STRING_LIMITS.TITLE_MAX}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* content */}
       <div className="form-row-start">
         <label className="form-label pt-2">Content</label>
-        <Textarea
-          className="form-textarea"
-          placeholder="Type the problem text (Markdown/LaTeX supported) - Optional"
-          value={content}
-          onChange={e => setContent(e.target.value)}
-        />
+        <div className="flex-1 relative">
+          <Textarea
+            className="form-textarea"
+            placeholder="Type the problem text (Markdown/LaTeX supported) - Optional"
+            value={content}
+            maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
+            onFocus={() => setContentFocus(true)}
+            onBlur={() => setContentFocus(false)}
+            onChange={e => setContent(e.target.value)}
+          />
+          {contentFocus && (
+            <span
+              className="absolute bottom-1.5 right-3 text-xs text-muted-foreground pointer-events-none bg-background px-1"
+              style={{ lineHeight: 1 }}
+            >
+              {content.length}/
+              {VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* problem assets */}
@@ -457,6 +502,7 @@ export default function ProblemForm({
             className="form-input w-32"
             placeholder="e.g. A, B, α, etc."
             value={mcqChoice}
+            maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
             onChange={e => setMcqChoice(e.target.value)}
           />
         </div>
@@ -468,6 +514,7 @@ export default function ProblemForm({
             className="form-input"
             placeholder="Short expected answer"
             value={shortText}
+            maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
             onChange={e => setShortText(e.target.value)}
           />
         </div>
@@ -476,12 +523,26 @@ export default function ProblemForm({
       {/* solution text + assets */}
       <div className="form-row-start">
         <label className="form-label pt-2">Solution (text)</label>
-        <Textarea
-          className="form-textarea"
-          placeholder="Optional: typed solution (Markdown/LaTeX)"
-          value={solutionText}
-          onChange={e => setSolutionText(e.target.value)}
-        />
+        <div className="flex-1 relative">
+          <Textarea
+            className="form-textarea"
+            placeholder="Optional: typed solution (Markdown/LaTeX)"
+            value={solutionText}
+            maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
+            onChange={e => setSolutionText(e.target.value)}
+            onFocus={() => setSolutionTextFocus(true)}
+            onBlur={() => setSolutionTextFocus(false)}
+          />
+          {solutionTextFocus && (
+            <span
+              className="absolute bottom-1.5 right-3 text-xs text-muted-foreground pointer-events-none bg-background px-1"
+              style={{ lineHeight: 1 }}
+            >
+              {solutionText.length}/
+              {VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
+            </span>
+          )}
+        </div>
       </div>
       <div className="form-row-start">
         <label className="form-label pt-2">Solution assets</label>

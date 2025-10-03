@@ -4,6 +4,11 @@ import {
   deleteStagingFolder,
   cleanupOldStagingFolders,
 } from '@/lib/storage/delete';
+import {
+  createApiErrorResponse,
+  createApiSuccessResponse,
+  handleAsyncError,
+} from '@/lib/common-utils';
 
 export async function DELETE(req: Request) {
   const { user, supabase } = await requireUser();
@@ -23,20 +28,20 @@ export async function DELETE(req: Request) {
 
   if (!stagingId) {
     return NextResponse.json(
-      { error: 'stagingId is required' },
+      createApiErrorResponse('stagingId is required', 400),
       { status: 400 }
     );
   }
 
   try {
     await deleteStagingFolder(supabase, user.id, stagingId);
-    return NextResponse.json({ ok: true });
+    return NextResponse.json(createApiSuccessResponse({ ok: true }));
   } catch (error) {
     console.error('Failed to delete staging folder:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete staging files' },
-      { status: 500 }
-    );
+    const { message, status } = handleAsyncError(error);
+    return NextResponse.json(createApiErrorResponse(message, status), {
+      status,
+    });
   }
 }
 
@@ -47,12 +52,12 @@ export async function POST() {
 
   try {
     await cleanupOldStagingFolders(supabase, user.id);
-    return NextResponse.json({ ok: true });
+    return NextResponse.json(createApiSuccessResponse({ ok: true }));
   } catch (error) {
     console.error('Failed to cleanup old staging folders:', error);
-    return NextResponse.json(
-      { error: 'Failed to cleanup old staging files' },
-      { status: 500 }
-    );
+    const { message, status } = handleAsyncError(error);
+    return NextResponse.json(createApiErrorResponse(message, status), {
+      status,
+    });
   }
 }

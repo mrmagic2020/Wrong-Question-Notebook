@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { hasEnvVars } from '../utils';
 import { updateLastLoginEdge } from '../edge-utils';
+import { ENV_VARS, USER_ROLES, ROUTES } from '../constants';
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -17,8 +18,8 @@ export async function updateSession(request: NextRequest) {
   // With Fluid compute, don't put this client in a global environment
   // variable. Always create a new one on each request.
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY!,
+    process.env[ENV_VARS.SUPABASE_URL]!,
+    process.env[ENV_VARS.SUPABASE_ANON_KEY]!,
     {
       cookies: {
         getAll() {
@@ -60,8 +61,8 @@ export async function updateSession(request: NextRequest) {
       // Use Edge Runtime compatible approach to update last login
       updateLastLoginEdge(
         user.sub,
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY!,
+        process.env[ENV_VARS.SUPABASE_URL]!,
+        process.env[ENV_VARS.SUPABASE_ANON_KEY]!,
         userToken
       ).catch(console.warn);
     } catch {
@@ -74,24 +75,24 @@ export async function updateSession(request: NextRequest) {
     if (!user) {
       // Redirect to login if not authenticated
       const url = request.nextUrl.clone();
-      url.pathname = '/auth/login';
+      url.pathname = ROUTES.AUTH.LOGIN;
       return NextResponse.redirect(url);
     }
 
     // Check if user has admin privileges using service role
     try {
       // Validate service role key exists
-      if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      if (!process.env[ENV_VARS.SUPABASE_SERVICE_ROLE_KEY]) {
         console.error('SUPABASE_SERVICE_ROLE_KEY not configured');
         const url = request.nextUrl.clone();
-        url.pathname = '/subjects';
+        url.pathname = ROUTES.SUBJECTS;
         return NextResponse.redirect(url);
       }
 
       // Create a service role client to bypass RLS
       const serviceSupabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        process.env[ENV_VARS.SUPABASE_URL]!,
+        process.env[ENV_VARS.SUPABASE_SERVICE_ROLE_KEY]!,
         {
           cookies: {
             getAll() {
@@ -110,17 +111,20 @@ export async function updateSession(request: NextRequest) {
         .eq('id', user.sub)
         .single();
 
-      if (!profile || !['admin', 'super_admin'].includes(profile.user_role)) {
+      if (
+        !profile ||
+        ![USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN].includes(profile.user_role)
+      ) {
         // Redirect to subjects page if not admin
         const url = request.nextUrl.clone();
-        url.pathname = '/subjects';
+        url.pathname = ROUTES.SUBJECTS;
         return NextResponse.redirect(url);
       }
     } catch (error) {
       // If there's an error checking profile, redirect to subjects
       console.warn('Admin check error:', error);
       const url = request.nextUrl.clone();
-      url.pathname = '/subjects';
+      url.pathname = ROUTES.SUBJECTS;
       return NextResponse.redirect(url);
     }
   }
@@ -136,7 +140,7 @@ export async function updateSession(request: NextRequest) {
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
-    url.pathname = '/auth/login';
+    url.pathname = ROUTES.AUTH.LOGIN;
     return NextResponse.redirect(url);
   }
 

@@ -9,7 +9,7 @@ import {
   // toggleUserActive,
   deleteUser,
 } from '@/lib/user-management';
-import { UpdateUserProfileDto } from '@/lib/types';
+import { UpdateUserProfileDto } from '@/lib/schemas';
 
 export async function GET(
   request: NextRequest,
