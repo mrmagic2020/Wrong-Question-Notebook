@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { AuthButton } from '@/components/auth-button';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { NotebookPen } from 'lucide-react';
-import { hasEnvVars } from '@/lib/utils';
+import { hasEnvVars } from '@/lib/server-utils';
 
 interface NavigationProps {
   showAppLinks?: boolean;

@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { hasEnvVars } from '../utils';
+import { hasEnvVars } from '../server-utils';
 import { updateLastLoginEdge } from '../edge-utils';
 import { ENV_VARS, USER_ROLES, ROUTES } from '../constants';
 
