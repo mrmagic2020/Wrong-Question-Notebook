@@ -38,7 +38,6 @@ export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
     setIsLoading(true);
     try {
       // This would call an API to save the settings
-      console.log('Saving settings:', modifiedSettings);
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       setModifiedSettings({});

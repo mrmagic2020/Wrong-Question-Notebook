@@ -33,6 +33,7 @@ export type Problem = {
   last_reviewed_date?: string;
   subject_id: string;
   tags?: { id: string; name: string }[];
+  isInSet?: boolean;
 };
 
 // Helper function to get status badge styling with custom colors
@@ -109,24 +110,50 @@ function DataTableColumnHeader({
 export const columns: ColumnDef<Problem>[] = [
   {
     id: 'select',
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && 'indeterminate')
-        }
-        onCheckedChange={value => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={value => row.toggleSelected(!!value)}
-        onClick={e => e.stopPropagation()}
-        aria-label="Select row"
-      />
-    ),
+    header: ({ table }) => {
+      const isAddToSetMode =
+        (table.options.meta as any)?.isAddToSetMode || false;
+      const selectableRows = table.getRowModel().rows.filter(row => {
+        const problem = row.original as Problem;
+        return !(isAddToSetMode && problem.isInSet);
+      });
+
+      return (
+        <Checkbox
+          checked={
+            selectableRows.length > 0 &&
+            (selectableRows.every(row => row.getIsSelected()) ||
+              (selectableRows.some(row => row.getIsSelected()) &&
+                'indeterminate'))
+          }
+          onCheckedChange={value => {
+            selectableRows.forEach(row => row.toggleSelected(!!value));
+          }}
+          aria-label="Select all"
+        />
+      );
+    },
+    cell: ({ row, table }) => {
+      const problem = row.original as Problem;
+      const isAddToSetMode =
+        (table.options.meta as any)?.isAddToSetMode || false;
+      const isDisabled = isAddToSetMode && problem.isInSet;
+
+      return (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={value => !isDisabled && row.toggleSelected(!!value)}
+          onClick={e => {
+            e.stopPropagation();
+            if (isDisabled) {
+              e.preventDefault();
+            }
+          }}
+          disabled={isDisabled}
+          aria-label="Select row"
+        />
+      );
+    },
     enableSorting: false,
     enableHiding: false,
   },
@@ -269,35 +296,53 @@ export const columns: ColumnDef<Problem>[] = [
                 Copy problem ID
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link
-                  href={`/subjects/${problem.subject_id}/problems/${problem.id}/review`}
-                  onClick={e => e.stopPropagation()}
+              {!meta?.isAddToSetMode && (
+                <DropdownMenuItem asChild>
+                  <Link
+                    href={`/subjects/${problem.subject_id}/problems/${problem.id}/review`}
+                    onClick={e => e.stopPropagation()}
+                  >
+                    Review problem
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              {!meta?.isAddToSetMode && (
+                <DropdownMenuItem
+                  onClick={e => {
+                    e.stopPropagation();
+                    if (meta?.onAddToSet) {
+                      meta.onAddToSet(problem);
+                    }
+                  }}
                 >
-                  Review problem
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={e => {
-                  e.stopPropagation();
-                  if (meta?.onEdit) {
-                    meta.onEdit(problem);
-                  }
-                }}
-              >
-                Edit problem
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={e => {
-                  e.stopPropagation();
-                  if (meta?.onDelete) {
-                    meta.onDelete(problem.id, problem.title);
-                  }
-                }}
-                className="text-destructive"
-              >
-                Delete problem
-              </DropdownMenuItem>
+                  Add to set
+                </DropdownMenuItem>
+              )}
+              {!meta?.isAddToSetMode && meta?.onEdit && (
+                <DropdownMenuItem
+                  onClick={e => {
+                    e.stopPropagation();
+                    if (meta?.onEdit) {
+                      meta.onEdit(problem);
+                    }
+                  }}
+                >
+                  Edit problem
+                </DropdownMenuItem>
+              )}
+              {!meta?.isAddToSetMode && meta?.onDelete && (
+                <DropdownMenuItem
+                  onClick={e => {
+                    e.stopPropagation();
+                    if (meta?.onDelete) {
+                      meta.onDelete(problem.id, problem.title);
+                    }
+                  }}
+                  className="text-destructive"
+                >
+                  Delete problem
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

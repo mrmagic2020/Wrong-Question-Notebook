@@ -553,8 +553,6 @@ async function deleteUserStorageFiles(userId: string): Promise<void> {
 
         if (deleteError) {
           console.error(`Error deleting files in ${path}:`, deleteError);
-        } else {
-          console.log(`Deleted ${filesToDelete.length} files from ${path}`);
         }
       }
     }

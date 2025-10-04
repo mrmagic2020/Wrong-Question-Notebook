@@ -30,6 +30,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   onEdit?: (problem: Problem) => void;
   onDelete?: (problemId: string, problemTitle: string) => void;
+  onAddToSet?: (problem: Problem) => void;
   onRowClick?: (problem: Problem) => void;
   availableTags?: { id: string; name: string }[];
   onTableReady?: (table: any) => void;
@@ -37,6 +38,7 @@ interface DataTableProps<TData, TValue> {
   resetSelection?: boolean;
   onColumnVisibilityChange?: () => void;
   columnVisibilityStorageKey?: string;
+  isAddToSetMode?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -44,12 +46,14 @@ export function DataTable<TData, TValue>({
   data,
   onEdit,
   onDelete,
+  onAddToSet,
   onRowClick,
   onTableReady,
   onSelectionChange,
   resetSelection = false,
   onColumnVisibilityChange,
   columnVisibilityStorageKey = 'problems-table-column-visibility',
+  isAddToSetMode = false,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -74,6 +78,8 @@ export function DataTable<TData, TValue>({
     meta: {
       onEdit,
       onDelete,
+      onAddToSet,
+      isAddToSetMode,
     },
     state: {
       sorting,
@@ -94,10 +100,18 @@ export function DataTable<TData, TValue>({
   React.useEffect(() => {
     if (onSelectionChange) {
       const selectedRows = table.getFilteredSelectedRowModel().rows;
-      const selectedProblems = selectedRows.map(row => row.original as Problem);
+      const selectedProblems = selectedRows
+        .map(row => row.original as Problem)
+        .filter(problem => {
+          // In add-to-set mode, filter out problems already in the set
+          if (isAddToSetMode && problem.isInSet) {
+            return false;
+          }
+          return true;
+        });
       onSelectionChange(selectedProblems);
     }
-  }, [rowSelection, table, onSelectionChange]);
+  }, [rowSelection, table, onSelectionChange, isAddToSetMode]);
 
   // Reset selection when resetSelection prop changes
   React.useEffect(() => {
@@ -144,27 +158,37 @@ export function DataTable<TData, TValue>({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map(row => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                  className={`${onRowClick ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
-                  onClick={() => {
-                    if (onRowClick) {
-                      handleRowClick(row.original as Problem);
-                    }
-                  }}
-                >
-                  {row.getVisibleCells().map(cell => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map(row => {
+                const problem = row.original as Problem;
+                const isInSet = problem.isInSet || false;
+                const isAddToSetMode =
+                  (table.options.meta as any)?.isAddToSetMode || false;
+
+                return (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && 'selected'}
+                    className={`
+                      ${onRowClick && !isAddToSetMode ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}
+                      ${isInSet && isAddToSetMode ? 'opacity-50 bg-muted/30' : ''}
+                    `}
+                    onClick={() => {
+                      if (onRowClick && !isAddToSetMode) {
+                        handleRowClick(problem);
+                      }
+                    }}
+                  >
+                    {row.getVisibleCells().map(cell => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell

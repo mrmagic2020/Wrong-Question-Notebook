@@ -40,12 +40,22 @@ interface ProblemReviewProps {
   problem: Problem;
   subject: Subject;
   allProblems: AllProblem[];
+  prevProblem?: AllProblem | null;
+  nextProblem?: AllProblem | null;
+  isProblemSetMode?: boolean;
+  problemSetId?: string;
+  isReadOnly?: boolean;
 }
 
 export default function ProblemReview({
   problem,
   subject,
   allProblems,
+  prevProblem,
+  nextProblem,
+  isProblemSetMode = false,
+  problemSetId,
+  isReadOnly = false,
 }: ProblemReviewProps) {
   const router = useRouter();
   const [userAnswer, setUserAnswer] = useState<any>('');
@@ -60,9 +70,14 @@ export default function ProblemReview({
 
   // Get current problem index for navigation
   const currentIndex = allProblems.findIndex(p => p.id === problem.id);
-  const prevProblem = currentIndex > 0 ? allProblems[currentIndex - 1] : null;
-  const nextProblem =
-    currentIndex < allProblems.length - 1
+  const effectivePrevProblem = isProblemSetMode
+    ? prevProblem
+    : currentIndex > 0
+      ? allProblems[currentIndex - 1]
+      : null;
+  const effectiveNextProblem = isProblemSetMode
+    ? nextProblem
+    : currentIndex < allProblems.length - 1
       ? allProblems[currentIndex + 1]
       : null;
 
@@ -90,7 +105,7 @@ export default function ProblemReview({
       }
 
       setSubmittedAnswer(userAnswer);
-      setIsCorrect(result.is_correct);
+      setIsCorrect(result.data.is_correct);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -99,6 +114,11 @@ export default function ProblemReview({
   };
 
   const handleStatusUpdate = async (newStatus: ProblemStatus) => {
+    if (!problem?.id) {
+      setError('Invalid problem');
+      return;
+    }
+
     setSelectedStatus(newStatus);
 
     // Always update last_reviewed_date when user selects a status
@@ -121,7 +141,14 @@ export default function ProblemReview({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update status');
+        let errorMessage = 'Failed to update status';
+        try {
+          const error = await response.json();
+          errorMessage = error.message || errorMessage;
+        } catch {
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
       // Refresh the page to get updated data
@@ -134,7 +161,13 @@ export default function ProblemReview({
   };
 
   const navigateToProblem = (problemId: string) => {
-    router.push(`/subjects/${subject.id}/problems/${problemId}/review`);
+    if (isProblemSetMode && problemSetId) {
+      router.push(
+        `/problem-sets/${problemSetId}/review?problemId=${problemId}`
+      );
+    } else {
+      router.push(`/subjects/${subject.id}/problems/${problemId}/review`);
+    }
   };
 
   return (
@@ -148,10 +181,14 @@ export default function ProblemReview({
           </p>
         </div>
         <Link
-          href={`/subjects/${subject.id}/problems`}
+          href={
+            isProblemSetMode
+              ? `/problem-sets/${problemSetId}`
+              : `/subjects/${subject.id}/problems`
+          }
           className="text-sm text-primary underline hover:text-primary/80 transition-colors"
         >
-          ← Back to Problems
+          ← {isProblemSetMode ? 'Back to Problem Set' : 'Back to Problems'}
         </Link>
       </div>
 
@@ -299,23 +336,27 @@ export default function ProblemReview({
         onToggle={() => setShowSolution(!showSolution)}
       />
 
-      {/* Status Update */}
-      <div className="bg-card rounded-lg border border-border p-6">
-        <h2 className="text-lg font-medium mb-4 text-card-foreground">
-          Problem Status
-        </h2>
-        <StatusSelector
-          currentStatus={problem.status}
-          selectedStatus={selectedStatus}
-          onStatusChange={handleStatusUpdate}
-        />
-      </div>
+      {/* Status Update (hidden for read-only viewers) */}
+      {!isReadOnly && (
+        <div className="bg-card rounded-lg border border-border p-6">
+          <h2 className="text-lg font-medium mb-4 text-card-foreground">
+            Problem Status
+          </h2>
+          <StatusSelector
+            currentStatus={problem.status}
+            selectedStatus={selectedStatus}
+            onStatusChange={handleStatusUpdate}
+          />
+        </div>
+      )}
 
       {/* Navigation */}
       <div className="flex justify-between items-center bg-card rounded-lg border border-border p-4">
         <Button
-          onClick={() => prevProblem && navigateToProblem(prevProblem.id)}
-          disabled={!prevProblem}
+          onClick={() =>
+            effectivePrevProblem && navigateToProblem(effectivePrevProblem.id)
+          }
+          disabled={!effectivePrevProblem}
           variant="secondary"
         >
           ← Previous
@@ -326,8 +367,10 @@ export default function ProblemReview({
         </span>
 
         <Button
-          onClick={() => nextProblem && navigateToProblem(nextProblem.id)}
-          disabled={!nextProblem}
+          onClick={() =>
+            effectiveNextProblem && navigateToProblem(effectiveNextProblem.id)
+          }
+          disabled={!effectiveNextProblem}
           variant="secondary"
         >
           Next →

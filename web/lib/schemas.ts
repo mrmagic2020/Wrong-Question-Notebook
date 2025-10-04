@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
   PROBLEM_CONSTANTS,
+  PROBLEM_SET_CONSTANTS,
   VALIDATION_CONSTANTS,
   USER_ROLES,
   GENDER_OPTIONS,
@@ -243,3 +244,43 @@ export const CreateSubjectDto = z.object({
 });
 
 export const UpdateSubjectDto = CreateSubjectDto.partial();
+
+// =====================================================
+// Problem Set Schemas
+// =====================================================
+
+export const ProblemSetSharingLevel = z.enum([
+  PROBLEM_SET_CONSTANTS.SHARING_LEVELS.PRIVATE,
+  PROBLEM_SET_CONSTANTS.SHARING_LEVELS.LIMITED,
+  PROBLEM_SET_CONSTANTS.SHARING_LEVELS.PUBLIC,
+]);
+export type ProblemSetSharingLevel = z.infer<typeof ProblemSetSharingLevel>;
+
+export const CreateProblemSetDto = z.object({
+  subject_id: z.uuid(),
+  name: z
+    .string()
+    .min(VALIDATION_CONSTANTS.STRING_LIMITS.TITLE_MIN)
+    .max(VALIDATION_CONSTANTS.STRING_LIMITS.TITLE_MAX),
+  description: z
+    .string()
+    .max(VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX)
+    .optional(),
+  sharing_level: ProblemSetSharingLevel.default(
+    PROBLEM_SET_CONSTANTS.SHARING_LEVELS.PRIVATE
+  ),
+  shared_with_emails: z.array(z.string().email()).optional(),
+  problem_ids: z.array(z.uuid()).optional(),
+});
+
+export const UpdateProblemSetDto = CreateProblemSetDto.partial().omit({
+  subject_id: true,
+});
+
+export const AddProblemsToSetDto = z.object({
+  problem_ids: z.array(z.uuid()),
+});
+
+export const RemoveProblemsFromSetDto = z.object({
+  problem_ids: z.array(z.uuid()),
+});

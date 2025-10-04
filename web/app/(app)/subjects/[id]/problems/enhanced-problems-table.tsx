@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { DataTable } from './data-table';
 import { columns, Problem } from './columns';
 import CompactSearchFilter from './compact-search-filter';
@@ -8,6 +9,8 @@ import ProblemForm from './problem-form';
 import { ProblemType } from '@/lib/schemas';
 import { toast } from 'sonner';
 import ConfirmationDialog from './confirmation-dialog';
+import ProblemSetCreationDialog from '@/components/problem-set-creation-dialog';
+import AddToSetDialog from '@/components/add-to-set-dialog';
 
 type Tag = { id: string; name: string };
 
@@ -25,6 +28,9 @@ export default function EnhancedProblemsTable({
   availableTags,
   onProblemDeleted = null,
   onProblemUpdated = null,
+  problemSetProblemIds = [],
+  isAddToSetMode = false,
+  targetProblemSetId = null,
 }: {
   initialProblems: any[];
   initialTagsByProblem: Map<string, any[]>;
@@ -32,7 +38,11 @@ export default function EnhancedProblemsTable({
   availableTags: Tag[];
   onProblemDeleted?: ((problemId: string) => void) | null;
   onProblemUpdated?: ((updatedProblem: any) => void) | null;
+  problemSetProblemIds?: string[];
+  isAddToSetMode?: boolean;
+  targetProblemSetId?: string | null;
 }) {
+  const router = useRouter();
   const [editingProblem, setEditingProblem] = useState<any | null>(null);
   const [problems, setProblems] = useState<Problem[]>(initialProblems);
   const [tagsByProblem, setTagsByProblem] = useState(initialTagsByProblem);
@@ -78,6 +88,24 @@ export default function EnhancedProblemsTable({
     count: 0,
   });
 
+  // Problem set creation dialog state
+  const [createSetDialog, setCreateSetDialog] = useState<{
+    open: boolean;
+    problemIds: string[];
+  }>({
+    open: false,
+    problemIds: [],
+  });
+
+  // Add to set dialog state
+  const [addToSetDialog, setAddToSetDialog] = useState<{
+    open: boolean;
+    problem: Problem | null;
+  }>({
+    open: false,
+    problem: null,
+  });
+
   // Convert problems to the format expected by the data table (memoized)
   const tableProblems: Problem[] = useMemo(
     () =>
@@ -91,8 +119,9 @@ export default function EnhancedProblemsTable({
         last_reviewed_date: problem.last_reviewed_date,
         subject_id: problem.subject_id,
         tags: tagsByProblem.get(problem.id) || [],
+        isInSet: problemSetProblemIds.includes(problem.id),
       })),
-    [problems, tagsByProblem]
+    [problems, tagsByProblem, problemSetProblemIds]
   );
 
   // Only update from props when not in a filtered state
@@ -213,7 +242,10 @@ export default function EnhancedProblemsTable({
   };
 
   const handleConfirmDelete = async () => {
-    if (!deleteDialog.problemId) return;
+    if (!deleteDialog.problemId) {
+      toast.error('No problem selected for deletion');
+      return;
+    }
 
     try {
       const response = await fetch(`/api/problems/${deleteDialog.problemId}`, {
@@ -221,7 +253,14 @@ export default function EnhancedProblemsTable({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete problem');
+        let errorMessage = 'Failed to delete problem';
+        try {
+          const error = await response.json();
+          errorMessage = error.message || errorMessage;
+        } catch {
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
       setProblems(prev => prev.filter(p => p.id !== deleteDialog.problemId));
@@ -265,6 +304,67 @@ export default function EnhancedProblemsTable({
       open: true,
       problemIds,
       count: problemIds.length,
+    });
+  };
+
+  const handleCreateSetClick = async (problemIds: string[]) => {
+    if (isAddToSetMode && targetProblemSetId) {
+      // In add-to-set mode, directly add problems to the target set
+      try {
+        const response = await fetch(
+          `/api/problem-sets/${targetProblemSetId}/problems`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ problem_ids: problemIds }),
+          }
+        );
+
+        if (!response.ok) {
+          let errorMessage = 'Failed to add problems to set';
+          try {
+            const error = await response.json();
+            errorMessage = error.message || errorMessage;
+          } catch {
+            // If response is not JSON, use the status text
+            errorMessage = response.statusText || errorMessage;
+          }
+          throw new Error(errorMessage);
+        }
+
+        toast.success(`Added ${problemIds.length} problem(s) to the set`);
+
+        // Clear selection
+        setSelectedProblems([]);
+        setResetSelection(true);
+
+        // Redirect back to problem set page after a short delay
+        setTimeout(() => {
+          router.push(`/problem-sets/${targetProblemSetId}`);
+        }, 1000);
+      } catch (error) {
+        console.error('Error adding problems to set:', error);
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : 'Failed to add problems to set'
+        );
+      }
+    } else {
+      // Normal create set mode
+      setCreateSetDialog({
+        open: true,
+        problemIds,
+      });
+    }
+  };
+
+  const handleAddToSetClick = (problem: Problem) => {
+    setAddToSetDialog({
+      open: true,
+      problem,
     });
   };
 
@@ -355,8 +455,10 @@ export default function EnhancedProblemsTable({
         columnVisibilityKey={columnVisibilityKey}
         selectedProblemIds={selectedProblems.map(p => p.id)}
         onBulkDelete={handleBulkDeleteClick}
-        onBulkDeleteEnabled={true}
+        onBulkDeleteEnabled={!isAddToSetMode}
+        onCreateSet={handleCreateSetClick}
         isSearching={isSearching}
+        isAddToSetMode={isAddToSetMode}
       />
 
       {/* Error Display */}
@@ -386,6 +488,7 @@ export default function EnhancedProblemsTable({
         data={tableProblems}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
+        onAddToSet={handleAddToSetClick}
         onRowClick={handleRowClick}
         availableTags={availableTags}
         onTableReady={setTableInstance}
@@ -393,6 +496,7 @@ export default function EnhancedProblemsTable({
         resetSelection={resetSelection}
         onColumnVisibilityChange={handleColumnVisibilityChange}
         columnVisibilityStorageKey={`problems-table-column-visibility-${subjectId}`}
+        isAddToSetMode={isAddToSetMode}
       />
 
       {/* Individual Delete Confirmation Dialog */}
@@ -418,6 +522,32 @@ export default function EnhancedProblemsTable({
         onConfirm={handleConfirmBulkDelete}
         variant="destructive"
       />
+
+      {/* Problem Set Creation Dialog */}
+      <ProblemSetCreationDialog
+        open={createSetDialog.open}
+        onOpenChange={open => setCreateSetDialog(prev => ({ ...prev, open }))}
+        subjectId={subjectId}
+        selectedProblemIds={createSetDialog.problemIds}
+        onSuccess={() => {
+          // Clear selection after successful creation
+          setSelectedProblems([]);
+          setResetSelection(true);
+        }}
+      />
+
+      {/* Add to Set Dialog */}
+      {addToSetDialog.problem && (
+        <AddToSetDialog
+          open={addToSetDialog.open}
+          onOpenChange={open => setAddToSetDialog(prev => ({ ...prev, open }))}
+          problemId={addToSetDialog.problem.id}
+          subjectId={subjectId}
+          onSuccess={() => {
+            // Optionally refresh data
+          }}
+        />
+      )}
     </div>
   );
 }

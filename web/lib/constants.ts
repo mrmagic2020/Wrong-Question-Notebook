@@ -264,6 +264,17 @@ export const PROBLEM_CONSTANTS = {
 } as const;
 
 // =====================================================
+// Problem Set Constants
+// =====================================================
+export const PROBLEM_SET_CONSTANTS = {
+  SHARING_LEVELS: {
+    PRIVATE: 'private',
+    LIMITED: 'limited',
+    PUBLIC: 'public',
+  },
+} as const;
+
+// =====================================================
 // Gender Options
 // =====================================================
 export const GENDER_OPTIONS = {

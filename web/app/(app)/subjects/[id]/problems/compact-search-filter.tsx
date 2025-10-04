@@ -10,6 +10,7 @@ import {
   CheckCircle,
   Clock,
   XCircle,
+  Plus,
 } from 'lucide-react';
 import { ProblemType, PROBLEM_TYPE_VALUES } from '@/lib/schemas';
 import {
@@ -53,7 +54,9 @@ interface CompactSearchFilterProps {
   selectedProblemIds?: string[];
   onBulkDelete?: (problemIds: string[]) => void;
   onBulkDeleteEnabled?: boolean;
+  onCreateSet?: (problemIds: string[]) => void;
   isSearching?: boolean;
+  isAddToSetMode?: boolean;
 }
 
 export default function CompactSearchFilter({
@@ -72,7 +75,9 @@ export default function CompactSearchFilter({
   selectedProblemIds = [],
   onBulkDelete,
   onBulkDeleteEnabled = false,
+  onCreateSet,
   isSearching = false,
+  isAddToSetMode = false,
 }: CompactSearchFilterProps) {
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -264,6 +269,15 @@ export default function CompactSearchFilter({
               <span className="text-sm text-muted-foreground">
                 {selectedProblemIds.length} selected
               </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onCreateSet?.(selectedProblemIds)}
+                className="text-primary hover:bg-primary/10"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                {isAddToSetMode ? 'Add to Set' : 'Create Set'}
+              </Button>
               <Button
                 variant="outline"
                 size="sm"

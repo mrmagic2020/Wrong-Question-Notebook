@@ -35,7 +35,6 @@ export async function POST(
       .from('problems')
       .select('*')
       .eq('id', problemId)
-      .eq('user_id', user.id)
       .single();
 
     if (problemError || !problem) {

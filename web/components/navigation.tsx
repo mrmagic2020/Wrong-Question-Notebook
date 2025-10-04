@@ -48,6 +48,12 @@ export function Navigation({
               >
                 Problems
               </Link>
+              <Link
+                href="/problem-sets"
+                className="text-sm text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white"
+              >
+                Problem Sets
+              </Link>
             </>
           )}
         </div>
