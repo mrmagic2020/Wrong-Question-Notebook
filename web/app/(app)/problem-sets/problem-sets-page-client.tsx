@@ -31,7 +31,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
-import ProblemSetEditDialog from '@/components/problem-set-edit-dialog';
+import ProblemSetEditDialog from '@/app/(app)/problem-sets/problem-set-edit-dialog';
 
 interface ProblemSet {
   id: string;
@@ -197,22 +197,18 @@ export default function ProblemSetsPageClient({
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Problem Sets</h1>
-          <p className="text-muted-foreground">
+    <div>
+      <div className="section-container">
+        <div className="page-header">
+          <h1 className="page-title">Problem Sets</h1>
+          <p className="page-description">
             Organize and review specific groups of problems
           </p>
         </div>
-        <Button onClick={() => router.push('/subjects')}>
-          <Plus className="h-4 w-4 mr-2" />
-          Create New Set
-        </Button>
       </div>
 
-      {/* Search */}
-      <div className="mb-6">
+      {/* Search and Create New Set Button */}
+      <div className="mb-6 flex items-center justify-between">
         <div className="relative w-80">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -222,6 +218,10 @@ export default function ProblemSetsPageClient({
             className="pl-10"
           />
         </div>
+        <Button onClick={() => router.push('/subjects')}>
+          <Plus className="h-4 w-4 mr-2" />
+          Create New Set
+        </Button>
       </div>
 
       {/* Problem Sets Grid */}
@@ -232,13 +232,13 @@ export default function ProblemSetsPageClient({
             className="hover:shadow-md transition-shadow cursor-pointer"
             onClick={() => router.push(`/problem-sets/${problemSet.id}`)}
           >
-            <CardHeader className="pb-3">
+            <CardHeader className="card-section-header">
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
-                  <CardTitle className="text-lg truncate">
+                  <CardTitle className="card-section-title truncate">
                     {problemSet.name}
                   </CardTitle>
-                  <CardDescription className="mt-1">
+                  <CardDescription className="card-section-description mt-2">
                     {problemSet.subject_name}
                   </CardDescription>
                 </div>
@@ -255,13 +255,13 @@ export default function ProblemSetsPageClient({
             </CardHeader>
             <CardContent className="pt-0">
               {problemSet.description && (
-                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                <p className="card-section-description mb-4 line-clamp-2">
                   {problemSet.description}
                 </p>
               )}
 
               <div className="flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">
+                <div className="card-section-description">
                   {problemSet.problem_count} problem
                   {problemSet.problem_count !== 1 ? 's' : ''}
                 </div>
@@ -324,7 +324,7 @@ export default function ProblemSetsPageClient({
 
       {filteredProblemSets.length === 0 && searchText && (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">
+          <p className="page-description">
             No problem sets found matching "{searchText}"
           </p>
         </div>

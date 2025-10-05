@@ -582,7 +582,7 @@ export default function ProblemForm({
       </div>
 
       <div className="form-actions">
-        <Button type="submit" disabled={isSubmitting} className="btn-primary">
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting && <div className="loading-spinner" />}
           {isSubmitting
             ? isEditMode
@@ -594,11 +594,9 @@ export default function ProblemForm({
         </Button>
         {!isEditMode && (
           <Button
-            type="button"
             variant="outline"
             onClick={() => setIsExpanded(false)}
             disabled={isSubmitting}
-            className="btn-outline"
           >
             Cancel
           </Button>

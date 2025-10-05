@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import ProblemForm from './problem-form';
 import EnhancedProblemsTable from './enhanced-problems-table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ProblemsPageClientProps {
   initialProblems: any[];
@@ -56,17 +57,19 @@ export default function ProblemsPageClient({
   return (
     <>
       {/* Create form with subject fixed */}
-      <div className="card-section">
-        <div className="card-section-header">
-          <h2 className="card-section-title">Add a problem</h2>
-        </div>
+      <Card className="card-section">
+        <CardHeader className="card-section-header">
+          <CardTitle className="card-section-title">Add a problem</CardTitle>
+        </CardHeader>
         {/* Pass subjectId; form will hide the subject selector */}
-        <ProblemForm
-          subjectId={subjectId}
-          availableTags={availableTags}
-          onProblemCreated={handleProblemCreated}
-        />
-      </div>
+        <CardContent className="card-section-content">
+          <ProblemForm
+            subjectId={subjectId}
+            availableTags={availableTags}
+            onProblemCreated={handleProblemCreated}
+          />
+        </CardContent>
+      </Card>
 
       {/* Enhanced problems table with search */}
       <EnhancedProblemsTable

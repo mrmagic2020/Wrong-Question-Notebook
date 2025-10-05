@@ -5,6 +5,7 @@ import Link from 'next/link';
 import TagForm from './tag-form';
 import TagRow from './tag-row';
 import { useConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Tag {
   id: string;
@@ -57,15 +58,17 @@ export default function TagsPageClient({
           </Link>
         </div>
 
-        <div className="card-section">
-          <div className="card-section-header">
-            <h2 className="card-section-title">Add a tag</h2>
-          </div>
-          <TagForm
-            subjectId={initialSubject.id}
-            onTagCreated={handleTagCreated}
-          />
-        </div>
+        <Card className="card-section">
+          <CardHeader className="card-section-header">
+            <CardTitle className="card-section-title">Add a tag</CardTitle>
+          </CardHeader>
+          <CardContent className="card-section-content">
+            <TagForm
+              subjectId={initialSubject.id}
+              onTagCreated={handleTagCreated}
+            />
+          </CardContent>
+        </Card>
 
         <div className="table-container">
           <table className="w-full text-sm">

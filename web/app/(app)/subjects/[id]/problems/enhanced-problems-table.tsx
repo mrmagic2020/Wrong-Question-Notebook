@@ -8,7 +8,7 @@ import CompactSearchFilter from './compact-search-filter';
 import ProblemForm from './problem-form';
 import { ProblemType } from '@/lib/schemas';
 import { toast } from 'sonner';
-import ConfirmationDialog from './confirmation-dialog';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import ProblemSetCreationDialog from '@/components/problem-set-creation-dialog';
 import AddToSetDialog from '@/components/add-to-set-dialog';
 
@@ -501,25 +501,25 @@ export default function EnhancedProblemsTable({
 
       {/* Individual Delete Confirmation Dialog */}
       <ConfirmationDialog
-        open={deleteDialog.open}
-        onOpenChange={open => setDeleteDialog(prev => ({ ...prev, open }))}
+        isOpen={deleteDialog.open}
         title="Delete Problem"
-        description={`Are you sure you want to delete "${deleteDialog.problemTitle}"? This action cannot be undone.`}
+        message={`Are you sure you want to delete "${deleteDialog.problemTitle}"? This action cannot be undone.`}
         confirmText="Delete"
         cancelText="Cancel"
         onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteDialog(prev => ({ ...prev, open: false }))}
         variant="destructive"
       />
 
       {/* Bulk Delete Confirmation Dialog */}
       <ConfirmationDialog
-        open={bulkDeleteDialog.open}
-        onOpenChange={open => setBulkDeleteDialog(prev => ({ ...prev, open }))}
+        isOpen={bulkDeleteDialog.open}
         title="Delete Problems"
-        description={`Are you sure you want to delete ${bulkDeleteDialog.count} problem${bulkDeleteDialog.count !== 1 ? 's' : ''}? This action cannot be undone.`}
+        message={`Are you sure you want to delete ${bulkDeleteDialog.count} problem${bulkDeleteDialog.count !== 1 ? 's' : ''}? This action cannot be undone.`}
         confirmText="Delete All"
         cancelText="Cancel"
         onConfirm={handleConfirmBulkDelete}
+        onCancel={() => setBulkDeleteDialog(prev => ({ ...prev, open: false }))}
         variant="destructive"
       />
 

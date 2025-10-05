@@ -249,9 +249,9 @@ export default function ProblemSetPageClient({
   };
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="section-container">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="page-header flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button
             variant="ghost"
@@ -262,9 +262,9 @@ export default function ProblemSetPageClient({
             Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">{problemSet.name}</h1>
+            <h1 className="page-title">{problemSet.name}</h1>
             <p
-              className="text-muted-foreground cursor-pointer hover:underline"
+              className="page-description cursor-pointer hover:underline"
               onClick={() =>
                 router.push(`/subjects/${problemSet.subject_id}/problems`)
               }
@@ -291,22 +291,22 @@ export default function ProblemSetPageClient({
 
       {/* Description */}
       {problemSet.description && (
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <p className="text-muted-foreground">{problemSet.description}</p>
+        <Card className="card-section">
+          <CardContent className="card-section-content pt-6">
+            <p>{problemSet.description}</p>
           </CardContent>
         </Card>
       )}
 
       {/* Progress Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card>
+        <Card className="card-section">
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">{progress.total_problems}</div>
             <p className="text-xs text-muted-foreground">Total Problems</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="card-section">
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-destructive">
               {progress.wrong_count}
@@ -314,7 +314,7 @@ export default function ProblemSetPageClient({
             <p className="text-xs text-muted-foreground">Wrong</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="card-section">
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-yellow-600">
               {progress.needs_review_count}
@@ -322,7 +322,7 @@ export default function ProblemSetPageClient({
             <p className="text-xs text-muted-foreground">Needs Review</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="card-section">
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-green-600">
               {progress.mastered_count}

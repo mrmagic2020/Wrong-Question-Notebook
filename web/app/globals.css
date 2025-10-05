@@ -148,7 +148,7 @@ html body[data-scroll-locked] {
   }
 
   .card-section {
-    @apply rounded-lg border bg-card p-6;
+    @apply rounded-lg border bg-card;
   }
 
   .card-section-header {
@@ -161,6 +161,10 @@ html body[data-scroll-locked] {
 
   .card-section-description {
     @apply text-body-sm text-muted-foreground;
+  }
+
+  .card-section-content {
+    @apply text-body p-6;
   }
 
   /* Form Classes */
@@ -231,31 +235,6 @@ html body[data-scroll-locked] {
 
   .table-empty {
     @apply px-4 py-6 text-muted-foreground text-center;
-  }
-
-  /* Button Variants */
-  .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2;
-  }
-
-  .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 h-9 px-4 py-2;
-  }
-
-  .btn-outline {
-    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2;
-  }
-
-  .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2;
-  }
-
-  .btn-destructive {
-    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 h-9 px-4 py-2;
-  }
-
-  .btn-link {
-    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 text-primary underline-offset-4 hover:underline h-9 px-4 py-2;
   }
 
   /* Status and Badge Classes */

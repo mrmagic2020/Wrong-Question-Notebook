@@ -4,6 +4,7 @@ import { useState } from 'react';
 import SubjectForm from './subject-form';
 import SubjectRow from './subject-row';
 import { useConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Subject {
   id: string;
@@ -44,12 +45,14 @@ export default function SubjectsPageClient({
           </p>
         </div>
 
-        <div className="card-section">
-          <div className="card-section-header">
-            <h2 className="card-section-title">Add a subject</h2>
-          </div>
-          <SubjectForm onSubjectCreated={handleSubjectCreated} />
-        </div>
+        <Card className="card-section">
+          <CardHeader className="card-section-header">
+            <CardTitle className="card-section-title">Add a subject</CardTitle>
+          </CardHeader>
+          <CardContent className="card-section-content">
+            <SubjectForm onSubjectCreated={handleSubjectCreated} />
+          </CardContent>
+        </Card>
 
         <div className="table-container">
           <table className="w-full text-sm">

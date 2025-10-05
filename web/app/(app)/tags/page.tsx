@@ -1,5 +1,6 @@
 // web/src/app/(app)/tags/page.tsx
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 
@@ -67,58 +68,59 @@ export default async function GlobalTagsPage() {
       </div>
 
       {subjects?.length === 0 ? (
-        <div className="card-section">
-          <p className="text-body-sm text-muted-foreground">
-            No subjects yet. Create one on the{' '}
-            <Link
-              href="/subjects"
-              className="underline text-primary hover:text-primary/80 transition-colors"
-            >
-              Subjects
-            </Link>{' '}
-            page.
-          </p>
-        </div>
+        <Card className="card-section">
+          <CardContent className="card-section-content">
+            <p className="card-section-description">
+              No subjects yet. Create one on the{' '}
+              <Link
+                href="/subjects"
+                className="underline text-primary hover:text-primary/80 transition-colors"
+              >
+                Subjects
+              </Link>{' '}
+              page.
+            </p>
+          </CardContent>
+        </Card>
       ) : (
         <div className="space-y-4">
           {subjects?.map((s: any) => {
             const tags = bySubject.get(s.id) ?? [];
             return (
-              <div key={s.id} className="card-section">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="heading-xs text-card-foreground">
-                      {s.name}{' '}
+              <Card key={s.id} className="card-section">
+                <CardHeader className="card-section-header">
+                  <CardTitle className="card-section-title flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {s.name}
                       <span className="text-body-sm text-muted-foreground">
                         ({tags.length} tag
                         {tags.length === 1 ? '' : 's'})
                       </span>
-                    </h2>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button asChild variant="outline">
-                      <Link href={`/subjects/${s.id}/tags`}>Manage tags</Link>
-                    </Button>
-                    <Button asChild variant="outline">
-                      <Link href={`/subjects/${s.id}/problems`}>
-                        View problems
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="mt-3">
-                  {tags.length ? (
-                    <TagCapsules tags={tags} />
-                  ) : (
-                    <p className="text-body-sm text-muted-foreground">
-                      No tags yet. Click{' '}
-                      <span className="font-medium">Manage tags</span> to add
-                      some.
-                    </p>
-                  )}
-                </div>
-              </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button asChild variant="outline">
+                        <Link href={`/subjects/${s.id}/tags`}>Manage tags</Link>
+                      </Button>
+                      <Button asChild variant="outline">
+                        <Link href={`/subjects/${s.id}/problems`}>
+                          View problems
+                        </Link>
+                      </Button>
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="card-section-content">
+                    {tags.length ? (
+                      <TagCapsules tags={tags} />
+                    ) : (
+                      <p className="text-body-sm text-muted-foreground">
+                        No tags yet. Click{' '}
+                        <span className="font-medium">Manage tags</span> to add
+                        some.
+                      </p>
+                    )}
+                </CardContent>
+              </Card>
             );
           })}
         </div>
