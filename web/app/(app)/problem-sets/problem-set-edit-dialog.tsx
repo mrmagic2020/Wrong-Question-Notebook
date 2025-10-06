@@ -23,7 +23,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { X, Plus } from 'lucide-react';
 import { toast } from 'sonner';
-import { PROBLEM_SET_CONSTANTS } from '@/lib/constants';
+import { ProblemSetSharingLevel } from '@/lib/schemas';
 
 interface ProblemSetEditDialogProps {
   open: boolean;
@@ -32,7 +32,7 @@ interface ProblemSetEditDialogProps {
     id: string;
     name: string;
     description: string | null;
-    sharing_level: string;
+    sharing_level: ProblemSetSharingLevel;
     shared_with_emails?: string[];
   };
   onSuccess?: () => void;
@@ -48,7 +48,8 @@ export default function ProblemSetEditDialog({
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    sharing_level: 'private' as 'private' | 'limited' | 'public',
+    sharing_level: ProblemSetSharingLevel.enum
+      .private as ProblemSetSharingLevel,
     shared_with_emails: [] as string[],
   });
   const [emailInput, setEmailInput] = useState('');
@@ -59,10 +60,7 @@ export default function ProblemSetEditDialog({
       setFormData({
         name: problemSet.name,
         description: problemSet.description || '',
-        sharing_level: problemSet.sharing_level as
-          | 'private'
-          | 'limited'
-          | 'public',
+        sharing_level: problemSet.sharing_level,
         shared_with_emails: problemSet.shared_with_emails || [],
       });
     }
@@ -133,19 +131,25 @@ export default function ProblemSetEditDialog({
     const email = emailInput.trim();
     if (!email) return;
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      toast.error('Please enter a valid email address');
-      return;
-    }
+    // Parse comma separated emails
+    const emails = email.split(',').map(e => e.trim());
 
-    if (formData.shared_with_emails.includes(email)) {
-      toast.error('This email is already added');
-      return;
+    let newEmails: string[] = [];
+
+    for (const email of emails) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        toast.error('Please enter a valid email address');
+        return;
+      }
+
+      if (!formData.shared_with_emails.includes(email)) {
+        newEmails.push(email);
+      }
     }
 
     setFormData(prev => ({
       ...prev,
-      shared_with_emails: [...prev.shared_with_emails, email],
+      shared_with_emails: [...prev.shared_with_emails, ...newEmails],
     }));
     setEmailInput('');
   };
@@ -160,7 +164,10 @@ export default function ProblemSetEditDialog({
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && formData.sharing_level === 'limited') {
+    if (
+      e.key === 'Enter' &&
+      formData.sharing_level === ProblemSetSharingLevel.enum.limited
+    ) {
       e.preventDefault();
       addEmail();
     }
@@ -217,24 +224,20 @@ export default function ProblemSetEditDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem
-                  value={PROBLEM_SET_CONSTANTS.SHARING_LEVELS.PRIVATE}
-                >
+                <SelectItem value={ProblemSetSharingLevel.enum.private}>
                   Private - Only you can view
                 </SelectItem>
-                <SelectItem
-                  value={PROBLEM_SET_CONSTANTS.SHARING_LEVELS.LIMITED}
-                >
+                <SelectItem value={ProblemSetSharingLevel.enum.limited}>
                   Limited - Share with specific people
                 </SelectItem>
-                <SelectItem value={PROBLEM_SET_CONSTANTS.SHARING_LEVELS.PUBLIC}>
+                <SelectItem value={ProblemSetSharingLevel.enum.public}>
                   Public - Anyone with the link can view
                 </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {formData.sharing_level === 'limited' && (
+          {formData.sharing_level === ProblemSetSharingLevel.enum.limited && (
             <div className="space-y-2">
               <Label htmlFor="emails">Share with</Label>
               <div className="flex gap-2">
@@ -243,7 +246,7 @@ export default function ProblemSetEditDialog({
                   type="email"
                   value={emailInput}
                   onChange={e => setEmailInput(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyPress}
                   placeholder="Enter email address"
                 />
                 <Button type="button" onClick={addEmail} size="sm">

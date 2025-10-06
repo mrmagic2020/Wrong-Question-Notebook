@@ -21,9 +21,10 @@ import {
   Eye,
   Users,
   Globe,
+  Share,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { PROBLEM_SET_CONSTANTS } from '@/lib/constants';
+import { ProblemSetSharingLevel } from '@/lib/schemas';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,7 +38,7 @@ interface ProblemSet {
   id: string;
   name: string;
   description: string | null;
-  sharing_level: string;
+  sharing_level: ProblemSetSharingLevel;
   subject_id: string;
   subject_name: string;
   problem_count: number;
@@ -129,39 +130,39 @@ export default function ProblemSetsPageClient({
     }
   };
 
-  const getSharingIcon = (sharingLevel: string) => {
+  const getSharingIcon = (sharingLevel: ProblemSetSharingLevel) => {
     switch (sharingLevel) {
-      case PROBLEM_SET_CONSTANTS.SHARING_LEVELS.PRIVATE:
+      case ProblemSetSharingLevel.enum.private:
         return <Settings className="h-4 w-4" />;
-      case PROBLEM_SET_CONSTANTS.SHARING_LEVELS.LIMITED:
+      case ProblemSetSharingLevel.enum.limited:
         return <Users className="h-4 w-4" />;
-      case PROBLEM_SET_CONSTANTS.SHARING_LEVELS.PUBLIC:
+      case ProblemSetSharingLevel.enum.public:
         return <Globe className="h-4 w-4" />;
       default:
         return <Settings className="h-4 w-4" />;
     }
   };
 
-  const getSharingLabel = (sharingLevel: string) => {
+  const getSharingLabel = (sharingLevel: ProblemSetSharingLevel) => {
     switch (sharingLevel) {
-      case PROBLEM_SET_CONSTANTS.SHARING_LEVELS.PRIVATE:
+      case ProblemSetSharingLevel.enum.private:
         return 'Private';
-      case PROBLEM_SET_CONSTANTS.SHARING_LEVELS.LIMITED:
+      case ProblemSetSharingLevel.enum.limited:
         return 'Limited';
-      case PROBLEM_SET_CONSTANTS.SHARING_LEVELS.PUBLIC:
+      case ProblemSetSharingLevel.enum.public:
         return 'Public';
       default:
         return 'Private';
     }
   };
 
-  const getSharingVariant = (sharingLevel: string) => {
+  const getSharingVariant = (sharingLevel: ProblemSetSharingLevel) => {
     switch (sharingLevel) {
-      case PROBLEM_SET_CONSTANTS.SHARING_LEVELS.PRIVATE:
+      case ProblemSetSharingLevel.enum.private:
         return 'secondary';
-      case PROBLEM_SET_CONSTANTS.SHARING_LEVELS.LIMITED:
+      case ProblemSetSharingLevel.enum.limited:
         return 'default';
-      case PROBLEM_SET_CONSTANTS.SHARING_LEVELS.PUBLIC:
+      case ProblemSetSharingLevel.enum.public:
         return 'outline';
       default:
         return 'secondary';
@@ -307,6 +308,18 @@ export default function ProblemSetsPageClient({
                     <DropdownMenuItem
                       onClick={e => {
                         e.stopPropagation();
+                        navigator.clipboard.writeText(
+                          `${process.env.VERCEL_PROJECT_PRODUCTION_URL || 'http://localhost:3000'}/problem-sets/${problemSet.id}`
+                        );
+                        toast.success('Link copied to clipboard');
+                      }}
+                    >
+                      <Share className="h-4 w-4 mr-2" />
+                      Share
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={e => {
+                        e.stopPropagation();
                         handleDeleteClick(problemSet.id, problemSet.name);
                       }}
                       className="text-destructive"
@@ -349,8 +362,10 @@ export default function ProblemSetsPageClient({
           onOpenChange={open => setEditDialog(prev => ({ ...prev, open }))}
           problemSet={editDialog.problemSet}
           onSuccess={() => {
-            // Refresh the problem sets list
-            window.location.reload();
+            // Refresh the problem sets list after 1 second
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
           }}
         />
       )}

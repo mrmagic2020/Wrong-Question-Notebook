@@ -20,7 +20,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { PROBLEM_SET_CONSTANTS, PROBLEM_CONSTANTS } from '@/lib/constants';
+import { ProblemStatus, ProblemSetSharingLevel } from '@/lib/schemas';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import {
   getProblemTypeDisplayName,
@@ -32,7 +32,7 @@ interface Problem {
   title: string;
   content: string | null;
   problem_type: string;
-  status: string;
+  status: ProblemStatus;
   last_reviewed_date: string | null;
   created_at: string;
   added_at: string;
@@ -43,7 +43,7 @@ interface ProblemSet {
   id: string;
   name: string;
   description: string | null;
-  sharing_level: string;
+  sharing_level: ProblemSetSharingLevel;
   subject_id: string;
   subject_name: string;
   problems: Problem[];
@@ -176,52 +176,52 @@ export default function ProblemSetPageClient({
     return progress;
   };
 
-  const getSharingIcon = (sharingLevel: string) => {
+  const getSharingIcon = (sharingLevel: ProblemSetSharingLevel) => {
     switch (sharingLevel) {
-      case PROBLEM_SET_CONSTANTS.SHARING_LEVELS.PRIVATE:
+      case ProblemSetSharingLevel.enum.private:
         return <Settings className="h-4 w-4" />;
-      case PROBLEM_SET_CONSTANTS.SHARING_LEVELS.LIMITED:
+      case ProblemSetSharingLevel.enum.limited:
         return <Users className="h-4 w-4" />;
-      case PROBLEM_SET_CONSTANTS.SHARING_LEVELS.PUBLIC:
+      case ProblemSetSharingLevel.enum.public:
         return <Globe className="h-4 w-4" />;
       default:
         return <Settings className="h-4 w-4" />;
     }
   };
 
-  const getSharingLabel = (sharingLevel: string) => {
+  const getSharingLabel = (sharingLevel: ProblemSetSharingLevel) => {
     switch (sharingLevel) {
-      case PROBLEM_SET_CONSTANTS.SHARING_LEVELS.PRIVATE:
+      case ProblemSetSharingLevel.enum.private:
         return 'Private';
-      case PROBLEM_SET_CONSTANTS.SHARING_LEVELS.LIMITED:
+      case ProblemSetSharingLevel.enum.limited:
         return 'Limited';
-      case PROBLEM_SET_CONSTANTS.SHARING_LEVELS.PUBLIC:
+      case ProblemSetSharingLevel.enum.public:
         return 'Public';
       default:
         return 'Private';
     }
   };
 
-  const getSharingVariant = (sharingLevel: string) => {
+  const getSharingVariant = (sharingLevel: ProblemSetSharingLevel) => {
     switch (sharingLevel) {
-      case PROBLEM_SET_CONSTANTS.SHARING_LEVELS.PRIVATE:
+      case ProblemSetSharingLevel.enum.private:
         return 'secondary';
-      case PROBLEM_SET_CONSTANTS.SHARING_LEVELS.LIMITED:
+      case ProblemSetSharingLevel.enum.limited:
         return 'default';
-      case PROBLEM_SET_CONSTANTS.SHARING_LEVELS.PUBLIC:
+      case ProblemSetSharingLevel.enum.public:
         return 'outline';
       default:
         return 'secondary';
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: ProblemStatus) => {
     switch (status) {
-      case PROBLEM_CONSTANTS.STATUS.WRONG:
+      case ProblemStatus.enum.wrong:
         return <XCircle className="h-4 w-4 text-destructive" />;
-      case PROBLEM_CONSTANTS.STATUS.NEEDS_REVIEW:
+      case ProblemStatus.enum.needs_review:
         return <Clock className="h-4 w-4 text-yellow-500" />;
-      case PROBLEM_CONSTANTS.STATUS.MASTERED:
+      case ProblemStatus.enum.mastered:
         return <CheckCircle className="h-4 w-4 text-green-500" />;
       default:
         return <Clock className="h-4 w-4 text-yellow-500" />;

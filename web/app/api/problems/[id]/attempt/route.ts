@@ -5,7 +5,8 @@ import {
   createApiSuccessResponse,
   handleAsyncError,
 } from '@/lib/common-utils';
-import { PROBLEM_CONSTANTS, ERROR_MESSAGES } from '@/lib/constants';
+import { ERROR_MESSAGES } from '@/lib/constants';
+import { ProblemType } from '@/lib/schemas';
 
 export async function POST(
   req: Request,
@@ -87,12 +88,12 @@ export async function POST(
       }
     }
 
-    if (problem.problem_type === PROBLEM_CONSTANTS.TYPES.MCQ) {
+    if (problem.problem_type === ProblemType.enum.mcq) {
       // For MCQ, case-insensitive comparison with trimmed whitespace
       const userAnswer = String(submitted_answer).trim().toLowerCase();
       const correctAnswer = correctAnswerValue.trim().toLowerCase();
       isCorrect = userAnswer === correctAnswer;
-    } else if (problem.problem_type === PROBLEM_CONSTANTS.TYPES.SHORT) {
+    } else if (problem.problem_type === ProblemType.enum.short) {
       // For short answer, case-insensitive comparison with trimmed whitespace
       const userAnswer = String(submitted_answer).trim().toLowerCase();
       const correctAnswer = correctAnswerValue.trim().toLowerCase();

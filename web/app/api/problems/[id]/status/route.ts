@@ -5,7 +5,8 @@ import {
   createApiSuccessResponse,
   handleAsyncError,
 } from '@/lib/common-utils';
-import { PROBLEM_CONSTANTS, ERROR_MESSAGES } from '@/lib/constants';
+import { ERROR_MESSAGES } from '@/lib/constants';
+import { PROBLEM_STATUS_VALUES } from '@/lib/schemas';
 
 export async function PATCH(
   req: Request,
@@ -42,10 +43,7 @@ export async function PATCH(
     );
   }
 
-  if (
-    status &&
-    !Object.values(PROBLEM_CONSTANTS.STATUS).includes(status as any)
-  ) {
+  if (status && !PROBLEM_STATUS_VALUES.includes(status as any)) {
     return NextResponse.json(
       createApiErrorResponse('Invalid status value', 400),
       { status: 400 }

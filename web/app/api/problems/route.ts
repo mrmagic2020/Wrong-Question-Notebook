@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
-import { CreateProblemDto } from '@/lib/schemas';
+import {
+  CreateProblemDto,
+  PROBLEM_TYPE_VALUES,
+  PROBLEM_STATUS_VALUES,
+} from '@/lib/schemas';
 import {
   movePathsToProblemWithUser,
   cleanupStagingFiles,
@@ -12,7 +16,7 @@ import {
   createApiSuccessResponse,
   handleAsyncError,
 } from '@/lib/common-utils';
-import { PROBLEM_CONSTANTS, ERROR_MESSAGES } from '@/lib/constants';
+import { ERROR_MESSAGES } from '@/lib/constants';
 
 async function getProblems(req: Request) {
   const { user, supabase } = await requireUser();
@@ -49,9 +53,8 @@ async function getProblems(req: Request) {
   }
 
   // Validate problem types
-  const validProblemTypes = Object.values(PROBLEM_CONSTANTS.TYPES);
   const invalidTypes = problemTypes.filter(
-    type => !validProblemTypes.includes(type as any)
+    type => !PROBLEM_TYPE_VALUES.includes(type as any)
   );
   if (invalidTypes.length > 0) {
     return NextResponse.json(
@@ -64,9 +67,8 @@ async function getProblems(req: Request) {
   }
 
   // Validate statuses
-  const validStatuses = Object.values(PROBLEM_CONSTANTS.STATUS);
   const invalidStatuses = statuses.filter(
-    status => !validStatuses.includes(status as any)
+    status => !PROBLEM_STATUS_VALUES.includes(status as any)
   );
   if (invalidStatuses.length > 0) {
     return NextResponse.json(

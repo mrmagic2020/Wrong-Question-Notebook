@@ -24,7 +24,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { X, Plus } from 'lucide-react';
 import { toast } from 'sonner';
-import { PROBLEM_SET_CONSTANTS } from '@/lib/constants';
+import { ProblemSetSharingLevel } from '@/lib/schemas';
 
 interface ProblemSetCreationDialogProps {
   open: boolean;
@@ -46,7 +46,8 @@ export default function ProblemSetCreationDialog({
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    sharing_level: 'private' as 'private' | 'limited' | 'public',
+    sharing_level: ProblemSetSharingLevel.enum
+      .private as ProblemSetSharingLevel,
     shared_with_emails: [] as string[],
   });
   const [emailInput, setEmailInput] = useState('');
@@ -110,7 +111,7 @@ export default function ProblemSetCreationDialog({
       setFormData({
         name: '',
         description: '',
-        sharing_level: PROBLEM_SET_CONSTANTS.SHARING_LEVELS.PRIVATE,
+        sharing_level: ProblemSetSharingLevel.enum.private,
         shared_with_emails: [],
       });
       setEmailInput('');
@@ -164,7 +165,10 @@ export default function ProblemSetCreationDialog({
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && formData.sharing_level === 'limited') {
+    if (
+      e.key === 'Enter' &&
+      formData.sharing_level === ProblemSetSharingLevel.enum.limited
+    ) {
       e.preventDefault();
       addEmail();
     }
@@ -222,24 +226,20 @@ export default function ProblemSetCreationDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem
-                  value={PROBLEM_SET_CONSTANTS.SHARING_LEVELS.PRIVATE}
-                >
+                <SelectItem value={ProblemSetSharingLevel.enum.private}>
                   Private - Only you can view
                 </SelectItem>
-                <SelectItem
-                  value={PROBLEM_SET_CONSTANTS.SHARING_LEVELS.LIMITED}
-                >
+                <SelectItem value={ProblemSetSharingLevel.enum.limited}>
                   Limited - Share with specific people
                 </SelectItem>
-                <SelectItem value={PROBLEM_SET_CONSTANTS.SHARING_LEVELS.PUBLIC}>
+                <SelectItem value={ProblemSetSharingLevel.enum.public}>
                   Public - Anyone with the link can view
                 </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {formData.sharing_level === 'limited' && (
+          {formData.sharing_level === ProblemSetSharingLevel.enum.limited && (
             <div className="space-y-2">
               <Label htmlFor="emails">Share with</Label>
               <div className="flex gap-2">
