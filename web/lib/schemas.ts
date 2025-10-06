@@ -113,7 +113,7 @@ export type GenderType = z.infer<typeof Gender>;
 
 // User profile schema
 export const UserProfile = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   username: z.string().nullable(),
   first_name: z.string().nullable(),
   last_name: z.string().nullable(),
@@ -121,41 +121,41 @@ export const UserProfile = z.object({
   gender: Gender.nullable(),
   region: z.string().nullable(),
   timezone: z.string().default('UTC'),
-  avatar_url: z.string().url().nullable(),
+  avatar_url: z.url().nullable(),
   bio: z.string().nullable(),
   user_role: UserRole.default('user'),
   is_active: z.boolean().default(true),
-  last_login_at: z.string().datetime().nullable(),
-  created_at: z.string().datetime(),
-  updated_at: z.string().datetime(),
+  last_login_at: z.iso.datetime().nullable(),
+  created_at: z.iso.datetime(),
+  updated_at: z.iso.datetime(),
 });
 
 export type UserProfileType = z.infer<typeof UserProfile>;
 
 // User activity log schema
 export const UserActivityLog = z.object({
-  id: z.string().uuid(),
-  user_id: z.string().uuid(),
+  id: z.uuid(),
+  user_id: z.uuid(),
   action: z.string(),
   resource_type: z.string().nullable(),
-  resource_id: z.string().uuid().nullable(),
+  resource_id: z.uuid().nullable(),
   details: z.record(z.string(), z.any()).nullable(),
   ip_address: z.string().nullable(),
   user_agent: z.string().nullable(),
-  created_at: z.string().datetime(),
+  created_at: z.iso.datetime(),
 });
 
 export type UserActivityLogType = z.infer<typeof UserActivityLog>;
 
 // Admin settings schema
 export const AdminSettings = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   key: z.string(),
   value: z.record(z.string(), z.any()),
   description: z.string().nullable(),
-  updated_by: z.string().uuid().nullable(),
-  created_at: z.string().datetime(),
-  updated_at: z.string().datetime(),
+  updated_by: z.uuid().nullable(),
+  created_at: z.iso.datetime(),
+  updated_at: z.iso.datetime(),
 });
 
 export type AdminSettingsType = z.infer<typeof AdminSettings>;
@@ -188,14 +188,14 @@ export const CreateUserProfileDto = z.object({
     .min(VALIDATION_CONSTANTS.STRING_LIMITS.LAST_NAME_MIN)
     .max(VALIDATION_CONSTANTS.STRING_LIMITS.LAST_NAME_MAX)
     .optional(),
-  date_of_birth: z.string().date().optional(),
+  date_of_birth: z.iso.date().optional(),
   gender: Gender.optional(),
   region: z
     .string()
     .max(VALIDATION_CONSTANTS.STRING_LIMITS.REGION_MAX)
     .optional(),
   timezone: z.string().optional(),
-  avatar_url: z.string().url().optional(),
+  avatar_url: z.url().optional(),
   bio: z.string().max(VALIDATION_CONSTANTS.STRING_LIMITS.BIO_MAX).optional(),
 });
 
@@ -269,7 +269,7 @@ export const CreateProblemSetDto = z.object({
   sharing_level: ProblemSetSharingLevel.default(
     PROBLEM_SET_CONSTANTS.SHARING_LEVELS.PRIVATE
   ),
-  shared_with_emails: z.array(z.string().email()).optional(),
+  shared_with_emails: z.array(z.email()).optional(),
   problem_ids: z.array(z.uuid()).optional(),
 });
 
