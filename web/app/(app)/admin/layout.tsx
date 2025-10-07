@@ -2,6 +2,11 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { isCurrentUserAdmin } from '@/lib/user-management';
 import { AdminSidebar } from '@/components/admin/admin-sidebar';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Admin – Wrong Question Notebook',
+};
 
 export default async function AdminLayout({
   children,

@@ -1,5 +1,10 @@
 import { SignUpSuccess } from '@/components/sign-up-success';
 import { AuthNav } from '@/components/auth-nav';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Sign Up Success – Wrong Question Notebook',
+};
 
 export default function Page() {
   return (

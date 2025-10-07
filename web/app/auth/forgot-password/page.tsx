@@ -2,6 +2,11 @@ import { ForgotPasswordForm } from '@/components/forgot-password-form';
 import { AuthNav } from '@/components/auth-nav';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Password Reset – Wrong Question Notebook',
+};
 
 export default async function Page() {
   const supabase = await createClient();

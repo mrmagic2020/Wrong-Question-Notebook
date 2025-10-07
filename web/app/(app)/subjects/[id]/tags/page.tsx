@@ -2,6 +2,18 @@ import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import TagsPageClient from './tags-page-client';
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const { subject } = await load(id);
+  return {
+    title: `${subject?.name} Tags – Wrong Question Notebook`,
+  };
+}
+
 async function load(subjectId: string) {
   const supabase = await createClient();
   const [{ data: subject }, { data: tags }] = await Promise.all([

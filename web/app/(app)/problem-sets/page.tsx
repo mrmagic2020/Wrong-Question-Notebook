@@ -1,6 +1,11 @@
 import { createClient } from '@/lib/supabase/server';
 import { requireUser } from '@/lib/supabase/requireUser';
 import ProblemSetsPageClient from './problem-sets-page-client';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'All Problem Sets – Wrong Question Notebook',
+};
 
 async function loadProblemSets() {
   const supabase = await createClient();

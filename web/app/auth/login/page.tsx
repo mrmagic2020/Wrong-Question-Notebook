@@ -3,6 +3,11 @@ import { AuthNav } from '@/components/auth-nav';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { ROUTES } from '@/lib/constants';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Login – Wrong Question Notebook',
+};
 
 export default async function Page() {
   const supabase = await createClient();

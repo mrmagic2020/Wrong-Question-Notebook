@@ -3,6 +3,18 @@ import { requireUser } from '@/lib/supabase/requireUser';
 import { notFound } from 'next/navigation';
 import ProblemReview from '@/app/(app)/subjects/[id]/problems/[problemId]/review/problem-review';
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const problemSet = await loadProblemSet(id);
+  return {
+    title: `Review ${problemSet?.name} – Wrong Question Notebook`,
+  };
+}
+
 async function loadProblemSet(id: string) {
   const supabase = await createClient();
   const { user } = await requireUser();

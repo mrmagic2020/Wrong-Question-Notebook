@@ -12,7 +12,7 @@ const defaultUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
-  title: 'Wrong Question Notebook - Master Your Learning',
+  title: 'Wrong Question Notebook – Master Your Learning',
   description:
     'Organize problems by subject, track your progress, and build your knowledge systematically',
 };

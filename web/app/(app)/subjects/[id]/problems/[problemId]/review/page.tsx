@@ -2,6 +2,18 @@ import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import ProblemReview from './problem-review';
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string; problemId: string }>;
+}) {
+  const { id: subjectId, problemId } = await params;
+  const { problem } = await loadData(subjectId, problemId);
+  return {
+    title: `Review ${problem?.title} – Wrong Question Notebook`,
+  };
+}
+
 async function loadData(subjectId: string, problemId: string) {
   const supabase = await createClient();
 

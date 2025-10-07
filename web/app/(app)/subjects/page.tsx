@@ -1,5 +1,10 @@
+import type { Metadata } from 'next';
 import SubjectsPageClient from './subjects-page-client';
 import { createClient } from '@/lib/supabase/server';
+
+export const metadata: Metadata = {
+  title: 'All Subjects – Wrong Question Notebook',
+};
 
 async function loadSubjects() {
   const supabase = await createClient();

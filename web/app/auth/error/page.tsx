@@ -2,6 +2,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AuthNav } from '@/components/auth-nav';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Auth Error – Wrong Question Notebook',
+};
 
 export default async function Page({
   searchParams,

@@ -3,6 +3,18 @@ import { notFound } from 'next/navigation';
 import { requireUser } from '@/lib/supabase/requireUser';
 import ProblemSetPageClient from './problem-set-page-client';
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const problemSet = await loadProblemSet(id);
+  return {
+    title: `${problemSet?.name} – Wrong Question Notebook`,
+  };
+}
+
 // Helper function to check limited access
 async function checkLimitedAccess(
   supabase: any,

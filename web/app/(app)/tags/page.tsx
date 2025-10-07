@@ -3,6 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'All Tags – Wrong Question Notebook',
+};
 
 function TagCapsules({ tags }: { tags: { id: string; name: string }[] }) {
   const maxShown = 7; // show up to 8 tags per subject here
@@ -110,15 +115,15 @@ export default async function GlobalTagsPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="card-section-content">
-                    {tags.length ? (
-                      <TagCapsules tags={tags} />
-                    ) : (
-                      <p className="text-body-sm text-muted-foreground">
-                        No tags yet. Click{' '}
-                        <span className="font-medium">Manage tags</span> to add
-                        some.
-                      </p>
-                    )}
+                  {tags.length ? (
+                    <TagCapsules tags={tags} />
+                  ) : (
+                    <p className="text-body-sm text-muted-foreground">
+                      No tags yet. Click{' '}
+                      <span className="font-medium">Manage tags</span> to add
+                      some.
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             );

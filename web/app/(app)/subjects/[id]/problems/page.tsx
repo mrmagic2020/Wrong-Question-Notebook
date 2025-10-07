@@ -3,6 +3,18 @@ import Link from 'next/link';
 import ProblemsPageClient from './problems-page-client';
 import { ROUTES } from '@/lib/constants';
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const { subject } = await loadData(id);
+  return {
+    title: `${subject?.name} – Problems`,
+  };
+}
+
 async function loadData(subjectId: string) {
   const supabase = await createClient();
 
