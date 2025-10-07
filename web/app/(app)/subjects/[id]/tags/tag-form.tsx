@@ -4,7 +4,7 @@ import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
-import { Loader2Icon } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 import { Button } from '@/components/ui/button';
 
 export default function TagForm({
@@ -65,7 +65,7 @@ export default function TagForm({
         required
       />
       <Button type="submit" disabled={busy} className="">
-        {busy && <Loader2Icon className="loading-spinner" />}
+        {busy && <Spinner />}
         {busy ? 'Adding…' : 'Add'}
       </Button>
       {err && <span className="form-error">{err}</span>}

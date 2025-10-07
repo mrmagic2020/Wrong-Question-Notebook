@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { Loader2Icon } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 
 export default function SubjectForm({
   onSubjectCreated,
@@ -66,7 +66,7 @@ export default function SubjectForm({
         required
       />
       <Button type="submit" disabled={busy}>
-        {busy && <Loader2Icon className="loading-spinner" />}
+        {busy && <Spinner />}
         {busy ? 'Adding...' : 'Add'}
       </Button>
       {error && <span className="form-error">{error}</span>}

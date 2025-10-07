@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { Loader2Icon } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
@@ -180,7 +180,7 @@ export default function SubjectRow({
                 disabled={renaming || deleting}
                 className="flex items-center gap-1"
               >
-                {renaming && <Loader2Icon className="animate-spin" />}
+                {renaming && <Spinner />}
                 {renaming ? 'Saving...' : 'Save'}
               </Button>
               <Button
@@ -217,7 +217,7 @@ export default function SubjectRow({
                   disabled={renaming || deleting}
                   variant="destructive"
                 >
-                  {deleting && <Loader2Icon className="animate-spin" />}
+                  {deleting && <Spinner />}
                   Delete
                 </Button>
               </Tooltip>

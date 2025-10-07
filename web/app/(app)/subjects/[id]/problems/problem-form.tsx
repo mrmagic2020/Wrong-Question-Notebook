@@ -18,6 +18,7 @@ import { PROBLEM_TYPE_VALUES, type ProblemType } from '@/lib/schemas';
 import { getProblemTypeDisplayName } from '@/lib/common-utils';
 import { Textarea } from '@/components/ui/textarea';
 import { VALIDATION_CONSTANTS } from '@/lib/constants';
+import { Spinner } from '@/components/ui/spinner';
 
 type Tag = { id: string; name: string };
 
@@ -583,7 +584,7 @@ export default function ProblemForm({
 
       <div className="form-actions">
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting && <div className="loading-spinner" />}
+          {isSubmitting && <Spinner />}
           {isSubmitting
             ? isEditMode
               ? 'Updating...'

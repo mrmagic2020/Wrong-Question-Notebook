@@ -4,8 +4,8 @@ import { useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Loader2Icon } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
 
 export default function TagRow({
   tag,
@@ -165,7 +165,7 @@ export default function TagRow({
           {editing ? (
             <>
               <Button onClick={save} disabled={busy} className="">
-                {busy && <Loader2Icon className="animate-spin" />}
+                {busy && <Spinner />}
                 {busy ? 'Saving...' : 'Save'}
               </Button>
               <Button
@@ -193,7 +193,7 @@ export default function TagRow({
                 disabled={busy}
                 variant="destructive"
               >
-                {busy && <Loader2Icon className="animate-spin" />}
+                {busy && <Spinner />}
                 Delete
               </Button>
             </>
