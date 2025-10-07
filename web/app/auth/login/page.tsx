@@ -9,13 +9,21 @@ export const metadata: Metadata = {
   title: 'Login – Wrong Question Notebook',
 };
 
-export default async function Page() {
+interface PageProps {
+  searchParams: Promise<{ redirect?: string }>;
+}
+
+export default async function Page({ searchParams }: PageProps) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
 
-  // If user is already logged in, redirect to subjects page
+  // Await searchParams before using its properties
+  const params = await searchParams;
+
+  // If user is already logged in, redirect to intended destination or subjects page
   if (data?.claims) {
-    redirect(ROUTES.SUBJECTS);
+    const destination = params.redirect || ROUTES.SUBJECTS;
+    redirect(destination);
   }
 
   return (
@@ -23,7 +31,7 @@ export default async function Page() {
       <AuthNav />
       <div className="flex flex-1 w-full items-center justify-center p-6 md:p-10">
         <div className="w-full max-w-sm">
-          <LoginForm />
+          <LoginForm redirectTo={params.redirect} />
         </div>
       </div>
     </main>

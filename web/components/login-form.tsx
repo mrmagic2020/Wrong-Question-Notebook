@@ -17,10 +17,11 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ROUTES, ERROR_MESSAGES } from '@/lib/constants';
 
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<'div'>) {
+interface LoginFormProps extends React.ComponentPropsWithoutRef<'div'> {
+  redirectTo?: string;
+}
+
+export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -39,8 +40,9 @@ export function LoginForm({
         password,
       });
       if (error) throw error;
-      // Redirect to subjects page after successful login
-      router.push(ROUTES.SUBJECTS);
+      // Redirect to intended destination or subjects page after successful login
+      const destination = redirectTo || ROUTES.SUBJECTS;
+      router.push(destination);
     } catch (error: unknown) {
       setError(
         error instanceof Error ? error.message : ERROR_MESSAGES.INTERNAL_ERROR
