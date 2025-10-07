@@ -100,15 +100,18 @@ export default function ProblemSetPageClient({
     } catch (error) {
       console.error('Error fetching progress:', error);
     }
-    return progress;
-  }, [problemSet.id, progress]);
+    // Return null instead of progress to avoid dependency loop
+    return null;
+  }, [problemSet.id]);
 
   // Load progress data on component mount
   useEffect(() => {
     const loadInitialProgress = async () => {
       try {
         const progressData = await fetchProgress();
-        setProgress(progressData);
+        if (progressData) {
+          setProgress(progressData);
+        }
       } catch (error) {
         console.error('Error loading initial progress:', error);
       } finally {
@@ -183,7 +186,9 @@ export default function ProblemSetPageClient({
       // Update progress
       setProgressLoading(true);
       const updatedProgress = await fetchProgress();
-      setProgress(updatedProgress);
+      if (updatedProgress) {
+        setProgress(updatedProgress);
+      }
       setProgressLoading(false);
 
       setSelectedProblems([]);
