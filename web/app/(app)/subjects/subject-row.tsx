@@ -173,12 +173,6 @@ export default function SubjectRow({
       </td>
       <td className="px-4 py-2 align-middle">
         <div className="flex gap-2">
-          <Button asChild variant="outline" className="">
-            <Link href={`/subjects/${subject.id}/problems`}>Problems</Link>
-          </Button>
-          <Button asChild variant="outline" className="">
-            <Link href={`/subjects/${subject.id}/tags`}>Tags</Link>
-          </Button>
           {editing ? (
             <>
               <Button
@@ -202,6 +196,12 @@ export default function SubjectRow({
             </>
           ) : (
             <>
+              <Button asChild variant="outline" className="">
+                <Link href={`/subjects/${subject.id}/problems`}>Problems</Link>
+              </Button>
+              <Button asChild variant="outline" className="">
+                <Link href={`/subjects/${subject.id}/tags`}>Tags</Link>
+              </Button>
               <Tooltip content="Click to rename this subject (Enter to save, Escape to cancel)">
                 <Button
                   onClick={() => setEditing(true)}
