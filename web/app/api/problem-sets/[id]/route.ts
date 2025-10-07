@@ -9,6 +9,7 @@ import {
   isValidUuid,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
+import { getProblemSetWithFullData } from '@/lib/problem-set-utils';
 
 async function getProblemSet(
   req: Request,
@@ -27,113 +28,21 @@ async function getProblemSet(
   }
 
   try {
-    // Get the problem set with problems and their details
-    const { data: problemSet, error: problemSetError } = await supabase
-      .from('problem_sets')
-      .select(
-        `
-        *,
-        subjects(name),
-        problem_set_problems(
-          problem_id,
-          added_at,
-          problems(
-            id,
-            title,
-            content,
-            problem_type,
-            status,
-            last_reviewed_date,
-            created_at,
-            problem_tag(tags:tag_id(id, name))
-          )
-        ),
-        problem_set_shares(
-          id,
-          shared_with_email
-        )
-      `
-      )
-      .eq('id', id)
-      .single();
+    const problemSet = await getProblemSetWithFullData(
+      supabase,
+      id,
+      user.id,
+      user.email || ''
+    );
 
-    if (problemSetError) {
-      if (problemSetError.code === 'PGRST116') {
-        return NextResponse.json(
-          createApiErrorResponse('Problem set not found', 404),
-          { status: 404 }
-        );
-      }
+    if (!problemSet) {
       return NextResponse.json(
-        createApiErrorResponse(
-          ERROR_MESSAGES.DATABASE_ERROR,
-          500,
-          problemSetError.message
-        ),
-        { status: 500 }
+        createApiErrorResponse('Problem set not found or access denied', 404),
+        { status: 404 }
       );
     }
 
-    // Check if user has access to this problem set
-    const isOwner = problemSet.user_id === user.id;
-    const isPublic = problemSet.sharing_level === 'public';
-    const isLimited = problemSet.sharing_level === 'limited';
-
-    let hasAccess = isOwner || isPublic;
-
-    if (isLimited) {
-      try {
-        hasAccess = await checkLimitedAccess(supabase, id, user.email || '');
-      } catch (error) {
-        console.error('Error checking limited access:', error);
-        hasAccess = false;
-      }
-    }
-
-    if (!hasAccess) {
-      return NextResponse.json(createApiErrorResponse('Access denied', 403), {
-        status: 403,
-      });
-    }
-
-    // Transform the data to include problems with tags
-    const problems =
-      problemSet.problem_set_problems
-        ?.map((psp: any) => {
-          const problem = psp.problems;
-          if (!problem) {
-            console.warn(
-              'Problem not found for problem_set_problem:',
-              psp.problem_id
-            );
-            return null;
-          }
-          const tags =
-            problem?.problem_tag?.map((pt: any) => pt.tags).filter(Boolean) ||
-            [];
-          return {
-            ...problem,
-            tags,
-            added_at: psp.added_at,
-          };
-        })
-        .filter(Boolean) || [];
-
-    // Transform shared emails
-    const shared_with_emails =
-      problemSet.problem_set_shares?.map(
-        (share: any) => share.shared_with_email
-      ) || [];
-
-    const result = {
-      ...problemSet,
-      subject_name: problemSet.subjects?.name,
-      problems,
-      problem_count: problems.length,
-      shared_with_emails,
-    };
-
-    return NextResponse.json(createApiSuccessResponse(result));
+    return NextResponse.json(createApiSuccessResponse(problemSet));
   } catch (error) {
     const { message, status } = handleAsyncError(error);
     return NextResponse.json(createApiErrorResponse(message, status), {
@@ -324,22 +233,6 @@ async function deleteProblemSet(
       status,
     });
   }
-}
-
-// Helper function to check limited access
-async function checkLimitedAccess(
-  supabase: any,
-  problemSetId: string,
-  userEmail: string
-): Promise<boolean> {
-  const { data: share } = await supabase
-    .from('problem_set_shares')
-    .select('id')
-    .eq('problem_set_id', problemSetId)
-    .eq('shared_with_email', userEmail)
-    .single();
-
-  return !!share;
 }
 
 export const GET = withSecurity(getProblemSet, { rateLimitType: 'readOnly' });

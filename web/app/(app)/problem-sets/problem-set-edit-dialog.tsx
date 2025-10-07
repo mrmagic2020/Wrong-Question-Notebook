@@ -134,7 +134,7 @@ export default function ProblemSetEditDialog({
     // Parse comma separated emails
     const emails = email.split(',').map(e => e.trim());
 
-    let newEmails: string[] = [];
+    const newEmails: string[] = [];
 
     for (const email of emails) {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {

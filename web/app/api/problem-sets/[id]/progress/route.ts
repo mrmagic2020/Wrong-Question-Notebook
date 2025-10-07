@@ -8,6 +8,7 @@ import {
   isValidUuid,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
+import { getProblemSetBasic } from '@/lib/problem-set-utils';
 
 async function getProblemSetProgress(
   req: Request,
@@ -27,30 +28,18 @@ async function getProblemSetProgress(
 
   try {
     // Check if user has access to this problem set
-    const { data: problemSet, error: problemSetError } = await supabase
-      .from('problem_sets')
-      .select('id, user_id, sharing_level')
-      .eq('id', id)
-      .single();
+    const problemSet = await getProblemSetBasic(
+      supabase,
+      id,
+      user.id,
+      user.email || ''
+    );
 
-    if (problemSetError || !problemSet) {
+    if (!problemSet) {
       return NextResponse.json(
-        createApiErrorResponse('Problem set not found', 404),
+        createApiErrorResponse('Problem set not found or access denied', 404),
         { status: 404 }
       );
-    }
-
-    // Check access permissions
-    const hasAccess =
-      problemSet.user_id === user.id ||
-      problemSet.sharing_level === 'public' ||
-      (problemSet.sharing_level === 'limited' &&
-        (await checkLimitedAccess(supabase, id, user.email)));
-
-    if (!hasAccess) {
-      return NextResponse.json(createApiErrorResponse('Access denied', 403), {
-        status: 403,
-      });
     }
 
     // Get progress by querying the problems directly instead of using the database function
@@ -81,10 +70,12 @@ async function getProblemSetProgress(
 
     const progress = {
       total_problems: problems.length,
-      wrong_count: problems.filter(p => p.status === 'wrong').length,
-      needs_review_count: problems.filter(p => p.status === 'needs_review')
+      wrong_count: problems.filter((p: any) => p.status === 'wrong').length,
+      needs_review_count: problems.filter(
+        (p: any) => p.status === 'needs_review'
+      ).length,
+      mastered_count: problems.filter((p: any) => p.status === 'mastered')
         .length,
-      mastered_count: problems.filter(p => p.status === 'mastered').length,
     };
 
     return NextResponse.json(createApiSuccessResponse(progress));
@@ -94,22 +85,6 @@ async function getProblemSetProgress(
       status,
     });
   }
-}
-
-// Helper function to check limited access
-async function checkLimitedAccess(
-  supabase: any,
-  problemSetId: string,
-  userEmail: string
-): Promise<boolean> {
-  const { data: share } = await supabase
-    .from('problem_set_shares')
-    .select('id')
-    .eq('problem_set_id', problemSetId)
-    .eq('shared_with_email', userEmail)
-    .single();
-
-  return !!share;
 }
 
 export const GET = withSecurity(getProblemSetProgress, {

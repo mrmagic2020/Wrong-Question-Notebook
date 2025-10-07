@@ -30,7 +30,7 @@ module.exports = {
     });
 
     result.push({
-      loc: '/problems',
+      loc: '/problems-sets',
       lastmod: new Date().toISOString(),
       changefreq: 'weekly',
       priority: 0.9,

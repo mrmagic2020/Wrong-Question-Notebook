@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -62,16 +62,20 @@ interface Progress {
 
 interface ProblemSetPageClientProps {
   initialProblemSet: ProblemSet;
-  initialProgress: Progress;
 }
 
 export default function ProblemSetPageClient({
   initialProblemSet,
-  initialProgress,
 }: ProblemSetPageClientProps) {
   const router = useRouter();
   const [problemSet, setProblemSet] = useState<ProblemSet>(initialProblemSet);
-  const [progress, setProgress] = useState<Progress>(initialProgress);
+  const [progress, setProgress] = useState<Progress>({
+    total_problems: 0,
+    wrong_count: 0,
+    needs_review_count: 0,
+    mastered_count: 0,
+  });
+  const [progressLoading, setProgressLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
   const [selectedProblems, setSelectedProblems] = useState<string[]>([]);
   const [deleteDialog, setDeleteDialog] = useState<{
@@ -83,6 +87,37 @@ export default function ProblemSetPageClient({
     problemIds: [],
     count: 0,
   });
+
+  const fetchProgress = useCallback(async () => {
+    try {
+      const response = await fetch(
+        `/api/problem-sets/${problemSet.id}/progress`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        return data.data;
+      }
+    } catch (error) {
+      console.error('Error fetching progress:', error);
+    }
+    return progress;
+  }, [problemSet.id, progress]);
+
+  // Load progress data on component mount
+  useEffect(() => {
+    const loadInitialProgress = async () => {
+      try {
+        const progressData = await fetchProgress();
+        setProgress(progressData);
+      } catch (error) {
+        console.error('Error loading initial progress:', error);
+      } finally {
+        setProgressLoading(false);
+      }
+    };
+
+    loadInitialProgress();
+  }, [fetchProgress]);
 
   // Filter problems based on search text
   const filteredProblems = problemSet.problems.filter(
@@ -146,8 +181,10 @@ export default function ProblemSetPageClient({
       }));
 
       // Update progress
+      setProgressLoading(true);
       const updatedProgress = await fetchProgress();
       setProgress(updatedProgress);
+      setProgressLoading(false);
 
       setSelectedProblems([]);
       toast.success(
@@ -159,21 +196,6 @@ export default function ProblemSetPageClient({
     } finally {
       setDeleteDialog({ open: false, problemIds: [], count: 0 });
     }
-  };
-
-  const fetchProgress = async () => {
-    try {
-      const response = await fetch(
-        `/api/problem-sets/${problemSet.id}/progress`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        return data.data;
-      }
-    } catch (error) {
-      console.error('Error fetching progress:', error);
-    }
-    return progress;
   };
 
   const getSharingIcon = (sharingLevel: ProblemSetSharingLevel) => {
@@ -302,14 +324,16 @@ export default function ProblemSetPageClient({
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <Card className="card-section">
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold">{progress.total_problems}</div>
+            <div className="text-2xl font-bold">
+              {progressLoading ? '...' : progress.total_problems}
+            </div>
             <p className="text-xs text-muted-foreground">Total Problems</p>
           </CardContent>
         </Card>
         <Card className="card-section">
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-destructive">
-              {progress.wrong_count}
+              {progressLoading ? '...' : progress.wrong_count}
             </div>
             <p className="text-xs text-muted-foreground">Wrong</p>
           </CardContent>
@@ -317,7 +341,7 @@ export default function ProblemSetPageClient({
         <Card className="card-section">
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-yellow-600">
-              {progress.needs_review_count}
+              {progressLoading ? '...' : progress.needs_review_count}
             </div>
             <p className="text-xs text-muted-foreground">Needs Review</p>
           </CardContent>
@@ -325,7 +349,7 @@ export default function ProblemSetPageClient({
         <Card className="card-section">
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-green-600">
-              {progress.mastered_count}
+              {progressLoading ? '...' : progress.mastered_count}
             </div>
             <p className="text-xs text-muted-foreground">Mastered</p>
           </CardContent>
