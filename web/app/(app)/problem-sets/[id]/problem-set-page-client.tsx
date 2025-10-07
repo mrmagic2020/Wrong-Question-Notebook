@@ -383,7 +383,7 @@ export default function ProblemSetPageClient({
         </div>
 
         <div className="flex items-center space-x-2">
-          {filteredProblems.length > 0 && (
+          {problemSet.isOwner && filteredProblems.length > 0 && (
             <Button variant="outline" size="sm" onClick={handleSelectAll}>
               {selectedProblems.length === filteredProblems.length
                 ? 'Deselect All'

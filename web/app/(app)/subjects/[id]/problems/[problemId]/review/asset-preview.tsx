@@ -65,7 +65,8 @@ export default function AssetPreview({ asset }: AssetPreviewProps) {
             alt={getFileName(asset.path)}
             width={800}
             height={256}
-            className="w-full h-auto max-h-64 object-contain bg-muted"
+            className="w-auto h-auto object-contain bg-muted"
+            priority
             unoptimized
             onError={() => setImageError(true)}
           />

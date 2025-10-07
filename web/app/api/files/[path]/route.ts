@@ -3,7 +3,100 @@ import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
 import { createClient } from '@/lib/supabase/server';
 import { FILE_CONSTANTS, ERROR_MESSAGES } from '@/lib/constants';
 import { createApiErrorResponse, handleAsyncError } from '@/lib/common-utils';
+import { checkProblemSetAccess } from '@/lib/problem-set-utils';
 
+/**
+ * Check if a file belongs to a problem in a shared problem set that the user has access to
+ * @param supabase - Supabase client instance
+ * @param filePath - The file path to check access for
+ * @param userId - The user ID requesting access
+ * @param userEmail - The user email for limited access checks
+ * @returns Promise<boolean> - True if user has access via shared problem set
+ */
+async function checkSharedProblemSetAccess(
+  supabase: any,
+  filePath: string,
+  userId: string,
+  userEmail: string
+): Promise<boolean> {
+  try {
+    // Find all problems that reference this file path
+    // Using JSON containment operators for efficient querying
+    const { data: problems, error: problemsError } = await supabase
+      .from('problems')
+      .select(
+        `
+        id,
+        user_id,
+        problem_set_problems(
+          problem_set_id,
+          problem_sets(
+            id,
+            user_id,
+            sharing_level
+          )
+        )
+      `
+      )
+      .or(
+        `assets.cs.{path}.eq.${filePath},solution_assets.cs.{path}.eq.${filePath}`
+      )
+      .limit(50); // Limit to prevent excessive queries
+
+    if (problemsError) {
+      console.error('Error checking shared problem set access:', problemsError);
+      return false;
+    }
+
+    if (!problems || problems.length === 0) {
+      return false;
+    }
+
+    // Check if any of these problems are in shared problem sets
+    for (const problem of problems) {
+      // Skip if the user owns the problem (already handled by main logic)
+      if (problem.user_id === userId) {
+        continue;
+      }
+
+      // Check each problem set this problem belongs to
+      for (const psp of problem.problem_set_problems || []) {
+        const problemSet = psp.problem_sets;
+        if (!problemSet) continue;
+
+        // Check if user has access to this problem set
+        const hasAccess = await checkProblemSetAccess(
+          supabase,
+          problemSet,
+          userId,
+          userEmail,
+          problemSet.id
+        );
+
+        if (hasAccess) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Error checking shared problem set access:', error);
+    return false;
+  }
+}
+
+/**
+ * GET /api/files/[path] - Serve file content with secure access control
+ *
+ * Access is granted if:
+ * 1. User owns the file (file path starts with user/{userId}/)
+ * 2. File is in user's staging directory (temporary uploads)
+ * 3. File belongs to a problem in a shared problem set the user has access to
+ *    - Public problem sets: accessible to all authenticated users
+ *    - Limited problem sets: accessible to users with explicit email sharing
+ *    - Private problem sets: accessible only to the owner
+ */
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ path: string }> }
@@ -25,17 +118,22 @@ export async function GET(
 
   // Additional security: Verify the user actually owns a problem that references this asset
   // OR the file is in staging (temporary uploads during form editing)
+  // OR the file belongs to a problem in a shared problem set the user has access to
   const isStagingFile = decodedPath.includes('/staging/');
 
   if (!isStagingFile) {
-    // For non-staging files, verify they are referenced in a problem
-    const { data: problems, error: problemsError } = await supabase
+    // First check if the user owns a problem that references this asset
+    const { data: userProblems, error: userProblemsError } = await supabase
       .from('problems')
       .select('id, assets, solution_assets')
-      .eq('user_id', user.id);
+      .eq('user_id', user.id)
+      .limit(100); // Limit to prevent excessive queries
 
-    if (problemsError) {
-      console.error('Error checking problem ownership:', problemsError);
+    if (userProblemsError) {
+      console.error(
+        'Error checking user problem ownership:',
+        userProblemsError
+      );
       return NextResponse.json(
         createApiErrorResponse(ERROR_MESSAGES.DATABASE_ERROR, 500),
         { status: 500 }
@@ -43,19 +141,29 @@ export async function GET(
     }
 
     // Check if this file path is referenced in any of the user's problems
-    const isAssetReferenced = problems?.some(problem => {
+    const isUserAssetReferenced = userProblems?.some(problem => {
       const allAssets = [
         ...(problem.assets || []),
         ...(problem.solution_assets || []),
       ];
-      return allAssets.some(asset => asset.path === decodedPath);
+      return allAssets.some(asset => asset && asset.path === decodedPath);
     });
 
-    if (!isAssetReferenced) {
-      return NextResponse.json(
-        createApiErrorResponse(ERROR_MESSAGES.NOT_FOUND, 404),
-        { status: 404 }
+    // If not owned by user, check if it's in a shared problem set
+    if (!isUserAssetReferenced) {
+      const hasSharedAccess = await checkSharedProblemSetAccess(
+        supabase,
+        decodedPath,
+        user.id,
+        user.email || ''
       );
+
+      if (!hasSharedAccess) {
+        return NextResponse.json(
+          createApiErrorResponse(ERROR_MESSAGES.NOT_FOUND, 404),
+          { status: 404 }
+        );
+      }
     }
   }
   // For staging files, we only need to verify the user prefix (already done above)
