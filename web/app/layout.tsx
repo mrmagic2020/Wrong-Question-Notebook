@@ -6,8 +6,8 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Toaster } from '@/components/ui/sonner';
 import './globals.css';
 
-const defaultUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
-  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+const defaultUrl = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}`
   : 'http://localhost:3000';
 
 export const metadata: Metadata = {

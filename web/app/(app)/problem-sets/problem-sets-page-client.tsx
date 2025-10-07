@@ -309,7 +309,7 @@ export default function ProblemSetsPageClient({
                       onClick={e => {
                         e.stopPropagation();
                         navigator.clipboard.writeText(
-                          `${process.env.VERCEL_PROJECT_PRODUCTION_URL || 'http://localhost:3000'}/problem-sets/${problemSet.id}`
+                          `${process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL || 'http://localhost:3000'}/problem-sets/${problemSet.id}`
                         );
                         toast.success('Link copied to clipboard');
                       }}
