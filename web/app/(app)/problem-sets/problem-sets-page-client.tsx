@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { RichTextDisplay } from '@/components/ui/rich-text-display';
 import {
   Search,
   Plus,
@@ -256,9 +257,9 @@ export default function ProblemSetsPageClient({
             </CardHeader>
             <CardContent className="pt-0">
               {problemSet.description && (
-                <p className="card-section-description mb-4 line-clamp-2">
-                  {problemSet.description}
-                </p>
+                <div className="card-section-description mb-4 line-clamp-2">
+                  <RichTextDisplay content={problemSet.description} />
+                </div>
               )}
 
               <div className="flex items-center justify-between">

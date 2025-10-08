@@ -6,6 +6,7 @@ import {
   USER_ROLES,
   GENDER_OPTIONS,
 } from './constants';
+import { isValidHtml, sanitizeHtmlContent } from './html-sanitizer';
 
 // Database enum values - these should match the PostgreSQL enum type
 export const PROBLEM_TYPE_VALUES = [
@@ -25,6 +26,23 @@ export type ProblemType = z.infer<typeof ProblemType>;
 export const ProblemStatus = z.enum(PROBLEM_STATUS_VALUES);
 export type ProblemStatus = z.infer<typeof ProblemStatus>;
 
+// Custom Zod transformer for HTML content that sanitizes and validates
+const htmlContent = z
+  .string()
+  .max(VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX)
+  .transform(html => {
+    // Sanitize the HTML content
+    const sanitized = sanitizeHtmlContent(html);
+
+    // Validate that the sanitized content is safe
+    if (!isValidHtml(sanitized)) {
+      throw new Error('Invalid HTML content detected');
+    }
+
+    return sanitized;
+  })
+  .optional();
+
 const Asset = z.object({
   path: z.string(),
   kind: z.enum(['image', 'pdf']).optional(),
@@ -36,10 +54,7 @@ export const CreateProblemDto = z.object({
     .string()
     .min(VALIDATION_CONSTANTS.STRING_LIMITS.TITLE_MIN)
     .max(VALIDATION_CONSTANTS.STRING_LIMITS.TITLE_MAX),
-  content: z
-    .string()
-    .max(VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX)
-    .optional(),
+  content: htmlContent,
   problem_type: ProblemType,
   correct_answer: z
     .string()
@@ -50,10 +65,7 @@ export const CreateProblemDto = z.object({
   assets: z.array(Asset).default([]),
 
   // NEW:
-  solution_text: z
-    .string()
-    .max(VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX)
-    .optional(),
+  solution_text: htmlContent,
   solution_assets: z.array(Asset).default([]),
   last_reviewed_date: z.string().optional(),
 
@@ -262,10 +274,7 @@ export const CreateProblemSetDto = z.object({
     .string()
     .min(VALIDATION_CONSTANTS.STRING_LIMITS.TITLE_MIN)
     .max(VALIDATION_CONSTANTS.STRING_LIMITS.TITLE_MAX),
-  description: z
-    .string()
-    .max(VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX)
-    .optional(),
+  description: htmlContent,
   sharing_level: ProblemSetSharingLevel.default(
     PROBLEM_SET_CONSTANTS.SHARING_LEVELS.PRIVATE
   ),

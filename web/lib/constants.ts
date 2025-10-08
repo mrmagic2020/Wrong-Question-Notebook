@@ -141,7 +141,7 @@ export const VALIDATION_CONSTANTS = {
     TITLE_MIN: 1,
     TITLE_MAX: 50,
 
-    TEXT_BODY_MAX: 1000,
+    TEXT_BODY_MAX: 5000,
 
     TAG_NAME_MIN: 1,
     TAG_NAME_MAX: 30,
@@ -165,7 +165,7 @@ export const SECURITY_CONSTANTS = {
     'X-XSS-Protection': '1; mode=block',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
     'Content-Security-Policy':
-      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;",
+      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://*.supabase.in; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
     'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
   },
 

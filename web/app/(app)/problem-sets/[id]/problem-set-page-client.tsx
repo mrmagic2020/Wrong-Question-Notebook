@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { RichTextDisplay } from '@/components/ui/rich-text-display';
 import { Input } from '@/components/ui/input';
 import {
   ArrowLeft,
@@ -320,7 +321,7 @@ export default function ProblemSetPageClient({
       {problemSet.description && (
         <Card className="card-section">
           <CardContent className="card-section-content pt-6">
-            <p>{problemSet.description}</p>
+            <RichTextDisplay content={problemSet.description} />
           </CardContent>
         </Card>
       )}

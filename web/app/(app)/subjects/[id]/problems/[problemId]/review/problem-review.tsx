@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ProblemType, ProblemStatus } from '@/lib/schemas';
+import { RichTextDisplay } from '@/components/ui/rich-text-display';
 import AnswerInput from './answer-input';
 import AssetPreview from './asset-preview';
 import SolutionReveal from './solution-reveal';
@@ -212,8 +213,8 @@ export default function ProblemReview({
           Problem
         </h2>
         {problem.content && (
-          <div className="prose max-w-none mb-4">
-            <div dangerouslySetInnerHTML={{ __html: problem.content }} />
+          <div className="prose max-w-none mb-4 rich-text-content">
+            <RichTextDisplay content={problem.content} />
           </div>
         )}
 

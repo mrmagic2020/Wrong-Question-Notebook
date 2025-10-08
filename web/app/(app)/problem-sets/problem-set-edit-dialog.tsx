@@ -12,7 +12,8 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import { VALIDATION_CONSTANTS } from '@/lib/constants';
 import {
   Select,
   SelectContent,
@@ -200,15 +201,16 @@ export default function ProblemSetEditDialog({
 
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={e =>
-                setFormData(prev => ({ ...prev, description: e.target.value }))
+            <RichTextEditor
+              content={formData.description}
+              onChange={content =>
+                setFormData(prev => ({ ...prev, description: content }))
               }
               placeholder="Enter problem set description (optional)"
-              maxLength={1000}
-              rows={3}
+              minHeight="100px"
+              maxHeight="250px"
+              maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
+              showCharacterCount={true}
             />
           </div>
 

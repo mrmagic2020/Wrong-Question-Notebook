@@ -290,3 +290,386 @@ html body[data-scroll-locked] {
     @apply shadow-lg shadow-black/5 dark:shadow-black/20;
   }
 }
+
+/* Math formatting styles */
+code.math {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.9em;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  border: 1px solid hsl(var(--border));
+}
+
+/* Dark mode support for math */
+@media (prefers-color-scheme: dark) {
+  code.math {
+    background-color: hsl(var(--muted));
+    color: hsl(var(--foreground));
+    border-color: hsl(var(--border));
+  }
+}
+
+/* Link styling for rich text editor - scoped to TipTap editor content only */
+
+/* Unified rich text styling - used by both editor and display components */
+.rich-text-content,
+.tiptap {
+  /* Ensure consistent font rendering */
+  font-feature-settings:
+    'liga' 1,
+    'kern' 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Unified heading styles */
+.rich-text-content h1,
+.tiptap h1 {
+  font-size: 1.5rem !important; /* text-2xl */
+  font-weight: 700 !important; /* font-bold */
+  margin-bottom: 1rem !important; /* mb-4 */
+  color: hsl(var(--foreground)) !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  max-width: 100% !important;
+  line-height: 1.25 !important;
+}
+
+.rich-text-content h2,
+.tiptap h2 {
+  font-size: 1.25rem !important; /* text-xl */
+  font-weight: 700 !important; /* font-bold */
+  margin-bottom: 0.75rem !important; /* mb-3 */
+  color: hsl(var(--foreground)) !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  max-width: 100% !important;
+  line-height: 1.25 !important;
+}
+
+.rich-text-content h3,
+.tiptap h3 {
+  font-size: 1.125rem !important; /* text-lg */
+  font-weight: 700 !important; /* font-bold */
+  margin-bottom: 0.5rem !important; /* mb-2 */
+  color: hsl(var(--foreground)) !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  max-width: 100% !important;
+  line-height: 1.25 !important;
+}
+
+.rich-text-content h4,
+.tiptap h4 {
+  font-size: 1rem !important; /* text-base */
+  font-weight: 700 !important; /* font-bold */
+  margin-bottom: 0.5rem !important; /* mb-2 */
+  color: hsl(var(--foreground)) !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  max-width: 100% !important;
+  line-height: 1.25 !important;
+}
+
+.rich-text-content h5,
+.tiptap h5 {
+  font-size: 0.875rem !important; /* text-sm */
+  font-weight: 700 !important; /* font-bold */
+  margin-bottom: 0.5rem !important; /* mb-2 */
+  color: hsl(var(--foreground)) !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  max-width: 100% !important;
+  line-height: 1.25 !important;
+}
+
+.rich-text-content h6,
+.tiptap h6 {
+  font-size: 0.75rem !important; /* text-xs */
+  font-weight: 700 !important; /* font-bold */
+  margin-bottom: 0.5rem !important; /* mb-2 */
+  color: hsl(var(--foreground)) !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  max-width: 100% !important;
+  line-height: 1.25 !important;
+}
+
+/* Unified paragraph styles */
+.rich-text-content p,
+.tiptap p {
+  margin-bottom: 0.5rem !important; /* mb-2 */
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.6 !important; /* leading-relaxed */
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  max-width: 100% !important;
+}
+
+/* Unified text formatting */
+.rich-text-content strong,
+.tiptap strong {
+  font-weight: 600 !important; /* font-semibold */
+  color: hsl(var(--foreground)) !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  max-width: 100% !important;
+}
+
+.rich-text-content em,
+.tiptap em {
+  font-style: italic !important;
+  color: hsl(var(--foreground)) !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  max-width: 100% !important;
+}
+
+/* Unified code styles */
+.rich-text-content code,
+.tiptap code {
+  background-color: hsl(var(--muted)) !important;
+  padding: 0.125rem 0.25rem !important; /* px-1 py-0.5 */
+  border-radius: 0.25rem !important; /* rounded */
+  font-size: 0.875rem !important; /* text-sm */
+  font-family:
+    ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo,
+    monospace !important;
+  color: hsl(var(--foreground)) !important;
+  word-break: break-all !important;
+  overflow-wrap: anywhere !important;
+  max-width: 100% !important;
+}
+
+.rich-text-content pre,
+.tiptap pre {
+  background-color: hsl(var(--muted)) !important;
+  padding: 1rem !important; /* p-4 */
+  border-radius: 0.25rem !important; /* rounded */
+  overflow-x: auto !important;
+  color: hsl(var(--foreground)) !important;
+  max-width: 100% !important;
+  white-space: pre-wrap !important;
+}
+
+/* Unified list styles */
+.rich-text-content ul,
+.tiptap ul {
+  margin-bottom: 0.5rem !important; /* mb-2 */
+  color: hsl(var(--foreground)) !important;
+  padding-left: 1.5rem !important; /* pl-6 */
+  list-style-type: disc !important; /* list-disc */
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  max-width: 100% !important;
+}
+
+.rich-text-content ol,
+.tiptap ol {
+  margin-bottom: 0.5rem !important; /* mb-2 */
+  color: hsl(var(--foreground)) !important;
+  padding-left: 1.5rem !important; /* pl-6 */
+  list-style-type: decimal !important; /* list-decimal */
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  max-width: 100% !important;
+}
+
+.rich-text-content li,
+.tiptap li {
+  margin-bottom: 0.25rem !important; /* mb-1 */
+  color: hsl(var(--foreground)) !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  max-width: 100% !important;
+  line-height: 1.6 !important;
+}
+
+/* Unified blockquote styles */
+.rich-text-content blockquote,
+.tiptap blockquote {
+  border-left: 4px solid hsl(var(--primary)) !important; /* border-l-4 border-primary */
+  padding-left: 1rem !important; /* pl-4 */
+  font-style: italic !important;
+  color: hsl(var(--foreground)) !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  max-width: 100% !important;
+  line-height: 1.6 !important;
+  margin: 1rem 0 !important; /* my-4 */
+}
+
+/* Unified link styles - specific to rich text content only */
+.rich-text-content a,
+.tiptap a {
+  color: #2563eb !important; /* Blue-600 - specific blue color */
+  text-decoration: none !important; /* no-underline */
+  transition: color 0.2s ease !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  max-width: 100% !important;
+}
+
+.rich-text-content a:hover,
+.tiptap a:hover {
+  color: #1d4ed8 !important; /* Blue-700 - darker blue on hover */
+  text-decoration: underline !important;
+}
+
+/* Dark mode link styling */
+.dark .rich-text-content a,
+.dark .tiptap a {
+  color: #60a5fa !important; /* Blue-400 - lighter blue for dark mode */
+}
+
+.dark .rich-text-content a:hover,
+.dark .tiptap a:hover {
+  color: #93c5fd !important; /* Blue-300 - even lighter blue on hover in dark mode */
+}
+
+/* Unified table styles */
+.rich-text-content table,
+.tiptap table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin-bottom: 1rem !important; /* mb-4 */
+  color: hsl(var(--foreground)) !important;
+  max-width: 100% !important;
+  table-layout: fixed !important;
+}
+
+.rich-text-content th,
+.tiptap th {
+  border: 1px solid hsl(var(--border)) !important;
+  padding: 0.5rem 0.75rem !important; /* px-3 py-2 */
+  background-color: hsl(var(--muted)) !important;
+  text-align: left !important;
+  color: hsl(var(--foreground)) !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  max-width: 0 !important;
+  line-height: 1.4 !important;
+}
+
+.rich-text-content td,
+.tiptap td {
+  border: 1px solid hsl(var(--border)) !important;
+  padding: 0.5rem 0.75rem !important; /* px-3 py-2 */
+  color: hsl(var(--foreground)) !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  max-width: 0 !important;
+  line-height: 1.4 !important;
+}
+
+/* Rich text editor width constraints */
+.ProseMirror {
+  max-width: 100% !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  overflow-wrap: anywhere !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+  hyphens: auto !important;
+  -webkit-hyphens: auto !important;
+  -moz-hyphens: auto !important;
+}
+
+/* Ensure the editor container itself doesn't expand */
+.rich-text-editor-container {
+  max-width: 100% !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+  display: block !important;
+}
+
+/* Ensure editor content doesn't expand beyond container */
+.ProseMirror * {
+  max-width: 100% !important;
+  overflow-wrap: anywhere !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  box-sizing: border-box !important;
+}
+
+/* Special handling for pre and code blocks */
+.ProseMirror pre {
+  overflow-x: auto !important;
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+}
+
+.ProseMirror code {
+  word-break: break-all !important;
+  overflow-wrap: break-word !important;
+}
+
+/* Table width constraints */
+.ProseMirror table {
+  table-layout: fixed !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.ProseMirror td,
+.ProseMirror th {
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  max-width: 0 !important; /* Forces table cells to respect width */
+}
+
+/* Force break long URLs and links */
+.ProseMirror a {
+  word-break: break-all !important;
+  overflow-wrap: anywhere !important;
+  max-width: 100% !important;
+  display: inline-block !important;
+}
+
+/* Force break long text in paragraphs */
+.ProseMirror p {
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  max-width: 100% !important;
+}
+
+/* Force break long text in headings */
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4,
+.ProseMirror h5,
+.ProseMirror h6 {
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  max-width: 100% !important;
+}
+
+/* Force break any remaining long elements */
+.ProseMirror span,
+.ProseMirror div,
+.ProseMirror strong,
+.ProseMirror em,
+.ProseMirror b,
+.ProseMirror i {
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Emergency fallback for any element that might still expand */
+.ProseMirror > * {
+  max-width: 100% !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  box-sizing: border-box !important;
+}

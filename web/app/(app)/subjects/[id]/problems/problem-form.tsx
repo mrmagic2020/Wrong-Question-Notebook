@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PROBLEM_TYPE_VALUES, type ProblemType } from '@/lib/schemas';
 import { getProblemTypeDisplayName } from '@/lib/common-utils';
-import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { VALIDATION_CONSTANTS } from '@/lib/constants';
 import { Spinner } from '@/components/ui/spinner';
 
@@ -75,7 +75,6 @@ export default function ProblemForm({
   const [title, setTitle] = useState(problem?.title || '');
   const [titleFocus, setTitleFocus] = useState(false);
   const [content, setContent] = useState(problem?.content || '');
-  const [contentFocus, setContentFocus] = useState(false);
   const [problemType, setProblemType] = useState<ProblemType>(
     problem?.problem_type || 'short'
   );
@@ -146,7 +145,6 @@ export default function ProblemForm({
   const [solutionText, setSolutionText] = useState(
     problem?.solution_text || ''
   );
-  const [solutionTextFocus, setSolutionTextFocus] = useState(false);
   const [solutionAssets, setSolutionAssets] = useState<
     Array<{ path: string; name: string }>
   >(
@@ -400,24 +398,16 @@ export default function ProblemForm({
       <div className="form-row-start">
         <label className="form-label pt-2">Content</label>
         <div className="flex-1 relative">
-          <Textarea
-            className="form-textarea"
-            placeholder="Type the problem text (Markdown/LaTeX supported) - Optional"
-            value={content}
+          <RichTextEditor
+            content={content}
+            onChange={setContent}
+            placeholder="Type the problem text with rich formatting, math equations, and more..."
+            minHeight="150px"
+            maxHeight="300px"
+            disabled={isSubmitting}
             maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
-            onFocus={() => setContentFocus(true)}
-            onBlur={() => setContentFocus(false)}
-            onChange={e => setContent(e.target.value)}
+            showCharacterCount={true}
           />
-          {contentFocus && (
-            <span
-              className="absolute bottom-1.5 right-3 text-xs text-muted-foreground pointer-events-none bg-background px-1"
-              style={{ lineHeight: 1 }}
-            >
-              {content.length}/
-              {VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
-            </span>
-          )}
         </div>
       </div>
 
@@ -525,24 +515,16 @@ export default function ProblemForm({
       <div className="form-row-start">
         <label className="form-label pt-2">Solution (text)</label>
         <div className="flex-1 relative">
-          <Textarea
-            className="form-textarea"
-            placeholder="Optional: typed solution (Markdown/LaTeX)"
-            value={solutionText}
+          <RichTextEditor
+            content={solutionText}
+            onChange={setSolutionText}
+            placeholder="Optional: typed solution with rich formatting and math equations..."
+            minHeight="150px"
+            maxHeight="300px"
+            disabled={isSubmitting}
             maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
-            onChange={e => setSolutionText(e.target.value)}
-            onFocus={() => setSolutionTextFocus(true)}
-            onBlur={() => setSolutionTextFocus(false)}
+            showCharacterCount={true}
           />
-          {solutionTextFocus && (
-            <span
-              className="absolute bottom-1.5 right-3 text-xs text-muted-foreground pointer-events-none bg-background px-1"
-              style={{ lineHeight: 1 }}
-            >
-              {solutionText.length}/
-              {VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
-            </span>
-          )}
         </div>
       </div>
       <div className="form-row-start">

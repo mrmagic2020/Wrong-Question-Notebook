@@ -148,11 +148,9 @@ export default async function ProblemSetReviewPage({
           <p className="text-muted-foreground mb-4">
             Redirecting to the first problem in the set...
           </p>
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `window.location.href = '/problem-sets/${id}/review?problemId=${problems[0].id}';`,
-            }}
-          />
+          <script>
+            {`window.location.href = '/problem-sets/${id}/review?problemId=${problems[0].id}';`}
+          </script>
         </div>
       </div>
     );

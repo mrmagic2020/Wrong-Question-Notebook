@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { RichTextDisplay } from '@/components/ui/rich-text-display';
 
 interface SolutionAsset {
   path: string;
@@ -54,12 +55,8 @@ export default function SolutionReveal({
               </h3>
               <div className="text-green-700 dark:text-green-300">
                 {problemType === 'extended' ? (
-                  <div className="prose max-w-none">
-                    <div
-                      dangerouslySetInnerHTML={{
-                        __html: String(correctAnswer),
-                      }}
-                    />
+                  <div className="prose max-w-none rich-text-content">
+                    <RichTextDisplay content={String(correctAnswer)} />
                   </div>
                 ) : (
                   <p className="font-mono text-lg">
@@ -74,8 +71,8 @@ export default function SolutionReveal({
           {solutionText && (
             <div className="space-y-2">
               <h3 className="font-medium">Solution</h3>
-              <div className="prose max-w-none">
-                <div dangerouslySetInnerHTML={{ __html: solutionText }} />
+              <div className="prose max-w-none rich-text-content">
+                <RichTextDisplay content={solutionText} />
               </div>
             </div>
           )}
