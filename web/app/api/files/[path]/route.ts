@@ -1,104 +1,20 @@
 import { NextResponse } from 'next/server';
 import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
-import { createClient } from '@/lib/supabase/server';
+import { createServiceClient } from '@/lib/supabase-utils';
 import { FILE_CONSTANTS, ERROR_MESSAGES } from '@/lib/constants';
 import { createApiErrorResponse, handleAsyncError } from '@/lib/common-utils';
-import { checkProblemSetAccess } from '@/lib/problem-set-utils';
 
 /**
- * Check if a file belongs to a problem in a shared problem set that the user has access to
- * @param supabase - Supabase client instance
- * @param filePath - The file path to check access for
- * @param userId - The user ID requesting access
- * @param userEmail - The user email for limited access checks
- * @returns Promise<boolean> - True if user has access via shared problem set
- */
-async function checkSharedProblemSetAccess(
-  supabase: any,
-  filePath: string,
-  userId: string,
-  userEmail: string
-): Promise<boolean> {
-  try {
-    // Find all problems that reference this file path
-    // Using JSON containment operators for efficient querying
-    const { data: problems, error: problemsError } = await supabase
-      .from('problems')
-      .select(
-        `
-        id,
-        user_id,
-        problem_set_problems(
-          problem_set_id,
-          problem_sets(
-            id,
-            user_id,
-            sharing_level
-          )
-        )
-      `
-      )
-      .or(
-        `assets.cs.{path}.eq.${filePath},solution_assets.cs.{path}.eq.${filePath}`
-      )
-      .limit(50); // Limit to prevent excessive queries
-
-    if (problemsError) {
-      console.error('Error checking shared problem set access:', problemsError);
-      return false;
-    }
-
-    if (!problems || problems.length === 0) {
-      return false;
-    }
-
-    // Check if any of these problems are in shared problem sets
-    for (const problem of problems) {
-      // Skip if the user owns the problem (already handled by main logic)
-      if (problem.user_id === userId) {
-        continue;
-      }
-
-      // Check each problem set this problem belongs to
-      for (const psp of problem.problem_set_problems || []) {
-        const problemSet = psp.problem_sets;
-        if (!problemSet) continue;
-
-        // Check if user has access to this problem set
-        const hasAccess = await checkProblemSetAccess(
-          supabase,
-          problemSet,
-          userId,
-          userEmail,
-          problemSet.id
-        );
-
-        if (hasAccess) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  } catch (error) {
-    console.error('Error checking shared problem set access:', error);
-    return false;
-  }
-}
-
-/**
- * GET /api/files/[path] - Serve file content with secure access control
+ * GET /api/files/[path] - Serve file content using signed URLs with secure access control
  *
  * Access is granted if:
- * 1. User owns the file (file path starts with user/{userId}/)
- * 2. File is in user's staging directory (temporary uploads)
- * 3. File belongs to a problem in a shared problem set the user has access to
- *    - Public problem sets: accessible to all authenticated users
- *    - Limited problem sets: accessible to users with explicit email sharing
- *    - Private problem sets: accessible only to the owner
+ * 1. File is in user's staging directory (temporary uploads) - direct ownership check
+ * 2. File belongs to a problem the user can view via can_view_problem RPC
+ *
+ * Uses signed URLs for efficient and secure file delivery.
  */
 export async function GET(
-  req: Request,
+  _req: Request,
   { params }: { params: Promise<{ path: string }> }
 ) {
   const { user, supabase } = await requireUser();
@@ -107,145 +23,121 @@ export async function GET(
   const { path } = await params;
   const decodedPath = decodeURIComponent(path);
 
-  // Verify the user owns this file
-  const userPrefix = `user/${user.id}/`;
-  if (!decodedPath.startsWith(userPrefix)) {
+  // Basic security: Verify the file path is in the expected format
+  // Must start with 'user/' followed by a UUID (any user's files)
+  const userPathPattern =
+    /^user\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\//;
+  if (!userPathPattern.test(decodedPath)) {
     return NextResponse.json(
       createApiErrorResponse(ERROR_MESSAGES.UNAUTHORIZED, 403),
       { status: 403 }
     );
   }
 
-  // Additional security: Verify the user actually owns a problem that references this asset
-  // OR the file is in staging (temporary uploads during form editing)
-  // OR the file belongs to a problem in a shared problem set the user has access to
+  // Parse bucket and name from the path
+  const bucket = FILE_CONSTANTS.STORAGE.BUCKET;
+  const name = decodedPath; // Full path is the object name
+
+  // Handle staging files - direct ownership check
   const isStagingFile = decodedPath.includes('/staging/');
+  const isUserOwnedFile = decodedPath.startsWith(`user/${user.id}/`);
 
-  if (!isStagingFile) {
-    // First check if the user owns a problem that references this asset
-    const { data: userProblems, error: userProblemsError } = await supabase
-      .from('problems')
-      .select('id, assets, solution_assets')
-      .eq('user_id', user.id)
-      .limit(100); // Limit to prevent excessive queries
-
-    if (userProblemsError) {
-      console.error(
-        'Error checking user problem ownership:',
-        userProblemsError
-      );
+  if (isStagingFile) {
+    // For staging files, ensure they belong to the current user
+    if (!isUserOwnedFile) {
       return NextResponse.json(
-        createApiErrorResponse(ERROR_MESSAGES.DATABASE_ERROR, 500),
-        { status: 500 }
+        createApiErrorResponse(ERROR_MESSAGES.UNAUTHORIZED, 403),
+        { status: 403 }
       );
     }
+  } else {
+    // For non-staging files, check if user can view the problem that contains this asset
+    try {
+      // Find the problem that contains this file
+      // const needleObj = { path: decodedPath };
+      const { data: problemId, error: problemError } = await supabase
+        .rpc(`find_problem_by_asset`, { p_path: decodedPath })
+        .single();
 
-    // Check if this file path is referenced in any of the user's problems
-    const isUserAssetReferenced = userProblems?.some(problem => {
-      const allAssets = [
-        ...(problem.assets || []),
-        ...(problem.solution_assets || []),
-      ];
-      return allAssets.some(asset => asset && asset.path === decodedPath);
-    });
+      // const { data: problem, error: problemError } = await supabase
+      //   .from('problems')
+      //   .select('id')
+      //   .or(
+      //     `assets.@>.[{"path":"${decodedPath}"}],solution_assets.@>.[{"path":"${decodedPath}"}]`
+      //   )
+      //   .limit(1)
+      //   .maybeSingle();
 
-    // If not owned by user, check if it's in a shared problem set
-    if (!isUserAssetReferenced) {
-      const hasSharedAccess = await checkSharedProblemSetAccess(
-        supabase,
-        decodedPath,
-        user.id,
-        user.email || ''
-      );
+      if (problemError) {
+        console.error('Error finding problem for file:', problemError);
+        return NextResponse.json(
+          createApiErrorResponse(ERROR_MESSAGES.DATABASE_ERROR, 500),
+          { status: 500 }
+        );
+      }
 
-      if (!hasSharedAccess) {
+      if (!problemId) {
         return NextResponse.json(
           createApiErrorResponse(ERROR_MESSAGES.NOT_FOUND, 404),
           { status: 404 }
         );
       }
+
+      // Check if user can view this problem using the RPC
+      const { data: canView, error: rpcError } = await supabase
+        .rpc('can_view_problem', { p_problem_id: problemId })
+        .single();
+
+      if (rpcError) {
+        console.error('Error checking problem access:', rpcError);
+        return NextResponse.json(
+          createApiErrorResponse(ERROR_MESSAGES.DATABASE_ERROR, 500),
+          { status: 500 }
+        );
+      }
+
+      if (!canView) {
+        return NextResponse.json(
+          createApiErrorResponse(ERROR_MESSAGES.NOT_FOUND, 404),
+          { status: 404 }
+        );
+      }
+    } catch (error) {
+      console.error('Unexpected error checking file access:', error);
+      return NextResponse.json(
+        createApiErrorResponse(ERROR_MESSAGES.INTERNAL_ERROR, 500),
+        { status: 500 }
+      );
     }
   }
-  // For staging files, we only need to verify the user prefix (already done above)
 
   try {
-    // Use server-side Supabase client to download the file content
-    const serverSupabase = await createClient();
-    const { data, error } = await serverSupabase.storage
-      .from(FILE_CONSTANTS.STORAGE.BUCKET)
-      .download(decodedPath);
+    // Create a short-lived signed URL using the service client
+    const serviceSupabase = createServiceClient();
+    const { data: signed, error: signedError } = await serviceSupabase.storage
+      .from(bucket)
+      .createSignedUrl(name, 120); // 2 minutes expiry
 
-    if (error) {
-      console.error('Error downloading file:', error);
+    if (signedError) {
+      console.error('Error creating signed URL:', signedError);
       return NextResponse.json(
         createApiErrorResponse(ERROR_MESSAGES.FILE_UPLOAD_FAILED, 500),
         { status: 500 }
       );
     }
 
-    if (!data) {
+    if (!signed?.signedUrl) {
       return NextResponse.json(
         createApiErrorResponse(ERROR_MESSAGES.NOT_FOUND, 404),
         { status: 404 }
       );
     }
 
-    // Convert blob to buffer
-    const buffer = await data.arrayBuffer();
-
-    // Determine content type based on file extension
-    const getContentType = (path: string) => {
-      const ext = path.toLowerCase().split('.').pop();
-      switch (ext) {
-        case 'jpg':
-        case 'jpeg':
-          return 'image/jpeg';
-        case 'png':
-          return 'image/png';
-        case 'gif':
-          return 'image/gif';
-        case 'webp':
-          return 'image/webp';
-        case 'svg':
-          return 'image/svg+xml';
-        case 'pdf':
-          return 'application/pdf';
-        default:
-          return 'application/octet-stream';
-      }
-    };
-
-    const contentType = getContentType(decodedPath);
-    const fileName = decodedPath.split('/').pop() || 'file';
-
-    // Check file size to prevent abuse
-    const maxSize = FILE_CONSTANTS.MAX_FILE_SIZE.GENERAL;
-    if (buffer.byteLength > maxSize) {
-      return NextResponse.json(
-        createApiErrorResponse(ERROR_MESSAGES.FILE_TOO_LARGE, 413),
-        { status: 413 }
-      );
-    }
-
-    // Return the file content with appropriate headers
-    return new NextResponse(buffer, {
-      status: 200,
-      headers: {
-        'Content-Type': contentType,
-        'Content-Length': buffer.byteLength.toString(),
-        'Content-Disposition': `inline; filename="${fileName}"`,
-        'Cache-Control': `private, max-age=${FILE_CONSTANTS.STORAGE.CACHE_CONTROL}`, // 5 minute cache, private only
-        'X-Content-Type-Options': 'nosniff',
-        'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '1; mode=block',
-        'Referrer-Policy': 'no-referrer',
-        'Content-Security-Policy': "default-src 'self'",
-        'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-      },
-    });
+    // Return a 302 redirect to the signed URL
+    return NextResponse.redirect(signed.signedUrl, 302);
   } catch (error) {
     const { message, status } = handleAsyncError(error);
-    console.error('Unexpected error serving file:', error);
+    console.error('Unexpected error creating signed URL:', error);
     return NextResponse.json(createApiErrorResponse(message, status), {
       status,
     });
