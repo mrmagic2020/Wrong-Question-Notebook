@@ -1,6 +1,7 @@
 // web/lib/storage/move.ts
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { FILE_CONSTANTS, DATABASE_CONSTANTS } from '../constants';
+import { logger } from '../logger';
 
 /** From a staged path -> final per-problem path */
 export function toFinalPath(
@@ -72,7 +73,11 @@ export async function cleanupStagingFiles(
       .list(stagingPrefix, { limit: DATABASE_CONSTANTS.PAGINATION.MAX_LIMIT });
 
     if (listError) {
-      console.error('Error listing staging files:', listError);
+      logger.error('Error listing staging files', listError, {
+        component: 'Storage',
+        action: 'cleanupStagingFiles',
+        stagingId,
+      });
       return { success: false, error: listError.message };
     }
 
@@ -87,13 +92,21 @@ export async function cleanupStagingFiles(
       .remove(filePaths);
 
     if (deleteError) {
-      console.error('Error deleting staging files:', deleteError);
+      logger.error('Error deleting staging files', deleteError, {
+        component: 'Storage',
+        action: 'cleanupStagingFiles',
+        stagingId,
+      });
       return { success: false, error: deleteError.message };
     }
 
     return { success: true, deletedCount: files.length };
   } catch (error) {
-    console.error('Unexpected error cleaning up staging files:', error);
+    logger.error('Unexpected error cleaning up staging files', error, {
+      component: 'Storage',
+      action: 'cleanupStagingFiles',
+      stagingId,
+    });
     return { success: false, error: 'Unexpected error during cleanup' };
   }
 }

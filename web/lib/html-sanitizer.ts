@@ -1,4 +1,5 @@
 import sanitizeHtml from 'sanitize-html';
+import { logger } from './logger';
 
 /**
  * Sanitizes HTML content to prevent XSS attacks
@@ -21,10 +22,10 @@ export function sanitizeHtmlContent(html: string): string {
       return sanitized;
     } catch (error) {
       // If parsing failed, return the original content (it will be sanitized again)
-      console.warn(
-        'HTML sanitization resulted in invalid HTML, using original:',
-        error
-      );
+      logger.warn('HTML sanitization resulted in invalid HTML', {
+        component: 'HTMLSanitizer',
+        action: 'sanitizeHtmlContent',
+      });
       return html;
     }
   }

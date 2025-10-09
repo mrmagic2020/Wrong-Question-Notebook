@@ -54,7 +54,7 @@ async function getProblems(req: Request) {
 
   // Validate problem types
   const invalidTypes = problemTypes.filter(
-    type => !PROBLEM_TYPE_VALUES.includes(type as any)
+    type => !PROBLEM_TYPE_VALUES.includes(type as typeof PROBLEM_TYPE_VALUES[number])
   );
   if (invalidTypes.length > 0) {
     return NextResponse.json(
@@ -68,7 +68,7 @@ async function getProblems(req: Request) {
 
   // Validate statuses
   const invalidStatuses = statuses.filter(
-    status => !PROBLEM_STATUS_VALUES.includes(status as any)
+    status => !PROBLEM_STATUS_VALUES.includes(status as typeof PROBLEM_STATUS_VALUES[number])
   );
   if (invalidStatuses.length > 0) {
     return NextResponse.json(

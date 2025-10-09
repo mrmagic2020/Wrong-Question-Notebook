@@ -9,6 +9,7 @@ import {
 } from '@/lib/schemas';
 import { createServiceClient } from './supabase-utils';
 import { DATABASE_CONSTANTS } from './constants';
+import { logger } from './logger';
 
 /**
  * Get user profile by ID
@@ -327,7 +328,7 @@ export async function logUserActivity(
   action: string,
   resourceType?: string,
   resourceId?: string,
-  details?: Record<string, any>
+  details?: Record<string, unknown>
 ): Promise<boolean> {
   const serviceSupabase = createServiceClient();
 
@@ -364,7 +365,7 @@ export async function getAdminSettings(): Promise<AdminSettingsType[]> {
  */
 export async function updateAdminSetting(
   key: string,
-  value: Record<string, any>
+  value: Record<string, unknown>
 ): Promise<AdminSettingsType | null> {
   const serviceSupabase = createServiceClient();
 
@@ -451,7 +452,11 @@ export async function deleteUser(userId: string): Promise<boolean> {
       .eq('user_id', userId);
 
     if (subjectsError) {
-      console.error('Error deleting user subjects:', subjectsError);
+      logger.error('Error deleting user subjects', subjectsError, {
+        component: 'UserManagement',
+        action: 'deleteUser',
+        userId,
+      });
       // Continue anyway, as this might be due to RLS policies
     }
 
@@ -473,7 +478,11 @@ export async function deleteUser(userId: string): Promise<boolean> {
       .eq('user_id', userId);
 
     if (activityError) {
-      console.error('Error deleting user activity logs:', activityError);
+      logger.error('Error deleting user activity logs', activityError, {
+        component: 'UserManagement',
+        action: 'deleteUser',
+        userId,
+      });
       // Continue anyway
     }
 
@@ -484,7 +493,11 @@ export async function deleteUser(userId: string): Promise<boolean> {
       .eq('id', userId);
 
     if (profileError) {
-      console.error('Error deleting user profile:', profileError);
+      logger.error('Error deleting user profile', profileError, {
+        component: 'UserManagement',
+        action: 'deleteUser',
+        userId,
+      });
       return false;
     }
 
@@ -493,13 +506,21 @@ export async function deleteUser(userId: string): Promise<boolean> {
       await serviceSupabase.auth.admin.deleteUser(userId);
 
     if (authError) {
-      console.error('Error deleting auth user:', authError);
+      logger.error('Error deleting auth user', authError, {
+        component: 'UserManagement',
+        action: 'deleteUser',
+        userId,
+      });
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('Error deleting user:', error);
+    logger.error('Error deleting user', error, {
+      component: 'UserManagement',
+      action: 'deleteUser',
+      userId,
+    });
     return false;
   }
 }
@@ -523,7 +544,11 @@ async function deleteUserStorageFiles(userId: string): Promise<void> {
         });
 
       if (listError) {
-        console.error(`Error listing directory ${path}:`, listError);
+        logger.error(`Error listing directory ${path}`, listError, {
+          component: 'UserManagement',
+          action: 'deleteDirectoryRecursive',
+          path,
+        });
         return;
       }
 
@@ -552,11 +577,18 @@ async function deleteUserStorageFiles(userId: string): Promise<void> {
           .remove(filesToDelete);
 
         if (deleteError) {
-          console.error(`Error deleting files in ${path}:`, deleteError);
+          logger.error(`Error deleting files in ${path}`, deleteError, {
+            component: 'UserManagement',
+            action: 'deleteDirectoryRecursive',
+            path,
+          });
         }
       }
     }
   } catch (error) {
-    console.error('Error in deleteUserStorageFiles:', error);
+    logger.error('Error in deleteUserStorageFiles', error, {
+      component: 'UserManagement',
+      action: 'deleteUserStorageFiles',
+    });
   }
 }

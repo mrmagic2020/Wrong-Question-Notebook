@@ -50,7 +50,7 @@ export async function GET(
     .eq('problem_id', id)
     .eq('user_id', user.id);
 
-  const tags = tagLinks?.map((link: any) => link.tags).filter(Boolean) || [];
+  const tags = tagLinks?.map((link: { tags: unknown }) => link.tags).filter(Boolean) || [];
 
   return NextResponse.json(
     createApiSuccessResponse({
@@ -236,7 +236,7 @@ export async function PATCH(
     .eq('problem_id', id)
     .eq('user_id', user.id);
 
-  const tags = tagLinks?.map((link: any) => link.tags).filter(Boolean) || [];
+  const tags = tagLinks?.map((link: { tags: unknown }) => link.tags).filter(Boolean) || [];
 
   return NextResponse.json(
     createApiSuccessResponse({

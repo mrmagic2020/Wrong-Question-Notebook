@@ -4,6 +4,7 @@
  */
 
 import { ERROR_MESSAGES } from './constants';
+import { logger } from './logger';
 
 // =====================================================
 // Date and Time Utilities
@@ -20,7 +21,10 @@ export function formatDisplayDateTime(dateString: string): string {
       minute: '2-digit',
     });
   } catch (error) {
-    console.error('Error formatting date:', error);
+    logger.error('Error formatting date', error, {
+      component: 'Utils',
+      action: 'formatDisplayDateTime',
+    });
     return ERROR_MESSAGES.INVALID_DATE;
   }
 }
@@ -34,7 +38,10 @@ export function formatDisplayDate(dateString: string): string {
       day: 'numeric',
     });
   } catch (error) {
-    console.error('Error formatting date:', error);
+    logger.error('Error formatting date', error, {
+      component: 'Utils',
+      action: 'formatDisplayDate',
+    });
     return ERROR_MESSAGES.INVALID_DATE;
   }
 }
@@ -60,7 +67,10 @@ export function formatRelativeTime(dateString: string): string {
       return formatDisplayDateTime(dateString);
     }
   } catch (error) {
-    console.error('Error formatting relative time:', error);
+    logger.error('Error formatting relative time', error, {
+      component: 'Utils',
+      action: 'formatRelativeTime',
+    });
     return ERROR_MESSAGES.INVALID_DATE;
   }
 }
@@ -133,7 +143,7 @@ export function createErrorResponse(
 export function createApiErrorResponse(
   message: string,
   status: number = 500,
-  details?: any
+  details?: unknown
 ) {
   return {
     error: message,
