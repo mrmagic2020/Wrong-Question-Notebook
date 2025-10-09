@@ -20,7 +20,7 @@ export function sanitizeHtmlContent(html: string): string {
       tempDiv.innerHTML = sanitized;
       // If parsing succeeded, return the sanitized content
       return sanitized;
-    } catch (error) {
+    } catch {
       // If parsing failed, return the original content (it will be sanitized again)
       logger.warn('HTML sanitization resulted in invalid HTML', {
         component: 'HTMLSanitizer',

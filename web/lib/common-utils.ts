@@ -145,12 +145,22 @@ export function createApiErrorResponse(
   status: number = 500,
   details?: unknown
 ) {
-  return {
+  const response: {
+    error: string;
+    status: number;
+    details?: unknown;
+    timestamp: string;
+  } = {
     error: message,
     status,
-    ...(details && { details }),
     timestamp: new Date().toISOString(),
   };
+
+  if (details !== undefined) {
+    response.details = details;
+  }
+
+  return response;
 }
 
 /**

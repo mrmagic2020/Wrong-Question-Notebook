@@ -65,7 +65,7 @@ export interface FileValidationResult {
  * - Validates MIME type against allowed types
  * - Can enforce specific file type requirements
  * - Returns sanitized filename for safe storage
- * 
+ *
  * @param file - The File object to validate
  * @param options - Validation options including size limits and allowed types
  * @returns Validation result with error message if invalid
@@ -158,7 +158,7 @@ export function isDocumentFile(mimeType: string): boolean {
  * - Clickjacking via iframes
  * - XSS attacks
  * - Information leakage via referrer
- * 
+ *
  * @param filename - The filename to include in Content-Disposition header
  * @returns Object containing security headers
  */

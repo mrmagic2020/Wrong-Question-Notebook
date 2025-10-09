@@ -19,12 +19,12 @@ interface RateLimitEntry {
 
 /**
  * In-memory store for rate limiting
- * 
+ *
  * PRODUCTION NOTE: This implementation uses an in-memory Map which has limitations:
  * - Not shared across multiple server instances/workers
  * - Lost on server restart
  * - Memory usage grows with unique request sources
- * 
+ *
  * For production environments with multiple server instances, consider:
  * - Redis with node-rate-limiter-flexible
  * - Upstash Redis for serverless environments
@@ -48,10 +48,10 @@ setInterval(() => {
 
 /**
  * Creates a rate limiter middleware with custom configuration
- * 
+ *
  * @param config - Rate limiting configuration
  * @returns Middleware function that returns null to continue or NextResponse to block
- * 
+ *
  * @example
  * ```ts
  * const limiter = createRateLimit({
@@ -121,7 +121,7 @@ export function createRateLimit(config: RateLimitConfig) {
 /**
  * Generates a default rate limit key based on client IP
  * Falls back to 'unknown' if IP cannot be determined
- * 
+ *
  * @param req - The incoming request
  * @returns Rate limit key string
  */

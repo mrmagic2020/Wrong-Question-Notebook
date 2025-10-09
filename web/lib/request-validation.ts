@@ -603,7 +603,7 @@ export function validateRequestBody(
       return {
         isValid: false,
         errors: error.issues.map(
-          (issue) => `${issue.path.join('.')}: ${issue.message}`
+          issue => `${issue.path.join('.')}: ${issue.message}`
         ),
         warnings: [],
         riskLevel: 'medium',

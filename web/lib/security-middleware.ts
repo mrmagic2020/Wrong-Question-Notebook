@@ -8,6 +8,7 @@ import {
 import { validateRequest, getSecurityHeaders } from './request-validation';
 import { validateFileUpload } from './file-security';
 import { FILE_CONSTANTS } from './constants';
+import { logger } from './logger';
 
 export interface SecurityConfig {
   enableRateLimit?: boolean;
