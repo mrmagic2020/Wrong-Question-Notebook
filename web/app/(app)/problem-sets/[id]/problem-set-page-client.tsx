@@ -470,9 +470,9 @@ export default function ProblemSetPageClient({
                       </div>
                     </div>
                     {problem.content && (
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                        {problem.content}
-                      </p>
+                      <div className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                        <RichTextDisplay content={problem.content} />
+                      </div>
                     )}
                     {problem.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1">
