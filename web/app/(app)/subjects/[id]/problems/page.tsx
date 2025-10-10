@@ -37,7 +37,7 @@ async function loadData(subjectId: string) {
         return {
           subject: null,
           problems: [],
-          tagsByProblem: new Map<string, any[]>(),
+          tagsByProblem: {},
           availableTags: [],
         };
 
@@ -57,7 +57,7 @@ async function loadData(subjectId: string) {
 
       const p = problems ?? [];
       const ids = p.map((x: any) => x.id);
-      const tagsByProblem = new Map<string, any[]>();
+      const tagsByProblem: Record<string, any[]> = {};
 
       if (ids.length) {
         // Join problem_tag -> tags to collect tags per problem
@@ -68,16 +68,19 @@ async function loadData(subjectId: string) {
 
         // Group by problem_id
         (links ?? []).forEach((row: any) => {
-          const arr = tagsByProblem.get(row.problem_id) ?? [];
-          if (row.tags) arr.push(row.tags);
-          tagsByProblem.set(row.problem_id, arr);
+          if (!tagsByProblem[row.problem_id]) {
+            tagsByProblem[row.problem_id] = [];
+          }
+          if (row.tags) {
+            tagsByProblem[row.problem_id].push(row.tags);
+          }
         });
       }
 
       return {
         subject,
         problems: p,
-        tagsByProblem: Array.from(tagsByProblem.entries()), // Convert Map to array for serialization
+        tagsByProblem,
         availableTags: availableTags ?? [],
       };
     },
@@ -95,13 +98,10 @@ async function loadData(subjectId: string) {
 
   const cachedData = await cachedLoadData();
 
-  // Reconstruct the Map from the serialized array
-  const tagsByProblem = new Map(cachedData.tagsByProblem);
-
   return {
     subject: cachedData.subject,
     problems: cachedData.problems,
-    tagsByProblem,
+    tagsByProblem: cachedData.tagsByProblem,
     availableTags: cachedData.availableTags,
   };
 }

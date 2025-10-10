@@ -7,6 +7,7 @@ import {
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
 import { PROBLEM_STATUS_VALUES } from '@/lib/schemas';
+import { revalidateProblemAndSubject } from '@/lib/cache-invalidation';
 
 export async function PATCH(
   req: Request,
@@ -66,7 +67,7 @@ export async function PATCH(
       .update(updateData)
       .eq('id', problemId)
       .eq('user_id', user.id)
-      .select()
+      .select('*, subject_id')
       .single();
 
     if (error) {
@@ -86,6 +87,9 @@ export async function PATCH(
         { status: 404 }
       );
     }
+
+    // Invalidate cache after successful status update - only the specific problem and its subject
+    await revalidateProblemAndSubject(problemId, data.subject_id);
 
     return NextResponse.json(createApiSuccessResponse(data));
   } catch (error) {

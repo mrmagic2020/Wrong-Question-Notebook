@@ -33,7 +33,7 @@ export default function EnhancedProblemsTable({
   targetProblemSetId = null,
 }: {
   initialProblems: any[];
-  initialTagsByProblem: Map<string, any[]>;
+  initialTagsByProblem: Record<string, any[]>;
   subjectId: string;
   availableTags: Tag[];
   onProblemDeleted?: ((problemId: string) => void) | null;
@@ -118,7 +118,7 @@ export default function EnhancedProblemsTable({
         updated_at: problem.updated_at,
         last_reviewed_date: problem.last_reviewed_date,
         subject_id: problem.subject_id,
-        tags: tagsByProblem.get(problem.id) || [],
+        tags: tagsByProblem[problem.id] || [],
         isInSet: problemSetProblemIds.includes(problem.id),
       })),
     [problems, tagsByProblem, problemSetProblemIds]
@@ -208,10 +208,10 @@ export default function EnhancedProblemsTable({
 
       // Update problems and tags
       const newProblems = data.data || [];
-      const newTagsByProblem = new Map<string, any[]>();
+      const newTagsByProblem: Record<string, any[]> = {};
 
       newProblems.forEach((problem: any) => {
-        newTagsByProblem.set(problem.id, problem.tags || []);
+        newTagsByProblem[problem.id] = problem.tags || [];
       });
 
       setProblems(newProblems);
@@ -226,11 +226,10 @@ export default function EnhancedProblemsTable({
 
   const handleProblemCreated = (newProblem: any) => {
     setProblems(prev => [newProblem, ...prev]);
-    setTagsByProblem(prev => {
-      const newMap = new Map(prev);
-      newMap.set(newProblem.id, newProblem.tags || []);
-      return newMap;
-    });
+    setTagsByProblem(prev => ({
+      ...prev,
+      [newProblem.id]: newProblem.tags || [],
+    }));
   };
 
   const handleDeleteClick = (problemId: string, problemTitle: string) => {
@@ -265,9 +264,8 @@ export default function EnhancedProblemsTable({
 
       setProblems(prev => prev.filter(p => p.id !== deleteDialog.problemId));
       setTagsByProblem(prev => {
-        const newMap = new Map(prev);
-        newMap.delete(deleteDialog.problemId!);
-        return newMap;
+        const { [deleteDialog.problemId!]: deleted, ...rest } = prev;
+        return rest;
       });
 
       if (onProblemDeleted) {
@@ -288,11 +286,10 @@ export default function EnhancedProblemsTable({
     setProblems(prev =>
       prev.map(p => (p.id === updatedProblem.id ? updatedProblem : p))
     );
-    setTagsByProblem(prev => {
-      const newMap = new Map(prev);
-      newMap.set(updatedProblem.id, updatedProblem.tags || []);
-      return newMap;
-    });
+    setTagsByProblem(prev => ({
+      ...prev,
+      [updatedProblem.id]: updatedProblem.tags || [],
+    }));
 
     if (onProblemUpdated) {
       onProblemUpdated(updatedProblem);
@@ -389,9 +386,9 @@ export default function EnhancedProblemsTable({
       // Update local state
       setProblems(prev => prev.filter(p => !problemIds.includes(p.id)));
       setTagsByProblem(prev => {
-        const newMap = new Map(prev);
-        problemIds.forEach(id => newMap.delete(id));
-        return newMap;
+        const newTagsByProblem = { ...prev };
+        problemIds.forEach(id => delete newTagsByProblem[id]);
+        return newTagsByProblem;
       });
 
       // Notify parent component

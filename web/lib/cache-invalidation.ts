@@ -10,6 +10,7 @@ import {
   createUserCacheTag,
   createSubjectCacheTag,
   createProblemSetCacheTag,
+  createProblemCacheTag,
 } from './cache-config';
 
 /**
@@ -42,6 +43,45 @@ export async function revalidateSubjectProblems(
   );
   await revalidateTag(subjectProblemsTag);
   await revalidateTag(CACHE_TAGS.PROBLEMS);
+}
+
+/**
+ * Revalidate cache for a specific problem (most granular)
+ */
+export async function revalidateProblem(problemId: string): Promise<void> {
+  const problemTag = createProblemCacheTag(CACHE_TAGS.PROBLEMS, problemId);
+  await revalidateTag(problemTag);
+  await revalidateTag(CACHE_TAGS.PROBLEMS);
+}
+
+/**
+ * Revalidate cache for a specific problem and its subject (optimal for status updates)
+ */
+export async function revalidateProblemAndSubject(
+  problemId: string,
+  subjectId: string
+): Promise<void> {
+  await Promise.all([
+    revalidateProblem(problemId),
+    revalidateSubjectProblems(subjectId),
+  ]);
+}
+
+/**
+ * Revalidate cache for a problem and all related caches (for deletions/updates)
+ * This includes the problem, its subject, and all problem sets that might contain it
+ */
+export async function revalidateProblemComprehensive(
+  problemId: string,
+  subjectId: string,
+  userId: string
+): Promise<void> {
+  await Promise.all([
+    revalidateProblem(problemId),
+    revalidateSubjectProblems(subjectId),
+    revalidateUserProblems(userId),
+    revalidateUserProblemSets(userId), // Invalidate all user's problem sets
+  ]);
 }
 
 /**

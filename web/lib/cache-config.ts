@@ -59,6 +59,14 @@ export function createProblemSetCacheTag(
   return `${baseTag}-${problemSetId}`;
 }
 
+// Helper function to create problem-specific cache tags
+export function createProblemCacheTag(
+  baseTag: string,
+  problemId: string
+): string {
+  return `${baseTag}-${problemId}`;
+}
+
 // Cache key patterns for consistent naming
 export const CACHE_KEYS = {
   SUBJECTS_LIST: 'subjects-list',

@@ -7,6 +7,7 @@ import {
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
 import { ProblemType } from '@/lib/schemas';
+import { revalidateProblemAndSubject } from '@/lib/cache-invalidation';
 
 export async function POST(
   req: Request,
@@ -127,6 +128,9 @@ export async function POST(
         { status: 500 }
       );
     }
+
+    // Invalidate cache after successful attempt creation - only the specific problem and its subject
+    await revalidateProblemAndSubject(problemId, problem.subject_id);
 
     return NextResponse.json(
       createApiSuccessResponse({

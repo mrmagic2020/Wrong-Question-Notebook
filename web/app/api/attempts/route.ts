@@ -9,6 +9,7 @@ import {
   handleAsyncError,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
+import { revalidateProblemAndSubject } from '@/lib/cache-invalidation';
 
 async function getAttempts(req: Request) {
   const { user, supabase } = await requireUser();
@@ -93,6 +94,20 @@ async function createAttempt(req: Request) {
   }
 
   try {
+    // Get the problem to get subject_id for cache invalidation
+    const { data: problem, error: problemError } = await supabase
+      .from('problems')
+      .select('subject_id')
+      .eq('id', parsed.data.problem_id)
+      .single();
+
+    if (problemError) {
+      return NextResponse.json(
+        createApiErrorResponse(ERROR_MESSAGES.NOT_FOUND, 404),
+        { status: 404 }
+      );
+    }
+
     const payload = {
       ...parsed.data,
       user_id: user.id,
@@ -114,6 +129,9 @@ async function createAttempt(req: Request) {
         { status: 500 }
       );
     }
+
+    // Invalidate cache after successful attempt creation - only the specific problem and its subject
+    await revalidateProblemAndSubject(parsed.data.problem_id, problem.subject_id);
 
     return NextResponse.json(createApiSuccessResponse(data), { status: 201 });
   } catch (error) {

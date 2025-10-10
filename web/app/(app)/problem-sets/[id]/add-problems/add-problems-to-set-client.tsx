@@ -16,7 +16,7 @@ interface ProblemSet {
 interface AddProblemsToSetClientProps {
   problemSet: ProblemSet;
   problems: any[];
-  tagsByProblem: Map<string, any[]>;
+  tagsByProblem: Record<string, any[]>;
   availableTags: any[];
   problemSetProblemIds: string[];
 }

@@ -18,8 +18,7 @@ import {
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
 import {
-  revalidateUserProblems,
-  revalidateSubjectProblems,
+  revalidateProblemComprehensive,
 } from '@/lib/cache-invalidation';
 
 // Cache configuration for this route
@@ -331,10 +330,7 @@ async function createProblem(req: Request) {
     const tags = tagLinks?.map((link: any) => link.tags).filter(Boolean) || [];
 
     // Invalidate cache after successful creation
-    await Promise.all([
-      revalidateUserProblems(user.id),
-      revalidateSubjectProblems(parsed.data.subject_id),
-    ]);
+    await revalidateProblemComprehensive(created.id, parsed.data.subject_id, user.id);
 
     return NextResponse.json(
       createApiSuccessResponse({

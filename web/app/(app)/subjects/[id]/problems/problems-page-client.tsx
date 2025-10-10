@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ProblemsPageClientProps {
   initialProblems: any[];
-  initialTagsByProblem: Map<string, any[]>;
+  initialTagsByProblem: Record<string, any[]>;
   subjectId: string;
   availableTags: any[];
 }
@@ -25,20 +25,18 @@ export default function ProblemsPageClient({
   const handleProblemCreated = (newProblem: any) => {
     // Add the new problem to the initial state
     setProblems(prev => [newProblem, ...prev]);
-    setTagsByProblem(prev => {
-      const newMap = new Map(prev);
-      newMap.set(newProblem.id, newProblem.tags || []);
-      return newMap;
-    });
+    setTagsByProblem(prev => ({
+      ...prev,
+      [newProblem.id]: newProblem.tags || [],
+    }));
   };
 
   // Handle problem deletion
   const handleProblemDeleted = (problemId: string) => {
     setProblems(prev => prev.filter(p => p.id !== problemId));
     setTagsByProblem(prev => {
-      const newMap = new Map(prev);
-      newMap.delete(problemId);
-      return newMap;
+      const { [problemId]: deleted, ...rest } = prev;
+      return rest;
     });
   };
 
@@ -47,11 +45,10 @@ export default function ProblemsPageClient({
     setProblems(prev =>
       prev.map(p => (p.id === updatedProblem.id ? updatedProblem : p))
     );
-    setTagsByProblem(prev => {
-      const newMap = new Map(prev);
-      newMap.set(updatedProblem.id, updatedProblem.tags || []);
-      return newMap;
-    });
+    setTagsByProblem(prev => ({
+      ...prev,
+      [updatedProblem.id]: updatedProblem.tags || [],
+    }));
   };
 
   return (
