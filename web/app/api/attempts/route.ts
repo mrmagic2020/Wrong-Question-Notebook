@@ -131,7 +131,10 @@ async function createAttempt(req: Request) {
     }
 
     // Invalidate cache after successful attempt creation - only the specific problem and its subject
-    await revalidateProblemAndSubject(parsed.data.problem_id, problem.subject_id);
+    await revalidateProblemAndSubject(
+      parsed.data.problem_id,
+      problem.subject_id
+    );
 
     return NextResponse.json(createApiSuccessResponse(data), { status: 201 });
   } catch (error) {

@@ -264,8 +264,9 @@ export default function EnhancedProblemsTable({
 
       setProblems(prev => prev.filter(p => p.id !== deleteDialog.problemId));
       setTagsByProblem(prev => {
-        const { [deleteDialog.problemId!]: deleted, ...rest } = prev;
-        return rest;
+        const newTagsByProblem = { ...prev };
+        delete newTagsByProblem[deleteDialog.problemId!];
+        return newTagsByProblem;
       });
 
       if (onProblemDeleted) {

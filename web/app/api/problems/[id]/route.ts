@@ -11,9 +11,7 @@ import {
   createApiSuccessResponse,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
-import {
-  revalidateProblemComprehensive,
-} from '@/lib/cache-invalidation';
+import { revalidateProblemComprehensive } from '@/lib/cache-invalidation';
 
 // Cache configuration for this route
 export const revalidate = 300; // 5 minutes

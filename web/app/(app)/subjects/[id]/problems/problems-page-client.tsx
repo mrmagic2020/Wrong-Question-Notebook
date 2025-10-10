@@ -35,8 +35,9 @@ export default function ProblemsPageClient({
   const handleProblemDeleted = (problemId: string) => {
     setProblems(prev => prev.filter(p => p.id !== problemId));
     setTagsByProblem(prev => {
-      const { [problemId]: deleted, ...rest } = prev;
-      return rest;
+      const newTagsByProblem = { ...prev };
+      delete newTagsByProblem[problemId];
+      return newTagsByProblem;
     });
   };
 

@@ -17,9 +17,7 @@ import {
   handleAsyncError,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
-import {
-  revalidateProblemComprehensive,
-} from '@/lib/cache-invalidation';
+import { revalidateProblemComprehensive } from '@/lib/cache-invalidation';
 
 // Cache configuration for this route
 export const revalidate = 300; // 5 minutes
@@ -330,7 +328,11 @@ async function createProblem(req: Request) {
     const tags = tagLinks?.map((link: any) => link.tags).filter(Boolean) || [];
 
     // Invalidate cache after successful creation
-    await revalidateProblemComprehensive(created.id, parsed.data.subject_id, user.id);
+    await revalidateProblemComprehensive(
+      created.id,
+      parsed.data.subject_id,
+      user.id
+    );
 
     return NextResponse.json(
       createApiSuccessResponse({
