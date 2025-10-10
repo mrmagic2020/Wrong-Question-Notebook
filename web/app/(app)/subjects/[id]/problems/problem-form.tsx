@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { FormEvent, useEffect, useState, useMemo } from 'react';
+import { FormEvent, useEffect, useState, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 import FileManager from '@/components/ui/file-manager';
 import {
@@ -32,23 +32,27 @@ export default function ProblemForm({
   const router = useRouter();
   const isEditMode = !!problem;
 
-  // Use provided tags or fallback to client-side fetching
-  const [tags, setTags] = useState<Tag[]>(
-    availableTags.map(tag => ({
-      ...tag,
-      subject_id: subjectId,
-      created_at: new Date().toISOString(),
-    }))
-  );
-  useEffect(() => {
-    if (availableTags.length > 0) {
-      setTags(
-        availableTags.map(tag => ({
+  // Helper function to transform SimpleTag to Tag
+  const transformSimpleTagsToTags = useCallback(
+    (simpleTags: typeof availableTags): Tag[] => {
+      return (
+        simpleTags?.map(tag => ({
           ...tag,
           subject_id: subjectId,
           created_at: new Date().toISOString(),
-        }))
+        })) || []
       );
+    },
+    [subjectId]
+  );
+
+  // Use provided tags or fallback to client-side fetching
+  const [tags, setTags] = useState<Tag[]>(
+    transformSimpleTagsToTags(availableTags)
+  );
+  useEffect(() => {
+    if (availableTags && availableTags.length > 0) {
+      setTags(transformSimpleTagsToTags(availableTags));
     } else {
       // Fallback to client-side fetching if no tags provided
       fetch(`/api/tags?subject_id=${subjectId}`)
@@ -56,7 +60,7 @@ export default function ProblemForm({
         .then(j => setTags(j.data ?? []))
         .catch(() => {});
     }
-  }, [availableTags, subjectId]);
+  }, [availableTags, subjectId, transformSimpleTagsToTags]);
 
   // Tag picker - initialize with problem's existing tags if available
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>(() => {
