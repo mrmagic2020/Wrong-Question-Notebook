@@ -8,6 +8,7 @@ import {
 import { validateRequest, getSecurityHeaders } from './request-validation';
 import { validateFileUpload } from './file-security';
 import { FILE_CONSTANTS } from './constants';
+import { logger } from './logger';
 
 export interface SecurityConfig {
   enableRateLimit?: boolean;
@@ -41,11 +42,10 @@ export function createSecurityMiddleware(config: SecurityConfig = {}) {
       const validation = validateRequest(req);
 
       if (!validation.isValid) {
-        console.warn('Request validation failed:', {
+        logger.security('Request validation failed', validation.riskLevel, {
           url: req.url,
-          errors: validation.errors,
-          warnings: validation.warnings,
-          riskLevel: validation.riskLevel,
+          errors: validation.errors.join(', '),
+          warnings: validation.warnings.join(', '),
         });
 
         // Block high-risk requests
@@ -200,13 +200,13 @@ export const securityMiddleware = {
 };
 
 // Helper function to apply security middleware to API routes
-export function withSecurity(
-  handler: (req: NextRequest, ...args: any[]) => Promise<NextResponse>,
+export function withSecurity<T extends unknown[] = []>(
+  handler: (req: NextRequest, ...args: T) => Promise<NextResponse>,
   config: SecurityConfig = {}
 ) {
   const middleware = createSecurityMiddleware(config);
 
-  return async (req: NextRequest, ...args: any[]): Promise<NextResponse> => {
+  return async (req: NextRequest, ...args: T): Promise<NextResponse> => {
     // Apply security middleware
     const securityResponse = await middleware(req);
     if (securityResponse) {

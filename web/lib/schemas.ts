@@ -92,7 +92,12 @@ export const UpdateTagDto = z.object({
 
 export const CreateAttemptDto = z.object({
   problem_id: z.uuid(),
-  submitted_answer: z.any(), // keep flexible; will handle in review endpoints later
+  submitted_answer: z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.record(z.string(), z.unknown()),
+  ]), // keep flexible; will handle in review endpoints later
   is_correct: z.boolean().nullable().optional(), // optional for manual types
   cause: z.string().optional(), // reflection text
 });
@@ -151,7 +156,7 @@ export const UserActivityLog = z.object({
   action: z.string(),
   resource_type: z.string().nullable(),
   resource_id: z.uuid().nullable(),
-  details: z.record(z.string(), z.any()).nullable(),
+  details: z.record(z.string(), z.unknown()).nullable(),
   ip_address: z.string().nullable(),
   user_agent: z.string().nullable(),
   created_at: z.iso.datetime(),
@@ -163,7 +168,7 @@ export type UserActivityLogType = z.infer<typeof UserActivityLog>;
 export const AdminSettings = z.object({
   id: z.uuid(),
   key: z.string(),
-  value: z.record(z.string(), z.any()),
+  value: z.record(z.string(), z.unknown()),
   description: z.string().nullable(),
   updated_by: z.uuid().nullable(),
   created_at: z.iso.datetime(),
@@ -221,12 +226,12 @@ export const CreateAdminSettingsDto = z.object({
     .string()
     .min(VALIDATION_CONSTANTS.STRING_LIMITS.SETTING_KEY_MIN)
     .max(VALIDATION_CONSTANTS.STRING_LIMITS.SETTING_KEY_MAX),
-  value: z.record(z.string(), z.any()),
+  value: z.record(z.string(), z.unknown()),
   description: z.string().optional(),
 });
 
 export const UpdateAdminSettingsDto = z.object({
-  value: z.record(z.string(), z.any()),
+  value: z.record(z.string(), z.unknown()),
   description: z.string().optional(),
 });
 

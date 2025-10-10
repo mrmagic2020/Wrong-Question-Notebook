@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RATE_LIMIT_CONSTANTS } from './constants';
 
+/**
+ * Rate limiting configuration interface
+ */
 interface RateLimitConfig {
   windowMs: number; // Time window in milliseconds
   maxRequests: number; // Maximum requests per window
@@ -14,10 +17,26 @@ interface RateLimitEntry {
   resetTime: number;
 }
 
-// In-memory store for rate limiting (in production, use Redis)
+/**
+ * In-memory store for rate limiting
+ *
+ * PRODUCTION NOTE: This implementation uses an in-memory Map which has limitations:
+ * - Not shared across multiple server instances/workers
+ * - Lost on server restart
+ * - Memory usage grows with unique request sources
+ *
+ * For production environments with multiple server instances, consider:
+ * - Redis with node-rate-limiter-flexible
+ * - Upstash Redis for serverless environments
+ * - Vercel KV or similar edge-compatible solutions
+ * - Rate limiting at the infrastructure level (Cloudflare, AWS WAF, etc.)
+ */
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
-// Clean up expired entries every 5 minutes
+/**
+ * Periodically clean up expired rate limit entries to prevent memory leaks
+ * Runs every 5 minutes in the background
+ */
 setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of rateLimitStore.entries()) {
@@ -27,6 +46,21 @@ setInterval(() => {
   }
 }, RATE_LIMIT_CONSTANTS.CLEANUP_INTERVAL);
 
+/**
+ * Creates a rate limiter middleware with custom configuration
+ *
+ * @param config - Rate limiting configuration
+ * @returns Middleware function that returns null to continue or NextResponse to block
+ *
+ * @example
+ * ```ts
+ * const limiter = createRateLimit({
+ *   windowMs: 60000, // 1 minute
+ *   maxRequests: 10, // 10 requests per minute
+ *   keyGenerator: (req) => req.headers.get('x-user-id') || 'anonymous'
+ * });
+ * ```
+ */
 export function createRateLimit(config: RateLimitConfig) {
   return (req: NextRequest): NextResponse | null => {
     const key = config.keyGenerator
@@ -84,6 +118,13 @@ export function createRateLimit(config: RateLimitConfig) {
   };
 }
 
+/**
+ * Generates a default rate limit key based on client IP
+ * Falls back to 'unknown' if IP cannot be determined
+ *
+ * @param req - The incoming request
+ * @returns Rate limit key string
+ */
 function getDefaultKey(req: NextRequest): string {
   // Use IP address as default key
   const forwarded = req.headers.get('x-forwarded-for');
@@ -91,7 +132,14 @@ function getDefaultKey(req: NextRequest): string {
   return `rate_limit:${ip}`;
 }
 
-// Helper function to create rate limiters
+/**
+ * Pre-configured rate limiters for common use cases
+ * Each limiter has appropriate limits for its specific use case:
+ * - API: General API endpoints (100 req/15min)
+ * - File Upload: Upload operations (20 req/hour)
+ * - Auth: Authentication attempts (5 req/15min)
+ * - Problem Creation: Creating problems (50 req/hour)
+ */
 export const createApiRateLimit = () =>
   createRateLimit(RATE_LIMIT_CONSTANTS.CONFIGURATIONS.api);
 export const createFileUploadRateLimit = () =>

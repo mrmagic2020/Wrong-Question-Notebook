@@ -542,7 +542,7 @@ function isValidReferer(referer: string): boolean {
 
 // Validate request body for specific endpoints
 export function validateRequestBody(
-  body: any,
+  body: unknown,
   schema: z.ZodSchema
 ): ValidationResult {
   try {
@@ -603,7 +603,7 @@ export function validateRequestBody(
       return {
         isValid: false,
         errors: error.issues.map(
-          (e: any) => `${e.path.join('.')}: ${e.message}`
+          issue => `${issue.path.join('.')}: ${issue.message}`
         ),
         warnings: [],
         riskLevel: 'medium',
@@ -619,7 +619,7 @@ export function validateRequestBody(
 }
 
 // New function to validate request body content for malicious patterns (blacklist approach)
-export function validateRequestBodyContent(body: any): ValidationResult {
+export function validateRequestBodyContent(body: unknown): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
   let riskLevel: 'low' | 'medium' | 'high' = 'low';

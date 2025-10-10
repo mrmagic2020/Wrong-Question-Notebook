@@ -1,5 +1,8 @@
 import { FILE_CONSTANTS } from './constants';
 
+/**
+ * Maximum allowed file sizes by type
+ */
 export const MAX_FILE_SIZES = {
   image: FILE_CONSTANTS.MAX_FILE_SIZE.IMAGE,
   document: FILE_CONSTANTS.MAX_FILE_SIZE.DOCUMENT,
@@ -56,6 +59,17 @@ export interface FileValidationResult {
   sanitizedFilename?: string;
 }
 
+/**
+ * Validates an uploaded file against security constraints
+ * - Checks file size against limits
+ * - Validates MIME type against allowed types
+ * - Can enforce specific file type requirements
+ * - Returns sanitized filename for safe storage
+ *
+ * @param file - The File object to validate
+ * @param options - Validation options including size limits and allowed types
+ * @returns Validation result with error message if invalid
+ */
 export function validateFileUpload(
   file: File,
   options: {
@@ -137,7 +151,17 @@ export function isDocumentFile(mimeType: string): boolean {
   );
 }
 
-// Security headers for file responses
+/**
+ * Returns security headers for file responses
+ * These headers prevent:
+ * - MIME type sniffing attacks
+ * - Clickjacking via iframes
+ * - XSS attacks
+ * - Information leakage via referrer
+ *
+ * @param filename - The filename to include in Content-Disposition header
+ * @returns Object containing security headers
+ */
 export function getFileSecurityHeaders(filename: string) {
   const headers: Record<string, string> = {
     'X-Content-Type-Options': 'nosniff',
