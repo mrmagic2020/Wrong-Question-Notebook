@@ -46,7 +46,7 @@ async function loadData(subjectId: string) {
 
   const p = problems ?? [];
   const ids = p.map((x: any) => x.id);
-  const tagsByProblem = new Map<string, any[]>();
+  const tagsByProblem: Record<string, any[]> = {};
 
   if (ids.length) {
     // Join problem_tag -> tags to collect tags per problem
@@ -57,9 +57,12 @@ async function loadData(subjectId: string) {
 
     // Group by problem_id
     (links ?? []).forEach((row: any) => {
-      const arr = tagsByProblem.get(row.problem_id) ?? [];
-      if (row.tags) arr.push(row.tags);
-      tagsByProblem.set(row.problem_id, arr);
+      if (!tagsByProblem[row.problem_id]) {
+        tagsByProblem[row.problem_id] = [];
+      }
+      if (row.tags) {
+        tagsByProblem[row.problem_id].push(row.tags);
+      }
     });
   }
 

@@ -6,26 +6,12 @@ import TagForm from './tag-form';
 import TagRow from './tag-row';
 import { useConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-interface Tag {
-  id: string;
-  name: string;
-  subject_id: string;
-  created_at: string;
-}
-
-interface Subject {
-  id: string;
-  name: string;
-}
+import { Tag, TagsPageClientProps } from '@/lib/types';
 
 export default function TagsPageClient({
   initialSubject,
   initialTags,
-}: {
-  initialSubject: Subject;
-  initialTags: Tag[];
-}) {
+}: TagsPageClientProps) {
   const [tags, setTags] = useState(initialTags);
   const { showConfirmation, ConfirmationDialogComponent } =
     useConfirmationDialog();

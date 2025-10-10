@@ -4,22 +4,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import EnhancedProblemsTable from '@/app/(app)/subjects/[id]/problems/enhanced-problems-table';
-
-interface ProblemSet {
-  id: string;
-  name: string;
-  description: string | null;
-  subject_id: string;
-  subject_name: string;
-}
-
-interface AddProblemsToSetClientProps {
-  problemSet: ProblemSet;
-  problems: any[];
-  tagsByProblem: Map<string, any[]>;
-  availableTags: any[];
-  problemSetProblemIds: string[];
-}
+import { AddProblemsToSetClientProps } from '@/lib/types';
 
 export default function AddProblemsToSetClient({
   problemSet,

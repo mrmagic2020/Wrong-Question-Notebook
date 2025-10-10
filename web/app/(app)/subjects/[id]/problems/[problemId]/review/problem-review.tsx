@@ -10,25 +10,7 @@ import AnswerInput from './answer-input';
 import AssetPreview from './asset-preview';
 import SolutionReveal from './solution-reveal';
 import StatusSelector from './status-selector';
-
-interface Problem {
-  id: string;
-  title: string;
-  content?: string;
-  problem_type: ProblemType;
-  correct_answer?: any;
-  auto_mark: boolean;
-  status: ProblemStatus;
-  assets: Array<{ path: string; kind?: 'image' | 'pdf' }>;
-  solution_text?: string;
-  solution_assets: Array<{ path: string; kind?: 'image' | 'pdf' }>;
-  tags: Array<{ id: string; name: string }>;
-}
-
-interface Subject {
-  id: string;
-  name: string;
-}
+import { Problem, Subject } from '@/lib/types';
 
 interface AllProblem {
   id: string;
@@ -194,7 +176,7 @@ export default function ProblemReview({
       </div>
 
       {/* Tags */}
-      {problem.tags.length > 0 && (
+      {problem.tags && problem.tags.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {problem.tags.map(tag => (
             <span
@@ -219,7 +201,7 @@ export default function ProblemReview({
         )}
 
         {/* Problem Assets */}
-        {problem.assets.length > 0 && (
+        {problem.assets && problem.assets.length > 0 && (
           <div className="space-y-4">
             <h3 className="font-medium">Assets</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -329,8 +311,8 @@ export default function ProblemReview({
 
       {/* Solution Section */}
       <SolutionReveal
-        solutionText={problem.solution_text}
-        solutionAssets={problem.solution_assets}
+        solutionText={problem.solution_text || undefined}
+        solutionAssets={problem.solution_assets || []}
         correctAnswer={problem.correct_answer}
         problemType={problem.problem_type}
         isRevealed={showSolution}

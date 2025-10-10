@@ -10,6 +10,13 @@ import {
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
 import { getProblemSetWithFullData } from '@/lib/problem-set-utils';
+import {
+  revalidateUserProblemSets,
+  revalidateProblemSet,
+} from '@/lib/cache-invalidation';
+
+// Cache configuration for this route
+export const revalidate = 300; // 5 minutes
 
 async function getProblemSet(
   req: Request,
@@ -167,6 +174,12 @@ async function updateProblemSet(
         .eq('shared_by_user_id', user.id);
     }
 
+    // Invalidate cache after successful update
+    await Promise.all([
+      revalidateUserProblemSets(user.id),
+      revalidateProblemSet(id),
+    ]);
+
     return NextResponse.json(createApiSuccessResponse(updatedSet));
   } catch (error) {
     const { message, status } = handleAsyncError(error);
@@ -225,6 +238,12 @@ async function deleteProblemSet(
         { status: 500 }
       );
     }
+
+    // Invalidate cache after successful deletion
+    await Promise.all([
+      revalidateUserProblemSets(user.id),
+      revalidateProblemSet(id),
+    ]);
 
     return NextResponse.json(createApiSuccessResponse({ id }));
   } catch (error) {

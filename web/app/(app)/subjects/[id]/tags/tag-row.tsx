@@ -6,18 +6,14 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
+import { TagRowProps } from '@/lib/types';
 
 export default function TagRow({
   tag,
   onTagDeleted,
   onTagUpdated,
   showConfirmation,
-}: {
-  tag: any;
-  onTagDeleted?: (tagId: string) => void;
-  onTagUpdated?: (tag: any) => void;
-  showConfirmation?: (config: any) => void;
-}) {
+}: TagRowProps) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(tag.name);

@@ -9,6 +9,13 @@ import {
   handleAsyncError,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
+import {
+  revalidateUserTags,
+  revalidateSubjectTags,
+} from '@/lib/cache-invalidation';
+
+// Cache configuration for this route
+export const revalidate = 600; // 10 minutes
 
 async function getTags(req: Request) {
   const { user, supabase } = await requireUser();
@@ -110,6 +117,12 @@ async function createTag(req: Request) {
         { status: 500 }
       );
     }
+
+    // Invalidate cache after successful creation
+    await Promise.all([
+      revalidateUserTags(user.id),
+      revalidateSubjectTags(parsed.data.subject_id),
+    ]);
 
     return NextResponse.json(createApiSuccessResponse(data), { status: 201 });
   } catch (error) {

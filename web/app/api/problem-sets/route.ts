@@ -9,6 +9,10 @@ import {
   isValidUuid,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
+import { revalidateUserProblemSets } from '@/lib/cache-invalidation';
+
+// Cache configuration for this route
+export const revalidate = 300; // 5 minutes
 
 async function getProblemSets(req: Request) {
   const { user, supabase } = await requireUser();
@@ -222,6 +226,9 @@ async function createProblemSet(req: Request) {
       problem_count: fullProblemSet.problem_set_problems?.[0]?.count || 0,
       subject_name: fullProblemSet.subjects?.name,
     };
+
+    // Invalidate cache after successful creation
+    await revalidateUserProblemSets(user.id);
 
     return NextResponse.json(createApiSuccessResponse(result), { status: 201 });
   } catch (error) {

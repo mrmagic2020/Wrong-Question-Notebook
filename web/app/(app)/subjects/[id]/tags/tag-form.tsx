@@ -6,14 +6,9 @@ import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { Button } from '@/components/ui/button';
+import { TagFormProps } from '@/lib/types';
 
-export default function TagForm({
-  subjectId,
-  onTagCreated,
-}: {
-  subjectId: string;
-  onTagCreated?: (tag: any) => void;
-}) {
+export default function TagForm({ subjectId, onTagCreated }: TagFormProps) {
   const router = useRouter();
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);

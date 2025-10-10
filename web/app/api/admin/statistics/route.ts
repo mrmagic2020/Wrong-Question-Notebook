@@ -5,6 +5,9 @@ import {
   // getRecentActivity,
 } from '@/lib/user-management';
 
+// Cache configuration for this route
+export const revalidate = 900; // 15 minutes
+
 export async function GET() {
   try {
     // Check if user is admin

@@ -21,20 +21,7 @@ import {
 } from '@/lib/common-utils';
 import Link from 'next/link';
 import { toast } from 'sonner';
-
-// Problem type for the table
-export type Problem = {
-  id: string;
-  title: string;
-  problem_type: ProblemType;
-  status: ProblemStatus;
-  created_at: string;
-  updated_at: string;
-  last_reviewed_date?: string;
-  subject_id: string;
-  tags?: { id: string; name: string }[];
-  isInSet?: boolean;
-};
+import { Problem, TableMeta } from '@/lib/types';
 
 // Helper function to get status badge styling with custom colors
 export const getStatusBadgeStyle = (status: ProblemStatus): string => {
@@ -112,7 +99,7 @@ export const columns: ColumnDef<Problem>[] = [
     id: 'select',
     header: ({ table }) => {
       const isAddToSetMode =
-        (table.options.meta as any)?.isAddToSetMode || false;
+        (table.options.meta as TableMeta)?.isAddToSetMode || false;
       const selectableRows = table.getRowModel().rows.filter(row => {
         const problem = row.original as Problem;
         return !(isAddToSetMode && problem.isInSet);
@@ -136,7 +123,7 @@ export const columns: ColumnDef<Problem>[] = [
     cell: ({ row, table }) => {
       const problem = row.original as Problem;
       const isAddToSetMode =
-        (table.options.meta as any)?.isAddToSetMode || false;
+        (table.options.meta as TableMeta)?.isAddToSetMode || false;
       const isDisabled = isAddToSetMode && problem.isInSet;
 
       return (
@@ -265,7 +252,7 @@ export const columns: ColumnDef<Problem>[] = [
     header: 'Actions',
     cell: ({ row, table }) => {
       const problem = row.original;
-      const meta = table.options.meta as any;
+      const meta = table.options.meta as TableMeta;
 
       return (
         <div className="px-2">

@@ -1,12 +1,7 @@
 'use client';
 
 import { ProblemStatus } from '@/lib/schemas';
-
-interface StatusSelectorProps {
-  currentStatus: ProblemStatus;
-  selectedStatus: ProblemStatus | null;
-  onStatusChange: (status: ProblemStatus) => void;
-}
+import { StatusSelectorProps } from '@/lib/types';
 
 const statusOptions: {
   value: ProblemStatus;

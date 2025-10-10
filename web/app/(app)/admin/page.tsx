@@ -14,6 +14,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Users, Activity, Settings, Shield } from 'lucide-react';
 import { formatDisplayDateTime } from '@/lib/common-utils';
+import { unstable_cache } from 'next/cache';
+import { CACHE_DURATIONS, CACHE_TAGS } from '@/lib/cache-config';
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
@@ -24,12 +26,26 @@ export default async function AdminDashboardPage() {
     return null;
   }
 
-  // Fetch dashboard data
-  const [statistics, recentActivity, settings] = await Promise.all([
-    getUserStatistics(),
-    getRecentActivity(),
-    getAdminSettings(),
-  ]);
+  const cachedLoadDashboardData = unstable_cache(
+    async () => {
+      // Fetch dashboard data
+      const [statistics, recentActivity, settings] = await Promise.all([
+        getUserStatistics(),
+        getRecentActivity(),
+        getAdminSettings(),
+      ]);
+
+      return { statistics, recentActivity, settings };
+    },
+    [`admin-dashboard-${authData.user.id}`],
+    {
+      tags: [CACHE_TAGS.ADMIN_STATS, CACHE_TAGS.ADMIN_USERS],
+      revalidate: CACHE_DURATIONS.ADMIN_STATS,
+    }
+  );
+
+  const { statistics, recentActivity, settings } =
+    await cachedLoadDashboardData();
 
   return (
     <div className="section-container">

@@ -10,6 +10,9 @@ import {
 import { ERROR_MESSAGES } from '@/lib/constants';
 import { getProblemSetBasic } from '@/lib/problem-set-utils';
 
+// Cache configuration for this route
+export const revalidate = 300; // 5 minutes
+
 async function getProblemSetProgress(
   req: Request,
   { params }: { params: Promise<{ id: string }> }

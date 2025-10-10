@@ -1,3 +1,5 @@
+// Note: Caching is now handled at the call site level to prevent data leakage
+
 /**
  * Check if a user has limited access to a problem set
  */
@@ -83,7 +85,7 @@ export function transformProblemSetProblems(problemSetProblems: any[]): any[] {
 
 /**
  * Get a problem set with full data including problems and tags
- * This is the complete query that should be used for SSR
+ * This is a pure data-fetching function - caching should be handled at the call site
  */
 export async function getProblemSetWithFullData(
   supabase: any,
@@ -160,6 +162,7 @@ export async function getProblemSetWithFullData(
 
 /**
  * Get basic problem set data for access checking
+ * This is a pure data-fetching function - caching should be handled at the call site
  */
 export async function getProblemSetBasic(
   supabase: any,

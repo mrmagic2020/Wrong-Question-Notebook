@@ -82,11 +82,14 @@ async function loadProblemSetProblems(problemSetId: string) {
     .select('problem_id, tags:tag_id ( id, name )')
     .in('problem_id', problemIds);
 
-  const tagsByProblem = new Map<string, any[]>();
+  const tagsByProblem: Record<string, any[]> = {};
   (tagLinks || []).forEach((link: any) => {
-    const arr = tagsByProblem.get(link.problem_id) || [];
-    if (link.tags) arr.push(link.tags);
-    tagsByProblem.set(link.problem_id, arr);
+    if (!tagsByProblem[link.problem_id]) {
+      tagsByProblem[link.problem_id] = [];
+    }
+    if (link.tags) {
+      tagsByProblem[link.problem_id].push(link.tags);
+    }
   });
 
   // Transform the data
@@ -94,7 +97,7 @@ async function loadProblemSetProblems(problemSetId: string) {
     const problem = psp.problems;
     return {
       ...problem,
-      tags: tagsByProblem.get(problem.id) || [],
+      tags: tagsByProblem[problem.id] || [],
       assets: problem.assets || [],
       solution_assets: problem.solution_assets || [],
     };

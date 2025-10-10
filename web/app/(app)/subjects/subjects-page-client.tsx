@@ -5,12 +5,7 @@ import SubjectForm from './subject-form';
 import SubjectRow from './subject-row';
 import { useConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-interface Subject {
-  id: string;
-  name: string;
-  created_at: string;
-}
+import { Subject } from '@/lib/types';
 
 export default function SubjectsPageClient({
   initialSubjects,

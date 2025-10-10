@@ -4,13 +4,7 @@ import { useState } from 'react';
 import ProblemForm from './problem-form';
 import EnhancedProblemsTable from './enhanced-problems-table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-interface ProblemsPageClientProps {
-  initialProblems: any[];
-  initialTagsByProblem: Map<string, any[]>;
-  subjectId: string;
-  availableTags: any[];
-}
+import { ProblemsPageClientProps, Problem } from '@/lib/types';
 
 export default function ProblemsPageClient({
   initialProblems,
@@ -22,36 +16,34 @@ export default function ProblemsPageClient({
   const [tagsByProblem, setTagsByProblem] = useState(initialTagsByProblem);
 
   // Handle new problem creation
-  const handleProblemCreated = (newProblem: any) => {
+  const handleProblemCreated = (newProblem: Problem) => {
     // Add the new problem to the initial state
     setProblems(prev => [newProblem, ...prev]);
-    setTagsByProblem(prev => {
-      const newMap = new Map(prev);
-      newMap.set(newProblem.id, newProblem.tags || []);
-      return newMap;
-    });
+    setTagsByProblem(prev => ({
+      ...prev,
+      [newProblem.id]: newProblem.tags || [],
+    }));
   };
 
   // Handle problem deletion
   const handleProblemDeleted = (problemId: string) => {
     setProblems(prev => prev.filter(p => p.id !== problemId));
     setTagsByProblem(prev => {
-      const newMap = new Map(prev);
-      newMap.delete(problemId);
-      return newMap;
+      const newTagsByProblem = { ...prev };
+      delete newTagsByProblem[problemId];
+      return newTagsByProblem;
     });
   };
 
   // Handle problem update
-  const handleProblemUpdated = (updatedProblem: any) => {
+  const handleProblemUpdated = (updatedProblem: Problem) => {
     setProblems(prev =>
       prev.map(p => (p.id === updatedProblem.id ? updatedProblem : p))
     );
-    setTagsByProblem(prev => {
-      const newMap = new Map(prev);
-      newMap.set(updatedProblem.id, updatedProblem.tags || []);
-      return newMap;
-    });
+    setTagsByProblem(prev => ({
+      ...prev,
+      [updatedProblem.id]: updatedProblem.tags || [],
+    }));
   };
 
   return (

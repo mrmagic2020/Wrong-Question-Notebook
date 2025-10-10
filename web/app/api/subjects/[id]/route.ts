@@ -7,6 +7,7 @@ import {
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
 import { UpdateSubjectDto } from '@/lib/schemas';
+import { revalidateUserSubjects } from '@/lib/cache-invalidation';
 
 export async function PATCH(
   req: Request,
@@ -62,6 +63,9 @@ export async function PATCH(
       );
     }
 
+    // Invalidate cache after successful update
+    await revalidateUserSubjects(user.id);
+
     return NextResponse.json(createApiSuccessResponse(data));
   } catch (error) {
     const { message, status } = handleAsyncError(error);
@@ -96,6 +100,9 @@ export async function DELETE(
         { status: 500 }
       );
     }
+
+    // Invalidate cache after successful deletion
+    await revalidateUserSubjects(user.id);
 
     return NextResponse.json(createApiSuccessResponse({ ok: true }));
   } catch (error) {

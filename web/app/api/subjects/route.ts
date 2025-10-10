@@ -8,6 +8,10 @@ import {
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
 import { CreateSubjectDto } from '@/lib/schemas';
+import { revalidateUserSubjects } from '@/lib/cache-invalidation';
+
+// Cache configuration for this route
+export const revalidate = 600; // 10 minutes
 
 async function getSubjects() {
   const { user, supabase } = await requireUser();
@@ -89,6 +93,9 @@ async function createSubject(req: Request) {
         { status: 500 }
       );
     }
+
+    // Invalidate cache after successful creation
+    await revalidateUserSubjects(user.id);
 
     return NextResponse.json(createApiSuccessResponse(data), { status: 201 });
   } catch (error) {

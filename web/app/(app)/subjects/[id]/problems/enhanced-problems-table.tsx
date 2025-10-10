@@ -3,23 +3,15 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { DataTable } from './data-table';
-import { columns, Problem } from './columns';
+import { columns } from './columns';
 import CompactSearchFilter from './compact-search-filter';
 import ProblemForm from './problem-form';
-import { ProblemType } from '@/lib/schemas';
+import { ProblemStatus, ProblemType } from '@/lib/schemas';
 import { toast } from 'sonner';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import ProblemSetCreationDialog from '@/components/problem-set-creation-dialog';
 import AddToSetDialog from '@/components/add-to-set-dialog';
-
-type Tag = { id: string; name: string };
-
-interface SearchFilters {
-  searchText: string;
-  problemTypes: ProblemType[];
-  tagIds: string[];
-  statuses: string[];
-}
+import { SearchFilters, Problem, SimpleTag, Tag } from '@/lib/types';
 
 export default function EnhancedProblemsTable({
   initialProblems,
@@ -32,18 +24,18 @@ export default function EnhancedProblemsTable({
   isAddToSetMode = false,
   targetProblemSetId = null,
 }: {
-  initialProblems: any[];
-  initialTagsByProblem: Map<string, any[]>;
+  initialProblems: Problem[];
+  initialTagsByProblem: Record<string, Tag[]>;
   subjectId: string;
-  availableTags: Tag[];
+  availableTags: SimpleTag[];
   onProblemDeleted?: ((problemId: string) => void) | null;
-  onProblemUpdated?: ((updatedProblem: any) => void) | null;
+  onProblemUpdated?: ((updatedProblem: Problem) => void) | null;
   problemSetProblemIds?: string[];
   isAddToSetMode?: boolean;
   targetProblemSetId?: string | null;
 }) {
   const router = useRouter();
-  const [editingProblem, setEditingProblem] = useState<any | null>(null);
+  const [editingProblem, setEditingProblem] = useState<Problem | null>(null);
   const [problems, setProblems] = useState<Problem[]>(initialProblems);
   const [tagsByProblem, setTagsByProblem] = useState(initialTagsByProblem);
   const [error, setError] = useState<string | null>(null);
@@ -52,9 +44,9 @@ export default function EnhancedProblemsTable({
 
   // Search and filter state
   const [searchText, setSearchText] = useState('');
-  const [problemTypes, setProblemTypes] = useState<string[]>([]);
+  const [problemTypes, setProblemTypes] = useState<ProblemType[]>([]);
   const [tagIds, setTagIds] = useState<string[]>([]);
-  const [statuses, setStatuses] = useState<string[]>([]);
+  const [statuses, setStatuses] = useState<ProblemStatus[]>([]);
 
   // Bulk operations state
   const [selectedProblems, setSelectedProblems] = useState<Problem[]>([]);
@@ -112,13 +104,16 @@ export default function EnhancedProblemsTable({
       problems.map(problem => ({
         id: problem.id,
         title: problem.title,
+        content: problem.content || null,
         problem_type: problem.problem_type,
+        correct_answer: problem.correct_answer || null,
+        auto_mark: problem.auto_mark || false,
         status: problem.status,
         created_at: problem.created_at,
         updated_at: problem.updated_at,
         last_reviewed_date: problem.last_reviewed_date,
         subject_id: problem.subject_id,
-        tags: tagsByProblem.get(problem.id) || [],
+        tags: tagsByProblem[problem.id] || [],
         isInSet: problemSetProblemIds.includes(problem.id),
       })),
     [problems, tagsByProblem, problemSetProblemIds]
@@ -208,10 +203,10 @@ export default function EnhancedProblemsTable({
 
       // Update problems and tags
       const newProblems = data.data || [];
-      const newTagsByProblem = new Map<string, any[]>();
+      const newTagsByProblem: Record<string, Tag[]> = {};
 
       newProblems.forEach((problem: any) => {
-        newTagsByProblem.set(problem.id, problem.tags || []);
+        newTagsByProblem[problem.id] = problem.tags || [];
       });
 
       setProblems(newProblems);
@@ -226,11 +221,10 @@ export default function EnhancedProblemsTable({
 
   const handleProblemCreated = (newProblem: any) => {
     setProblems(prev => [newProblem, ...prev]);
-    setTagsByProblem(prev => {
-      const newMap = new Map(prev);
-      newMap.set(newProblem.id, newProblem.tags || []);
-      return newMap;
-    });
+    setTagsByProblem(prev => ({
+      ...prev,
+      [newProblem.id]: newProblem.tags || [],
+    }));
   };
 
   const handleDeleteClick = (problemId: string, problemTitle: string) => {
@@ -265,9 +259,9 @@ export default function EnhancedProblemsTable({
 
       setProblems(prev => prev.filter(p => p.id !== deleteDialog.problemId));
       setTagsByProblem(prev => {
-        const newMap = new Map(prev);
-        newMap.delete(deleteDialog.problemId!);
-        return newMap;
+        const newTagsByProblem = { ...prev };
+        delete newTagsByProblem[deleteDialog.problemId!];
+        return newTagsByProblem;
       });
 
       if (onProblemDeleted) {
@@ -288,11 +282,10 @@ export default function EnhancedProblemsTable({
     setProblems(prev =>
       prev.map(p => (p.id === updatedProblem.id ? updatedProblem : p))
     );
-    setTagsByProblem(prev => {
-      const newMap = new Map(prev);
-      newMap.set(updatedProblem.id, updatedProblem.tags || []);
-      return newMap;
-    });
+    setTagsByProblem(prev => ({
+      ...prev,
+      [updatedProblem.id]: updatedProblem.tags || [],
+    }));
 
     if (onProblemUpdated) {
       onProblemUpdated(updatedProblem);
@@ -389,9 +382,9 @@ export default function EnhancedProblemsTable({
       // Update local state
       setProblems(prev => prev.filter(p => !problemIds.includes(p.id)));
       setTagsByProblem(prev => {
-        const newMap = new Map(prev);
-        problemIds.forEach(id => newMap.delete(id));
-        return newMap;
+        const newTagsByProblem = { ...prev };
+        problemIds.forEach(id => delete newTagsByProblem[id]);
+        return newTagsByProblem;
       });
 
       // Notify parent component

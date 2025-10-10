@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { FormEvent, useEffect, useState, useMemo } from 'react';
+import { FormEvent, useEffect, useState, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 import FileManager from '@/components/ui/file-manager';
 import {
@@ -19,8 +19,7 @@ import { getProblemTypeDisplayName } from '@/lib/common-utils';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { VALIDATION_CONSTANTS } from '@/lib/constants';
 import { Spinner } from '@/components/ui/spinner';
-
-type Tag = { id: string; name: string };
+import { Tag, ProblemFormProps } from '@/lib/types';
 
 export default function ProblemForm({
   subjectId,
@@ -29,22 +28,31 @@ export default function ProblemForm({
   onCancel = null,
   onProblemCreated = null,
   onProblemUpdated = null,
-}: {
-  subjectId: string;
-  availableTags?: Tag[];
-  problem?: any | null;
-  onCancel?: (() => void) | null;
-  onProblemCreated?: ((newProblem: any) => void) | null;
-  onProblemUpdated?: ((updatedProblem: any) => void) | null;
-}) {
+}: ProblemFormProps) {
   const router = useRouter();
   const isEditMode = !!problem;
 
+  // Helper function to transform SimpleTag to Tag
+  const transformSimpleTagsToTags = useCallback(
+    (simpleTags: typeof availableTags): Tag[] => {
+      return (
+        simpleTags?.map(tag => ({
+          ...tag,
+          subject_id: subjectId,
+          created_at: new Date().toISOString(),
+        })) || []
+      );
+    },
+    [subjectId]
+  );
+
   // Use provided tags or fallback to client-side fetching
-  const [tags, setTags] = useState<Tag[]>(availableTags);
+  const [tags, setTags] = useState<Tag[]>(
+    transformSimpleTagsToTags(availableTags)
+  );
   useEffect(() => {
-    if (availableTags.length > 0) {
-      setTags(availableTags);
+    if (availableTags && availableTags.length > 0) {
+      setTags(transformSimpleTagsToTags(availableTags));
     } else {
       // Fallback to client-side fetching if no tags provided
       fetch(`/api/tags?subject_id=${subjectId}`)
@@ -52,7 +60,7 @@ export default function ProblemForm({
         .then(j => setTags(j.data ?? []))
         .catch(() => {});
     }
-  }, [availableTags, subjectId]);
+  }, [availableTags, subjectId, transformSimpleTagsToTags]);
 
   // Tag picker - initialize with problem's existing tags if available
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>(() => {
@@ -119,18 +127,10 @@ export default function ProblemForm({
 
   // Correct answer inputs
   const [mcqChoice, setMcqChoice] = useState(
-    problem?.correct_answer?.type === 'mcq'
-      ? problem.correct_answer.choice
-      : typeof problem?.correct_answer === 'string'
-        ? problem.correct_answer
-        : ''
+    typeof problem?.correct_answer === 'string' ? problem.correct_answer : ''
   );
   const [shortText, setShortText] = useState(
-    problem?.correct_answer?.type === 'short'
-      ? problem.correct_answer.text
-      : typeof problem?.correct_answer === 'string'
-        ? problem.correct_answer
-        : ''
+    typeof problem?.correct_answer === 'string' ? problem.correct_answer : ''
   );
 
   // Assets
