@@ -11,6 +11,13 @@ import {
   createApiSuccessResponse,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
+import {
+  revalidateUserProblems,
+  revalidateSubjectProblems,
+} from '@/lib/cache-invalidation';
+
+// Cache configuration for this route
+export const revalidate = 300; // 5 minutes
 
 export async function GET(
   _req: Request,
@@ -240,6 +247,12 @@ export async function PATCH(
   const tags =
     tagLinks?.map((link: { tags: unknown }) => link.tags).filter(Boolean) || [];
 
+  // Invalidate cache after successful update
+  await Promise.all([
+    revalidateUserProblems(user.id),
+    revalidateSubjectProblems(updatedProblem.subject_id),
+  ]);
+
   return NextResponse.json(
     createApiSuccessResponse({
       ...updatedProblem,
@@ -257,6 +270,21 @@ export async function DELETE(
 
   const { id } = await params;
 
+  // Get the problem first to get subject_id for cache invalidation
+  const { data: problem, error: fetchError } = await supabase
+    .from('problems')
+    .select('subject_id')
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .single();
+
+  if (fetchError) {
+    return NextResponse.json(
+      createApiErrorResponse(ERROR_MESSAGES.NOT_FOUND, 404),
+      { status: 404 }
+    );
+  }
+
   // Best-effort: remove storage for both subfolders
   await deleteProblemFiles(supabase, user.id, id).catch(() => {});
 
@@ -272,6 +300,12 @@ export async function DELETE(
       { status: 500 }
     );
   }
+
+  // Invalidate cache after successful deletion
+  await Promise.all([
+    revalidateUserProblems(user.id),
+    revalidateSubjectProblems(problem.subject_id),
+  ]);
 
   return NextResponse.json(createApiSuccessResponse({ ok: true }));
 }

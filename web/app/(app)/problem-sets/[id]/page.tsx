@@ -3,6 +3,12 @@ import { notFound } from 'next/navigation';
 import { requireUser } from '@/lib/supabase/requireUser';
 import { getProblemSetWithFullData } from '@/lib/problem-set-utils';
 import ProblemSetPageClient from './problem-set-page-client';
+import { unstable_cache } from 'next/cache';
+import {
+  CACHE_DURATIONS,
+  CACHE_TAGS,
+  createProblemSetCacheTag,
+} from '@/lib/cache-config';
 
 export async function generateMetadata({
   params,
@@ -24,13 +30,27 @@ async function loadProblemSet(id: string) {
     return null;
   }
 
-  // Use the shared utility function to get complete problem set data
-  return await getProblemSetWithFullData(
-    supabase,
-    id,
-    user.id,
-    user.email || ''
+  const cachedLoadProblemSet = unstable_cache(
+    async () => {
+      // Use the shared utility function to get complete problem set data
+      return await getProblemSetWithFullData(
+        supabase,
+        id,
+        user.id,
+        user.email || ''
+      );
+    },
+    [`problem-set-${id}-${user.id}`],
+    {
+      tags: [
+        CACHE_TAGS.PROBLEM_SETS,
+        createProblemSetCacheTag(CACHE_TAGS.PROBLEM_SETS, id),
+      ],
+      revalidate: CACHE_DURATIONS.PROBLEM_SETS,
+    }
   );
+
+  return await cachedLoadProblemSet();
 }
 
 export default async function ProblemSetPage({

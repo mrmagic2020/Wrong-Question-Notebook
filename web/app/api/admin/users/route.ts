@@ -13,6 +13,9 @@ import {
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
 
+// Cache configuration for this route
+export const revalidate = 600; // 10 minutes
+
 export async function GET(request: NextRequest) {
   try {
     // Check if user is admin

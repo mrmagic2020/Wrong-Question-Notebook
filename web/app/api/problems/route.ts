@@ -17,6 +17,13 @@ import {
   handleAsyncError,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
+import {
+  revalidateUserProblems,
+  revalidateSubjectProblems,
+} from '@/lib/cache-invalidation';
+
+// Cache configuration for this route
+export const revalidate = 300; // 5 minutes
 
 async function getProblems(req: Request) {
   const { user, supabase } = await requireUser();
@@ -322,6 +329,12 @@ async function createProblem(req: Request) {
       .eq('user_id', user.id);
 
     const tags = tagLinks?.map((link: any) => link.tags).filter(Boolean) || [];
+
+    // Invalidate cache after successful creation
+    await Promise.all([
+      revalidateUserProblems(user.id),
+      revalidateSubjectProblems(parsed.data.subject_id),
+    ]);
 
     return NextResponse.json(
       createApiSuccessResponse({
