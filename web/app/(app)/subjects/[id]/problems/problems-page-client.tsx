@@ -4,13 +4,7 @@ import { useState } from 'react';
 import ProblemForm from './problem-form';
 import EnhancedProblemsTable from './enhanced-problems-table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-interface ProblemsPageClientProps {
-  initialProblems: any[];
-  initialTagsByProblem: Record<string, any[]>;
-  subjectId: string;
-  availableTags: any[];
-}
+import { ProblemsPageClientProps, Problem } from '@/lib/types';
 
 export default function ProblemsPageClient({
   initialProblems,
@@ -22,7 +16,7 @@ export default function ProblemsPageClient({
   const [tagsByProblem, setTagsByProblem] = useState(initialTagsByProblem);
 
   // Handle new problem creation
-  const handleProblemCreated = (newProblem: any) => {
+  const handleProblemCreated = (newProblem: Problem) => {
     // Add the new problem to the initial state
     setProblems(prev => [newProblem, ...prev]);
     setTagsByProblem(prev => ({
@@ -42,7 +36,7 @@ export default function ProblemsPageClient({
   };
 
   // Handle problem update
-  const handleProblemUpdated = (updatedProblem: any) => {
+  const handleProblemUpdated = (updatedProblem: Problem) => {
     setProblems(prev =>
       prev.map(p => (p.id === updatedProblem.id ? updatedProblem : p))
     );

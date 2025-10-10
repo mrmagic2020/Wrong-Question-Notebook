@@ -9,6 +9,7 @@ import {
   createSubjectCacheTag,
   createUserCacheTag,
 } from '@/lib/cache-config';
+import { Tag } from '@/lib/types';
 
 export async function generateMetadata({
   params,
@@ -71,7 +72,7 @@ async function loadData(subjectId: string) {
 
       const p = problems ?? [];
       const ids = p.map((x: any) => x.id);
-      const tagsByProblem: Record<string, any[]> = {};
+      const tagsByProblem: Record<string, Tag[]> = {};
 
       if (ids.length) {
         // Join problem_tag -> tags to collect tags per problem

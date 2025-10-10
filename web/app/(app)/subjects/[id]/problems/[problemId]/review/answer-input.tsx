@@ -1,16 +1,7 @@
 'use client';
 
-import { ProblemType } from '@/lib/schemas';
 import { Input } from '@/components/ui/input';
-
-interface AnswerInputProps {
-  problemType: ProblemType;
-  correctAnswer?: any;
-  value: any;
-  onChange: (value: any) => void;
-  onSubmit?: () => void;
-  disabled?: boolean;
-}
+import { AnswerInputProps } from '@/lib/types';
 
 export default function AnswerInput({
   problemType,

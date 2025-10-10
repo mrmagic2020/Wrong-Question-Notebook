@@ -8,18 +8,14 @@ import { Spinner } from '@/components/ui/spinner';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
+import { SubjectRowProps } from '@/lib/types';
 
 export default function SubjectRow({
   subject,
   onSubjectDeleted,
   onSubjectUpdated,
   showConfirmation,
-}: {
-  subject: any;
-  onSubjectDeleted?: (subjectId: string) => void;
-  onSubjectUpdated?: (subject: any) => void;
-  showConfirmation?: (config: any) => void;
-}) {
+}: SubjectRowProps) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(subject.name);

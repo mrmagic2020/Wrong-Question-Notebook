@@ -2,20 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { RichTextDisplay } from '@/components/ui/rich-text-display';
-
-interface SolutionAsset {
-  path: string;
-  kind?: 'image' | 'pdf';
-}
-
-interface SolutionRevealProps {
-  solutionText?: string;
-  solutionAssets: SolutionAsset[];
-  correctAnswer?: any;
-  problemType?: string;
-  isRevealed: boolean;
-  onToggle: () => void;
-}
+import AssetPreview from './asset-preview';
+import { SolutionRevealProps } from '@/lib/types';
 
 export default function SolutionReveal({
   solutionText,
@@ -99,6 +87,3 @@ export default function SolutionReveal({
     </div>
   );
 }
-
-// Import AssetPreview component
-import AssetPreview from './asset-preview';

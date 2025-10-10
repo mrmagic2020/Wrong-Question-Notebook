@@ -12,7 +12,7 @@ import {
   XCircle,
   Plus,
 } from 'lucide-react';
-import { ProblemType, PROBLEM_TYPE_VALUES } from '@/lib/schemas';
+import { ProblemType, PROBLEM_TYPE_VALUES, ProblemStatus } from '@/lib/schemas';
 import {
   getProblemTypeDisplayName,
   getProblemStatusDisplayName,
@@ -26,28 +26,20 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { DataTableFacetedFilter } from '@/components/ui/data-table-faceted-filter';
 import { useCallback, useEffect, useRef } from 'react';
-
-type Tag = { id: string; name: string };
-
-interface SearchFilters {
-  searchText: string;
-  problemTypes: ProblemType[];
-  tagIds: string[];
-  statuses: string[];
-}
+import { SearchFilters, SimpleTag } from '@/lib/types';
 
 interface CompactSearchFilterProps {
   onSearch: (filters: SearchFilters) => void;
-  availableTags: Tag[];
+  availableTags: SimpleTag[];
   subjectId: string;
   searchText: string;
   onSearchTextChange: (text: string) => void;
-  problemTypes: string[];
-  onProblemTypesChange: (types: string[]) => void;
+  problemTypes: ProblemType[];
+  onProblemTypesChange: (types: ProblemType[]) => void;
   tagIds: string[];
   onTagIdsChange: (tagIds: string[]) => void;
-  statuses: string[];
-  onStatusesChange: (statuses: string[]) => void;
+  statuses: ProblemStatus[];
+  onStatusesChange: (statuses: ProblemStatus[]) => void;
   // View options props
   table?: any;
   columnVisibilityKey?: number;
@@ -218,11 +210,11 @@ export default function CompactSearchFilter({
             options={problemTypeOptions}
             selectedValues={selectedProblemTypes}
             onSelectedValuesChange={values => {
-              const newTypes = Array.from(values);
+              const newTypes = Array.from(values) as ProblemType[];
               onProblemTypesChange(newTypes);
               onSearch({
                 searchText,
-                problemTypes: newTypes as ProblemType[],
+                problemTypes: newTypes,
                 tagIds,
                 statuses,
               });
@@ -238,7 +230,7 @@ export default function CompactSearchFilter({
               onTagIdsChange(newTagIds);
               onSearch({
                 searchText,
-                problemTypes: problemTypes as ProblemType[],
+                problemTypes: problemTypes,
                 tagIds: newTagIds,
                 statuses,
               });
@@ -250,11 +242,11 @@ export default function CompactSearchFilter({
             options={statusOptions}
             selectedValues={selectedStatuses}
             onSelectedValuesChange={values => {
-              const newStatuses = Array.from(values);
+              const newStatuses = Array.from(values) as ProblemStatus[];
               onStatusesChange(newStatuses);
               onSearch({
                 searchText,
-                problemTypes: problemTypes as ProblemType[],
+                problemTypes: problemTypes,
                 tagIds,
                 statuses: newStatuses,
               });

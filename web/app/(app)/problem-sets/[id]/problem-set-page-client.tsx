@@ -27,50 +27,21 @@ import {
   getProblemTypeDisplayName,
   getProblemStatusDisplayName,
 } from '@/lib/common-utils';
-
-interface Problem {
-  id: string;
-  title: string;
-  content: string | null;
-  problem_type: string;
-  status: ProblemStatus;
-  last_reviewed_date: string | null;
-  created_at: string;
-  added_at: string;
-  tags: Array<{ id: string; name: string }>;
-}
-
-interface ProblemSet {
-  id: string;
-  name: string;
-  description: string | null;
-  sharing_level: ProblemSetSharingLevel;
-  subject_id: string;
-  subject_name: string;
-  problems: Problem[];
-  problem_count: number;
-  created_at: string;
-  updated_at: string;
-  isOwner?: boolean;
-}
-
-interface Progress {
-  total_problems: number;
-  wrong_count: number;
-  needs_review_count: number;
-  mastered_count: number;
-}
-
-interface ProblemSetPageClientProps {
-  initialProblemSet: ProblemSet;
-}
+import {
+  ProblemInSet,
+  ProblemSetWithDetails,
+  ProblemSetProgress,
+  ProblemSetPageClientProps,
+} from '@/lib/types';
 
 export default function ProblemSetPageClient({
   initialProblemSet,
 }: ProblemSetPageClientProps) {
   const router = useRouter();
-  const [problemSet, setProblemSet] = useState<ProblemSet>(initialProblemSet);
-  const [progress, setProgress] = useState<Progress>({
+  const [problemSet, setProblemSet] = useState<
+    ProblemSetWithDetails & { problems: ProblemInSet[] }
+  >(initialProblemSet);
+  const [progress, setProgress] = useState<ProblemSetProgress>({
     total_problems: 0,
     wrong_count: 0,
     needs_review_count: 0,

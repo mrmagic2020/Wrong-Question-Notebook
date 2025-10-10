@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import {
-  ColumnDef,
   ColumnFiltersState,
   SortingState,
   flexRender,
@@ -23,23 +22,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Problem } from './columns';
-
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
-  onEdit?: (problem: Problem) => void;
-  onDelete?: (problemId: string, problemTitle: string) => void;
-  onAddToSet?: (problem: Problem) => void;
-  onRowClick?: (problem: Problem) => void;
-  availableTags?: { id: string; name: string }[];
-  onTableReady?: (table: any) => void;
-  onSelectionChange?: (selectedProblems: Problem[]) => void;
-  resetSelection?: boolean;
-  onColumnVisibilityChange?: () => void;
-  columnVisibilityStorageKey?: string;
-  isAddToSetMode?: boolean;
-}
+import { Problem, DataTableProps } from '@/lib/types';
 
 export function DataTable<TData, TValue>({
   columns,

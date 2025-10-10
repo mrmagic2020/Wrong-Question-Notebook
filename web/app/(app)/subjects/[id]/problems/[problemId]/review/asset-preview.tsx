@@ -2,15 +2,7 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
-
-interface Asset {
-  path: string;
-  kind?: 'image' | 'pdf';
-}
-
-interface AssetPreviewProps {
-  asset: Asset;
-}
+import { AssetPreviewProps } from '@/lib/types';
 
 export default function AssetPreview({ asset }: AssetPreviewProps) {
   const [imageError, setImageError] = useState(false);

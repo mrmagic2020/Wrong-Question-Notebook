@@ -34,30 +34,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import ProblemSetEditDialog from '@/app/(app)/problem-sets/problem-set-edit-dialog';
-
-interface ProblemSet {
-  id: string;
-  name: string;
-  description: string | null;
-  sharing_level: ProblemSetSharingLevel;
-  subject_id: string;
-  subject_name: string;
-  problem_count: number;
-  created_at: string;
-  updated_at: string;
-  shared_with_emails?: string[];
-}
-
-interface ProblemSetsPageClientProps {
-  initialProblemSets: ProblemSet[];
-}
+import { ProblemSetWithDetails, ProblemSetsPageClientProps } from '@/lib/types';
 
 export default function ProblemSetsPageClient({
   initialProblemSets,
 }: ProblemSetsPageClientProps) {
   const router = useRouter();
   const [problemSets, setProblemSets] =
-    useState<ProblemSet[]>(initialProblemSets);
+    useState<ProblemSetWithDetails[]>(initialProblemSets);
   const [searchText, setSearchText] = useState('');
   const [deleteDialog, setDeleteDialog] = useState<{
     open: boolean;
@@ -71,7 +55,7 @@ export default function ProblemSetsPageClient({
 
   const [editDialog, setEditDialog] = useState<{
     open: boolean;
-    problemSet: ProblemSet | null;
+    problemSet: ProblemSetWithDetails | null;
   }>({
     open: false,
     problemSet: null,
@@ -95,7 +79,7 @@ export default function ProblemSetsPageClient({
     });
   };
 
-  const handleEditClick = (problemSet: ProblemSet) => {
+  const handleEditClick = (problemSet: ProblemSetWithDetails) => {
     setEditDialog({
       open: true,
       problemSet,

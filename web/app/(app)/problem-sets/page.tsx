@@ -8,6 +8,11 @@ import {
   CACHE_TAGS,
   createUserCacheTag,
 } from '@/lib/cache-config';
+import {
+  ProblemSetWithDetails,
+  ProblemSet,
+  ProblemSetShare,
+} from '@/lib/types';
 
 export const metadata: Metadata = {
   title: 'All Problem Sets – Wrong Question Notebook',
@@ -18,7 +23,7 @@ async function loadProblemSets() {
   const { user } = await requireUser();
 
   if (!user) {
-    return { data: [] as any[] };
+    return { data: [] as ProblemSetWithDetails[] };
   }
 
   const cachedLoadProblemSets = unstable_cache(
@@ -41,12 +46,12 @@ async function loadProblemSets() {
 
       if (problemSetsError) {
         console.error('Error loading problem sets:', problemSetsError);
-        return { data: [] as any[] };
+        return { data: [] as ProblemSetWithDetails[] };
       }
 
       // Get subject names and problem counts separately
       const problemSetsWithData = await Promise.all(
-        (problemSets || []).map(async problemSet => {
+        (problemSets || []).map(async (problemSet: ProblemSet) => {
           // Get subject name
           const { data: subject } = await supabaseClient
             .from('subjects')
@@ -63,7 +68,7 @@ async function loadProblemSets() {
           // Transform shared emails
           const shared_with_emails =
             problemSet.problem_set_shares?.map(
-              (share: any) => share.shared_with_email
+              (share: ProblemSetShare) => share.shared_with_email
             ) || [];
 
           return {
@@ -71,7 +76,7 @@ async function loadProblemSets() {
             problem_count: problemCount || 0,
             subject_name: subject?.name || 'Unknown',
             shared_with_emails,
-          };
+          } as ProblemSetWithDetails;
         })
       );
 

@@ -25,19 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import { X, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProblemSetSharingLevel } from '@/lib/schemas';
-
-interface ProblemSetEditDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  problemSet: {
-    id: string;
-    name: string;
-    description: string | null;
-    sharing_level: ProblemSetSharingLevel;
-    shared_with_emails?: string[];
-  };
-  onSuccess?: () => void;
-}
+import { ProblemSetEditDialogProps } from '@/lib/types';
 
 export default function ProblemSetEditDialog({
   open,

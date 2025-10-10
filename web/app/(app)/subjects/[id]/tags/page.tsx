@@ -6,6 +6,7 @@ import {
   CACHE_DURATIONS,
   CACHE_TAGS,
   createSubjectCacheTag,
+  createUserCacheTag,
 } from '@/lib/cache-config';
 
 export async function generateMetadata({

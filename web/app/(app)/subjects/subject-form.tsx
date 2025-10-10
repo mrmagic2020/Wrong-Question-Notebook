@@ -6,12 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { Spinner } from '@/components/ui/spinner';
+import { SubjectFormProps } from '@/lib/types';
 
-export default function SubjectForm({
-  onSubjectCreated,
-}: {
-  onSubjectCreated?: (subject: any) => void;
-}) {
+export default function SubjectForm({ onSubjectCreated }: SubjectFormProps) {
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
