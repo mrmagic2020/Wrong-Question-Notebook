@@ -7,6 +7,7 @@ import {
   CACHE_DURATIONS,
   CACHE_TAGS,
   createSubjectCacheTag,
+  createUserCacheTag,
 } from '@/lib/cache-config';
 
 export async function generateMetadata({
@@ -24,10 +25,23 @@ export async function generateMetadata({
 async function loadData(subjectId: string) {
   const supabase = await createClient();
 
+  // Get user for cache key
+  const { data: authData } = await supabase.auth.getUser();
+  const userId = authData.user?.id;
+
+  if (!userId) {
+    return {
+      subject: null,
+      problems: [],
+      tagsByProblem: {},
+      availableTags: [],
+    };
+  }
+
   const cachedLoadData = unstable_cache(
-    async () => {
+    async (subjectId: string, userId: string, supabaseClient: any) => {
       // Subject detail
-      const { data: subject } = await supabase
+      const { data: subject } = await supabaseClient
         .from('subjects')
         .select('*')
         .eq('id', subjectId)
@@ -43,12 +57,12 @@ async function loadData(subjectId: string) {
 
       // Load problems and tags in parallel
       const [{ data: problems }, { data: availableTags }] = await Promise.all([
-        supabase
+        supabaseClient
           .from('problems')
           .select('*')
           .eq('subject_id', subjectId)
           .order('created_at', { ascending: false }),
-        supabase
+        supabaseClient
           .from('tags')
           .select('id, name')
           .eq('subject_id', subjectId)
@@ -61,7 +75,7 @@ async function loadData(subjectId: string) {
 
       if (ids.length) {
         // Join problem_tag -> tags to collect tags per problem
-        const { data: links } = await supabase
+        const { data: links } = await supabaseClient
           .from('problem_tag')
           .select('problem_id, tags:tag_id ( id, name )')
           .in('problem_id', ids);
@@ -84,19 +98,20 @@ async function loadData(subjectId: string) {
         availableTags: availableTags ?? [],
       };
     },
-    [`subject-problems-${subjectId}`],
+    [`subject-problems-${subjectId}-${userId}`],
     {
       tags: [
         CACHE_TAGS.PROBLEMS,
         CACHE_TAGS.TAGS,
         createSubjectCacheTag(CACHE_TAGS.PROBLEMS, subjectId),
         createSubjectCacheTag(CACHE_TAGS.TAGS, subjectId),
+        createUserCacheTag(CACHE_TAGS.USER_PROBLEMS, userId),
       ],
       revalidate: CACHE_DURATIONS.PROBLEMS,
     }
   );
 
-  const cachedData = await cachedLoadData();
+  const cachedData = await cachedLoadData(subjectId, userId, supabase);
 
   return {
     subject: cachedData.subject,

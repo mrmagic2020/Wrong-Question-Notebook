@@ -67,7 +67,7 @@ export async function PATCH(
       .update(updateData)
       .eq('id', problemId)
       .eq('user_id', user.id)
-      .select('*, subject_id')
+      .select('id, subject_id')
       .single();
 
     if (error) {

@@ -1,9 +1,4 @@
-import { unstable_cache } from 'next/cache';
-import {
-  CACHE_DURATIONS,
-  CACHE_TAGS,
-  createProblemSetCacheTag,
-} from './cache-config';
+// Note: Caching is now handled at the call site level to prevent data leakage
 
 /**
  * Check if a user has limited access to a problem set
@@ -90,7 +85,7 @@ export function transformProblemSetProblems(problemSetProblems: any[]): any[] {
 
 /**
  * Get a problem set with full data including problems and tags
- * This is the complete query that should be used for SSR
+ * This is a pure data-fetching function - caching should be handled at the call site
  */
 export async function getProblemSetWithFullData(
   supabase: any,
@@ -98,91 +93,76 @@ export async function getProblemSetWithFullData(
   userId: string,
   userEmail: string
 ) {
-  const cachedGetProblemSetWithFullData = unstable_cache(
-    async () => {
-      // Get the problem set with problems and their details
-      const { data: problemSet, error: problemSetError } = await supabase
-        .from('problem_sets')
-        .select(
-          `
-          *,
-          subjects(name),
-          problem_set_problems(
-            problem_id,
-            added_at,
-            problems(
-              id,
-              title,
-              content,
-              problem_type,
-              status,
-              last_reviewed_date,
-              created_at,
-              problem_tag(tags:tag_id(id, name))
-            )
-          ),
-          problem_set_shares(
-            id,
-            shared_with_email
-          )
-        `
+  // Get the problem set with problems and their details
+  const { data: problemSet, error: problemSetError } = await supabase
+    .from('problem_sets')
+    .select(
+      `
+      *,
+      subjects(name),
+      problem_set_problems(
+        problem_id,
+        added_at,
+        problems(
+          id,
+          title,
+          content,
+          problem_type,
+          status,
+          last_reviewed_date,
+          created_at,
+          problem_tag(tags:tag_id(id, name))
         )
-        .eq('id', problemSetId)
-        .single();
+      ),
+      problem_set_shares(
+        id,
+        shared_with_email
+      )
+    `
+    )
+    .eq('id', problemSetId)
+    .single();
 
-      if (problemSetError) {
-        console.error('Error loading problem set:', problemSetError);
-        return null;
-      }
+  if (problemSetError) {
+    console.error('Error loading problem set:', problemSetError);
+    return null;
+  }
 
-      // Check access permissions
-      const hasAccess = await checkProblemSetAccess(
-        supabase,
-        problemSet,
-        userId,
-        userEmail,
-        problemSetId
-      );
-
-      if (!hasAccess) {
-        return null;
-      }
-
-      // Transform the data to include problems with tags
-      const problems = transformProblemSetProblems(
-        problemSet.problem_set_problems
-      );
-
-      // Transform shared emails
-      const shared_with_emails =
-        problemSet.problem_set_shares?.map(
-          (share: any) => share.shared_with_email
-        ) || [];
-
-      return {
-        ...problemSet,
-        subject_name: problemSet.subjects?.name || 'Unknown',
-        problems,
-        problem_count: problems.length,
-        shared_with_emails,
-        isOwner: problemSet.user_id === userId,
-      };
-    },
-    [`problem-set-full-${problemSetId}-${userId}`],
-    {
-      tags: [
-        CACHE_TAGS.PROBLEM_SETS,
-        createProblemSetCacheTag(CACHE_TAGS.PROBLEM_SETS, problemSetId),
-      ],
-      revalidate: CACHE_DURATIONS.PROBLEM_SETS,
-    }
+  // Check access permissions
+  const hasAccess = await checkProblemSetAccess(
+    supabase,
+    problemSet,
+    userId,
+    userEmail,
+    problemSetId
   );
 
-  return await cachedGetProblemSetWithFullData();
+  if (!hasAccess) {
+    return null;
+  }
+
+  // Transform the data to include problems with tags
+  const problems = transformProblemSetProblems(problemSet.problem_set_problems);
+
+  // Transform shared emails
+  const shared_with_emails =
+    problemSet.problem_set_shares?.map(
+      (share: any) => share.shared_with_email
+    ) || [];
+
+  return {
+    ...problemSet,
+    subject_name: problemSet.subjects?.name || 'Unknown',
+    problems,
+    problem_count: problems.length,
+    shared_with_emails,
+    isOwner: problemSet.user_id === userId,
+  };
 }
 
 /**
  * Get basic problem set data for access checking
+ * This is a pure data-fetching function - caching should be handled at the call site
  */
 export async function getProblemSetBasic(
   supabase: any,
@@ -190,44 +170,30 @@ export async function getProblemSetBasic(
   userId: string,
   userEmail: string
 ) {
-  const cachedGetProblemSetBasic = unstable_cache(
-    async () => {
-      // Get the basic problem set data
-      const { data: problemSet, error: problemSetError } = await supabase
-        .from('problem_sets')
-        .select('id, user_id, sharing_level')
-        .eq('id', problemSetId)
-        .single();
+  // Get the basic problem set data
+  const { data: problemSet, error: problemSetError } = await supabase
+    .from('problem_sets')
+    .select('id, user_id, sharing_level')
+    .eq('id', problemSetId)
+    .single();
 
-      if (problemSetError) {
-        console.error('Error loading problem set:', problemSetError);
-        return null;
-      }
+  if (problemSetError) {
+    console.error('Error loading problem set:', problemSetError);
+    return null;
+  }
 
-      // Check access permissions
-      const hasAccess = await checkProblemSetAccess(
-        supabase,
-        problemSet,
-        userId,
-        userEmail,
-        problemSetId
-      );
-
-      if (!hasAccess) {
-        return null;
-      }
-
-      return problemSet;
-    },
-    [`problem-set-basic-${problemSetId}-${userId}`],
-    {
-      tags: [
-        CACHE_TAGS.PROBLEM_SETS,
-        createProblemSetCacheTag(CACHE_TAGS.PROBLEM_SETS, problemSetId),
-      ],
-      revalidate: CACHE_DURATIONS.PROBLEM_SETS,
-    }
+  // Check access permissions
+  const hasAccess = await checkProblemSetAccess(
+    supabase,
+    problemSet,
+    userId,
+    userEmail,
+    problemSetId
   );
 
-  return await cachedGetProblemSetBasic();
+  if (!hasAccess) {
+    return null;
+  }
+
+  return problemSet;
 }

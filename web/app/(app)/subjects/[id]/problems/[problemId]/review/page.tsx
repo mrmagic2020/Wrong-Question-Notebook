@@ -6,6 +6,8 @@ import {
   CACHE_DURATIONS,
   CACHE_TAGS,
   createSubjectCacheTag,
+  createProblemCacheTag,
+  createUserCacheTag,
 } from '@/lib/cache-config';
 
 export async function generateMetadata({
@@ -23,10 +25,23 @@ export async function generateMetadata({
 async function loadData(subjectId: string, problemId: string) {
   const supabase = await createClient();
 
+  // Get user for cache key
+  const { data: authData } = await supabase.auth.getUser();
+  const userId = authData.user?.id;
+
+  if (!userId) {
+    return { problem: null, subject: null, allProblems: [] };
+  }
+
   const cachedLoadData = unstable_cache(
-    async () => {
+    async (
+      subjectId: string,
+      problemId: string,
+      userId: string,
+      supabaseClient: any
+    ) => {
       // Get the problem with all details
-      const { data: problem, error } = await supabase
+      const { data: problem, error } = await supabaseClient
         .from('problems')
         .select('*')
         .eq('id', problemId)
@@ -38,21 +53,21 @@ async function loadData(subjectId: string, problemId: string) {
       }
 
       // Get the subject
-      const { data: subject } = await supabase
+      const { data: subject } = await supabaseClient
         .from('subjects')
         .select('*')
         .eq('id', subjectId)
         .single();
 
       // Get all problems in this subject for navigation
-      const { data: allProblems } = await supabase
+      const { data: allProblems } = await supabaseClient
         .from('problems')
         .select('id, title, problem_type, status')
         .eq('subject_id', subjectId)
         .order('created_at', { ascending: false });
 
       // Get tags for this problem
-      const { data: tagLinks } = await supabase
+      const { data: tagLinks } = await supabaseClient
         .from('problem_tag')
         .select('tags:tag_id ( id, name )')
         .eq('problem_id', problemId);
@@ -66,17 +81,19 @@ async function loadData(subjectId: string, problemId: string) {
         allProblems: allProblems || [],
       };
     },
-    [`problem-review-${subjectId}-${problemId}`],
+    [`problem-review-${subjectId}-${problemId}-${userId}`],
     {
       tags: [
         CACHE_TAGS.PROBLEMS,
         createSubjectCacheTag(CACHE_TAGS.PROBLEMS, subjectId),
+        createProblemCacheTag(CACHE_TAGS.PROBLEMS, problemId),
+        createUserCacheTag(CACHE_TAGS.USER_PROBLEMS, userId),
       ],
       revalidate: CACHE_DURATIONS.PROBLEMS,
     }
   );
 
-  return await cachedLoadData();
+  return await cachedLoadData(subjectId, problemId, userId, supabase);
 }
 
 export default async function ProblemReviewPage({

@@ -22,21 +22,22 @@ async function loadProblemSets() {
   }
 
   const cachedLoadProblemSets = unstable_cache(
-    async () => {
+    async (userId: string, supabaseClient: any) => {
       // Get only problem sets owned by the current user
-      const { data: problemSets, error: problemSetsError } = await supabase
-        .from('problem_sets')
-        .select(
-          `
+      const { data: problemSets, error: problemSetsError } =
+        await supabaseClient
+          .from('problem_sets')
+          .select(
+            `
           *,
           problem_set_shares(
             id,
             shared_with_email
           )
         `
-        )
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+          )
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
 
       if (problemSetsError) {
         console.error('Error loading problem sets:', problemSetsError);
@@ -47,14 +48,14 @@ async function loadProblemSets() {
       const problemSetsWithData = await Promise.all(
         (problemSets || []).map(async problemSet => {
           // Get subject name
-          const { data: subject } = await supabase
+          const { data: subject } = await supabaseClient
             .from('subjects')
             .select('name')
             .eq('id', problemSet.subject_id)
             .single();
 
           // Get problem count
-          const { count: problemCount } = await supabase
+          const { count: problemCount } = await supabaseClient
             .from('problem_set_problems')
             .select('*', { count: 'exact', head: true })
             .eq('problem_set_id', problemSet.id);
@@ -86,7 +87,7 @@ async function loadProblemSets() {
     }
   );
 
-  return await cachedLoadProblemSets();
+  return await cachedLoadProblemSets(user.id, supabase);
 }
 
 export default async function ProblemSetsPage() {

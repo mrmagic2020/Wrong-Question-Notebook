@@ -24,8 +24,8 @@ async function loadSubjects() {
   }
 
   const cachedLoadSubjects = unstable_cache(
-    async () => {
-      const { data, error } = await supabase
+    async (userId: string, supabaseClient: any) => {
+      const { data, error } = await supabaseClient
         .from('subjects')
         .select('*')
         .order('created_at', { ascending: true });
@@ -47,7 +47,7 @@ async function loadSubjects() {
     }
   );
 
-  return await cachedLoadSubjects();
+  return await cachedLoadSubjects(userId, supabase);
 }
 
 export default async function SubjectsPage() {

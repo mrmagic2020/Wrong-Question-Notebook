@@ -27,7 +27,7 @@ export default async function AdminDashboardPage() {
   }
 
   const cachedLoadDashboardData = unstable_cache(
-    async () => {
+    async (userId: string) => {
       // Fetch dashboard data
       const [statistics, recentActivity, settings] = await Promise.all([
         getUserStatistics(),
@@ -45,7 +45,7 @@ export default async function AdminDashboardPage() {
   );
 
   const { statistics, recentActivity, settings } =
-    await cachedLoadDashboardData();
+    await cachedLoadDashboardData(authData.user.id);
 
   return (
     <div className="section-container">

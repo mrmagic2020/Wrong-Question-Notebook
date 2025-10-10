@@ -8,6 +8,7 @@ import {
   CACHE_DURATIONS,
   CACHE_TAGS,
   createProblemSetCacheTag,
+  createUserCacheTag,
 } from '@/lib/cache-config';
 
 export async function generateMetadata({
@@ -31,13 +32,18 @@ async function loadProblemSet(id: string) {
   }
 
   const cachedLoadProblemSet = unstable_cache(
-    async () => {
+    async (
+      problemSetId: string,
+      userId: string,
+      userEmail: string,
+      supabaseClient: any
+    ) => {
       // Use the shared utility function to get complete problem set data
       return await getProblemSetWithFullData(
-        supabase,
-        id,
-        user.id,
-        user.email || ''
+        supabaseClient,
+        problemSetId,
+        userId,
+        userEmail
       );
     },
     [`problem-set-${id}-${user.id}`],
@@ -45,12 +51,13 @@ async function loadProblemSet(id: string) {
       tags: [
         CACHE_TAGS.PROBLEM_SETS,
         createProblemSetCacheTag(CACHE_TAGS.PROBLEM_SETS, id),
+        createUserCacheTag(CACHE_TAGS.USER_PROBLEM_SETS, user.id),
       ],
       revalidate: CACHE_DURATIONS.PROBLEM_SETS,
     }
   );
 
-  return await cachedLoadProblemSet();
+  return await cachedLoadProblemSet(id, user.id, user.email || '', supabase);
 }
 
 export default async function ProblemSetPage({
