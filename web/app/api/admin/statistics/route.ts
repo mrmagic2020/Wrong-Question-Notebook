@@ -5,6 +5,9 @@ import {
   // getRecentActivity,
 } from '@/lib/user-management';
 
+// Force dynamic rendering since we use cookies for authentication
+export const dynamic = 'force-dynamic';
+
 // Cache configuration for this route
 export const revalidate = 900; // 15 minutes
 

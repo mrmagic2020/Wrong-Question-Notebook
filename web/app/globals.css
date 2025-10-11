@@ -291,24 +291,55 @@ html body[data-scroll-locked] {
   }
 }
 
-/* Math formatting styles */
-code.math {
-  background-color: hsl(var(--muted));
-  color: hsl(var(--foreground));
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 0.9em;
-  padding: 0.125rem 0.25rem;
-  border-radius: 0.25rem;
-  border: 1px solid hsl(var(--border));
+/* KaTeX math rendering styles */
+.tiptap-mathematics-render {
+  /* Base styles for both inline and block math */
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  max-width: 100%;
 }
 
-/* Dark mode support for math */
-@media (prefers-color-scheme: dark) {
-  code.math {
-    background-color: hsl(var(--muted));
-    color: hsl(var(--foreground));
-    border-color: hsl(var(--border));
-  }
+.tiptap-mathematics-render--editable {
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.25rem;
+}
+
+.tiptap-mathematics-render--editable:hover {
+  background-color: hsl(var(--muted));
+}
+
+.tiptap-mathematics-render[data-type='inline-math'] {
+  display: inline;
+  vertical-align: baseline;
+}
+
+.tiptap-mathematics-render[data-type='block-math'] {
+  display: block;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+/* Ensure proper rendering of KaTeX math in display component */
+.rich-text-content .katex {
+  font-size: 1em;
+  line-height: 1.2;
+}
+
+.rich-text-content .katex-display {
+  font-size: 1.1em;
+  line-height: 1.4;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+/* Ensure math doesn't break layout */
+.rich-text-content .katex,
+.rich-text-content .katex-display {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 /* Link styling for rich text editor - scoped to TipTap editor content only */
@@ -664,6 +695,19 @@ code.math {
   overflow-wrap: anywhere !important;
   max-width: 100% !important;
   box-sizing: border-box !important;
+}
+
+/* Unified subscript and superscript styles */
+.rich-text-content sub,
+.tiptap sub {
+  vertical-align: sub !important;
+  font-size: 0.75em !important;
+}
+
+.rich-text-content sup,
+.tiptap sup {
+  vertical-align: super !important;
+  font-size: 0.75em !important;
 }
 
 /* Emergency fallback for any element that might still expand */

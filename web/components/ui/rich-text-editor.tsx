@@ -4,11 +4,17 @@ import React, { useCallback, useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Link } from '@tiptap/extension-link';
-import { Placeholder } from '@tiptap/extensions';
+import { Subscript } from '@tiptap/extension-subscript';
+import { Superscript } from '@tiptap/extension-superscript';
+import { Mathematics } from '@tiptap/extension-mathematics';
+import { Placeholder, CharacterCount } from '@tiptap/extensions';
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Popover,
   PopoverContent,
@@ -29,6 +35,8 @@ import {
   Redo,
   Link as LinkIcon,
   Calculator,
+  Subscript as SubscriptIcon,
+  Superscript as SuperscriptIcon,
 } from 'lucide-react';
 
 interface RichTextEditorProps {
@@ -83,8 +91,13 @@ export function RichTextEditor({
   const [linkPopoverOpen, setLinkPopoverOpen] = React.useState(false);
   const [linkUrl, setLinkUrl] = React.useState('');
   const [linkText, setLinkText] = React.useState('');
-  const [mathPopoverOpen, setMathPopoverOpen] = React.useState(false);
-  const [mathFormula, setMathFormula] = React.useState('');
+  const [mathDialogOpen, setMathDialogOpen] = React.useState(false);
+  const [mathLatex, setMathLatex] = React.useState('');
+  const [mathIsBlock, setMathIsBlock] = React.useState(false);
+  const [mathEditingPos, setMathEditingPos] = React.useState<number | null>(
+    null
+  );
+  const [mathPreview, setMathPreview] = React.useState<string>('');
 
   // State to track active formatting states for proper toolbar updates
   const [activeStates, setActiveStates] = React.useState({
@@ -99,24 +112,9 @@ export function RichTextEditor({
     orderedList: false,
     blockquote: false,
     link: false,
+    subscript: false,
+    superscript: false,
   });
-
-  // Character count state - initialize with text content length
-  const getTextContentLength = (htmlContent: string) => {
-    // Create a temporary element to extract text content
-    if (typeof window !== 'undefined') {
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = htmlContent;
-      return tempDiv.textContent?.length || 0;
-    }
-    // Fallback for SSR - approximate by removing common HTML tags
-    return htmlContent.replace(/<[^>]*>/g, '').length;
-  };
-
-  const [characterCount, setCharacterCount] = React.useState(
-    getTextContentLength(content)
-  );
-  const [isOverLimit, setIsOverLimit] = React.useState(false);
 
   // Function to update active states based on editor state
   const updateActiveStates = React.useCallback((editor: any) => {
@@ -134,6 +132,8 @@ export function RichTextEditor({
       orderedList: editor.isActive('orderedList'),
       blockquote: editor.isActive('blockquote'),
       link: editor.isActive('link'),
+      subscript: editor.isActive('subscript'),
+      superscript: editor.isActive('superscript'),
     });
   }, []);
 
@@ -160,8 +160,41 @@ export function RichTextEditor({
       }).extend({
         inclusive: false,
       }),
+      Subscript,
+      Superscript,
+      Mathematics.configure({
+        inlineOptions: {
+          onClick: (node, pos) => {
+            setMathLatex(node.attrs.latex || '');
+            setMathIsBlock(false);
+            setMathEditingPos(pos);
+            generatePreview(node.attrs.latex || '', false);
+            setMathDialogOpen(true);
+          },
+        },
+        blockOptions: {
+          onClick: (node, pos) => {
+            setMathLatex(node.attrs.latex || '');
+            setMathIsBlock(true);
+            setMathEditingPos(pos);
+            generatePreview(node.attrs.latex || '', true);
+            setMathDialogOpen(true);
+          },
+        },
+        katexOptions: {
+          throwOnError: false,
+          macros: {
+            '\\R': '\\mathbb{R}',
+            '\\N': '\\mathbb{N}',
+          },
+        },
+      }),
       Placeholder.configure({
         placeholder,
+      }),
+      CharacterCount.configure({
+        limit: maxLength || null,
+        mode: 'textSize',
       }),
     ],
     content,
@@ -169,17 +202,6 @@ export function RichTextEditor({
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
       const htmlContent = editor.getHTML();
-
-      // Count only text content, not HTML tags
-      const textContent = editor.getText();
-      const currentLength = textContent.length;
-
-      // Update character count
-      setCharacterCount(currentLength);
-
-      // Check if over limit
-      const overLimit = maxLength ? currentLength > maxLength : false;
-      setIsOverLimit(overLimit);
 
       // Update active states for toolbar
       updateActiveStates(editor);
@@ -201,69 +223,6 @@ export function RichTextEditor({
         class:
           'tiptap focus:outline-none w-full max-w-full min-w-0 overflow-wrap-anywhere break-words overflow-x-hidden',
         style: `min-height: ${minHeight}; max-width: 100%; width: 100%; min-width: 0; overflow-wrap: anywhere; word-break: break-word; overflow-x: hidden; box-sizing: border-box;`,
-      },
-      handleKeyDown: (view, event) => {
-        // Prevent input when over character limit (except for deletion/editing keys)
-        const { state } = view;
-        const textContent = state.doc.textContent;
-        const currentLength = textContent.length;
-
-        if (maxLength && currentLength >= maxLength) {
-          // Allow deletion, navigation, and formatting keys
-          const allowedKeys = [
-            'Backspace',
-            'Delete',
-            'ArrowLeft',
-            'ArrowRight',
-            'ArrowUp',
-            'ArrowDown',
-            'Home',
-            'End',
-            'PageUp',
-            'PageDown',
-            'Tab',
-            'Escape',
-            'Enter', // Allow Enter for new paragraphs (might reduce content)
-            'Shift',
-            'Control',
-            'Alt',
-            'Meta',
-            'CapsLock',
-          ];
-
-          // Allow key combinations (Ctrl+A, Ctrl+C, etc.)
-          if (event.ctrlKey || event.metaKey || event.altKey) {
-            return false;
-          }
-
-          // Allow deletion keys
-          if (allowedKeys.includes(event.key)) {
-            return false;
-          }
-
-          // Block other input
-          event.preventDefault();
-          return true;
-        }
-
-        return false;
-      },
-      handlePaste: (view, event) => {
-        // Prevent pasting if it would exceed character limit
-        if (maxLength) {
-          const { state } = view;
-          const currentLength = state.doc.textContent.length;
-
-          // Get pasted text content
-          const pastedText = event.clipboardData?.getData('text/plain') || '';
-
-          if (currentLength + pastedText.length > maxLength) {
-            event.preventDefault();
-            return true;
-          }
-        }
-
-        return false;
       },
     },
   });
@@ -354,28 +313,121 @@ export function RichTextEditor({
     }
   }, [editor, activeStates.link]);
 
-  const handleAddMath = useCallback(() => {
-    if (mathFormula.trim()) {
-      // Insert as inline code with math formatting
-      editor
-        ?.chain()
-        .focus()
-        .insertContent(`<code class="math">${mathFormula}</code>`)
-        .run();
-      setMathFormula('');
-      setMathPopoverOpen(false);
+  // Generate LaTeX preview
+  const generatePreview = useCallback((latex: string, isBlock: boolean) => {
+    if (!latex.trim()) {
+      setMathPreview('');
+      return;
     }
-  }, [editor, mathFormula]);
+
+    try {
+      const html = katex.renderToString(latex, {
+        throwOnError: false,
+        displayMode: isBlock,
+        output: 'html',
+      });
+      setMathPreview(html);
+    } catch {
+      setMathPreview('');
+    }
+  }, []);
+
+  const handleMathButtonClick = useCallback(() => {
+    setMathLatex('');
+    setMathIsBlock(false);
+    setMathEditingPos(null);
+    setMathPreview('');
+    setMathDialogOpen(true);
+  }, []);
+
+  const handleInsertMath = useCallback(() => {
+    if (!mathLatex.trim() || !editor) return;
+
+    if (mathEditingPos !== null) {
+      // Update existing math - need to delete old and insert new if type changed
+      const currentNode = editor.state.doc.nodeAt(mathEditingPos);
+      const wasBlock = currentNode?.type.name === 'blockMath';
+
+      if (wasBlock === mathIsBlock) {
+        // Same type, just update
+        if (mathIsBlock) {
+          editor
+            .chain()
+            .setNodeSelection(mathEditingPos)
+            .updateBlockMath({ latex: mathLatex })
+            .run();
+        } else {
+          editor
+            .chain()
+            .setNodeSelection(mathEditingPos)
+            .updateInlineMath({ latex: mathLatex })
+            .run();
+        }
+      } else {
+        // Type changed, delete old and insert new
+        if (wasBlock) {
+          editor
+            .chain()
+            .setNodeSelection(mathEditingPos)
+            .deleteBlockMath()
+            .run();
+        } else {
+          editor
+            .chain()
+            .setNodeSelection(mathEditingPos)
+            .deleteInlineMath()
+            .run();
+        }
+
+        // Insert new with correct type
+        if (mathIsBlock) {
+          editor.chain().focus().insertBlockMath({ latex: mathLatex }).run();
+        } else {
+          editor.chain().focus().insertInlineMath({ latex: mathLatex }).run();
+        }
+      }
+    } else {
+      // Insert new math
+      if (mathIsBlock) {
+        editor.chain().focus().insertBlockMath({ latex: mathLatex }).run();
+      } else {
+        editor.chain().focus().insertInlineMath({ latex: mathLatex }).run();
+      }
+    }
+
+    setMathLatex('');
+    setMathIsBlock(false);
+    setMathEditingPos(null);
+    setMathPreview('');
+    setMathDialogOpen(false);
+  }, [editor, mathLatex, mathIsBlock, mathEditingPos]);
+
+  const handleRemoveMath = useCallback(() => {
+    if (!editor || mathEditingPos === null) return;
+
+    if (mathIsBlock) {
+      editor.chain().setNodeSelection(mathEditingPos).deleteBlockMath().run();
+    } else {
+      editor.chain().setNodeSelection(mathEditingPos).deleteInlineMath().run();
+    }
+
+    setMathLatex('');
+    setMathIsBlock(false);
+    setMathEditingPos(null);
+    setMathPreview('');
+    setMathDialogOpen(false);
+  }, [editor, mathIsBlock, mathEditingPos]);
+
+  // Update preview when latex or block mode changes
+  useEffect(() => {
+    generatePreview(mathLatex, mathIsBlock);
+  }, [mathLatex, mathIsBlock, generatePreview]);
 
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
       editor.commands.setContent(content);
-      // Update character count when content changes - use text content, not HTML
-      const textContent = editor.getText();
-      setCharacterCount(textContent.length);
-      setIsOverLimit(maxLength ? textContent.length > maxLength : false);
     }
-  }, [content, editor, maxLength]);
+  }, [content, editor]);
 
   // Initialize active states when editor is ready
   useEffect(() => {
@@ -438,6 +490,22 @@ export function RichTextEditor({
             title="Inline code"
           >
             <Code className="h-4 w-4" />
+          </MenuButton>
+          <MenuButton
+            onClick={() => editor.chain().focus().toggleSubscript().run()}
+            isActive={activeStates.subscript}
+            disabled={disabled}
+            title="Subscript"
+          >
+            <SubscriptIcon className="h-4 w-4" />
+          </MenuButton>
+          <MenuButton
+            onClick={() => editor.chain().focus().toggleSuperscript().run()}
+            isActive={activeStates.superscript}
+            disabled={disabled}
+            title="Superscript"
+          >
+            <SuperscriptIcon className="h-4 w-4" />
           </MenuButton>
         </div>
 
@@ -620,7 +688,7 @@ export function RichTextEditor({
               </div>
             </PopoverContent>
           </Popover>
-          <Popover open={mathPopoverOpen} onOpenChange={setMathPopoverOpen}>
+          <Popover open={mathDialogOpen} onOpenChange={setMathDialogOpen}>
             <PopoverTrigger asChild>
               <Button
                 type="button"
@@ -629,48 +697,105 @@ export function RichTextEditor({
                 disabled={disabled}
                 title="Add math formula"
                 className="h-8 w-8 p-0"
+                onClick={handleMathButtonClick}
               >
                 <Calculator className="h-4 w-4" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80" align="start">
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <Label htmlFor="math-formula">Math Formula</Label>
-                  <Input
-                    id="math-formula"
-                    placeholder="E = mc², x² + y² = z², ∫f(x)dx"
-                    value={mathFormula}
-                    onChange={e => setMathFormula(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') {
-                        handleAddMath();
-                      }
-                    }}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Enter mathematical expressions using standard notation
-                  </p>
+            <PopoverContent className="w-96" align="start">
+              <div className="space-y-4">
+                <div className="text-sm font-medium">
+                  {mathEditingPos !== null
+                    ? 'Edit Math Formula'
+                    : 'Add Math Formula'}
                 </div>
+
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="math-latex">LaTeX Formula</Label>
+                    <Input
+                      id="math-latex"
+                      placeholder="E = mc^2, \\frac{a}{b}, \\sum_{i=1}^{n} i"
+                      value={mathLatex}
+                      onChange={e => setMathLatex(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && e.ctrlKey) {
+                          handleInsertMath();
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Use LaTeX notation. Press Ctrl+Enter to insert.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="math-block"
+                      checked={mathIsBlock}
+                      onCheckedChange={checked =>
+                        setMathIsBlock(checked === true)
+                      }
+                    />
+                    <Label htmlFor="math-block" className="text-sm">
+                      Block formula (displayed on its own line)
+                    </Label>
+                  </div>
+
+                  {mathLatex.trim() && (
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">
+                        Preview:
+                      </Label>
+                      <div className="p-3 border rounded-md bg-muted/50 min-h-[60px] flex items-center justify-center">
+                        {mathPreview ? (
+                          <div
+                            className={mathIsBlock ? 'block' : 'inline'}
+                            dangerouslySetInnerHTML={{ __html: mathPreview }}
+                          />
+                        ) : (
+                          <div className="text-sm text-muted-foreground">
+                            Invalid LaTeX syntax
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex justify-end gap-2">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      setMathPopoverOpen(false);
-                      setMathFormula('');
+                      setMathDialogOpen(false);
+                      setMathLatex('');
+                      setMathIsBlock(false);
+                      setMathEditingPos(null);
                     }}
                   >
                     Cancel
                   </Button>
+                  {mathEditingPos !== null && (
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleRemoveMath}
+                    >
+                      Remove
+                    </Button>
+                  )}
                   <Button
                     type="button"
                     size="sm"
-                    onClick={handleAddMath}
-                    disabled={!mathFormula.trim()}
+                    onClick={handleInsertMath}
+                    disabled={!mathLatex.trim()}
                   >
-                    Add Formula
+                    {mathEditingPos !== null
+                      ? 'Update Formula'
+                      : 'Insert Formula'}
                   </Button>
                 </div>
               </div>
@@ -715,17 +840,18 @@ export function RichTextEditor({
       </div>
 
       {/* Character count */}
-      {(showCharacterCount || maxLength) && (
+      {(showCharacterCount || maxLength) && editor && (
         <div className="flex justify-between items-center px-3 py-2 border-t border-border bg-muted/30 text-xs text-muted-foreground">
           <span>
-            {characterCount} {maxLength ? `of ${maxLength}` : ''} text
-            characters
+            {editor.storage.characterCount.characters()}{' '}
+            {maxLength ? `of ${maxLength}` : ''} text characters
           </span>
-          {isOverLimit && (
-            <span className="text-red-500 font-medium">
-              Text limit exceeded
-            </span>
-          )}
+          {maxLength &&
+            editor.storage.characterCount.characters() > maxLength && (
+              <span className="text-red-500 font-medium">
+                Text limit exceeded
+              </span>
+            )}
         </div>
       )}
     </div>
