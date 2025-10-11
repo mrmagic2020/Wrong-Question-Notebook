@@ -6,11 +6,15 @@ import StarterKit from '@tiptap/starter-kit';
 import { Link } from '@tiptap/extension-link';
 import { Subscript } from '@tiptap/extension-subscript';
 import { Superscript } from '@tiptap/extension-superscript';
+import { Mathematics } from '@tiptap/extension-mathematics';
 import { Placeholder, CharacterCount } from '@tiptap/extensions';
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Popover,
   PopoverContent,
@@ -87,8 +91,13 @@ export function RichTextEditor({
   const [linkPopoverOpen, setLinkPopoverOpen] = React.useState(false);
   const [linkUrl, setLinkUrl] = React.useState('');
   const [linkText, setLinkText] = React.useState('');
-  const [mathPopoverOpen, setMathPopoverOpen] = React.useState(false);
-  const [mathFormula, setMathFormula] = React.useState('');
+  const [mathDialogOpen, setMathDialogOpen] = React.useState(false);
+  const [mathLatex, setMathLatex] = React.useState('');
+  const [mathIsBlock, setMathIsBlock] = React.useState(false);
+  const [mathEditingPos, setMathEditingPos] = React.useState<number | null>(
+    null
+  );
+  const [mathPreview, setMathPreview] = React.useState<string>('');
 
   // State to track active formatting states for proper toolbar updates
   const [activeStates, setActiveStates] = React.useState({
@@ -153,6 +162,33 @@ export function RichTextEditor({
       }),
       Subscript,
       Superscript,
+      Mathematics.configure({
+        inlineOptions: {
+          onClick: (node, pos) => {
+            setMathLatex(node.attrs.latex || '');
+            setMathIsBlock(false);
+            setMathEditingPos(pos);
+            generatePreview(node.attrs.latex || '', false);
+            setMathDialogOpen(true);
+          },
+        },
+        blockOptions: {
+          onClick: (node, pos) => {
+            setMathLatex(node.attrs.latex || '');
+            setMathIsBlock(true);
+            setMathEditingPos(pos);
+            generatePreview(node.attrs.latex || '', true);
+            setMathDialogOpen(true);
+          },
+        },
+        katexOptions: {
+          throwOnError: false,
+          macros: {
+            '\\R': '\\mathbb{R}',
+            '\\N': '\\mathbb{N}',
+          },
+        },
+      }),
       Placeholder.configure({
         placeholder,
       }),
@@ -277,18 +313,115 @@ export function RichTextEditor({
     }
   }, [editor, activeStates.link]);
 
-  const handleAddMath = useCallback(() => {
-    if (mathFormula.trim()) {
-      // Insert as inline code with math formatting
-      editor
-        ?.chain()
-        .focus()
-        .insertContent(`<code class="math">${mathFormula}</code>`)
-        .run();
-      setMathFormula('');
-      setMathPopoverOpen(false);
+  // Generate LaTeX preview
+  const generatePreview = useCallback((latex: string, isBlock: boolean) => {
+    if (!latex.trim()) {
+      setMathPreview('');
+      return;
     }
-  }, [editor, mathFormula]);
+
+    try {
+      const html = katex.renderToString(latex, {
+        throwOnError: false,
+        displayMode: isBlock,
+        output: 'html',
+      });
+      setMathPreview(html);
+    } catch {
+      setMathPreview('');
+    }
+  }, []);
+
+  const handleMathButtonClick = useCallback(() => {
+    setMathLatex('');
+    setMathIsBlock(false);
+    setMathEditingPos(null);
+    setMathPreview('');
+    setMathDialogOpen(true);
+  }, []);
+
+  const handleInsertMath = useCallback(() => {
+    if (!mathLatex.trim() || !editor) return;
+
+    if (mathEditingPos !== null) {
+      // Update existing math - need to delete old and insert new if type changed
+      const currentNode = editor.state.doc.nodeAt(mathEditingPos);
+      const wasBlock = currentNode?.type.name === 'blockMath';
+
+      if (wasBlock === mathIsBlock) {
+        // Same type, just update
+        if (mathIsBlock) {
+          editor
+            .chain()
+            .setNodeSelection(mathEditingPos)
+            .updateBlockMath({ latex: mathLatex })
+            .run();
+        } else {
+          editor
+            .chain()
+            .setNodeSelection(mathEditingPos)
+            .updateInlineMath({ latex: mathLatex })
+            .run();
+        }
+      } else {
+        // Type changed, delete old and insert new
+        if (wasBlock) {
+          editor
+            .chain()
+            .setNodeSelection(mathEditingPos)
+            .deleteBlockMath()
+            .run();
+        } else {
+          editor
+            .chain()
+            .setNodeSelection(mathEditingPos)
+            .deleteInlineMath()
+            .run();
+        }
+
+        // Insert new with correct type
+        if (mathIsBlock) {
+          editor.chain().focus().insertBlockMath({ latex: mathLatex }).run();
+        } else {
+          editor.chain().focus().insertInlineMath({ latex: mathLatex }).run();
+        }
+      }
+    } else {
+      // Insert new math
+      if (mathIsBlock) {
+        editor.chain().focus().insertBlockMath({ latex: mathLatex }).run();
+      } else {
+        editor.chain().focus().insertInlineMath({ latex: mathLatex }).run();
+      }
+    }
+
+    setMathLatex('');
+    setMathIsBlock(false);
+    setMathEditingPos(null);
+    setMathPreview('');
+    setMathDialogOpen(false);
+  }, [editor, mathLatex, mathIsBlock, mathEditingPos]);
+
+  const handleRemoveMath = useCallback(() => {
+    if (!editor || mathEditingPos === null) return;
+
+    if (mathIsBlock) {
+      editor.chain().setNodeSelection(mathEditingPos).deleteBlockMath().run();
+    } else {
+      editor.chain().setNodeSelection(mathEditingPos).deleteInlineMath().run();
+    }
+
+    setMathLatex('');
+    setMathIsBlock(false);
+    setMathEditingPos(null);
+    setMathPreview('');
+    setMathDialogOpen(false);
+  }, [editor, mathIsBlock, mathEditingPos]);
+
+  // Update preview when latex or block mode changes
+  useEffect(() => {
+    generatePreview(mathLatex, mathIsBlock);
+  }, [mathLatex, mathIsBlock, generatePreview]);
 
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
@@ -555,7 +688,7 @@ export function RichTextEditor({
               </div>
             </PopoverContent>
           </Popover>
-          <Popover open={mathPopoverOpen} onOpenChange={setMathPopoverOpen}>
+          <Popover open={mathDialogOpen} onOpenChange={setMathDialogOpen}>
             <PopoverTrigger asChild>
               <Button
                 type="button"
@@ -564,48 +697,105 @@ export function RichTextEditor({
                 disabled={disabled}
                 title="Add math formula"
                 className="h-8 w-8 p-0"
+                onClick={handleMathButtonClick}
               >
                 <Calculator className="h-4 w-4" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80" align="start">
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <Label htmlFor="math-formula">Math Formula</Label>
-                  <Input
-                    id="math-formula"
-                    placeholder="E = mc², x² + y² = z², ∫f(x)dx"
-                    value={mathFormula}
-                    onChange={e => setMathFormula(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') {
-                        handleAddMath();
-                      }
-                    }}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Enter mathematical expressions using standard notation
-                  </p>
+            <PopoverContent className="w-96" align="start">
+              <div className="space-y-4">
+                <div className="text-sm font-medium">
+                  {mathEditingPos !== null
+                    ? 'Edit Math Formula'
+                    : 'Add Math Formula'}
                 </div>
+
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="math-latex">LaTeX Formula</Label>
+                    <Input
+                      id="math-latex"
+                      placeholder="E = mc^2, \\frac{a}{b}, \\sum_{i=1}^{n} i"
+                      value={mathLatex}
+                      onChange={e => setMathLatex(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && e.ctrlKey) {
+                          handleInsertMath();
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Use LaTeX notation. Press Ctrl+Enter to insert.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="math-block"
+                      checked={mathIsBlock}
+                      onCheckedChange={checked =>
+                        setMathIsBlock(checked === true)
+                      }
+                    />
+                    <Label htmlFor="math-block" className="text-sm">
+                      Block formula (displayed on its own line)
+                    </Label>
+                  </div>
+
+                  {mathLatex.trim() && (
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">
+                        Preview:
+                      </Label>
+                      <div className="p-3 border rounded-md bg-muted/50 min-h-[60px] flex items-center justify-center">
+                        {mathPreview ? (
+                          <div
+                            className={mathIsBlock ? 'block' : 'inline'}
+                            dangerouslySetInnerHTML={{ __html: mathPreview }}
+                          />
+                        ) : (
+                          <div className="text-sm text-muted-foreground">
+                            Invalid LaTeX syntax
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex justify-end gap-2">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      setMathPopoverOpen(false);
-                      setMathFormula('');
+                      setMathDialogOpen(false);
+                      setMathLatex('');
+                      setMathIsBlock(false);
+                      setMathEditingPos(null);
                     }}
                   >
                     Cancel
                   </Button>
+                  {mathEditingPos !== null && (
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleRemoveMath}
+                    >
+                      Remove
+                    </Button>
+                  )}
                   <Button
                     type="button"
                     size="sm"
-                    onClick={handleAddMath}
-                    disabled={!mathFormula.trim()}
+                    onClick={handleInsertMath}
+                    disabled={!mathLatex.trim()}
                   >
-                    Add Formula
+                    {mathEditingPos !== null
+                      ? 'Update Formula'
+                      : 'Insert Formula'}
                   </Button>
                 </div>
               </div>

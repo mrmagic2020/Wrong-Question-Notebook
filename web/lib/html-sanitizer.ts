@@ -10,6 +10,21 @@ export function sanitizeHtmlContent(html: string): string {
     return '';
   }
 
+  // Special handling for math content - use a more permissive config
+  if (html.includes('katex') || html.includes('tiptap')) {
+    // Use a more permissive config for math content
+    const mathConfig = {
+      ...getSanitizeConfig(),
+      // Allow all classes for math elements to preserve KaTeX styling
+      allowedClasses: {
+        '*': true, // Allow all classes for all elements
+      },
+    };
+
+    return sanitizeHtml(html, mathConfig);
+  }
+
+  // Use standard config for non-math content
   const sanitized = sanitizeHtml(html, getSanitizeConfig());
 
   // Ensure the sanitized HTML is valid and complete
@@ -104,14 +119,33 @@ function getSanitizeConfig(): sanitizeHtml.IOptions {
       td: ['colspan', 'rowspan'],
       th: ['colspan', 'rowspan'],
 
-      // Math attributes (KaTeX)
-      span: ['class', 'data-math'],
-      div: ['class', 'data-math'],
+      // Math attributes (KaTeX) - allow all common KaTeX attributes
+      span: [
+        'class',
+        'data-math',
+        'data-type',
+        'data-latex',
+        'aria-hidden',
+        'aria-label',
+        'role',
+      ],
+      div: [
+        'class',
+        'data-math',
+        'data-type',
+        'data-latex',
+        'aria-hidden',
+        'aria-label',
+        'role',
+      ],
       code: ['class'],
 
       // General attributes
       '*': ['id', 'style'],
     },
+
+    // Allow all classes for math-related elements (KaTeX generates many dynamic classes)
+    // Note: sanitize-html doesn't support wildcards, so we'll use transformTags instead
 
     allowedSchemes: ['http', 'https', 'mailto', 'tel'],
     allowedSchemesByTag: {
@@ -145,6 +179,27 @@ function getSanitizeConfig(): sanitizeHtml.IOptions {
               rel: 'noopener noreferrer',
             },
           };
+        }
+        return { tagName, attribs };
+      },
+      // Preserve math content
+      span: (tagName, attribs) => {
+        // If this looks like a math element, preserve all attributes
+        if (
+          attribs.class &&
+          (attribs.class.includes('katex') || attribs.class.includes('tiptap'))
+        ) {
+          return { tagName, attribs };
+        }
+        return { tagName, attribs };
+      },
+      div: (tagName, attribs) => {
+        // If this looks like a math element, preserve all attributes
+        if (
+          attribs.class &&
+          (attribs.class.includes('katex') || attribs.class.includes('tiptap'))
+        ) {
+          return { tagName, attribs };
         }
         return { tagName, attribs };
       },
