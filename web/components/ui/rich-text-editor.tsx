@@ -4,6 +4,8 @@ import React, { useCallback, useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Link } from '@tiptap/extension-link';
+import { Subscript } from '@tiptap/extension-subscript';
+import { Superscript } from '@tiptap/extension-superscript';
 import { Placeholder, CharacterCount } from '@tiptap/extensions';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -29,6 +31,8 @@ import {
   Redo,
   Link as LinkIcon,
   Calculator,
+  Subscript as SubscriptIcon,
+  Superscript as SuperscriptIcon,
 } from 'lucide-react';
 
 interface RichTextEditorProps {
@@ -99,6 +103,8 @@ export function RichTextEditor({
     orderedList: false,
     blockquote: false,
     link: false,
+    subscript: false,
+    superscript: false,
   });
 
   // Function to update active states based on editor state
@@ -117,6 +123,8 @@ export function RichTextEditor({
       orderedList: editor.isActive('orderedList'),
       blockquote: editor.isActive('blockquote'),
       link: editor.isActive('link'),
+      subscript: editor.isActive('subscript'),
+      superscript: editor.isActive('superscript'),
     });
   }, []);
 
@@ -143,6 +151,8 @@ export function RichTextEditor({
       }).extend({
         inclusive: false,
       }),
+      Subscript,
+      Superscript,
       Placeholder.configure({
         placeholder,
       }),
@@ -347,6 +357,22 @@ export function RichTextEditor({
             title="Inline code"
           >
             <Code className="h-4 w-4" />
+          </MenuButton>
+          <MenuButton
+            onClick={() => editor.chain().focus().toggleSubscript().run()}
+            isActive={activeStates.subscript}
+            disabled={disabled}
+            title="Subscript"
+          >
+            <SubscriptIcon className="h-4 w-4" />
+          </MenuButton>
+          <MenuButton
+            onClick={() => editor.chain().focus().toggleSuperscript().run()}
+            isActive={activeStates.superscript}
+            disabled={disabled}
+            title="Superscript"
+          >
+            <SuperscriptIcon className="h-4 w-4" />
           </MenuButton>
         </div>
 

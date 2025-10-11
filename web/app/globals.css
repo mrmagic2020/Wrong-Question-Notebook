@@ -666,6 +666,19 @@ code.math {
   box-sizing: border-box !important;
 }
 
+/* Unified subscript and superscript styles */
+.rich-text-content sub,
+.tiptap sub {
+  vertical-align: sub !important;
+  font-size: 0.75em !important;
+}
+
+.rich-text-content sup,
+.tiptap sup {
+  vertical-align: super !important;
+  font-size: 0.75em !important;
+}
+
 /* Emergency fallback for any element that might still expand */
 .ProseMirror > * {
   max-width: 100% !important;
