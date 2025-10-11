@@ -4,7 +4,7 @@ import React, { useCallback, useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Link } from '@tiptap/extension-link';
-import { Placeholder } from '@tiptap/extensions';
+import { Placeholder, CharacterCount } from '@tiptap/extensions';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -101,23 +101,6 @@ export function RichTextEditor({
     link: false,
   });
 
-  // Character count state - initialize with text content length
-  const getTextContentLength = (htmlContent: string) => {
-    // Create a temporary element to extract text content
-    if (typeof window !== 'undefined') {
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = htmlContent;
-      return tempDiv.textContent?.length || 0;
-    }
-    // Fallback for SSR - approximate by removing common HTML tags
-    return htmlContent.replace(/<[^>]*>/g, '').length;
-  };
-
-  const [characterCount, setCharacterCount] = React.useState(
-    getTextContentLength(content)
-  );
-  const [isOverLimit, setIsOverLimit] = React.useState(false);
-
   // Function to update active states based on editor state
   const updateActiveStates = React.useCallback((editor: any) => {
     if (!editor) return;
@@ -163,23 +146,16 @@ export function RichTextEditor({
       Placeholder.configure({
         placeholder,
       }),
+      CharacterCount.configure({
+        limit: maxLength || null,
+        mode: 'textSize',
+      }),
     ],
     content,
     editable: !disabled,
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
       const htmlContent = editor.getHTML();
-
-      // Count only text content, not HTML tags
-      const textContent = editor.getText();
-      const currentLength = textContent.length;
-
-      // Update character count
-      setCharacterCount(currentLength);
-
-      // Check if over limit
-      const overLimit = maxLength ? currentLength > maxLength : false;
-      setIsOverLimit(overLimit);
 
       // Update active states for toolbar
       updateActiveStates(editor);
@@ -201,69 +177,6 @@ export function RichTextEditor({
         class:
           'tiptap focus:outline-none w-full max-w-full min-w-0 overflow-wrap-anywhere break-words overflow-x-hidden',
         style: `min-height: ${minHeight}; max-width: 100%; width: 100%; min-width: 0; overflow-wrap: anywhere; word-break: break-word; overflow-x: hidden; box-sizing: border-box;`,
-      },
-      handleKeyDown: (view, event) => {
-        // Prevent input when over character limit (except for deletion/editing keys)
-        const { state } = view;
-        const textContent = state.doc.textContent;
-        const currentLength = textContent.length;
-
-        if (maxLength && currentLength >= maxLength) {
-          // Allow deletion, navigation, and formatting keys
-          const allowedKeys = [
-            'Backspace',
-            'Delete',
-            'ArrowLeft',
-            'ArrowRight',
-            'ArrowUp',
-            'ArrowDown',
-            'Home',
-            'End',
-            'PageUp',
-            'PageDown',
-            'Tab',
-            'Escape',
-            'Enter', // Allow Enter for new paragraphs (might reduce content)
-            'Shift',
-            'Control',
-            'Alt',
-            'Meta',
-            'CapsLock',
-          ];
-
-          // Allow key combinations (Ctrl+A, Ctrl+C, etc.)
-          if (event.ctrlKey || event.metaKey || event.altKey) {
-            return false;
-          }
-
-          // Allow deletion keys
-          if (allowedKeys.includes(event.key)) {
-            return false;
-          }
-
-          // Block other input
-          event.preventDefault();
-          return true;
-        }
-
-        return false;
-      },
-      handlePaste: (view, event) => {
-        // Prevent pasting if it would exceed character limit
-        if (maxLength) {
-          const { state } = view;
-          const currentLength = state.doc.textContent.length;
-
-          // Get pasted text content
-          const pastedText = event.clipboardData?.getData('text/plain') || '';
-
-          if (currentLength + pastedText.length > maxLength) {
-            event.preventDefault();
-            return true;
-          }
-        }
-
-        return false;
       },
     },
   });
@@ -370,12 +283,8 @@ export function RichTextEditor({
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
       editor.commands.setContent(content);
-      // Update character count when content changes - use text content, not HTML
-      const textContent = editor.getText();
-      setCharacterCount(textContent.length);
-      setIsOverLimit(maxLength ? textContent.length > maxLength : false);
     }
-  }, [content, editor, maxLength]);
+  }, [content, editor]);
 
   // Initialize active states when editor is ready
   useEffect(() => {
@@ -715,17 +624,18 @@ export function RichTextEditor({
       </div>
 
       {/* Character count */}
-      {(showCharacterCount || maxLength) && (
+      {(showCharacterCount || maxLength) && editor && (
         <div className="flex justify-between items-center px-3 py-2 border-t border-border bg-muted/30 text-xs text-muted-foreground">
           <span>
-            {characterCount} {maxLength ? `of ${maxLength}` : ''} text
-            characters
+            {editor.storage.characterCount.characters()}{' '}
+            {maxLength ? `of ${maxLength}` : ''} text characters
           </span>
-          {isOverLimit && (
-            <span className="text-red-500 font-medium">
-              Text limit exceeded
-            </span>
-          )}
+          {maxLength &&
+            editor.storage.characterCount.characters() > maxLength && (
+              <span className="text-red-500 font-medium">
+                Text limit exceeded
+              </span>
+            )}
         </div>
       )}
     </div>
