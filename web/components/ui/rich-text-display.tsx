@@ -56,7 +56,7 @@ const RichTextDisplay = React.memo(function RichTextDisplay({
           if (isBlock) {
             element.classList.add('katex-display');
           } else {
-            element.classList.add('katex');
+            element.classList.add('katex-inline');
           }
 
           // Mark as rendered to prevent re-processing

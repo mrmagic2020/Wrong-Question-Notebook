@@ -323,12 +323,12 @@ html body[data-scroll-locked] {
 
 /* Ensure proper rendering of KaTeX math in display component */
 .rich-text-content .katex {
-  font-size: 1em;
+  font-size: 1.2em;
   line-height: 1.2;
 }
 
 .rich-text-content .katex-display {
-  font-size: 1.1em;
+  font-size: 1em;
   line-height: 1.4;
   margin: 1rem 0;
   text-align: center;
