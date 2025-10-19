@@ -1,6 +1,7 @@
 'use client';
 
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { AnswerInputProps } from '@/lib/types';
 
 export default function AnswerInput({
@@ -33,7 +34,6 @@ export default function AnswerInput({
     case 'mcq':
       return (
         <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">Enter your answer:</p>
           <Input
             type="text"
             value={value || ''}
@@ -48,7 +48,6 @@ export default function AnswerInput({
     case 'short':
       return (
         <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">Enter your answer:</p>
           <Input
             type="text"
             value={value || ''}
@@ -63,8 +62,7 @@ export default function AnswerInput({
     case 'extended':
       return (
         <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">Write your response:</p>
-          <textarea
+          <Textarea
             value={value || ''}
             onChange={e => handleExtendedResponseChange(e.target.value)}
             onKeyDown={handleKeyDown}

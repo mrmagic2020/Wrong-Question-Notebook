@@ -154,12 +154,12 @@ export default function ProblemReview({
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="section-container">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">{problem.title}</h1>
-          <p className="text-muted-foreground">
+        <div className="page-header mb-2">
+          <h1 className="page-title">{problem.title}</h1>
+          <p className="page-description">
             {subject.name} • {problem.problem_type.toUpperCase()}
           </p>
         </div>
@@ -260,7 +260,7 @@ export default function ProblemReview({
             </Button>
           )}
 
-          {!problem.auto_mark && userAnswer && (
+          {!problem.auto_mark && userAnswer && problem.correct_answer && (
             <Button
               onClick={() => setShowSolution(true)}
               className="bg-green-600 dark:bg-green-700 text-white hover:bg-green-700 dark:hover:bg-green-600"
