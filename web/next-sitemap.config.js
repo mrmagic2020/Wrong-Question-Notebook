@@ -34,16 +34,6 @@ module.exports = {
       lastmod: new Date().toISOString(),
     });
 
-    result.push({
-      loc: '/auth/login',
-      lastmod: new Date().toISOString(),
-    });
-
-    result.push({
-      loc: '/auth/sign-up',
-      lastmod: new Date().toISOString(),
-    });
-
     return result;
   },
   robotsTxtOptions: {

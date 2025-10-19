@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
-<url><loc>https://wqn.magicworks.app</loc><lastmod>2025-10-11T04:58:42.831Z</lastmod></url>
-<url><loc>https://wqn.magicworks.app/subjects</loc><lastmod>2025-10-11T04:58:42.832Z</lastmod></url>
-<url><loc>https://wqn.magicworks.app/problem-sets</loc><lastmod>2025-10-11T04:58:42.832Z</lastmod></url>
-<url><loc>https://wqn.magicworks.app/tags</loc><lastmod>2025-10-11T04:58:42.832Z</lastmod></url>
-<url><loc>https://wqn.magicworks.app/auth/login</loc><lastmod>2025-10-11T04:58:42.832Z</lastmod></url>
-<url><loc>https://wqn.magicworks.app/auth/sign-up</loc><lastmod>2025-10-11T04:58:42.832Z</lastmod></url>
+<url><loc>https://wqn.magicworks.app</loc><lastmod>2025-10-19T01:21:15.658Z</lastmod></url>
+<url><loc>https://wqn.magicworks.app/subjects</loc><lastmod>2025-10-19T01:21:15.658Z</lastmod></url>
+<url><loc>https://wqn.magicworks.app/problem-sets</loc><lastmod>2025-10-19T01:21:15.658Z</lastmod></url>
+<url><loc>https://wqn.magicworks.app/tags</loc><lastmod>2025-10-19T01:21:15.658Z</lastmod></url>
 </urlset>
