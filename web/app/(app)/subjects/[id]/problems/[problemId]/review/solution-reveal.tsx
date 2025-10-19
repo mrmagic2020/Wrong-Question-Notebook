@@ -58,7 +58,6 @@ export default function SolutionReveal({
           {/* Solution Text */}
           {solutionText && (
             <div className="space-y-2">
-              <h3 className="font-medium">Solution</h3>
               <div className="prose max-w-none rich-text-content">
                 <RichTextDisplay content={solutionText} />
               </div>
