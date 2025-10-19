@@ -440,6 +440,22 @@ html body[data-scroll-locked] {
   max-width: 100% !important;
 }
 
+/* Make empty paragraphs visible as line breaks */
+.rich-text-content p:empty,
+.tiptap p:empty {
+  min-height: 1.6em !important; /* Same as line-height */
+  margin-bottom: 0.5rem !important; /* mb-2 */
+  display: block !important;
+}
+
+/* Handle paragraphs that contain only whitespace */
+.rich-text-content p:not(:empty):has(br:only-child),
+.tiptap p:not(:empty):has(br:only-child) {
+  min-height: 1.6em !important; /* Same as line-height */
+  margin-bottom: 0.5rem !important; /* mb-2 */
+  display: block !important;
+}
+
 /* Unified text formatting */
 .rich-text-content strong,
 .tiptap strong {
