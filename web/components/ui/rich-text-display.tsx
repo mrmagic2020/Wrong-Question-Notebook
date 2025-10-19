@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { sanitizeHtmlContent } from '@/lib/html-sanitizer';
 import katex from 'katex';
@@ -16,15 +16,24 @@ interface RichTextDisplayProps {
  * This ensures links and other formatted content render correctly outside the editor
  * Content is automatically sanitized before rendering to prevent XSS attacks
  */
-export function RichTextDisplay({ content, className }: RichTextDisplayProps) {
+const RichTextDisplay = React.memo(function RichTextDisplay({
+  content,
+  className,
+}: RichTextDisplayProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const lastProcessedContent = useRef<string>('');
+  const hasProcessedMath = useRef<boolean>(false);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Sanitize content before rendering to prevent XSS attacks
-  const sanitizedContent = content ? sanitizeHtmlContent(content) : '';
+  const sanitizedContent = useMemo(() => {
+    return content ? sanitizeHtmlContent(content) : '';
+  }, [content]);
 
-  // Process math elements after rendering
-  useEffect(() => {
-    if (!containerRef.current) return;
+  // Process math elements - this function handles the actual math rendering
+  const processMathElements = useCallback(() => {
+    if (!containerRef.current || hasProcessedMath.current) return;
 
     const mathElements = containerRef.current.querySelectorAll('[data-latex]');
 
@@ -52,13 +61,81 @@ export function RichTextDisplay({ content, className }: RichTextDisplayProps) {
 
           // Mark as rendered to prevent re-processing
           element.setAttribute('data-katex-rendered', 'true');
-        } catch {
+        } catch (error) {
+          // Log error for debugging but don't crash the component
+          console.warn('KaTeX rendering failed:', error);
           // Keep the original element if rendering fails
           // This ensures graceful degradation for invalid LaTeX
         }
       }
     });
-  }, [sanitizedContent]);
+
+    // Mark that we've processed math for this content
+    hasProcessedMath.current = true;
+  }, []);
+
+  // Cleanup function to clear timeouts and observers
+  const cleanup = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+  }, []);
+
+  // Process math elements after rendering
+  useEffect(() => {
+    // Clean up previous timeouts and observers
+    cleanup();
+
+    // Reset the processed flag when content changes
+    if (lastProcessedContent.current !== sanitizedContent) {
+      lastProcessedContent.current = sanitizedContent;
+      hasProcessedMath.current = false;
+    }
+
+    // Use a small delay to ensure the DOM has been updated with the new content
+    timeoutRef.current = setTimeout(() => {
+      processMathElements();
+    }, 0);
+
+    return cleanup;
+  }, [sanitizedContent, processMathElements, cleanup]);
+
+  // Handle visibility changes - process math when component becomes visible
+  useEffect(() => {
+    if (!containerRef.current || hasProcessedMath.current) return;
+
+    // Use Intersection Observer to detect when component becomes visible
+    observerRef.current = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && !hasProcessedMath.current) {
+            // Component is visible and math hasn't been processed yet
+            processMathElements();
+          }
+        });
+      },
+      { threshold: 0.1 } // Trigger when 10% of the component is visible
+    );
+
+    observerRef.current.observe(containerRef.current);
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
+    };
+  }, [processMathElements]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return cleanup;
+  }, [cleanup]);
 
   if (!content) {
     return null;
@@ -71,4 +148,6 @@ export function RichTextDisplay({ content, className }: RichTextDisplayProps) {
       dangerouslySetInnerHTML={{ __html: sanitizedContent }}
     />
   );
-}
+});
+
+export { RichTextDisplay };
