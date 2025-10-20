@@ -401,7 +401,7 @@ export default function ProblemForm({
           <RichTextEditor
             content={content}
             onChange={setContent}
-            placeholder="Type the problem text with rich formatting, math equations, and more..."
+            placeholder="Describe the problem with rich formatting, math equations, and more..."
             minHeight="150px"
             maxHeight="300px"
             disabled={isSubmitting}
@@ -518,7 +518,7 @@ export default function ProblemForm({
           <RichTextEditor
             content={solutionText}
             onChange={setSolutionText}
-            placeholder="Optional: typed solution with rich formatting and math equations..."
+            placeholder="What did you do wrong? What did you learn from it?"
             minHeight="150px"
             maxHeight="300px"
             disabled={isSubmitting}
