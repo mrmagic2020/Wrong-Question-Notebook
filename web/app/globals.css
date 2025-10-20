@@ -502,16 +502,46 @@ html body[data-scroll-locked] {
   white-space: pre-wrap !important;
 }
 
-/* Unified list styles */
+/* Unified list styles with proper nesting support */
 .rich-text-content ul,
 .tiptap ul {
   margin-bottom: 0.5rem !important; /* mb-2 */
   color: hsl(var(--foreground)) !important;
   padding-left: 1.5rem !important; /* pl-6 */
-  list-style-type: disc !important; /* list-disc */
+  list-style-type: disc !important; /* Level 1: disc */
   word-break: break-word !important;
   overflow-wrap: anywhere !important;
   max-width: 100% !important;
+}
+
+/* Level 2: circle */
+.rich-text-content ul ul,
+.tiptap ul ul {
+  list-style-type: circle !important;
+  margin-top: 0.25rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+/* Level 3: square */
+.rich-text-content ul ul ul,
+.tiptap ul ul ul {
+  list-style-type: square !important;
+}
+
+/* Level 4+: alternating styles */
+.rich-text-content ul ul ul ul,
+.tiptap ul ul ul ul {
+  list-style-type: disc !important;
+}
+
+.rich-text-content ul ul ul ul ul,
+.tiptap ul ul ul ul ul {
+  list-style-type: circle !important;
+}
+
+.rich-text-content ul ul ul ul ul ul,
+.tiptap ul ul ul ul ul ul {
+  list-style-type: square !important;
 }
 
 .rich-text-content ol,
@@ -519,10 +549,42 @@ html body[data-scroll-locked] {
   margin-bottom: 0.5rem !important; /* mb-2 */
   color: hsl(var(--foreground)) !important;
   padding-left: 1.5rem !important; /* pl-6 */
-  list-style-type: decimal !important; /* list-decimal */
+  list-style-type: decimal !important; /* Level 1: decimal */
   word-break: break-word !important;
   overflow-wrap: anywhere !important;
   max-width: 100% !important;
+}
+
+/* Level 2: lower-alpha */
+.rich-text-content ol ol,
+.tiptap ol ol {
+  list-style-type: lower-alpha !important;
+  margin-top: 0.25rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+/* Level 3: lower-roman */
+.rich-text-content ol ol ol,
+.tiptap ol ol ol {
+  list-style-type: lower-roman !important;
+}
+
+/* Level 4: upper-alpha */
+.rich-text-content ol ol ol ol,
+.tiptap ol ol ol ol {
+  list-style-type: upper-alpha !important;
+}
+
+/* Level 5: upper-roman */
+.rich-text-content ol ol ol ol ol,
+.tiptap ol ol ol ol ol {
+  list-style-type: upper-roman !important;
+}
+
+/* Level 6+: back to decimal */
+.rich-text-content ol ol ol ol ol ol,
+.tiptap ol ol ol ol ol ol {
+  list-style-type: decimal !important;
 }
 
 .rich-text-content li,
@@ -663,6 +725,79 @@ html body[data-scroll-locked] {
 .ProseMirror table {
   table-layout: fixed !important;
   width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Enhanced nested list support for TipTap editor */
+.ProseMirror ul,
+.ProseMirror ol {
+  margin-bottom: 0.5rem !important;
+  padding-left: 1.5rem !important;
+}
+
+/* Level 1 */
+.ProseMirror ul {
+  list-style-type: disc !important;
+}
+
+.ProseMirror ol {
+  list-style-type: decimal !important;
+}
+
+/* Level 2 */
+.ProseMirror ul ul {
+  list-style-type: circle !important;
+  margin-top: 0.25rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.ProseMirror ol ol {
+  list-style-type: lower-alpha !important;
+  margin-top: 0.25rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+/* Level 3 */
+.ProseMirror ul ul ul {
+  list-style-type: square !important;
+}
+
+.ProseMirror ol ol ol {
+  list-style-type: lower-roman !important;
+}
+
+/* Level 4 */
+.ProseMirror ul ul ul ul {
+  list-style-type: disc !important;
+}
+
+.ProseMirror ol ol ol ol {
+  list-style-type: upper-alpha !important;
+}
+
+/* Level 5 */
+.ProseMirror ul ul ul ul ul {
+  list-style-type: circle !important;
+}
+
+.ProseMirror ol ol ol ol ol {
+  list-style-type: upper-roman !important;
+}
+
+/* Level 6+ */
+.ProseMirror ul ul ul ul ul ul {
+  list-style-type: square !important;
+}
+
+.ProseMirror ol ol ol ol ol ol {
+  list-style-type: decimal !important;
+}
+
+/* Ensure proper spacing for nested list items */
+.ProseMirror li {
+  margin-bottom: 0.25rem !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
   max-width: 100% !important;
 }
 
