@@ -7,6 +7,7 @@ import { Link } from '@tiptap/extension-link';
 import { Subscript } from '@tiptap/extension-subscript';
 import { Superscript } from '@tiptap/extension-superscript';
 import { Mathematics } from '@tiptap/extension-mathematics';
+import Typography from '@tiptap/extension-typography';
 import { Placeholder, CharacterCount } from '@tiptap/extensions';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
@@ -196,6 +197,7 @@ export function RichTextEditor({
         limit: maxLength || null,
         mode: 'textSize',
       }),
+      Typography,
     ],
     content,
     editable: !disabled,
