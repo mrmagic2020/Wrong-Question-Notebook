@@ -402,8 +402,8 @@ export default function ProblemForm({
             content={content}
             onChange={setContent}
             placeholder="Describe the problem with rich formatting, math equations, and more..."
-            minHeight="150px"
-            maxHeight="300px"
+            height="300px"
+            maxHeight="500px"
             disabled={isSubmitting}
             maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
             showCharacterCount={true}
@@ -519,8 +519,8 @@ export default function ProblemForm({
             content={solutionText}
             onChange={setSolutionText}
             placeholder="What did you do wrong? What did you learn from it?"
-            minHeight="150px"
-            maxHeight="300px"
+            height="300px"
+            maxHeight="500px"
             disabled={isSubmitting}
             maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
             showCharacterCount={true}

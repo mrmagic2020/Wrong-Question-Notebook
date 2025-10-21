@@ -1,6 +1,12 @@
 'use client';
 
-import React, { useCallback, useEffect } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Link } from '@tiptap/extension-link';
@@ -46,6 +52,7 @@ interface RichTextEditorProps {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  height?: string;
   minHeight?: string;
   maxHeight?: string;
   maxLength?: number;
@@ -84,6 +91,7 @@ export function RichTextEditor({
   placeholder = 'Start typing...',
   className,
   disabled = false,
+  height = '300px',
   minHeight = '200px',
   maxHeight = '400px',
   maxLength,
@@ -99,6 +107,28 @@ export function RichTextEditor({
     null
   );
   const [mathPreview, setMathPreview] = React.useState<string>('');
+
+  // Resize functionality
+  const [editorHeight, setEditorHeight] = useState<string>(height);
+  const [isResizing, setIsResizing] = useState(false);
+  const [toolbarHeight, setToolbarHeight] = useState<number>(60); // Default toolbar height
+  const containerRef = useRef<HTMLDivElement>(null);
+  const resizeRef = useRef<HTMLDivElement>(null);
+  const toolbarRef = useRef<HTMLDivElement>(null);
+
+  // Parse height values once to avoid repeated string operations during resize
+  const { minHeightNum, maxHeightNum } = useMemo(() => {
+    const minHeightNum = parseInt(minHeight.replace('px', ''), 10);
+    const maxHeightNum = parseInt(maxHeight.replace('px', ''), 10);
+
+    // Validate parsed values
+    if (isNaN(minHeightNum) || isNaN(maxHeightNum)) {
+      console.warn('Invalid minHeight or maxHeight values, using defaults');
+      return { minHeightNum: 200, maxHeightNum: 400 };
+    }
+
+    return { minHeightNum, maxHeightNum };
+  }, [minHeight, maxHeight]);
 
   // State to track active formatting states for proper toolbar updates
   const [activeStates, setActiveStates] = React.useState({
@@ -228,7 +258,7 @@ export function RichTextEditor({
       },
     },
     parseOptions: {
-      preserveWhitespace: "full",
+      preserveWhitespace: 'full',
     },
   });
 
@@ -423,6 +453,72 @@ export function RichTextEditor({
     setMathDialogOpen(false);
   }, [editor, mathIsBlock, mathEditingPos]);
 
+  // Resize handlers
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsResizing(true);
+  }, []);
+
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isResizing || !containerRef.current) return;
+
+      try {
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const newHeight = e.clientY - containerRect.top;
+
+        // Clamp the height between min and max using pre-parsed values
+        const clampedHeight = Math.max(
+          minHeightNum,
+          Math.min(maxHeightNum, newHeight)
+        );
+        setEditorHeight(`${clampedHeight}px`);
+      } catch (error) {
+        console.error('Error during resize:', error);
+      }
+    },
+    [isResizing, minHeightNum, maxHeightNum]
+  );
+
+  const handleMouseUp = useCallback(() => {
+    setIsResizing(false);
+  }, []);
+
+  // Add global mouse event listeners for resize
+  useEffect(() => {
+    if (isResizing) {
+      try {
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+        document.body.style.cursor = 'nw-resize';
+        document.body.style.userSelect = 'none';
+      } catch (error) {
+        console.error('Error adding resize event listeners:', error);
+      }
+    } else {
+      try {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      } catch (error) {
+        console.error('Error removing resize event listeners:', error);
+      }
+    }
+
+    return () => {
+      try {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      } catch (error) {
+        console.error('Error cleaning up resize event listeners:', error);
+      }
+    };
+  }, [isResizing, handleMouseMove, handleMouseUp]);
+
   // Update preview when latex or block mode changes
   useEffect(() => {
     generatePreview(mathLatex, mathIsBlock);
@@ -441,17 +537,96 @@ export function RichTextEditor({
     }
   }, [editor, updateActiveStates]);
 
+  // Measure toolbar height dynamically using ResizeObserver
+  useEffect(() => {
+    const measureToolbarHeight = () => {
+      if (toolbarRef.current) {
+        const height = toolbarRef.current.offsetHeight;
+        setToolbarHeight(height);
+      }
+    };
+
+    // Initial measurement with delay to ensure toolbar is fully rendered
+    const initialTimeout = setTimeout(measureToolbarHeight, 100);
+
+    // Use ResizeObserver to track toolbar height changes
+    let resizeObserver: ResizeObserver | null = null;
+
+    if (toolbarRef.current && typeof ResizeObserver !== 'undefined') {
+      try {
+        resizeObserver = new ResizeObserver(entries => {
+          for (const entry of entries) {
+            const height = entry.contentRect.height;
+            setToolbarHeight(height);
+          }
+        });
+
+        resizeObserver.observe(toolbarRef.current);
+      } catch (error) {
+        // Fallback if ResizeObserver fails
+        console.warn(
+          `ResizeObserver not supported, falling back to window resize listener (error: ${error})`
+        );
+      }
+    }
+
+    // Also use MutationObserver to watch for changes in toolbar content
+    let mutationObserver: MutationObserver | null = null;
+
+    if (toolbarRef.current && typeof MutationObserver !== 'undefined') {
+      try {
+        mutationObserver = new MutationObserver(() => {
+          // Small delay to ensure layout has updated after DOM changes
+          setTimeout(measureToolbarHeight, 10);
+        });
+
+        mutationObserver.observe(toolbarRef.current, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+          attributeFilter: ['class', 'style'],
+        });
+      } catch (error) {
+        // Fallback if MutationObserver fails
+        console.warn(
+          `MutationObserver not supported, falling back to window resize listener (error: ${error})`
+        );
+      }
+    }
+
+    // Fallback: re-measure on window resize
+    const handleResize = () => {
+      // Small delay to ensure layout has updated
+      setTimeout(measureToolbarHeight, 10);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      clearTimeout(initialTimeout);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+      if (mutationObserver) {
+        mutationObserver.disconnect();
+      }
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   if (!editor) {
     return null;
   }
 
   return (
     <div
+      ref={containerRef}
       className={cn(
         'rich-text-editor-container border border-input rounded-md bg-background w-full max-w-full min-w-0',
         className
       )}
       style={{
+        height: editorHeight,
         maxHeight: maxHeight,
         width: '100%',
         minWidth: 0,
@@ -461,7 +636,10 @@ export function RichTextEditor({
       }}
     >
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-1 p-2 border-b border-input bg-muted/50">
+      <div
+        ref={toolbarRef}
+        className="flex flex-wrap items-center gap-1 p-2 border-b border-input bg-muted/50"
+      >
         {/* Text formatting */}
         <div className="flex items-center gap-1">
           <MenuButton
@@ -833,12 +1011,12 @@ export function RichTextEditor({
       <div
         className="p-3 overflow-y-auto overflow-x-hidden w-full min-w-0"
         style={{
-          minHeight: minHeight,
-          maxHeight: `calc(${maxHeight} - 120px)`, // Subtract toolbar and character count height
+          height: `calc(${editorHeight} - ${toolbarHeight + 35}px)`, // Subtract dynamic toolbar height
           width: '100%',
           minWidth: 0,
           maxWidth: '100%',
           position: 'relative',
+          paddingBottom: showCharacterCount || maxLength ? '80px' : '0px', // Increased bottom padding for character count
         }}
       >
         <EditorContent editor={editor} />
@@ -846,7 +1024,7 @@ export function RichTextEditor({
 
       {/* Character count */}
       {(showCharacterCount || maxLength) && editor && (
-        <div className="flex justify-between items-center px-3 py-2 border-t border-border bg-muted/30 text-xs text-muted-foreground">
+        <div className="absolute bottom-0 left-0 right-0 flex justify-between items-center px-3 py-2 border-t border-border bg-muted/30 text-xs text-muted-foreground">
           <span>
             {editor.storage.characterCount.characters()}{' '}
             {maxLength ? `of ${maxLength}` : ''} text characters
@@ -859,6 +1037,21 @@ export function RichTextEditor({
             )}
         </div>
       )}
+
+      {/* Resize handle */}
+      <div
+        ref={resizeRef}
+        className="absolute bottom-0 right-0 w-4 h-4 cursor-nw-resize opacity-0 hover:opacity-100 transition-opacity duration-200 focus:opacity-100 focus:outline-none"
+        onMouseDown={handleMouseDown}
+        role="button"
+        tabIndex={0}
+        aria-label="Resize editor"
+        title="Drag to resize editor"
+        style={{
+          background:
+            'linear-gradient(-45deg, transparent 0%, transparent 30%, #ccc 30%, #ccc 40%, transparent 40%, transparent 60%, #ccc 60%, #ccc 70%, transparent 70%)',
+        }}
+      />
     </div>
   );
 }

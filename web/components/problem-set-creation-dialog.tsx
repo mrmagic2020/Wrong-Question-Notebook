@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -25,6 +24,8 @@ import { Badge } from '@/components/ui/badge';
 import { X, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProblemSetSharingLevel } from '@/lib/schemas';
+import { RichTextEditor } from './ui/rich-text-editor';
+import { VALIDATION_CONSTANTS } from '@/lib/constants';
 
 interface ProblemSetCreationDialogProps {
   open: boolean;
@@ -202,15 +203,17 @@ export default function ProblemSetCreationDialog({
 
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={e =>
-                setFormData(prev => ({ ...prev, description: e.target.value }))
+            <RichTextEditor
+              content={formData.description}
+              onChange={content =>
+                setFormData(prev => ({ ...prev, description: content }))
               }
               placeholder="Enter problem set description (optional)"
-              maxLength={1000}
-              rows={3}
+              height="300px"
+              minHeight="200px"
+              maxHeight="400px"
+              maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
+              showCharacterCount={true}
             />
           </div>
 
