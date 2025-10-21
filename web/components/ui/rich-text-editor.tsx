@@ -537,7 +537,7 @@ export function RichTextEditor({
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
       } catch (error) {
-        // Silent cleanup - component is unmounting
+        console.error('Error cleaning up resize event listeners:', error);
       }
     };
   }, [handleMouseMove, handleMouseUp]);
@@ -556,42 +556,46 @@ export function RichTextEditor({
 
     // Use ResizeObserver to track toolbar height changes
     let resizeObserver: ResizeObserver | null = null;
-    
+
     if (toolbarRef.current && typeof ResizeObserver !== 'undefined') {
       try {
-        resizeObserver = new ResizeObserver((entries) => {
+        resizeObserver = new ResizeObserver(entries => {
           for (const entry of entries) {
             const height = entry.contentRect.height;
             setToolbarHeight(height);
           }
         });
-        
+
         resizeObserver.observe(toolbarRef.current);
       } catch (error) {
         // Fallback if ResizeObserver fails
-        console.warn('ResizeObserver not supported, falling back to window resize listener');
+        console.warn(
+          `ResizeObserver not supported, falling back to window resize listener (error: ${error})`
+        );
       }
     }
 
     // Also use MutationObserver to watch for changes in toolbar content
     let mutationObserver: MutationObserver | null = null;
-    
+
     if (toolbarRef.current && typeof MutationObserver !== 'undefined') {
       try {
         mutationObserver = new MutationObserver(() => {
           // Small delay to ensure layout has updated after DOM changes
           setTimeout(measureToolbarHeight, 10);
         });
-        
+
         mutationObserver.observe(toolbarRef.current, {
           childList: true,
           subtree: true,
           attributes: true,
-          attributeFilter: ['class', 'style']
+          attributeFilter: ['class', 'style'],
         });
       } catch (error) {
         // Fallback if MutationObserver fails
-        console.warn('MutationObserver not supported, falling back to window resize listener');
+        console.warn(
+          `MutationObserver not supported, falling back to window resize listener (error: ${error})`
+        );
       }
     }
 
@@ -602,7 +606,7 @@ export function RichTextEditor({
     };
 
     window.addEventListener('resize', handleResize);
-    
+
     return () => {
       clearTimeout(initialTimeout);
       if (resizeObserver) {
@@ -1052,7 +1056,7 @@ export function RichTextEditor({
           background:
             'linear-gradient(-45deg, transparent 0%, transparent 30%, #ccc 30%, #ccc 40%, transparent 40%, transparent 60%, #ccc 60%, #ccc 70%, transparent 70%)',
         }}
-        onKeyDown={(e) => {
+        onKeyDown={e => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             setIsResizing(true);
