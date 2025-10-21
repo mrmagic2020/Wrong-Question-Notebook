@@ -227,6 +227,9 @@ export function RichTextEditor({
         style: `min-height: ${minHeight}; max-width: 100%; width: 100%; min-width: 0; overflow-wrap: anywhere; word-break: break-word; overflow-x: hidden; box-sizing: border-box;`,
       },
     },
+    parseOptions: {
+      preserveWhitespace: "full",
+    },
   });
 
   const handleAddLink = useCallback(() => {

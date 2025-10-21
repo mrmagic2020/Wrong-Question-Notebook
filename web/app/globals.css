@@ -362,6 +362,7 @@ html body[data-scroll-locked] {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  white-space: pre-wrap;
 }
 
 /* Unified heading styles */
