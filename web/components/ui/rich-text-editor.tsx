@@ -527,21 +527,6 @@ export function RichTextEditor({
     }
   }, [editor, updateActiveStates]);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      // Ensure all event listeners are cleaned up
-      try {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-        document.body.style.cursor = '';
-        document.body.style.userSelect = '';
-      } catch (error) {
-        console.error('Error cleaning up resize event listeners:', error);
-      }
-    };
-  }, [handleMouseMove, handleMouseUp]);
-
   // Measure toolbar height dynamically using ResizeObserver
   useEffect(() => {
     const measureToolbarHeight = () => {
