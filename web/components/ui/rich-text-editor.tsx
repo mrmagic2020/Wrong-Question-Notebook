@@ -1,6 +1,12 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Link } from '@tiptap/extension-link';
@@ -114,13 +120,13 @@ export function RichTextEditor({
   const { minHeightNum, maxHeightNum } = useMemo(() => {
     const minHeightNum = parseInt(minHeight.replace('px', ''), 10);
     const maxHeightNum = parseInt(maxHeight.replace('px', ''), 10);
-    
+
     // Validate parsed values
     if (isNaN(minHeightNum) || isNaN(maxHeightNum)) {
       console.warn('Invalid minHeight or maxHeight values, using defaults');
       return { minHeightNum: 200, maxHeightNum: 400 };
     }
-    
+
     return { minHeightNum, maxHeightNum };
   }, [minHeight, maxHeight]);
 
