@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Link } from '@tiptap/extension-link';
@@ -109,6 +109,20 @@ export function RichTextEditor({
   const containerRef = useRef<HTMLDivElement>(null);
   const resizeRef = useRef<HTMLDivElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
+
+  // Parse height values once to avoid repeated string operations during resize
+  const { minHeightNum, maxHeightNum } = useMemo(() => {
+    const minHeightNum = parseInt(minHeight.replace('px', ''), 10);
+    const maxHeightNum = parseInt(maxHeight.replace('px', ''), 10);
+    
+    // Validate parsed values
+    if (isNaN(minHeightNum) || isNaN(maxHeightNum)) {
+      console.warn('Invalid minHeight or maxHeight values, using defaults');
+      return { minHeightNum: 200, maxHeightNum: 400 };
+    }
+    
+    return { minHeightNum, maxHeightNum };
+  }, [minHeight, maxHeight]);
 
   // State to track active formatting states for proper toolbar updates
   const [activeStates, setActiveStates] = React.useState({
@@ -448,17 +462,7 @@ export function RichTextEditor({
         const containerRect = containerRef.current.getBoundingClientRect();
         const newHeight = e.clientY - containerRect.top;
 
-        // Convert minHeight and maxHeight to numbers for comparison
-        const minHeightNum = parseInt(minHeight.replace('px', ''), 10);
-        const maxHeightNum = parseInt(maxHeight.replace('px', ''), 10);
-
-        // Validate parsed values
-        if (isNaN(minHeightNum) || isNaN(maxHeightNum)) {
-          console.warn('Invalid minHeight or maxHeight values');
-          return;
-        }
-
-        // Clamp the height between min and max
+        // Clamp the height between min and max using pre-parsed values
         const clampedHeight = Math.max(
           minHeightNum,
           Math.min(maxHeightNum, newHeight)
@@ -468,7 +472,7 @@ export function RichTextEditor({
         console.error('Error during resize:', error);
       }
     },
-    [isResizing, minHeight, maxHeight]
+    [isResizing, minHeightNum, maxHeightNum]
   );
 
   const handleMouseUp = useCallback(() => {
