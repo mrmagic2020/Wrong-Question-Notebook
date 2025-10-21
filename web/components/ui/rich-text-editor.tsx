@@ -1041,12 +1041,6 @@ export function RichTextEditor({
           background:
             'linear-gradient(-45deg, transparent 0%, transparent 30%, #ccc 30%, #ccc 40%, transparent 40%, transparent 60%, #ccc 60%, #ccc 70%, transparent 70%)',
         }}
-        onKeyDown={e => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            setIsResizing(true);
-          }
-        }}
       />
     </div>
   );
