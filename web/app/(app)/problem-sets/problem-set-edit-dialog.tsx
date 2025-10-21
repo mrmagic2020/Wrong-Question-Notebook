@@ -195,8 +195,9 @@ export default function ProblemSetEditDialog({
                 setFormData(prev => ({ ...prev, description: content }))
               }
               placeholder="Enter problem set description..."
-              minHeight="100px"
-              maxHeight="250px"
+              height="300px"
+              minHeight="200px"
+              maxHeight="400px"
               maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
               showCharacterCount={true}
             />
