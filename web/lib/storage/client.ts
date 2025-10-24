@@ -19,6 +19,16 @@ export async function uploadFiles(
   role: 'problem' | 'solution',
   problemId: string
 ) {
+  // Validate problemId to prevent invalid paths
+  if (!problemId || problemId.trim() === '') {
+    throw new Error('Problem ID is required for file upload');
+  }
+
+  // Validate problemId format (should be a valid UUID or non-empty string)
+  if (problemId.includes('/') || problemId.includes('\\')) {
+    throw new Error('Invalid Problem ID: contains path separators');
+  }
+
   const supabase = createClient();
   const uid = await getUserId();
   const base = `user/${uid}/problems/${problemId}/${role}`;

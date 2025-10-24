@@ -19,6 +19,7 @@ interface FileManagerProps {
   initialFiles?: FileAsset[];
   onFilesChange: (files: FileAsset[]) => void;
   className?: string;
+  disabled?: boolean;
 }
 
 export default function FileManager({
@@ -28,6 +29,7 @@ export default function FileManager({
   initialFiles = [],
   onFilesChange,
   className = '',
+  disabled = false,
 }: FileManagerProps) {
   const [files, setFiles] = useState<FileAsset[]>(initialFiles);
   const [error, setError] = useState<string | null>(null);
@@ -84,6 +86,20 @@ export default function FileManager({
   // Handle file upload
   const handleFileUpload = async (selectedFiles: FileList) => {
     if (!selectedFiles.length) return;
+
+    // Check if component is disabled
+    if (disabled) {
+      setError('File upload is disabled. Please expand the form first.');
+      return;
+    }
+
+    // Validate problemId before attempting upload
+    if (!problemId || problemId.trim() === '' || problemId === 'disabled') {
+      setError(
+        'Cannot upload files: Problem ID is not available. Please expand the form first.'
+      );
+      return;
+    }
 
     setError(null);
 
@@ -191,10 +207,14 @@ export default function FileManager({
     <div className={`space-y-3 ${className}`}>
       {/* Upload Area */}
       <div
-        className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors cursor-pointer"
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onClick={() => fileInputRef.current?.click()}
+        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+          disabled
+            ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
+            : 'border-gray-300 hover:border-gray-400 cursor-pointer'
+        }`}
+        onDrop={disabled ? undefined : handleDrop}
+        onDragOver={disabled ? undefined : handleDragOver}
+        onClick={disabled ? undefined : () => fileInputRef.current?.click()}
       >
         <input
           ref={fileInputRef}
@@ -219,13 +239,23 @@ export default function FileManager({
             />
           </svg>
           <div className="text-sm text-gray-600">
-            <span className="font-medium text-blue-600 hover:text-blue-500">
-              Click to upload
-            </span>{' '}
-            or drag and drop
+            {disabled ? (
+              <span className="font-medium text-gray-400">
+                Expand the form to upload files
+              </span>
+            ) : (
+              <>
+                <span className="font-medium text-blue-600 hover:text-blue-500">
+                  Click to upload
+                </span>{' '}
+                or drag and drop
+              </>
+            )}
           </div>
           <p className="text-xs text-gray-500">
-            Images and PDFs up to 10MB each
+            {disabled
+              ? 'Form must be expanded first'
+              : 'Images and PDFs up to 10MB each'}
           </p>
         </div>
       </div>

@@ -418,10 +418,11 @@ export default function ProblemForm({
         <div className="flex-1">
           <FileManager
             role="problem"
-            problemId={isEditMode ? problem.id : problemUuid || ''}
+            problemId={isEditMode ? problem.id : problemUuid || 'disabled'}
             isEditMode={isEditMode}
             initialFiles={problemAssets}
             onFilesChange={setProblemAssets}
+            disabled={!isEditMode && !problemUuid}
           />
         </div>
       </div>
@@ -534,10 +535,11 @@ export default function ProblemForm({
         <div className="flex-1">
           <FileManager
             role="solution"
-            problemId={isEditMode ? problem.id : problemUuid || ''}
+            problemId={isEditMode ? problem.id : problemUuid || 'disabled'}
             isEditMode={isEditMode}
             initialFiles={solutionAssets}
             onFilesChange={setSolutionAssets}
+            disabled={!isEditMode && !problemUuid}
           />
         </div>
       </div>
