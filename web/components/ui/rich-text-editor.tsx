@@ -512,7 +512,7 @@ const RichTextEditor = React.forwardRef<Editor, RichTextEditorProps>(
 
       if (!validateImageUrl(trimmedUrl)) {
         toast.error(
-          'Please enter a valid image URL (http/https with image extension)'
+          'Please enter a valid image URL (http/https)'
         );
         return;
       }
