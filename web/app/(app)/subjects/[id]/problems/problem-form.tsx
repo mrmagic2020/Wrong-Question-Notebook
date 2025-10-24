@@ -99,7 +99,7 @@ export default function ProblemForm({
     contentEditorRef.current
       .chain()
       .focus()
-      .setImage({
+      .setResizableImage({
         src: imageUrl,
         alt: name,
       })
@@ -119,7 +119,7 @@ export default function ProblemForm({
       solutionEditorRef.current
         .chain()
         .focus()
-        .setImage({
+        .setResizableImage({
           src: imageUrl,
           alt: name,
         })
