@@ -1105,7 +1105,7 @@ const RichTextEditor = React.forwardRef<any, RichTextEditorProps>(
                       }}
                     />
                     <p className="text-xs text-muted-foreground">
-                      Enter a valid image URL (jpg, png, gif, webp, svg)
+                      Enter an image URL
                     </p>
                   </div>
 
