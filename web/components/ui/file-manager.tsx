@@ -53,7 +53,10 @@ export default function FileManager({
         path: file.path,
       }));
 
-      const payload: any = {};
+      const payload: Partial<{
+        assets: Array<{ path: string }>;
+        solution_assets: Array<{ path: string }>;
+      }> = {};
       if (role === 'problem') {
         payload.assets = assetData;
       } else if (role === 'solution') {

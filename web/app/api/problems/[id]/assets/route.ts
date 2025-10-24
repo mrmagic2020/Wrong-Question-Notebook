@@ -52,7 +52,10 @@ export async function PATCH(
 
   try {
     // Update only the provided asset columns
-    const updateData: any = {};
+    const updateData: Partial<{
+      assets: Array<{ path: string }>;
+      solution_assets: Array<{ path: string }>;
+    }> = {};
     if (assets !== undefined) {
       updateData.assets = assets;
     }
