@@ -8,7 +8,7 @@ import { createApiErrorResponse, handleAsyncError } from '@/lib/common-utils';
  * GET /api/files/[path] - Serve file content using signed URLs with secure access control
  *
  * Access is granted if:
- * 1. File is in user's staging directory (temporary uploads) - direct ownership check
+ * 1. File is in user's problems directory (permanent assets) - direct ownership check
  * 2. File belongs to a problem the user can view via can_view_problem RPC
  *
  * Uses signed URLs for efficient and secure file delivery.
@@ -38,12 +38,12 @@ export async function GET(
   const bucket = FILE_CONSTANTS.STORAGE.BUCKET;
   const name = decodedPath; // Full path is the object name
 
-  // Handle staging files - direct ownership check
-  const isStagingFile = decodedPath.includes('/staging/');
+  // Handle permanent asset files - direct ownership check
+  const isPermanentAssetFile = decodedPath.includes('/problems/');
   const isUserOwnedFile = decodedPath.startsWith(`user/${user.id}/`);
 
-  if (isStagingFile) {
-    // For staging files, ensure they belong to the current user
+  if (isPermanentAssetFile) {
+    // For permanent asset files, ensure they belong to the current user
     if (!isUserOwnedFile) {
       return NextResponse.json(
         createApiErrorResponse(ERROR_MESSAGES.UNAUTHORIZED, 403),
@@ -51,7 +51,7 @@ export async function GET(
       );
     }
   } else {
-    // For non-staging files, check if user can view the problem that contains this asset
+    // For other files (legacy or shared), check if user can view the problem that contains this asset
     try {
       // Find the problem that contains this file
       // const needleObj = { path: decodedPath };
