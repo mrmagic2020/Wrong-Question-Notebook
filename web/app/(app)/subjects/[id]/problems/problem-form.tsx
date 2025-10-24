@@ -243,7 +243,6 @@ export default function ProblemForm({
           : 'Problem created successfully'
       );
 
-
       if (isEditMode) {
         // In edit mode, notify parent component with updated problem data
         if (onProblemUpdated && j.data) {
@@ -286,7 +285,7 @@ export default function ProblemForm({
 
   // Generate UUID for new problems when form is expanded
   const [problemUuid, setProblemUuid] = useState<string | null>(null);
-  
+
   // Generate UUID when form is expanded for new problems
   useEffect(() => {
     if (!isEditMode && isExpanded && !problemUuid) {
@@ -299,13 +298,16 @@ export default function ProblemForm({
     const cleanupUnsavedProblem = async () => {
       // Only cleanup in create mode and if we have a problemUuid
       if (isEditMode || !problemUuid) return;
-      
+
       try {
         // Use sendBeacon for more reliable cleanup on page unload
         if (navigator.sendBeacon) {
           const formData = new FormData();
           formData.append('problemId', problemUuid);
-          navigator.sendBeacon(`/api/problems/${problemUuid}/cleanup`, formData);
+          navigator.sendBeacon(
+            `/api/problems/${problemUuid}/cleanup`,
+            formData
+          );
         } else {
           // Fallback to fetch with keepalive
           await fetch(`/api/problems/${problemUuid}/cleanup`, {
