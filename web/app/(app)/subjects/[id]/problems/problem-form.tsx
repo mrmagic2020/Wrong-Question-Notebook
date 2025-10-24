@@ -27,6 +27,7 @@ import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { VALIDATION_CONSTANTS } from '@/lib/constants';
 import { Spinner } from '@/components/ui/spinner';
 import { Tag, ProblemFormProps } from '@/lib/types';
+import { Editor } from '@tiptap/react';
 
 export default function ProblemForm({
   subjectId,
@@ -40,8 +41,8 @@ export default function ProblemForm({
   const isEditMode = !!problem;
 
   // Refs for the rich text editors
-  const contentEditorRef = useRef<any>(null);
-  const solutionEditorRef = useRef<any>(null);
+  const contentEditorRef = useRef<Editor>(null);
+  const solutionEditorRef = useRef<Editor>(null);
 
   // Helper function to transform SimpleTag to Tag
   const transformSimpleTagsToTags = useCallback(

@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Link } from '@tiptap/extension-link';
 import { Subscript } from '@tiptap/extension-subscript';
@@ -89,7 +89,7 @@ const MenuButton = ({
   </Button>
 );
 
-const RichTextEditor = React.forwardRef<any, RichTextEditorProps>(
+const RichTextEditor = React.forwardRef<Editor, RichTextEditorProps>(
   function RichTextEditor(
     {
       content = '',
@@ -624,7 +624,12 @@ const RichTextEditor = React.forwardRef<any, RichTextEditorProps>(
     }, [editor, updateActiveStates]);
 
     // Expose editor instance via ref
-    React.useImperativeHandle(ref, () => editor, [editor]);
+    React.useImperativeHandle(ref, (): Editor => {
+      if (!editor) {
+        throw new Error('Editor not initialized');
+      }
+      return editor;
+    }, [editor]);
 
     // Measure toolbar height dynamically using ResizeObserver
     useEffect(() => {
