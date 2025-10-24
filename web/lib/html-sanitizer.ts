@@ -17,20 +17,8 @@ export function sanitizeHtmlContent(html: string): string {
       ...getSanitizeConfig(),
       // Allow all classes for math elements to preserve KaTeX styling
       allowedClasses: {
-        span: [
-          'katex',
-          'katex-display',
-          'katex-inline',
-          'katex-mathml',
-          'katex-html',
-        ],
-        div: [
-          'katex',
-          'katex-display',
-          'katex-inline',
-          'katex-mathml',
-          'katex-html',
-        ],
+        span: ['*'],
+        div: ['*'],
       },
     };
 
