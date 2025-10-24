@@ -18,6 +18,7 @@ interface FileManagerProps {
   isEditMode: boolean;
   initialFiles?: FileAsset[];
   onFilesChange: (files: FileAsset[]) => void;
+  onInsertImage?: (path: string, name: string) => void;
   className?: string;
   disabled?: boolean;
 }
@@ -28,12 +29,19 @@ export default function FileManager({
   isEditMode,
   initialFiles = [],
   onFilesChange,
+  onInsertImage,
   className = '',
   disabled = false,
 }: FileManagerProps) {
   const [files, setFiles] = useState<FileAsset[]>(initialFiles);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Helper function to check if a file is an image
+  const isImageFile = (fileName: string): boolean => {
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+    return imageExtensions.some(ext => fileName.toLowerCase().endsWith(ext));
+  };
 
   // Sync initialFiles prop with local state
   useEffect(() => {
@@ -356,6 +364,21 @@ export default function FileManager({
                       </Link>
                     </Button>
                   )}
+                  {file.path &&
+                    !file.uploading &&
+                    isImageFile(file.name) &&
+                    onInsertImage && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onInsertImage(file.path, file.name)}
+                        className="text-emerald-600 hover:text-emerald-800"
+                        title="Insert image into editor"
+                      >
+                        Insert
+                      </Button>
+                    )}
                   <Button
                     type="button"
                     variant="ghost"

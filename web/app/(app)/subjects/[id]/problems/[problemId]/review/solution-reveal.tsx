@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { RichTextDisplay } from '@/components/ui/rich-text-display';
-import AssetPreview from './asset-preview';
 import { SolutionRevealProps } from '@/lib/types';
 
 export default function SolutionReveal({
@@ -60,18 +59,6 @@ export default function SolutionReveal({
             <div className="space-y-2">
               <div className="prose max-w-none rich-text-content">
                 <RichTextDisplay content={solutionText} />
-              </div>
-            </div>
-          )}
-
-          {/* Solution Assets */}
-          {solutionAssets.length > 0 && (
-            <div className="space-y-4">
-              <h3 className="font-medium">Solution Assets</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {solutionAssets.map((asset, index) => (
-                  <AssetPreview key={index} asset={asset} />
-                ))}
               </div>
             </div>
           )}

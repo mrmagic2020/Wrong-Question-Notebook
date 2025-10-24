@@ -870,6 +870,48 @@ html body[data-scroll-locked] {
   font-size: 0.75em !important;
 }
 
+/* Unified image styles */
+.rich-text-content img,
+.tiptap img {
+  max-width: 100% !important;
+  height: auto !important;
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+}
+
+.image-component .image-resizer {
+  border-radius: 0 !important;
+}
+
+/* Image styles in editor mode */
+.tiptap img {
+  cursor: pointer !important;
+  transition: box-shadow 0.2s ease !important;
+}
+
+.tiptap img:hover {
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Editor-specific image class */
+.editor-image {
+  max-width: 100% !important;
+  height: auto !important;
+  cursor: pointer !important;
+  transition: box-shadow 0.2s ease !important;
+}
+
+.editor-image:hover {
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
 /* Emergency fallback for any element that might still expand */
 .ProseMirror > * {
   max-width: 100% !important;

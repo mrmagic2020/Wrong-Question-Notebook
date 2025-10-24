@@ -1,7 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { FormEvent, useEffect, useState, useMemo, useCallback } from 'react';
+import {
+  FormEvent,
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+} from 'react';
 import { toast } from 'sonner';
 import FileManager from '@/components/ui/file-manager';
 import {
@@ -31,6 +38,10 @@ export default function ProblemForm({
 }: ProblemFormProps) {
   const router = useRouter();
   const isEditMode = !!problem;
+
+  // Refs for the rich text editors
+  const contentEditorRef = useRef<any>(null);
+  const solutionEditorRef = useRef<any>(null);
 
   // Helper function to transform SimpleTag to Tag
   const transformSimpleTagsToTags = useCallback(
@@ -76,6 +87,48 @@ export default function ProblemForm({
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
     );
   }
+
+  // Image insertion callbacks
+  const handleInsertProblemImage = useCallback((path: string, name: string) => {
+    if (!contentEditorRef.current) {
+      toast.error('Editor not ready');
+      return;
+    }
+
+    const imageUrl = `/api/files/${encodeURIComponent(path)}`;
+    contentEditorRef.current
+      .chain()
+      .focus()
+      .setImage({
+        src: imageUrl,
+        alt: name,
+      })
+      .run();
+
+    toast.success('Image inserted into problem content');
+  }, []);
+
+  const handleInsertSolutionImage = useCallback(
+    (path: string, name: string) => {
+      if (!solutionEditorRef.current) {
+        toast.error('Editor not ready');
+        return;
+      }
+
+      const imageUrl = `/api/files/${encodeURIComponent(path)}`;
+      solutionEditorRef.current
+        .chain()
+        .focus()
+        .setImage({
+          src: imageUrl,
+          alt: name,
+        })
+        .run();
+
+      toast.success('Image inserted into solution');
+    },
+    []
+  );
 
   // Form expansion state (only for create mode)
   const [isExpanded, setIsExpanded] = useState(isEditMode);
@@ -400,6 +453,7 @@ export default function ProblemForm({
         <label className="form-label pt-2">Content</label>
         <div className="flex-1 relative">
           <RichTextEditor
+            ref={contentEditorRef}
             content={content}
             onChange={setContent}
             placeholder="Describe the problem with rich formatting, math equations, and more..."
@@ -422,6 +476,7 @@ export default function ProblemForm({
             isEditMode={isEditMode}
             initialFiles={problemAssets}
             onFilesChange={setProblemAssets}
+            onInsertImage={handleInsertProblemImage}
             disabled={!isEditMode && !problemUuid}
           />
         </div>
@@ -519,6 +574,7 @@ export default function ProblemForm({
         <label className="form-label pt-2">Solution (text)</label>
         <div className="flex-1 relative">
           <RichTextEditor
+            ref={solutionEditorRef}
             content={solutionText}
             onChange={setSolutionText}
             placeholder="What did you do wrong? What did you learn from it?"
@@ -539,6 +595,7 @@ export default function ProblemForm({
             isEditMode={isEditMode}
             initialFiles={solutionAssets}
             onFilesChange={setSolutionAssets}
+            onInsertImage={handleInsertSolutionImage}
             disabled={!isEditMode && !problemUuid}
           />
         </div>
