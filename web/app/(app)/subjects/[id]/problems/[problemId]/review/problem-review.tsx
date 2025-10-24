@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { ProblemType, ProblemStatus } from '@/lib/schemas';
 import { RichTextDisplay } from '@/components/ui/rich-text-display';
 import AnswerInput from './answer-input';
-import AssetPreview from './asset-preview';
 import SolutionReveal from './solution-reveal';
 import StatusSelector from './status-selector';
 import { Problem, Subject } from '@/lib/types';
@@ -197,18 +196,6 @@ export default function ProblemReview({
         {problem.content && (
           <div className="prose max-w-none mb-4 rich-text-content">
             <RichTextDisplay content={problem.content} />
-          </div>
-        )}
-
-        {/* Problem Assets */}
-        {problem.assets && problem.assets.length > 0 && (
-          <div className="space-y-4">
-            <h3 className="font-medium">Assets</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {problem.assets.map((asset, index) => (
-                <AssetPreview key={index} asset={asset} />
-              ))}
-            </div>
           </div>
         )}
       </div>

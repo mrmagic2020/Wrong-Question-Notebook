@@ -17,7 +17,8 @@ export function sanitizeHtmlContent(html: string): string {
       ...getSanitizeConfig(),
       // Allow all classes for math elements to preserve KaTeX styling
       allowedClasses: {
-        '*': true, // Allow all classes for all elements
+        span: ['*'],
+        div: ['*'],
       },
     };
 
@@ -113,7 +114,7 @@ function getSanitizeConfig(): sanitizeHtml.IOptions {
       a: ['href', 'target', 'rel'],
 
       // Image attributes
-      img: ['src', 'alt', 'title', 'width', 'height'],
+      img: ['src', 'alt', 'title', 'width', 'height', 'style'],
 
       // Table attributes
       td: ['colspan', 'rowspan'],
@@ -144,15 +145,20 @@ function getSanitizeConfig(): sanitizeHtml.IOptions {
       '*': ['id', 'style'],
     },
 
+    // Allow specific classes for images
+    allowedClasses: {
+      img: ['editor-image'],
+    },
+
     // Allow all classes for math-related elements (KaTeX generates many dynamic classes)
     // Note: sanitize-html doesn't support wildcards, so we'll use transformTags instead
 
     allowedSchemes: ['http', 'https', 'mailto', 'tel'],
     allowedSchemesByTag: {
-      img: ['http', 'https', 'data'],
+      img: ['http', 'https'],
     },
 
-    // Allow data URIs for images (common in rich text editors)
+    // Allow protocol relative URLs for images
     allowProtocolRelative: true,
 
     // Disallowed tags for security
@@ -200,6 +206,42 @@ function getSanitizeConfig(): sanitizeHtml.IOptions {
           (attribs.class.includes('katex') || attribs.class.includes('tiptap'))
         ) {
           return { tagName, attribs };
+        }
+        return { tagName, attribs };
+      },
+      // Validate image URLs for security
+      img: (tagName, attribs) => {
+        if (attribs.src) {
+          // Block dangerous protocols
+          const dangerousProtocols = [
+            'javascript:',
+            'data:',
+            'file:',
+            'blob:',
+            'ftp:',
+          ];
+          if (
+            dangerousProtocols.some(protocol =>
+              attribs.src.toLowerCase().startsWith(protocol)
+            )
+          ) {
+            // Remove the src attribute to prevent XSS
+            const { src, ...safeAttribs } = attribs;
+            void src; // Explicitly mark as intentionally unused
+            return { tagName, attribs: safeAttribs };
+          }
+
+          // Only allow http://, https://, or relative paths starting with /api/files/
+          if (
+            !attribs.src.startsWith('http://') &&
+            !attribs.src.startsWith('https://') &&
+            !attribs.src.startsWith('/api/files/')
+          ) {
+            // Remove the src attribute for invalid URLs
+            const { src, ...safeAttribs } = attribs;
+            void src; // Explicitly mark as intentionally unused
+            return { tagName, attribs: safeAttribs };
+          }
         }
         return { tagName, attribs };
       },
