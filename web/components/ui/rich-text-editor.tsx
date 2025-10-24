@@ -511,9 +511,7 @@ const RichTextEditor = React.forwardRef<Editor, RichTextEditorProps>(
       const trimmedUrl = imageUrl.trim();
 
       if (!validateImageUrl(trimmedUrl)) {
-        toast.error(
-          'Please enter a valid image URL (http/https)'
-        );
+        toast.error('Please enter a valid image URL (http/https)');
         return;
       }
 
@@ -624,10 +622,7 @@ const RichTextEditor = React.forwardRef<Editor, RichTextEditorProps>(
     }, [editor, updateActiveStates]);
 
     // Expose editor instance via ref
-    React.useImperativeHandle(ref, (): Editor => {
-      if (!editor) {
-        throw new Error('Editor not initialized');
-      }
+    React.useImperativeHandle<Editor | null, Editor | null>(ref, () => {
       return editor;
     }, [editor]);
 
