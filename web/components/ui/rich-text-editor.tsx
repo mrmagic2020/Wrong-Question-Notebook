@@ -520,7 +520,7 @@ const RichTextEditor = React.forwardRef<Editor, RichTextEditorProps>(
         .focus()
         .setResizableImage({
           src: trimmedUrl,
-          alt: imageAlt.trim() || 'Image',
+          alt: imageAlt.trim() || '',
           caption: imageAlt.trim() || '',
         })
         .run();
