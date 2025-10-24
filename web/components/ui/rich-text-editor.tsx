@@ -622,7 +622,9 @@ const RichTextEditor = React.forwardRef<Editor, RichTextEditorProps>(
     }, [editor, updateActiveStates]);
 
     // Expose editor instance via ref
-    React.useImperativeHandle<Editor | null, Editor | null>(ref, () => editor, [editor]);
+    React.useImperativeHandle<Editor | null, Editor | null>(ref, () => editor, [
+      editor,
+    ]);
 
     // Measure toolbar height dynamically using ResizeObserver
     useEffect(() => {
