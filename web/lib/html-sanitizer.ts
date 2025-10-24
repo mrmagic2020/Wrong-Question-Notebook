@@ -238,7 +238,8 @@ function getSanitizeConfig(): sanitizeHtml.IOptions {
             )
           ) {
             // Remove the src attribute to prevent XSS
-            const { ...safeAttribs } = attribs;
+            const { src, ...safeAttribs } = attribs;
+            void src; // Explicitly mark as intentionally unused
             return { tagName, attribs: safeAttribs };
           }
 
@@ -249,7 +250,8 @@ function getSanitizeConfig(): sanitizeHtml.IOptions {
             !attribs.src.startsWith('/api/files/')
           ) {
             // Remove the src attribute for invalid URLs
-            const { ...safeAttribs } = attribs;
+            const { src, ...safeAttribs } = attribs;
+            void src; // Explicitly mark as intentionally unused
             return { tagName, attribs: safeAttribs };
           }
         }
