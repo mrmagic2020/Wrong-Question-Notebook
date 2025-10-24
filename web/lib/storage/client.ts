@@ -10,18 +10,18 @@ export async function getUserId() {
 
 /**
  * role: "problem" | "solution"
- * stagingId: a stable ID per form session (e.g., crypto.randomUUID())
+ * problemId: the problem UUID (for new problems) or existing problem ID (for edits)
  * Upload path:
- *   user/{uid}/staging/{stagingId}/{role}/{originalName}
+ *   user/{uid}/problems/{problemId}/{role}/{originalName}
  */
 export async function uploadFiles(
   files: FileList | File[],
   role: 'problem' | 'solution',
-  stagingId: string
+  problemId: string
 ) {
   const supabase = createClient();
   const uid = await getUserId();
-  const base = `user/${uid}/staging/${stagingId}/${role}`;
+  const base = `user/${uid}/problems/${problemId}/${role}`;
 
   // Validate file sizes before upload
   const maxSize = FILE_CONSTANTS.MAX_FILE_SIZE.GENERAL;

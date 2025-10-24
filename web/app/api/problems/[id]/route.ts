@@ -3,10 +3,6 @@ import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
 import { UpdateProblemDto } from '@/lib/schemas';
 import { deleteProblemFiles } from '@/lib/storage/delete';
 import {
-  movePathsToProblemWithUser,
-  cleanupStagingFiles,
-} from '@/lib/storage/move';
-import {
   createApiErrorResponse,
   createApiSuccessResponse,
 } from '@/lib/common-utils';
@@ -117,85 +113,16 @@ export async function PATCH(
     );
   }
 
-  // 2) Handle asset movement from staging to permanent storage
+  // 2) Update assets directly (they're already in permanent location)
   if (assets || solution_assets) {
-    const allProblemPaths = (assets ?? []).map((a: any) => a.path as string);
-    const allSolutionPaths = (solution_assets ?? []).map(
-      (a: any) => a.path as string
-    );
-
-    // Filter out only staged files (files that need to be moved)
-    const stagedProblemPaths = allProblemPaths.filter(path =>
-      path.includes('/staging/')
-    );
-    const stagedSolutionPaths = allSolutionPaths.filter(path =>
-      path.includes('/staging/')
-    );
-
-    // Move only staged assets to permanent storage
-    const movedProblem =
-      stagedProblemPaths.length > 0
-        ? await movePathsToProblemWithUser(
-            supabase,
-            stagedProblemPaths,
-            id,
-            user.id
-          )
-        : [];
-    const movedSolution =
-      stagedSolutionPaths.length > 0
-        ? await movePathsToProblemWithUser(
-            supabase,
-            stagedSolutionPaths,
-            id,
-            user.id
-          )
-        : [];
-
-    // Create mapping from old staged paths to new permanent paths
-    const pathMapping = new Map<string, string>();
-    movedProblem.forEach((result, i) => {
-      if (result.ok) {
-        pathMapping.set(stagedProblemPaths[i], result.to);
-      }
-    });
-    movedSolution.forEach((result, i) => {
-      if (result.ok) {
-        pathMapping.set(stagedSolutionPaths[i], result.to);
-      }
-    });
-
-    // Update paths: use new permanent paths for moved files, keep existing paths for others
-    const finalAssets = allProblemPaths.map(path => ({
-      path: pathMapping.get(path) || path,
-    }));
-    const finalSolutionAssets = allSolutionPaths.map(path => ({
-      path: pathMapping.get(path) || path,
-    }));
-
     await supabase
       .from('problems')
       .update({
-        assets: finalAssets,
-        solution_assets: finalSolutionAssets,
+        assets: assets ?? undefined,
+        solution_assets: solution_assets ?? undefined,
       })
       .eq('id', id)
       .eq('user_id', user.id);
-
-    // Clean up staging files after successful update
-    const allStagedPaths = [...stagedProblemPaths, ...stagedSolutionPaths];
-    if (allStagedPaths.length > 0) {
-      const firstStagedPath = allStagedPaths[0];
-      const pathParts = firstStagedPath.split('/');
-      const stagingId = pathParts[3]; // user/{uid}/staging/{stagingId}/...
-
-      if (stagingId) {
-        // Clean up staging files in the background (don't wait for it)
-        cleanupStagingFiles(supabase, stagingId, user.id).catch(error => {
-          console.error('Failed to cleanup staging files:', error);
-        });
-      }
-    }
   }
 
   // Reset tags if provided

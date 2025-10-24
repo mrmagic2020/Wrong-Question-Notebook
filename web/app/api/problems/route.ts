@@ -5,10 +5,6 @@ import {
   PROBLEM_TYPE_VALUES,
   PROBLEM_STATUS_VALUES,
 } from '@/lib/schemas';
-import {
-  movePathsToProblemWithUser,
-  cleanupStagingFiles,
-} from '@/lib/storage/move';
 import { withSecurity } from '@/lib/security-middleware';
 import {
   isValidUuid,
@@ -223,17 +219,27 @@ async function createProblem(req: Request) {
     );
   }
 
-  const { tag_ids, assets, solution_assets, ...problem } = parsed.data;
+  const {
+    tag_ids,
+    assets,
+    solution_assets,
+    id: clientProvidedId,
+    ...problem
+  } = parsed.data;
 
-  // 1) Create minimal row
+  // Use client-provided ID if available, otherwise let database generate one
+  const problemId = clientProvidedId || undefined;
+
+  // 1) Create problem with assets already in permanent location
   try {
     const { data: created, error: insErr } = await supabase
       .from('problems')
       .insert({
         ...problem,
+        id: problemId,
         user_id: user.id,
-        assets: [],
-        solution_assets: [],
+        assets: assets ?? [],
+        solution_assets: solution_assets ?? [],
       })
       .select()
       .single();
@@ -249,47 +255,7 @@ async function createProblem(req: Request) {
       );
     }
 
-    // 2) Attempt to move staged assets using the **user** client
-    const stagedProblemPaths = (assets ?? []).map((a: any) => a.path as string);
-    const stagedSolutionPaths = (solution_assets ?? []).map(
-      (a: any) => a.path as string
-    );
-
-    const movedProblem = await movePathsToProblemWithUser(
-      supabase,
-      stagedProblemPaths,
-      created.id,
-      user.id
-    );
-    const movedSolution = await movePathsToProblemWithUser(
-      supabase,
-      stagedSolutionPaths,
-      created.id,
-      user.id
-    );
-
-    // If a move fails for any item, keep its original staged path (so you don't lose references)
-    const finalProblemPaths = movedProblem.map(m => (m.ok ? m.to : m.from));
-    const finalSolutionPaths = movedSolution.map(m => (m.ok ? m.to : m.from));
-
-    // 3) Update row with final/staged paths
-    const { data: updated, error: updErr } = await supabase
-      .from('problems')
-      .update({
-        assets: finalProblemPaths.map(p => ({ path: p })),
-        solution_assets: finalSolutionPaths.map(p => ({ path: p })),
-      })
-      .eq('id', created.id)
-      .eq('user_id', user.id)
-      .select()
-      .single();
-
-    if (updErr) {
-      return NextResponse.json(
-        createApiSuccessResponse({ ...created, assets, solution_assets }),
-        { status: 201 }
-      );
-    }
+    // Assets are already in permanent location, no moving needed
 
     // Link tags if present
     if (tag_ids?.length) {
@@ -300,22 +266,6 @@ async function createProblem(req: Request) {
           tag_id,
         }))
       );
-    }
-
-    // Clean up staging files after successful problem creation
-    // Extract staging ID from any staged path (they should all have the same staging ID)
-    const allStagedPaths = [...stagedProblemPaths, ...stagedSolutionPaths];
-    if (allStagedPaths.length > 0) {
-      const firstStagedPath = allStagedPaths[0];
-      const pathParts = firstStagedPath.split('/');
-      const stagingId = pathParts[3]; // user/{uid}/staging/{stagingId}/...
-
-      if (stagingId) {
-        // Clean up staging files in the background (don't wait for it)
-        cleanupStagingFiles(supabase, stagingId, user.id).catch(error => {
-          console.error('Failed to cleanup staging files:', error);
-        });
-      }
     }
 
     // Get the tags for the created problem
@@ -336,7 +286,7 @@ async function createProblem(req: Request) {
 
     return NextResponse.json(
       createApiSuccessResponse({
-        ...updated,
+        ...created,
         tags,
       }),
       { status: 201 }

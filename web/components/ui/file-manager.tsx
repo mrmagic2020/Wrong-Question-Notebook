@@ -14,7 +14,8 @@ interface FileAsset {
 
 interface FileManagerProps {
   role: 'problem' | 'solution';
-  stagingId: string;
+  problemId: string;
+  isEditMode: boolean;
   initialFiles?: FileAsset[];
   onFilesChange: (files: FileAsset[]) => void;
   className?: string;
@@ -22,7 +23,8 @@ interface FileManagerProps {
 
 export default function FileManager({
   role,
-  stagingId,
+  problemId,
+  isEditMode,
   initialFiles = [],
   onFilesChange,
   className = '',
@@ -40,6 +42,40 @@ export default function FileManager({
   const updateFiles = (newFiles: FileAsset[]) => {
     setFiles(newFiles);
     onFilesChange(newFiles);
+  };
+
+  // Helper to update database assets in edit mode
+  const updateDatabaseAssets = async (newFiles: FileAsset[]) => {
+    if (!isEditMode || !problemId) return;
+
+    try {
+      const assetData = newFiles.map(file => ({
+        path: file.path,
+      }));
+
+      const payload: any = {};
+      if (role === 'problem') {
+        payload.assets = assetData;
+      } else if (role === 'solution') {
+        payload.solution_assets = assetData;
+      }
+
+      const response = await fetch(`/api/problems/${problemId}/assets`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.warn(
+          'Failed to update database assets:',
+          errorData.error || 'Unknown error'
+        );
+      }
+    } catch (error) {
+      console.warn('Failed to update database assets:', error);
+    }
   };
 
   // Handle file upload
@@ -79,7 +115,7 @@ export default function FileManager({
     updateFiles(filesWithUploading);
 
     try {
-      const uploadedPaths = await uploadFiles(selectedFiles, role, stagingId);
+      const uploadedPaths = await uploadFiles(selectedFiles, role, problemId);
 
       // Create final files array with uploaded files
       const finalFiles: FileAsset[] = [
@@ -93,6 +129,9 @@ export default function FileManager({
       ];
 
       updateFiles(finalFiles);
+
+      // Update database in edit mode
+      await updateDatabaseAssets(finalFiles);
     } catch (err: any) {
       setError(err.message ?? 'Upload failed');
 
@@ -126,6 +165,9 @@ export default function FileManager({
       // Remove from local state
       const updatedFiles = files.filter(f => f.path !== fileToDelete.path);
       updateFiles(updatedFiles);
+
+      // Update database in edit mode
+      await updateDatabaseAssets(updatedFiles);
     } catch (err: any) {
       setError(err.message ?? 'Failed to delete file');
     }

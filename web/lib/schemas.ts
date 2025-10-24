@@ -49,6 +49,7 @@ const Asset = z.object({
 });
 
 export const CreateProblemDto = z.object({
+  id: z.uuid().optional(), // Allow client-provided UUID for direct upload approach
   subject_id: z.uuid(),
   title: z
     .string()
