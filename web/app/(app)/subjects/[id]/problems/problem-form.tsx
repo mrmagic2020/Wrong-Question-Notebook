@@ -215,9 +215,10 @@ export default function ProblemForm({
         tag_ids: selectedTagIds, // Always send the array, even if empty
       };
 
-      // Add subject_id for create operations
+      // Add subject_id and problem_id for create operations
       if (!isEditMode) {
         (payload as any).subject_id = subjectId;
+        (payload as any).id = problemUuid; // Use client-generated UUID
       }
 
       const url = isEditMode ? `/api/problems/${problem.id}` : '/api/problems';
@@ -241,18 +242,6 @@ export default function ProblemForm({
           ? 'Problem updated successfully'
           : 'Problem created successfully'
       );
-
-      // Clean up staging files after successful problem creation/update
-      try {
-        await fetch(`/api/uploads/staging?stagingId=${stagingId}`, {
-          method: 'DELETE',
-        });
-      } catch (error) {
-        console.warn(
-          'Failed to cleanup staging files after successful submission:',
-          error
-        );
-      }
 
       if (isEditMode) {
         // In edit mode, notify parent component with updated problem data
@@ -294,34 +283,46 @@ export default function ProblemForm({
     }
   }
 
-  const [stagingId] = useState(
-    () => `${Date.now()}-${globalThis.crypto?.randomUUID?.() ?? 'rnd'}`
-  );
+  // Generate UUID for new problems when form is expanded
+  const [problemUuid, setProblemUuid] = useState<string | null>(null);
 
-  // Clean up staging folder when component unmounts or user leaves page
+  // Generate UUID when form is expanded for new problems
   useEffect(() => {
-    const cleanupStaging = async () => {
+    if (!isEditMode && isExpanded && !problemUuid) {
+      setProblemUuid(globalThis.crypto?.randomUUID?.() ?? `rnd-${Date.now()}`);
+    }
+  }, [isEditMode, isExpanded, problemUuid]);
+
+  // Clean up unsaved problem assets when component unmounts or user leaves page (CREATE mode only)
+  useEffect(() => {
+    const cleanupUnsavedProblem = async () => {
+      // Only cleanup in create mode and if we have a problemUuid
+      if (isEditMode || !problemUuid) return;
+
       try {
         // Use sendBeacon for more reliable cleanup on page unload
         if (navigator.sendBeacon) {
           const formData = new FormData();
-          formData.append('stagingId', stagingId);
-          navigator.sendBeacon('/api/uploads/staging', formData);
+          formData.append('problemId', problemUuid);
+          navigator.sendBeacon(
+            `/api/problems/${problemUuid}/cleanup`,
+            formData
+          );
         } else {
           // Fallback to fetch with keepalive
-          await fetch(`/api/uploads/staging?stagingId=${stagingId}`, {
+          await fetch(`/api/problems/${problemUuid}/cleanup`, {
             method: 'DELETE',
             keepalive: true,
           });
         }
       } catch (error) {
-        console.warn('Failed to cleanup staging files:', error);
+        console.warn('Failed to cleanup unsaved problem assets:', error);
       }
     };
 
     // Cleanup on page unload/refresh/close (when user truly leaves)
     const handleBeforeUnload = () => {
-      cleanupStaging();
+      cleanupUnsavedProblem();
     };
 
     // Add event listener for page unload
@@ -329,10 +330,10 @@ export default function ProblemForm({
 
     // Return cleanup function for component unmount (navigation within app)
     return () => {
-      cleanupStaging();
+      cleanupUnsavedProblem();
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [stagingId]);
+  }, [isEditMode, problemUuid]);
 
   // If not expanded (create mode only), show just the expand button
   if (!isExpanded && !isEditMode) {
@@ -417,9 +418,11 @@ export default function ProblemForm({
         <div className="flex-1">
           <FileManager
             role="problem"
-            stagingId={stagingId}
+            problemId={isEditMode ? problem.id : problemUuid || 'disabled'}
+            isEditMode={isEditMode}
             initialFiles={problemAssets}
             onFilesChange={setProblemAssets}
+            disabled={!isEditMode && !problemUuid}
           />
         </div>
       </div>
@@ -532,9 +535,11 @@ export default function ProblemForm({
         <div className="flex-1">
           <FileManager
             role="solution"
-            stagingId={stagingId}
+            problemId={isEditMode ? problem.id : problemUuid || 'disabled'}
+            isEditMode={isEditMode}
             initialFiles={solutionAssets}
             onFilesChange={setSolutionAssets}
+            disabled={!isEditMode && !problemUuid}
           />
         </div>
       </div>

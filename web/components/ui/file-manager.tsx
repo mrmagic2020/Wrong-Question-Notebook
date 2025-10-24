@@ -14,18 +14,22 @@ interface FileAsset {
 
 interface FileManagerProps {
   role: 'problem' | 'solution';
-  stagingId: string;
+  problemId: string;
+  isEditMode: boolean;
   initialFiles?: FileAsset[];
   onFilesChange: (files: FileAsset[]) => void;
   className?: string;
+  disabled?: boolean;
 }
 
 export default function FileManager({
   role,
-  stagingId,
+  problemId,
+  isEditMode,
   initialFiles = [],
   onFilesChange,
   className = '',
+  disabled = false,
 }: FileManagerProps) {
   const [files, setFiles] = useState<FileAsset[]>(initialFiles);
   const [error, setError] = useState<string | null>(null);
@@ -42,9 +46,60 @@ export default function FileManager({
     onFilesChange(newFiles);
   };
 
+  // Helper to update database assets in edit mode
+  const updateDatabaseAssets = async (newFiles: FileAsset[]) => {
+    if (!isEditMode || !problemId) return;
+
+    try {
+      const assetData = newFiles.map(file => ({
+        path: file.path,
+      }));
+
+      const payload: Partial<{
+        assets: Array<{ path: string }>;
+        solution_assets: Array<{ path: string }>;
+      }> = {};
+      if (role === 'problem') {
+        payload.assets = assetData;
+      } else if (role === 'solution') {
+        payload.solution_assets = assetData;
+      }
+
+      const response = await fetch(`/api/problems/${problemId}/assets`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.warn(
+          'Failed to update database assets:',
+          errorData.error || 'Unknown error'
+        );
+      }
+    } catch (error) {
+      console.warn('Failed to update database assets:', error);
+    }
+  };
+
   // Handle file upload
   const handleFileUpload = async (selectedFiles: FileList) => {
     if (!selectedFiles.length) return;
+
+    // Check if component is disabled
+    if (disabled) {
+      setError('File upload is disabled. Please expand the form first.');
+      return;
+    }
+
+    // Validate problemId before attempting upload
+    if (!problemId || problemId.trim() === '' || problemId === 'disabled') {
+      setError(
+        'Cannot upload files: Problem ID is not available. Please expand the form first.'
+      );
+      return;
+    }
 
     setError(null);
 
@@ -79,7 +134,7 @@ export default function FileManager({
     updateFiles(filesWithUploading);
 
     try {
-      const uploadedPaths = await uploadFiles(selectedFiles, role, stagingId);
+      const uploadedPaths = await uploadFiles(selectedFiles, role, problemId);
 
       // Create final files array with uploaded files
       const finalFiles: FileAsset[] = [
@@ -93,6 +148,9 @@ export default function FileManager({
       ];
 
       updateFiles(finalFiles);
+
+      // Update database in edit mode
+      await updateDatabaseAssets(finalFiles);
     } catch (err: any) {
       setError(err.message ?? 'Upload failed');
 
@@ -126,6 +184,9 @@ export default function FileManager({
       // Remove from local state
       const updatedFiles = files.filter(f => f.path !== fileToDelete.path);
       updateFiles(updatedFiles);
+
+      // Update database in edit mode
+      await updateDatabaseAssets(updatedFiles);
     } catch (err: any) {
       setError(err.message ?? 'Failed to delete file');
     }
@@ -146,10 +207,14 @@ export default function FileManager({
     <div className={`space-y-3 ${className}`}>
       {/* Upload Area */}
       <div
-        className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors cursor-pointer"
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onClick={() => fileInputRef.current?.click()}
+        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+          disabled
+            ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
+            : 'border-gray-300 hover:border-gray-400 cursor-pointer'
+        }`}
+        onDrop={disabled ? undefined : handleDrop}
+        onDragOver={disabled ? undefined : handleDragOver}
+        onClick={disabled ? undefined : () => fileInputRef.current?.click()}
       >
         <input
           ref={fileInputRef}
@@ -174,13 +239,23 @@ export default function FileManager({
             />
           </svg>
           <div className="text-sm text-gray-600">
-            <span className="font-medium text-blue-600 hover:text-blue-500">
-              Click to upload
-            </span>{' '}
-            or drag and drop
+            {disabled ? (
+              <span className="font-medium text-gray-400">
+                Expand the form to upload files
+              </span>
+            ) : (
+              <>
+                <span className="font-medium text-blue-600 hover:text-blue-500">
+                  Click to upload
+                </span>{' '}
+                or drag and drop
+              </>
+            )}
           </div>
           <p className="text-xs text-gray-500">
-            Images and PDFs up to 10MB each
+            {disabled
+              ? 'Form must be expanded first'
+              : 'Images and PDFs up to 10MB each'}
           </p>
         </div>
       </div>
