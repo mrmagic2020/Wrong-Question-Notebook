@@ -324,6 +324,7 @@ export default function ProblemForm({
         setProblemType('short');
         setStatus('needs_review');
         setAutoMark(false);
+        setProblemUuid(null); // Reset UUID so a new one is generated next time
         setIsExpanded(false);
       }
 
@@ -347,24 +348,24 @@ export default function ProblemForm({
     }
   }, [isEditMode, isExpanded, problemUuid]);
 
-  // Clean up unsaved problem assets when component unmounts or user leaves page (CREATE mode only)
-  useEffect(() => {
-    const cleanupUnsavedProblem = async () => {
+  // Cleanup function for unsaved problem assets (can be called explicitly or via effect)
+  const cleanupUnsavedProblem = useCallback(
+    async (uuidToCleanup: string | null) => {
       // Only cleanup in create mode and if we have a problemUuid
-      if (isEditMode || !problemUuid) return;
+      if (isEditMode || !uuidToCleanup) return;
 
       try {
         // Use sendBeacon for more reliable cleanup on page unload
         if (navigator.sendBeacon) {
           const formData = new FormData();
-          formData.append('problemId', problemUuid);
+          formData.append('problemId', uuidToCleanup);
           navigator.sendBeacon(
-            `/api/problems/${problemUuid}/cleanup`,
+            `/api/problems/${uuidToCleanup}/cleanup`,
             formData
           );
         } else {
           // Fallback to fetch with keepalive
-          await fetch(`/api/problems/${problemUuid}/cleanup`, {
+          await fetch(`/api/problems/${uuidToCleanup}/cleanup`, {
             method: 'DELETE',
             keepalive: true,
           });
@@ -372,11 +373,15 @@ export default function ProblemForm({
       } catch (error) {
         console.warn('Failed to cleanup unsaved problem assets:', error);
       }
-    };
+    },
+    [isEditMode]
+  );
 
+  // Clean up unsaved problem assets when component unmounts or user leaves page (CREATE mode only)
+  useEffect(() => {
     // Cleanup on page unload/refresh/close (when user truly leaves)
     const handleBeforeUnload = () => {
-      cleanupUnsavedProblem();
+      cleanupUnsavedProblem(problemUuid);
     };
 
     // Add event listener for page unload
@@ -384,10 +389,10 @@ export default function ProblemForm({
 
     // Return cleanup function for component unmount (navigation within app)
     return () => {
-      cleanupUnsavedProblem();
+      cleanupUnsavedProblem(problemUuid);
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [isEditMode, problemUuid]);
+  }, [problemUuid, cleanupUnsavedProblem]);
 
   // If not expanded (create mode only), show just the expand button
   if (!isExpanded && !isEditMode) {
@@ -641,7 +646,14 @@ export default function ProblemForm({
         {!isEditMode && (
           <Button
             variant="outline"
-            onClick={() => setIsExpanded(false)}
+            onClick={async () => {
+              // Clean up unsaved assets before resetting UUID
+              if (problemUuid) {
+                await cleanupUnsavedProblem(problemUuid);
+              }
+              setProblemUuid(null); // Reset UUID so a new one is generated next time
+              setIsExpanded(false);
+            }}
             disabled={isSubmitting}
           >
             Cancel
