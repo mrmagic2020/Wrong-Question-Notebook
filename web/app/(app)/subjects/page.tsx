@@ -10,6 +10,7 @@ import {
 
 export const metadata: Metadata = {
   title: 'All Subjects – Wrong Question Notebook',
+  description: 'View and manage your subjects',
 };
 
 async function loadSubjects() {

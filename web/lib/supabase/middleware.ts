@@ -138,12 +138,15 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith('/login') &&
     !request.nextUrl.pathname.startsWith('/auth')
   ) {
-    // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone();
-    url.pathname = ROUTES.AUTH.LOGIN;
-    // Add the intended destination as a query parameter
-    url.searchParams.set('redirect', request.nextUrl.pathname);
-    return NextResponse.redirect(url);
+    const loginUrl = new URL(ROUTES.AUTH.LOGIN, request.url);
+    loginUrl.searchParams.set(
+      'redirect',
+      request.nextUrl.pathname + request.nextUrl.search
+    );
+    const res = NextResponse.redirect(loginUrl, { status: 302 });
+    res.headers.set('Cache-Control', 'no-store');
+    res.headers.set('Vary', 'Cookie, Authorization');
+    return res;
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.

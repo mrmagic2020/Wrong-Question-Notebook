@@ -1,8 +1,19 @@
+import type { Metadata } from 'next';
 import { Navigation } from '@/components/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 import { BookOpen, NotebookPen, Target, Zap } from 'lucide-react';
+
+const siteUrl = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}`
+  : 'http://localhost:3000';
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: `${siteUrl}/`,
+  },
+};
 
 export default function Home() {
   return (

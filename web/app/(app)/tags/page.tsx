@@ -7,6 +7,8 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'All Tags – Wrong Question Notebook',
+  description:
+    'View and manage your tags. Tags help you organize your problems and filter through them.',
 };
 
 function TagCapsules({ tags }: { tags: { id: string; name: string }[] }) {
