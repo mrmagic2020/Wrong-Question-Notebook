@@ -145,7 +145,10 @@ export async function updateSession(request: NextRequest) {
     );
     const res = NextResponse.redirect(loginUrl, { status: 302 });
     res.headers.set('Cache-Control', 'no-store');
-    res.headers.set('Vary', 'Cookie, Authorization, User-Agent, Accept-Language');
+    res.headers.set(
+      'Vary',
+      'Cookie, Authorization, User-Agent, Accept-Language'
+    );
     return res;
   }
 
