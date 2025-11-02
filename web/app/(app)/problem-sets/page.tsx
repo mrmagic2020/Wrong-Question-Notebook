@@ -17,7 +17,7 @@ import {
 export const metadata: Metadata = {
   title: 'All Problem Sets – Wrong Question Notebook',
   description:
-    'View and manage your problem sets. Problem sets enables you to group problems together to review or to share with others.',
+    'View and manage your problem sets. Problem sets enable you to group problems together to review or to share with others.',
 };
 
 async function loadProblemSets() {
