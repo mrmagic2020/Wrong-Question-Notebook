@@ -6,17 +6,17 @@ The Wrong Question Notebook (WQN) is a web-based application designed to help st
 
 ### Core Functionality
 
-#### **Subject Management**
+#### Subject Management
 - [x] Create, edit, and delete subjects to organize your problems
 - [x] Subject-based navigation and filtering
 - [x] Clean, intuitive subject management interface
 - [ ] Track problem counts and activity per subject
 
-#### **Problem Management**
+#### Problem Management
 - [x] **Three Problem Types**: Multiple Choice Questions (MCQ), Short Answer, and Extended Response
 - [x] **Rich Content Support**: Create problems with formatted content using an advanced rich text editor
   - Text formatting (bold, italic, underline, headings)
-  - Mathematical equations with LaTeX support (via KaTeX)
+  - Mathematical equations with LaTeX support
   - Tables and lists
   - Links, subscript, and superscript
   - Image embedding with resizable images
@@ -26,21 +26,21 @@ The Wrong Question Notebook (WQN) is a web-based application designed to help st
 - [x] **Assets Management**: Attach images and PDF files to problems
 - [x] **Solution Support**: Add detailed solutions with text and assets
 
-#### **Tag System**
+#### Tag System
 - [x] Create and manage tags within subjects for better organization
 - [x] Tag problems with multiple tags for flexible categorization
 - [x] Filter problems by tags
 - [x] Global tag overview across all subjects
 - [ ] Tag-based problem discovery
 
-#### **Problem Sets**
+#### Problem Sets
 - [x] Create custom problem sets from your problems
-- [x] **Sharing Levels**: Private, Limited (share with specific users via email), or Public
+- [x] **Sharing Levels**: Private, Limited (share with specific users via email), or Public (all registered users)
 - [x] Add and remove problems from sets
 - [x] Track progress within problem sets
 - [ ] Problem set review mode for structured practice
 
-#### **Interactive Review System**
+#### Interactive Review System
 - [x] Submit answers to problems with appropriate input types:
   - Text input for short answers
   - Textarea for extended responses
@@ -51,11 +51,9 @@ The Wrong Question Notebook (WQN) is a web-based application designed to help st
 - [x] **Status Updates**: Update problem status during review
 - [ ] Track attempt history and review dates
 
-#### **File Management**
-- [x] Secure file upload for images (JPG, PNG, WebP, GIF) and PDFs
-- [x] User-based access control for uploaded files
-- [x] Asset preview functionality
-- [x] Size limits: 5MB for images, 10MB for PDFs
+#### AI Features
+
+- TODO
 
 ## 🛠️ Tech Stack
 
