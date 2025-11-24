@@ -49,7 +49,7 @@ export default function Home() {
 
             <div className="pt-8">
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                No credit card required • Start organizing your learning today
+                Made by students • For students
               </p>
             </div>
           </div>
