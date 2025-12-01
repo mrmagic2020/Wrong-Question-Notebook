@@ -47,7 +47,7 @@ export const maliciousPatterns = {
 
   // XSS patterns - more comprehensive
   xss: [
-    /<script[^>]*>.*?<\/script>/i,
+    /<script\b[^>]*>[\s\S]*?<\/script\b[^>]*>/i,
     /javascript\s*:/i,
     /on\w+\s*=\s*["'][^"']*["']/i, // Event handlers
     /<iframe[^>]*>/i,
