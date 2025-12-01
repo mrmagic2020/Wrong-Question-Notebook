@@ -65,7 +65,7 @@ export const maliciousPatterns = {
     /%2e%2e%2f|%2e%2e%5c/i, // URL encoded
     /\.\.%252f|\.\.%255c/i, // Double URL encoded
     /\.\.%c0%af|\.\.%c1%9c/i, // UTF-8 encoded
-  ],i
+  ],
 
   // Command injection patterns - more precise to avoid false positives
   commandInjection: [
