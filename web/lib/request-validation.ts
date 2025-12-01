@@ -45,9 +45,9 @@ export const maliciousPatterns = {
     /(BENCHMARK|SLEEP|WAITFOR)\s*\(/i, // Time-based attacks
   ],
 
-  // XSS patterns - more comprehensive
+  // XSS patterns
   xss: [
-    /<script[^>]*>.*?<\/script>/i,
+    /<script\b[^>]*>[\s\S]*?<\/script\b[^>]*>/i,
     /javascript\s*:/i,
     /on\w+\s*=\s*["'][^"']*["']/i, // Event handlers
     /<iframe[^>]*>/i,
