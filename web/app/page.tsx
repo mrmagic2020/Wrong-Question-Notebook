@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 import { BookOpen, NotebookPen, Target, Zap } from 'lucide-react';
+import { createClient } from '@/lib/supabase/server';
+import { hasEnvVars } from '@/lib/server-utils';
 
 const siteUrl = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
   ? `https://${process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}`
@@ -15,7 +17,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Home() {
+export default async function Home() {
+  const isSignedIn = await (async () => {
+    if (!hasEnvVars) return false;
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getClaims();
+    return Boolean(data?.claims);
+  })();
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="flex-1 w-full flex flex-col">
@@ -34,17 +43,35 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button asChild size="lg" className="text-lg px-8 py-6">
-                <Link href="/auth/sign-up">Get Started Free</Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="text-lg px-8 py-6"
-              >
-                <Link href="/auth/login">Sign In</Link>
-              </Button>
+              {isSignedIn ? (
+                <>
+                  <Button asChild size="lg" className="text-lg px-8 py-6">
+                    <Link href="/subjects">Open your notebook</Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="lg"
+                    className="text-lg px-8 py-6"
+                  >
+                    <Link href="/problem-sets">View problem sets</Link>
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button asChild size="lg" className="text-lg px-8 py-6">
+                    <Link href="/auth/sign-up">Get Started Free</Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="lg"
+                    className="text-lg px-8 py-6"
+                  >
+                    <Link href="/auth/login">Sign In</Link>
+                  </Button>
+                </>
+              )}
             </div>
 
             <div className="pt-8">
@@ -124,17 +151,35 @@ export default function Home() {
                 knowledge effectively
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button asChild size="lg" className="text-lg px-8 py-6">
-                  <Link href="/auth/sign-up">Start Your Journey</Link>
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="lg"
-                  className="text-lg px-8 py-6"
-                >
-                  <Link href="/auth/login">Sign In</Link>
-                </Button>
+                {isSignedIn ? (
+                  <>
+                    <Button asChild size="lg" className="text-lg px-8 py-6">
+                      <Link href="/subjects">Continue in the app</Link>
+                    </Button>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="lg"
+                      className="text-lg px-8 py-6"
+                    >
+                      <Link href="/problem-sets">Browse problem sets</Link>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button asChild size="lg" className="text-lg px-8 py-6">
+                      <Link href="/auth/sign-up">Start Your Journey</Link>
+                    </Button>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="lg"
+                      className="text-lg px-8 py-6"
+                    >
+                      <Link href="/auth/login">Sign In</Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
