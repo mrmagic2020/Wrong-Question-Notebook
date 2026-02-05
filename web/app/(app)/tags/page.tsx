@@ -1,4 +1,5 @@
 // web/src/app/(app)/tags/page.tsx
+import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { createClient } from '@/lib/supabase/server';
@@ -66,13 +67,10 @@ export default async function GlobalTagsPage() {
 
   return (
     <div className="section-container">
-      <div className="page-header">
-        <h1 className="page-title">Tags by Subject</h1>
-        <p className="page-description">
-          View all tags grouped by subject. Use the links to manage or add tags
-          for a specific subject.
-        </p>
-      </div>
+      <PageHeader
+        title="Tags"
+        description="View and manage tags grouped by subject."
+      />
 
       {subjects?.length === 0 ? (
         <Card className="card-section">

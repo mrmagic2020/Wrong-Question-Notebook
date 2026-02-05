@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import SubjectForm from './subject-form';
 import SubjectRow from './subject-row';
+import { PageHeader } from '@/components/page-header';
 import { useConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -66,12 +67,10 @@ export default function SubjectsPageClient({
   return (
     <>
       <div className="section-container">
-        <div className="page-header">
-          <h1 className="page-title">Subjects</h1>
-          <p className="page-description">
-            Create, rename, or delete subjects.
-          </p>
-        </div>
+        <PageHeader
+          title="Subjects"
+          description="Create, rename, or delete subjects."
+        />
 
         <Card className="card-section">
           <CardHeader className="card-section-header">

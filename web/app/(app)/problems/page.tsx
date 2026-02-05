@@ -1,3 +1,4 @@
+import { PageHeader } from '@/components/page-header';
 import { Card, CardContent } from '@/components/ui/card';
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
@@ -11,9 +12,10 @@ export default async function ProblemsChooser() {
 
   return (
     <div className="section-container">
-      <div className="page-header">
-        <h1 className="page-title">Problems by Subject</h1>
-      </div>
+      <PageHeader
+        title="Problems"
+        description="Pick a subject to browse and review problems."
+      />
 
       <Card className="card-section">
         <CardContent className="card-section-content pt-6">
@@ -30,7 +32,7 @@ export default async function ProblemsChooser() {
             ))}
           </ul>
 
-          <div className="mt-4 pt-4 border-t">
+          <div className="mt-6 border-t pt-4">
             <p className="text-body-sm text-muted-foreground">
               Tip: add a subject first on the{' '}
               <Link
