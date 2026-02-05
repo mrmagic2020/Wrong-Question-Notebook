@@ -93,7 +93,7 @@ export default function SubjectsPageClient({
                     ref={searchInputRef}
                     value={query}
                     onChange={e => setQuery(e.target.value)}
-                    placeholder="Search subjects…"
+                    placeholder="Search subjects..."
                     className="pl-9"
                     aria-label="Search subjects"
                   />
@@ -140,33 +140,35 @@ export default function SubjectsPageClient({
                 </Button>
               </div>
             ) : (
-              <div className="table-container">
-                <table className="w-full text-sm">
-                  <thead className="table-header">
-                    <tr>
-                      <th className="table-header-cell">Name</th>
-                      <th className="table-header-cell w-48">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredSubjects.map(s => (
-                      <SubjectRow
-                        key={s.id}
-                        subject={s}
-                        onSubjectDeleted={handleSubjectDeleted}
-                        onSubjectUpdated={handleSubjectUpdated}
-                        showConfirmation={showConfirmation}
-                      />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+              <>
+                <div className="table-container">
+                  <table className="w-full text-sm">
+                    <thead className="table-header">
+                      <tr>
+                        <th className="table-header-cell">Name</th>
+                        <th className="table-header-cell w-48">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredSubjects.map(s => (
+                        <SubjectRow
+                          key={s.id}
+                          subject={s}
+                          onSubjectDeleted={handleSubjectDeleted}
+                          onSubjectUpdated={handleSubjectUpdated}
+                          showConfirmation={showConfirmation}
+                        />
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-            <p className="mt-4 text-xs text-muted-foreground">
-              Tip: press <span className="font-medium">/</span> to jump to
-              search.
-            </p>
+                <p className="mt-4 text-xs text-muted-foreground">
+                  Tip: press <span className="font-medium">/</span> to jump to
+                  search.
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
