@@ -3,6 +3,7 @@ import { AuthButton } from '@/components/auth-button';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { NotebookPen } from 'lucide-react';
 import { hasEnvVars } from '@/lib/server-utils';
+import { AppNavLinks } from '@/components/app-nav-links';
 
 interface NavigationProps {
   showAppLinks?: boolean;
@@ -16,48 +17,26 @@ export function Navigation({
   sticky = false,
 }: NavigationProps) {
   const stickyClass = sticky ? 'sticky top-0 z-50' : '';
+
   return (
     <nav
-      className={`w-full flex justify-center border-b border-b-foreground/10 h-16 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm ${stickyClass} ${className}`}
+      className={`w-full border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${stickyClass} ${className}`}
     >
-      <div className="w-full max-w-7xl flex justify-between items-center p-3 px-6 text-sm">
-        <div className="flex items-center gap-6">
-          <div className="flex gap-2 items-center font-bold text-xl">
-            <NotebookPen className="h-6 w-6 text-blue-600" />
-            <Link href="/" className="text-gray-900 dark:text-white">
-              Wrong Question Notebook
-            </Link>
-          </div>
-          {showAppLinks && (
-            <>
-              <Link
-                href="/subjects"
-                className="text-sm text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white"
-              >
-                Subjects
-              </Link>
-              <Link
-                href="/tags"
-                className="text-sm text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white"
-              >
-                Tags
-              </Link>
-              <Link
-                href="/problems"
-                className="text-sm text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white"
-              >
-                Problems
-              </Link>
-              <Link
-                href="/problem-sets"
-                className="text-sm text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white"
-              >
-                Problem Sets
-              </Link>
-            </>
-          )}
+      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
+        <div className="flex min-w-0 items-center gap-4">
+          <Link
+            href="/"
+            className="flex items-center gap-2 font-semibold tracking-tight text-foreground"
+          >
+            <NotebookPen className="h-5 w-5 text-blue-600" />
+            <span className="hidden sm:inline">Wrong Question Notebook</span>
+            <span className="sm:hidden">WQN</span>
+          </Link>
+
+          {showAppLinks ? <AppNavLinks /> : null}
         </div>
-        <div className="flex items-center gap-4">
+
+        <div className="flex items-center gap-3">
           {hasEnvVars && <AuthButton />}
           <ThemeSwitcher />
         </div>

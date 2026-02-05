@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -61,15 +62,17 @@ export default function ProblemSetsPageClient({
     problemSet: null,
   });
 
-  // Filter problem sets based on search text
-  const filteredProblemSets = problemSets.filter(
-    problemSet =>
-      problemSet.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      problemSet.description
-        ?.toLowerCase()
-        .includes(searchText.toLowerCase()) ||
-      problemSet.subject_name.toLowerCase().includes(searchText.toLowerCase())
-  );
+  const filteredProblemSets = useMemo(() => {
+    const q = searchText.trim().toLowerCase();
+    if (!q) return problemSets;
+
+    return problemSets.filter(
+      problemSet =>
+        problemSet.name.toLowerCase().includes(q) ||
+        problemSet.description?.toLowerCase().includes(q) ||
+        problemSet.subject_name.toLowerCase().includes(q)
+    );
+  }, [problemSets, searchText]);
 
   const handleDeleteClick = (problemSetId: string, problemSetName: string) => {
     setDeleteDialog({
@@ -183,32 +186,28 @@ export default function ProblemSetsPageClient({
   }
 
   return (
-    <div>
-      <div className="section-container">
-        <div className="page-header">
-          <h1 className="page-title">Problem Sets</h1>
-          <p className="page-description">
-            Organize and review specific groups of problems
-          </p>
-        </div>
-      </div>
-
-      {/* Search and Create New Set Button */}
-      <div className="mb-6 flex items-center justify-between">
-        <div className="relative w-80">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search problem sets..."
-            value={searchText}
-            onChange={e => setSearchText(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Button onClick={() => router.push('/subjects')}>
-          <Plus className="h-4 w-4 mr-2" />
-          Create New Set
-        </Button>
-      </div>
+    <div className="section-container">
+      <PageHeader
+        title="Problem Sets"
+        description="Organize and review specific groups of problems."
+        actions={
+          <>
+            <div className="relative w-full sm:w-80">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search problem sets..."
+                value={searchText}
+                onChange={e => setSearchText(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Button onClick={() => router.push('/subjects')}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create New Set
+            </Button>
+          </>
+        }
+      />
 
       {/* Problem Sets Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
