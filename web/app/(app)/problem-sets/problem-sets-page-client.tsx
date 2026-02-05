@@ -188,7 +188,7 @@ export default function ProblemSetsPageClient({
   return (
     <div className="section-container">
       <PageHeader
-        title="Problem sets"
+        title="Problem Sets"
         description="Organize and review specific groups of problems."
         actions={
           <>
@@ -203,7 +203,7 @@ export default function ProblemSetsPageClient({
             </div>
             <Button onClick={() => router.push('/subjects')}>
               <Plus className="mr-2 h-4 w-4" />
-              Create new set
+              Create New Set
             </Button>
           </>
         }

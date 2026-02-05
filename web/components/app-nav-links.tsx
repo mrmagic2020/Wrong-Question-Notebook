@@ -17,12 +17,17 @@ const APP_LINKS = [
   { href: '/subjects', label: 'Subjects' },
   { href: '/tags', label: 'Tags' },
   { href: '/problems', label: 'Problems' },
-  { href: '/problem-sets', label: 'Problem sets' },
+  { href: '/problem-sets', label: 'Problem Sets' },
 ] as const;
+
+function isActivePath(pathname: string | null, href: string) {
+  if (!pathname) return false;
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 function NavLink({ href, label }: { href: string; label: string }) {
   const pathname = usePathname();
-  const active = pathname === href || pathname?.startsWith(`${href}/`);
+  const active = isActivePath(pathname, href);
 
   return (
     <Link
@@ -31,6 +36,21 @@ function NavLink({ href, label }: { href: string; label: string }) {
         'text-sm text-muted-foreground hover:text-foreground transition-colors',
         active && 'text-foreground font-medium'
       )}
+      aria-current={active ? 'page' : undefined}
+    >
+      {label}
+    </Link>
+  );
+}
+
+function MobileNavLink({ href, label }: { href: string; label: string }) {
+  const pathname = usePathname();
+  const active = isActivePath(pathname, href);
+
+  return (
+    <Link
+      href={href}
+      className={cn('w-full', active && 'font-medium text-foreground')}
       aria-current={active ? 'page' : undefined}
     >
       {label}
@@ -57,7 +77,7 @@ export function AppNavLinks() {
           <DropdownMenuContent align="start" className="w-56">
             {APP_LINKS.map(l => (
               <DropdownMenuItem key={l.href} asChild>
-                <Link href={l.href}>{l.label}</Link>
+                <MobileNavLink href={l.href} label={l.label} />
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
