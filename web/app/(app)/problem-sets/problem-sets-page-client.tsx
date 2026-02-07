@@ -214,7 +214,7 @@ export default function ProblemSetsPageClient({
         {filteredProblemSets.map(problemSet => (
           <Card
             key={problemSet.id}
-            className="hover:shadow-md transition-shadow cursor-pointer"
+            className="flex h-full flex-col hover:shadow-md transition-shadow cursor-pointer"
             onClick={() => router.push(`/problem-sets/${problemSet.id}`)}
           >
             <CardHeader className="card-section-header">
@@ -238,14 +238,14 @@ export default function ProblemSetsPageClient({
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent className="flex flex-1 flex-col pt-0">
               {problemSet.description && (
                 <div className="card-section-description mb-4 line-clamp-2">
                   <RichTextDisplay content={problemSet.description} />
                 </div>
               )}
 
-              <div className="flex items-center justify-between">
+              <div className="mt-auto flex items-center justify-between">
                 <div className="card-section-description">
                   {problemSet.problem_count} problem
                   {problemSet.problem_count !== 1 ? 's' : ''}
