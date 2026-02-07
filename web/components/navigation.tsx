@@ -22,17 +22,17 @@ export function Navigation({
     <nav
       className={`w-full border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${stickyClass} ${className}`}
     >
-      <div className="mx-auto flex h-16 w-full items-center justify-between gap-4 px-4 sm:px-6 lg:px-10">
+      <div className="mx-auto flex h-16 w-full max-w-screen-xl items-center justify-between gap-4 px-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-4">
           <Link
             href="/"
-            className="flex items-center gap-2 text-base font-semibold tracking-tight text-foreground"
+            className="flex items-center gap-2 text-lg font-bold tracking-tight text-foreground"
           >
-            <NotebookPen className="h-5 w-5 text-blue-600" />
-            <span className="hidden sm:inline text-base">
+            <NotebookPen className="h-6 w-6 text-blue-600" />
+            <span className="hidden sm:inline text-lg">
               Wrong Question Notebook
             </span>
-            <span className="sm:hidden text-base">WQN</span>
+            <span className="sm:hidden text-lg">WQN</span>
           </Link>
 
           {showAppLinks ? <AppNavLinks /> : null}
