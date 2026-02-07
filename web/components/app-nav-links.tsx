@@ -70,7 +70,12 @@ export function AppNavLinks() {
       <div className="md:hidden">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon" aria-label="Open navigation">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-11 w-11"
+              aria-label="Open navigation"
+            >
               <Menu className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
