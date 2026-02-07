@@ -33,7 +33,7 @@ function NavLink({ href, label }: { href: string; label: string }) {
     <Link
       href={href}
       className={cn(
-        'text-sm text-muted-foreground hover:text-foreground transition-colors',
+        'text-base text-muted-foreground hover:text-foreground transition-colors',
         active && 'text-foreground font-medium'
       )}
       aria-current={active ? 'page' : undefined}
@@ -61,7 +61,7 @@ function MobileNavLink({ href, label }: { href: string; label: string }) {
 export function AppNavLinks() {
   return (
     <>
-      <div className="hidden items-center gap-5 md:flex">
+      <div className="hidden items-center gap-6 md:flex">
         {APP_LINKS.map(l => (
           <NavLink key={l.href} href={l.href} label={l.label} />
         ))}
@@ -70,7 +70,12 @@ export function AppNavLinks() {
       <div className="md:hidden">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" aria-label="Open navigation">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-11 w-11"
+              aria-label="Open navigation"
+            >
               <Menu className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
