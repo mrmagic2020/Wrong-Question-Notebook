@@ -146,4 +146,7 @@ vite.config.ts.timestamp-*
 .cursor
 
 # Claude
-.claude
+.claude/settings.local.json
+
+# Mac System files
+.DS_Store
