@@ -267,7 +267,7 @@ export default async function Home() {
                 Join hundreds mastering their studies
               </p>
             </div>
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-3 gap-8 items-stretch">
               <Card className="border-0 shadow-xl p-8">
                 <CardContent>
                   <p className="italic text-gray-700 dark:text-gray-300 mb-6">
