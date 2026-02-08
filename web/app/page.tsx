@@ -108,7 +108,7 @@ export default async function Home() {
         </section>
 
         {/* Backstory Section */}
-        <section className="w-full py-24 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
+        <section className="w-full py-24 bg-white/70 dark:bg-gray-800/60 backdrop-blur-md border-b border-white/50 dark:border-gray-700/50">
           <div className="max-w-4xl mx-auto px-6">
             <div className="text-center space-y-6 animate-fade-in-up">
               <div className="inline-flex items-center gap-2 bg-blue-100 dark:bg-blue-900/50 px-4 py-2 rounded-full">
@@ -211,7 +211,7 @@ export default async function Home() {
         </section>
 
         {/* How it Works */}
-        <section className="w-full py-24 bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-gray-900/50 dark:to-gray-800/50">
+        <section className="w-full py-24 bg-white/70 dark:bg-gray-800/60 backdrop-blur-md border-b border-white/50 dark:border-gray-700/50">
           <div className="max-w-5xl mx-auto px-6">
             <div className="text-center mb-20 animate-fade-in-up">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -288,12 +288,12 @@ export default async function Home() {
                 </CardContent>
               </Card>
               <Card className="border-0 shadow-xl p-8">
-                <CardContent>
-                  <p className="italic text-gray-700 dark:text-gray-300 mb-6">
+                <CardContent className="h-full flex flex-col justify-between">
+                  <p className="italic text-gray-700 dark:text-gray-300 flex-1">
                     "English Extension essays? Organized. Assessments? Tracked.
                     Game changer."
                   </p>
-                  <div className="flex items-end gap-3 mt-auto">
+                  <div className="flex items-end gap-3 mt-4">
                     <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
                       <span className="text-white font-bold">S</span>
                     </div>
@@ -330,7 +330,7 @@ export default async function Home() {
         </section>
 
         {/* Final CTA */}
-        <section className="w-full py-24 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+        <section className="w-full py-24 bg-gradient-to-r from-blue-600/95 to-indigo-600/95 text-white backdrop-blur-md border-b border-blue-500/30">
           <div className="max-w-4xl mx-auto text-center px-6">
             <div className="space-y-8 animate-fade-in-up">
               <div>
