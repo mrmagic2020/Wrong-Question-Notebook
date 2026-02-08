@@ -39,7 +39,7 @@ export default async function Home() {
   })();
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <main className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="flex-1 w-full flex flex-col">
         {/* Navigation */}
         <Navigation />
