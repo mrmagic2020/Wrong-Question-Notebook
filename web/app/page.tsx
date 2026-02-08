@@ -50,7 +50,7 @@ export default async function Home() {
           <div className="page-container text-center space-y-8 relative z-10 animate-fade-in-up">
             <div className="space-y-4">
               <h1 className="heading-xl text-gradient bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Master Wrong Questions Ace Exams
+                Master Wrong Questions
               </h1>
               <p className="text-body-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                 The notebook that turns mistakes into mastery. Organize problems
@@ -274,13 +274,15 @@ export default async function Home() {
                     "Finally a place to track every wrong question from maths
                     comps. My HSC prep is 10x better."
                   </p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                  <div className="flex items-end gap-3 mt-auto">
+                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
                       <span className="text-white font-bold">A</span>
                     </div>
-                    <div>
-                      <p className="font-semibold">Alex C.</p>
-                      <p className="text-sm text-gray-500">Year 12, Maths</p>
+                    <div className="min-w-0">
+                      <p className="font-semibold truncate">Alex C.</p>
+                      <p className="text-sm text-gray-500 truncate">
+                        Year 12, Maths
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -291,13 +293,13 @@ export default async function Home() {
                     "English Extension essays? Organized. Assessments? Tracked.
                     Game changer."
                   </p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                  <div className="flex items-end gap-3 mt-auto">
+                    <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
                       <span className="text-white font-bold">S</span>
                     </div>
-                    <div>
-                      <p className="font-semibold">Sarah L.</p>
-                      <p className="text-sm text-gray-500">
+                    <div className="min-w-0">
+                      <p className="font-semibold truncate">Sarah L.</p>
+                      <p className="text-sm text-gray-500 truncate">
                         Year 11, English
                       </p>
                     </div>
@@ -310,13 +312,15 @@ export default async function Home() {
                     "Science problems from nowhere. Tags + search = never forget
                     again."
                   </p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center">
+                  <div className="flex items-end gap-3 mt-auto">
+                    <div className="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center flex-shrink-0">
                       <span className="text-white font-bold">J</span>
                     </div>
-                    <div>
-                      <p className="font-semibold">Jamie K.</p>
-                      <p className="text-sm text-gray-500">Year 12, Science</p>
+                    <div className="min-w-0">
+                      <p className="font-semibold truncate">Jamie K.</p>
+                      <p className="text-sm text-gray-500 truncate">
+                        Year 12, Science
+                      </p>
                     </div>
                   </div>
                 </CardContent>
