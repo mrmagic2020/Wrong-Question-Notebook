@@ -144,3 +144,6 @@ vite.config.ts.timestamp-*
 
 # Cursor
 .cursor
+
+# Claude
+.claude

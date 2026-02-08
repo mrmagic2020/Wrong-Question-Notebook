@@ -286,12 +286,223 @@ html body[data-scroll-locked] {
     @apply bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent;
   }
 
+  .text-gradient-warm {
+    @apply bg-gradient-to-r from-amber-600 via-orange-500 to-rose-500 bg-clip-text text-transparent;
+  }
+
   .glass-effect {
     @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm;
   }
 
   .shadow-soft {
     @apply shadow-lg shadow-black/5 dark:shadow-black/20;
+  }
+
+  /* Landing / Marketing Page Classes */
+  .landing-page-bg {
+    @apply min-h-screen bg-gradient-to-b from-amber-50/80 via-white to-rose-50/50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900;
+  }
+
+  .landing-section {
+    @apply w-full py-20;
+  }
+
+  .landing-section-inner {
+    @apply max-w-6xl mx-auto px-6;
+  }
+
+  .landing-section-header {
+    @apply text-center mb-14;
+  }
+
+  .landing-section-title {
+    @apply text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3;
+  }
+
+  .landing-section-subtitle {
+    @apply text-lg text-gray-600 dark:text-gray-400 max-w-xl mx-auto;
+  }
+
+  .landing-hero-title {
+    @apply text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 dark:text-white leading-[1.1];
+  }
+
+  .landing-card {
+    @apply rounded-2xl p-7 flex flex-col justify-between gap-4 bg-gradient-to-br border;
+  }
+
+  .landing-card-title {
+    @apply text-xl font-semibold text-gray-900 dark:text-white;
+  }
+
+  .landing-card-text {
+    @apply text-gray-600 dark:text-gray-400 leading-relaxed;
+  }
+
+  .landing-icon-box {
+    @apply w-12 h-12 rounded-xl flex items-center justify-center;
+  }
+
+  .landing-step-label {
+    @apply text-xs font-bold uppercase tracking-wider;
+  }
+
+  .btn-cta {
+    @apply text-base px-7 py-5 rounded-xl;
+  }
+
+  .btn-cta-primary {
+    @apply btn-cta shadow-md;
+  }
+
+  /* Hero Animation Classes */
+  .hero-float {
+    animation: heroFloat 6s ease-in-out infinite;
+  }
+
+  .hero-float-delayed {
+    animation: heroFloat 5s ease-in-out 1s infinite;
+  }
+
+  .hero-float-delayed-2 {
+    animation: heroFloat 7s ease-in-out 2s infinite;
+  }
+
+  .hero-slide-in-left {
+    animation: heroSlideInLeft 0.8s ease-out 0.3s both;
+  }
+
+  .hero-slide-in-right {
+    animation: heroSlideInRight 0.6s ease-out 0.6s both;
+  }
+
+  .hero-slide-in-right-delayed {
+    animation: heroSlideInRight 0.6s ease-out 0.9s both;
+  }
+
+  .hero-slide-in-right-delayed-2 {
+    animation: heroSlideInRight 0.6s ease-out 1.2s both;
+  }
+
+  .hero-fade-in-delayed {
+    animation: heroFadeIn 0.8s ease-out 1.5s both;
+  }
+
+  .hero-progress-fill {
+    animation: heroProgressFill 1.2s ease-out 1.8s both;
+  }
+
+  /* Status transition: wrong → mastered */
+  .hero-status-wrong {
+    animation: heroStatusOut 0.4s ease-in 3.5s both;
+  }
+
+  .hero-status-mastered {
+    opacity: 0;
+    animation: heroStatusIn 0.4s ease-out 3.9s both;
+  }
+
+  .hero-badge-wrong {
+    animation: heroStatusOut 0.4s ease-in 3.5s both;
+  }
+
+  .hero-badge-mastered {
+    opacity: 0;
+    animation: heroStatusIn 0.4s ease-out 3.9s both;
+  }
+
+  /* Ruled-line background for CTA section */
+  .ruled-lines {
+    background-image: repeating-linear-gradient(
+      transparent,
+      transparent 31px,
+      #f5e6d3 31px,
+      #f5e6d3 32px
+    );
+  }
+
+  .dark .ruled-lines {
+    background-image: repeating-linear-gradient(
+      transparent,
+      transparent 31px,
+      #2a1f0e 31px,
+      #2a1f0e 32px
+    );
+  }
+}
+
+/* Hero Animation Keyframes */
+@keyframes heroFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes heroSlideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes heroSlideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes heroFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes heroProgressFill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 67%;
+  }
+}
+
+@keyframes heroStatusOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+@keyframes heroStatusIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
