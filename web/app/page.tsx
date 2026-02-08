@@ -293,7 +293,7 @@ export default async function Home() {
                     "English Extension essays? Organized. Assessments? Tracked.
                     Game changer."
                   </p>
-                  <div className="flex items-end gap-3 mt-4">
+                  <div className="flex items-end gap-3">
                     <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
                       <span className="text-white font-bold">S</span>
                     </div>
@@ -363,7 +363,7 @@ export default async function Home() {
                   asChild
                   variant="outline"
                   size="lg"
-                  className="text-lg px-12 py-8 border-white hover:bg-white/20 font-bold"
+                  className="text-lg px-12 py-8 bg-white/10 hover:bg-white/20 border-2 border-white/50 backdrop-blur-sm font-bold shadow-lg"
                 >
                   <Link href="/auth/login">Have Account?</Link>
                 </Button>
