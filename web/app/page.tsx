@@ -1,9 +1,22 @@
 import type { Metadata } from 'next';
 import { Navigation } from '@/components/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardTitle,
+} from '@/components/ui/card';
 import Link from 'next/link';
-import { BookOpen, NotebookPen, Target, Zap, GraduationCap, Lightbulb, CheckCircle, Search, TrendingUp, Users } from 'lucide-react';
+import {
+  BookOpen,
+  NotebookPen,
+  Target,
+  GraduationCap,
+  Lightbulb,
+  CheckCircle,
+  Search,
+} from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { hasEnvVars } from '@/lib/server-utils';
 
@@ -36,18 +49,23 @@ export default async function Home() {
           <div className="absolute inset-0 bg-[url('/api/placeholder/1920/1080/gray/gray?text=Subtle+Pattern')] opacity-10" />
           <div className="page-container text-center space-y-8 relative z-10 animate-fade-in-up">
             <div className="space-y-4">
-              <h1 className="heading-xl text-gradient bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent animate-pulse">
-                Master Wrong Questions → Ace Exams
+              <h1 className="heading-xl text-gradient bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                Master Wrong Questions Ace Exams
               </h1>
               <p className="text-body-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                The notebook that turns mistakes into mastery. Organize problems by subject, track progress, and review smartly.
+                The notebook that turns mistakes into mastery. Organize problems
+                by subject, track progress, and review smartly.
               </p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               {isSignedIn ? (
                 <>
-                  <Button asChild size="lg" className="text-lg px-8 py-6 shadow-2xl hover:shadow-3xl transition-all duration-300">
+                  <Button
+                    asChild
+                    size="lg"
+                    className="text-lg px-8 py-6 shadow-2xl hover:shadow-3xl transition-all duration-300"
+                  >
                     <Link href="/subjects">Open Notebook</Link>
                   </Button>
                   <Button
@@ -61,7 +79,11 @@ export default async function Home() {
                 </>
               ) : (
                 <>
-                  <Button asChild size="lg" className="text-lg px-8 py-6 shadow-2xl hover:shadow-3xl transition-all duration-300">
+                  <Button
+                    asChild
+                    size="lg"
+                    className="text-lg px-8 py-6 shadow-2xl hover:shadow-3xl transition-all duration-300"
+                  >
                     <Link href="/auth/sign-up">Start Free</Link>
                   </Button>
                   <Button
@@ -91,17 +113,24 @@ export default async function Home() {
             <div className="text-center space-y-6 animate-fade-in-up">
               <div className="inline-flex items-center gap-2 bg-blue-100 dark:bg-blue-900/50 px-4 py-2 rounded-full">
                 <Lightbulb className="h-5 w-5 text-yellow-500" />
-                <span className="font-medium text-sm uppercase tracking-wide">My Story</span>
+                <span className="font-medium text-sm uppercase tracking-wide">
+                  My Story
+                </span>
               </div>
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
                 Why I Built WQN
               </h2>
               <div className="prose prose-lg max-w-3xl mx-auto text-gray-700 dark:text-gray-300 leading-relaxed">
                 <p>
-                  As a Year 11 student drowning in maths comps, HSC prep, and endless wrong answers, I scribbled mistakes in notebooks. It helped, but searching/revisiting was chaos — lost pages, forgotten insights.
+                  As a Year 11 student drowning in maths comps, HSC prep, and
+                  endless wrong answers, I scribbled mistakes in notebooks. It
+                  helped, but searching/revisiting was chaos — lost pages,
+                  forgotten insights.
                 </p>
                 <p>
-                  WQN digitizes that: categorize by subject (Maths, English Extension, etc.), tag assessments/exams, track progress. No more lost knowledge. Mistakes become your superpower.
+                  WQN digitizes that: categorize by subject (Maths, English
+                  Extension, etc.), tag assessments/exams, track progress. No
+                  more lost knowledge. Mistakes become your superpower.
                 </p>
               </div>
             </div>
@@ -126,9 +155,12 @@ export default async function Home() {
                   <div className="flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900/50 rounded-2xl mb-6 group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
                     <BookOpen className="h-8 w-8 text-blue-600 group-hover:rotate-12 transition-transform" />
                   </div>
-                  <CardTitle className="text-2xl font-bold mb-3 text-center">Subjects</CardTitle>
+                  <CardTitle className="text-2xl font-bold mb-3 text-center">
+                    Subjects
+                  </CardTitle>
                   <CardDescription className="text-center text-gray-600 dark:text-gray-300 leading-relaxed">
-                    Organize problems by Maths, English, Science — never lose track again
+                    Organize problems by Maths, English, Science — never lose
+                    track again
                   </CardDescription>
                 </CardContent>
               </Card>
@@ -138,7 +170,9 @@ export default async function Home() {
                   <div className="flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-2xl mb-6 group-hover:bg-green-200 dark:group-hover:bg-green-800 transition-colors">
                     <Target className="h-8 w-8 text-green-600 group-hover:rotate-12 transition-transform" />
                   </div>
-                  <CardTitle className="text-2xl font-bold mb-3 text-center">Progress</CardTitle>
+                  <CardTitle className="text-2xl font-bold mb-3 text-center">
+                    Progress
+                  </CardTitle>
                   <CardDescription className="text-center text-gray-600 dark:text-gray-300 leading-relaxed">
                     Track solved/pending, spot weak areas, celebrate mastery
                   </CardDescription>
@@ -150,7 +184,9 @@ export default async function Home() {
                   <div className="flex items-center justify-center w-16 h-16 bg-yellow-100 dark:bg-yellow-900/50 rounded-2xl mb-6 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-800 transition-colors">
                     <CheckCircle className="h-8 w-8 text-yellow-600 group-hover:rotate-12 transition-transform" />
                   </div>
-                  <CardTitle className="text-2xl font-bold mb-3 text-center">Problem Sets</CardTitle>
+                  <CardTitle className="text-2xl font-bold mb-3 text-center">
+                    Problem Sets
+                  </CardTitle>
                   <CardDescription className="text-center text-gray-600 dark:text-gray-300 leading-relaxed">
                     Assessments, exams, homework — group and review efficiently
                   </CardDescription>
@@ -162,7 +198,9 @@ export default async function Home() {
                   <div className="flex items-center justify-center w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 rounded-2xl mb-6 group-hover:bg-indigo-200 dark:group-hover:bg-indigo-800 transition-colors">
                     <Search className="h-8 w-8 text-indigo-600 group-hover:rotate-12 transition-transform" />
                   </div>
-                  <CardTitle className="text-2xl font-bold mb-3 text-center">Search</CardTitle>
+                  <CardTitle className="text-2xl font-bold mb-3 text-center">
+                    Search
+                  </CardTitle>
                   <CardDescription className="text-center text-gray-600 dark:text-gray-300 leading-relaxed">
                     Tags, subjects, dates — find any problem instantly
                   </CardDescription>
@@ -233,7 +271,8 @@ export default async function Home() {
               <Card className="border-0 shadow-xl p-8">
                 <CardContent>
                   <p className="italic text-gray-700 dark:text-gray-300 mb-6">
-                    "Finally a place to track every wrong question from maths comps. My HSC prep is 10x better."
+                    "Finally a place to track every wrong question from maths
+                    comps. My HSC prep is 10x better."
                   </p>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
@@ -249,25 +288,27 @@ export default async function Home() {
               <Card className="border-0 shadow-xl p-8">
                 <CardContent>
                   <p className="italic text-gray-700 dark:text-gray-300 mb-6">
-                    "English Extension essays? Organized. Assessments? Tracked. Game changer."
+                    "English Extension essays? Organized. Assessments? Tracked.
+                    Game changer."
                   </p>
-                  <CardContent>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold">S</span>
-                      </div>
-                      <div>
-                        <p className="font-semibold">Sarah L.</p>
-                        <p className="text-sm text-gray-500">Year 11, English</p>
-                      </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold">S</span>
                     </div>
-                  </CardContent>
+                    <div>
+                      <p className="font-semibold">Sarah L.</p>
+                      <p className="text-sm text-gray-500">
+                        Year 11, English
+                      </p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
               <Card className="border-0 shadow-xl p-8">
                 <CardContent>
                   <p className="italic text-gray-700 dark:text-gray-300 mb-6">
-                    "Science problems from nowhere. Tags + search = never forget again."
+                    "Science problems from nowhere. Tags + search = never forget
+                    again."
                   </p>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center">
@@ -298,11 +339,19 @@ export default async function Home() {
               </div>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 {isSignedIn ? (
-                  <Button asChild size="lg" className="text-lg px-12 py-8 bg-white text-blue-600 hover:bg-gray-100 font-bold shadow-2xl">
+                  <Button
+                    asChild
+                    size="lg"
+                    className="text-lg px-12 py-8 bg-white text-blue-600 hover:bg-gray-100 font-bold shadow-2xl"
+                  >
                     <Link href="/subjects">Jump In</Link>
                   </Button>
                 ) : (
-                  <Button asChild size="lg" className="text-lg px-12 py-8 shadow-2xl hover:shadow-3xl font-bold">
+                  <Button
+                    asChild
+                    size="lg"
+                    className="text-lg px-12 py-8 shadow-2xl hover:shadow-3xl font-bold"
+                  >
                     <Link href="/auth/sign-up">Start Free</Link>
                   </Button>
                 )}
@@ -325,11 +374,23 @@ export default async function Home() {
             <div className="flex flex-col md:flex-row justify-between items-center gap-8">
               <div className="flex items-center gap-3">
                 <NotebookPen className="h-6 w-6 text-blue-600" />
-                <span className="text-xl font-bold">Wrong Question Notebook</span>
+                <span className="text-xl font-bold">
+                  Wrong Question Notebook
+                </span>
               </div>
               <div className="flex flex-col md:flex-row items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
-                <Link href="/privacy" className="hover:text-gray-900 dark:hover:text-white transition-colors">Privacy</Link>
-                <Link href="/terms" className="hover:text-gray-900 dark:hover:text-white transition-colors">Terms</Link>
+                <Link
+                  href="/privacy"
+                  className="hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  Privacy
+                </Link>
+                <Link
+                  href="/terms"
+                  className="hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  Terms
+                </Link>
                 <span>•</span>
                 <span>© 2026 MagicWorks. Next.js + Supabase</span>
               </div>
