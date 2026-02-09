@@ -89,10 +89,8 @@ export function ShortAnswerConfig({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <label className="text-sm font-medium text-foreground">
-          Answer mode
-        </label>
+      <div className="form-row">
+        <label className="form-label">Answer mode</label>
         <div className="inline-flex rounded-lg border border-border p-0.5">
           <button
             type="button"
@@ -122,137 +120,143 @@ export function ShortAnswerConfig({
       </div>
 
       {mode === 'text' && value.mode === 'text' && (
-        <div className="space-y-2">
-          <label className="text-sm text-muted-foreground">
-            Acceptable answers (all will be matched case-insensitively)
-          </label>
-          {/* Tags display */}
-          {value.acceptable_answers.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {value.acceptable_answers.map((answer, i) => (
-                <span
-                  key={i}
-                  className="inline-flex items-center gap-1 rounded-full border border-amber-200/50 bg-amber-100/80 px-3 py-1 text-sm text-amber-800 dark:border-amber-800/40 dark:bg-amber-900/30 dark:text-amber-300"
+        <div className="form-row-start">
+          <label className="form-label pt-2">Acceptable answers</label>
+          <div className="flex-1 space-y-2">
+            <p className="text-sm text-muted-foreground">
+              All answers will be matched case-insensitively
+            </p>
+            {/* Tags display */}
+            {value.acceptable_answers.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {value.acceptable_answers.map((answer, i) => (
+                  <span
+                    key={i}
+                    className="inline-flex items-center gap-1 rounded-full border border-amber-200/50 bg-amber-100/80 px-3 py-1 text-sm text-amber-800 dark:border-amber-800/40 dark:bg-amber-900/30 dark:text-amber-300"
+                  >
+                    {answer}
+                    {!disabled && (
+                      <button
+                        type="button"
+                        onClick={() => removeAnswer(i)}
+                        className="ml-0.5 text-amber-600 hover:text-red-500 dark:text-amber-400 dark:hover:text-red-400"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    )}
+                  </span>
+                ))}
+              </div>
+            )}
+            {/* Add new answer */}
+            {value.acceptable_answers.length < MAX_ACCEPTABLE_ANSWERS && (
+              <div className="flex gap-2">
+                <Input
+                  value={newAnswer}
+                  onChange={e => setNewAnswer(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addAnswer();
+                    }
+                  }}
+                  placeholder="Type an acceptable answer and press Enter"
+                  maxLength={MAX_ANSWER_LENGTH}
+                  disabled={disabled}
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addAnswer}
+                  disabled={disabled || !newAnswer.trim()}
                 >
-                  {answer}
-                  {!disabled && (
-                    <button
-                      type="button"
-                      onClick={() => removeAnswer(i)}
-                      className="ml-0.5 text-amber-600 hover:text-red-500 dark:text-amber-400 dark:hover:text-red-400"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  )}
-                </span>
-              ))}
-            </div>
-          )}
-          {/* Add new answer */}
-          {value.acceptable_answers.length < MAX_ACCEPTABLE_ANSWERS && (
-            <div className="flex gap-2">
-              <Input
-                value={newAnswer}
-                onChange={e => setNewAnswer(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addAnswer();
-                  }
-                }}
-                placeholder="Type an acceptable answer and press Enter"
-                maxLength={MAX_ANSWER_LENGTH}
-                disabled={disabled}
-                className="flex-1"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={addAnswer}
-                disabled={disabled || !newAnswer.trim()}
-              >
-                <Plus className="mr-1 h-4 w-4" />
-                Add
-              </Button>
-            </div>
-          )}
+                  <Plus className="mr-1 h-4 w-4" />
+                  Add
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {mode === 'numeric' && value.mode === 'numeric' && (
-        <div className="space-y-2">
-          <label className="text-sm text-muted-foreground">
-            Numeric answer with tolerance
-          </label>
-          <div className="flex flex-wrap items-end gap-3">
-            <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">
-                Correct value
-              </label>
-              <Input
-                type="number"
-                step="any"
-                value={value.numeric_config.correct_value}
-                onChange={e =>
-                  onChange({
-                    ...value,
-                    numeric_config: {
-                      ...value.numeric_config,
-                      correct_value:
-                        e.target.value === '' ? '' : Number(e.target.value),
-                    },
-                  })
-                }
-                placeholder="e.g. 3.14"
-                disabled={disabled}
-                className="w-32"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">
-                Tolerance (+/-)
-              </label>
-              <Input
-                type="number"
-                step="any"
-                min={NUMERIC.MIN_TOLERANCE}
-                value={value.numeric_config.tolerance}
-                onChange={e =>
-                  onChange({
-                    ...value,
-                    numeric_config: {
-                      ...value.numeric_config,
-                      tolerance:
-                        e.target.value === '' ? '' : Number(e.target.value),
-                    },
-                  })
-                }
-                placeholder="e.g. 0.01"
-                disabled={disabled}
-                className="w-32"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">
-                Unit (optional)
-              </label>
-              <Input
-                value={value.numeric_config.unit || ''}
-                onChange={e =>
-                  onChange({
-                    ...value,
-                    numeric_config: {
-                      ...value.numeric_config,
-                      unit: e.target.value || undefined,
-                    },
-                  })
-                }
-                placeholder="e.g. m, kg"
-                maxLength={NUMERIC.MAX_UNIT_LENGTH}
-                disabled={disabled}
-                className="w-28"
-              />
+        <div className="form-row-start">
+          <label className="form-label pt-2">Numeric answer</label>
+          <div className="flex-1 space-y-2">
+            <p className="text-sm text-muted-foreground">
+              Define correct value with tolerance
+            </p>
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">
+                  Correct value
+                </label>
+                <Input
+                  type="number"
+                  step="any"
+                  value={value.numeric_config.correct_value}
+                  onChange={e =>
+                    onChange({
+                      ...value,
+                      numeric_config: {
+                        ...value.numeric_config,
+                        correct_value:
+                          e.target.value === '' ? '' : Number(e.target.value),
+                      },
+                    })
+                  }
+                  placeholder="e.g. 3.14"
+                  disabled={disabled}
+                  className="w-32"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">
+                  Tolerance (+/-)
+                </label>
+                <Input
+                  type="number"
+                  step="any"
+                  min={NUMERIC.MIN_TOLERANCE}
+                  value={value.numeric_config.tolerance}
+                  onChange={e =>
+                    onChange({
+                      ...value,
+                      numeric_config: {
+                        ...value.numeric_config,
+                        tolerance:
+                          e.target.value === '' ? '' : Number(e.target.value),
+                      },
+                    })
+                  }
+                  placeholder="e.g. 0.01"
+                  disabled={disabled}
+                  className="w-32"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">
+                  Unit (optional)
+                </label>
+                <Input
+                  value={value.numeric_config.unit || ''}
+                  onChange={e =>
+                    onChange({
+                      ...value,
+                      numeric_config: {
+                        ...value.numeric_config,
+                        unit: e.target.value || undefined,
+                      },
+                    })
+                  }
+                  placeholder="e.g. m, kg"
+                  maxLength={NUMERIC.MAX_UNIT_LENGTH}
+                  disabled={disabled}
+                  className="w-28"
+                />
+              </div>
             </div>
           </div>
         </div>

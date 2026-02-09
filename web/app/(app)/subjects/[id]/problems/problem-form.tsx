@@ -244,12 +244,25 @@ export default function ProblemForm({
       return { mode: 'text' as const, acceptable_answers: [] };
     });
   // Track whether user is using enhanced mode
-  const [useEnhancedMcq, setUseEnhancedMcq] = useState(
-    !!(problem?.answer_config?.type === 'mcq')
-  );
+  const [useEnhancedMcq, setUseEnhancedMcq] = useState(() => {
+    // For existing problems with MCQ config, use it
+    if (problem?.answer_config?.type === 'mcq') return true;
+    // For new problems, default to true
+    if (!isEditMode) return true;
+    return false;
+  });
   const [useEnhancedShort, setUseEnhancedShort] = useState(
     !!(problem?.answer_config?.type === 'short')
   );
+
+  // Auto-enable enhanced mode when problem type changes (only for new problems)
+  useEffect(() => {
+    if (!isEditMode) {
+      if (problemType === 'mcq') {
+        setUseEnhancedMcq(true);
+      }
+    }
+  }, [problemType, isEditMode]);
 
   // Assets
   const [problemAssets, setProblemAssets] = useState<
@@ -652,10 +665,10 @@ export default function ProblemForm({
         </div>
       </div>
 
-      {/* type + auto-mark + status */}
-      <div className="flex flex-wrap items-center gap-4">
-        <div className="flex items-center gap-2">
-          <label className="form-label-top">Type</label>
+      {/* Problem Settings */}
+      <div className="form-section">
+        <div className="form-row">
+          <label className="form-label">Type</label>
           <Select
             value={problemType}
             onValueChange={value => setProblemType(value as ProblemType)}
@@ -673,24 +686,8 @@ export default function ProblemForm({
           </Select>
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-muted-foreground">
-          <input
-            type="checkbox"
-            checked={autoMarkValue}
-            disabled={isAutoMarkDisabled}
-            onChange={e => setAutoMark(e.target.checked)}
-            className="form-checkbox"
-          />
-          Auto-mark during revision
-          {isAutoMarkDisabled && (
-            <span className="text-body-sm text-muted-foreground">
-              (not available for extended response)
-            </span>
-          )}
-        </label>
-
-        <div className="flex items-center gap-2">
-          <label className="form-label-top">Status</label>
+        <div className="form-row">
+          <label className="form-label">Status</label>
           <Select
             value={status}
             onValueChange={value => setStatus(value as any)}
@@ -711,20 +708,43 @@ export default function ProblemForm({
             </SelectContent>
           </Select>
         </div>
-      </div>
 
-      {/* correct answer (conditional) */}
-      {problemType === 'mcq' && (
-        <div className="space-y-3">
-          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="form-row">
+          <label className="form-label">Options</label>
+          <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
-              checked={useEnhancedMcq}
-              onChange={e => setUseEnhancedMcq(e.target.checked)}
+              checked={autoMarkValue}
+              disabled={isAutoMarkDisabled}
+              onChange={e => setAutoMark(e.target.checked)}
               className="form-checkbox"
             />
-            Use choice picker
+            Auto-mark during revision
+            {isAutoMarkDisabled && (
+              <span className="text-body-sm text-muted-foreground">
+                (not available for extended response)
+              </span>
+            )}
           </label>
+        </div>
+      </div>
+
+      {/* Answer Configuration - MCQ */}
+      {problemType === 'mcq' && (
+        <div className="form-section">
+          <div className="form-row">
+            <label className="form-label">Answer type</label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={useEnhancedMcq}
+                onChange={e => setUseEnhancedMcq(e.target.checked)}
+                className="form-checkbox"
+              />
+              Use choice picker
+            </label>
+          </div>
+
           {useEnhancedMcq ? (
             <MCQChoiceEditor
               choices={mcqChoices}
@@ -747,17 +767,23 @@ export default function ProblemForm({
           )}
         </div>
       )}
+
+      {/* Answer Configuration - Short */}
       {problemType === 'short' && (
-        <div className="space-y-3">
-          <label className="flex items-center gap-2 text-sm text-muted-foreground">
-            <input
-              type="checkbox"
-              checked={useEnhancedShort}
-              onChange={e => setUseEnhancedShort(e.target.checked)}
-              className="form-checkbox"
-            />
-            Advanced answer matching
-          </label>
+        <div className="form-section">
+          <div className="form-row">
+            <label className="form-label">Answer type</label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={useEnhancedShort}
+                onChange={e => setUseEnhancedShort(e.target.checked)}
+                className="form-checkbox"
+              />
+              Advanced answer matching
+            </label>
+          </div>
+
           {useEnhancedShort ? (
             <ShortAnswerConfig
               value={shortAnswerConfig}
@@ -811,9 +837,9 @@ export default function ProblemForm({
         </div>
       </div>
 
-      {/* tag picker */}
-      <div className="form-row-start">
-        <label className="form-label pt-1">Tags</label>
+      {/* Tags */}
+      <div className="form-section">
+        <label className="form-label-top">Tags</label>
         <div className="flex flex-wrap gap-3">
           {tags.length ? (
             tags.map(t => (
