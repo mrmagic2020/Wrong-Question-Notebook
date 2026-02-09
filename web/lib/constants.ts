@@ -275,6 +275,26 @@ export const PROBLEM_SET_CONSTANTS = {
 } as const;
 
 // =====================================================
+// Answer Configuration Constants
+// =====================================================
+export const ANSWER_CONFIG_CONSTANTS = {
+  MCQ: {
+    MIN_CHOICES: 2,
+    MAX_CHOICES: 10,
+    DEFAULT_CHOICES: ['A', 'B', 'C', 'D'],
+    MAX_CHOICE_TEXT_LENGTH: 200,
+  },
+  SHORT_ANSWER: {
+    MAX_ACCEPTABLE_ANSWERS: 20,
+    MAX_ANSWER_LENGTH: 200,
+    NUMERIC: {
+      MIN_TOLERANCE: 0,
+      MAX_UNIT_LENGTH: 50,
+    },
+  },
+} as const;
+
+// =====================================================
 // Gender Options
 // =====================================================
 export const GENDER_OPTIONS = {

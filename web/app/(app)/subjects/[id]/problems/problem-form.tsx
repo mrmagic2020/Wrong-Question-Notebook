@@ -24,9 +24,22 @@ import { Input } from '@/components/ui/input';
 import { PROBLEM_TYPE_VALUES, type ProblemType } from '@/lib/schemas';
 import { getProblemTypeDisplayName } from '@/lib/common-utils';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
-import { VALIDATION_CONSTANTS } from '@/lib/constants';
+import { MCQChoiceEditor } from '@/components/ui/mcq-choice-editor';
+import {
+  ShortAnswerConfig,
+  type ShortAnswerConfigValue,
+} from '@/components/ui/short-answer-config';
+import { VALIDATION_CONSTANTS, ANSWER_CONFIG_CONSTANTS } from '@/lib/constants';
 import { Spinner } from '@/components/ui/spinner';
-import { Tag, ProblemFormProps } from '@/lib/types';
+import {
+  Tag,
+  ProblemFormProps,
+  MCQChoice,
+  AnswerConfig,
+  MCQAnswerConfig,
+  ShortAnswerTextConfig,
+  ShortAnswerNumericConfig,
+} from '@/lib/types';
 import { Editor } from '@tiptap/react';
 
 export default function ProblemForm({
@@ -179,12 +192,63 @@ export default function ProblemForm({
 
   const isAutoMarkDisabled = problemType === 'extended';
 
-  // Correct answer inputs
+  // Correct answer inputs (legacy)
   const [mcqChoice, setMcqChoice] = useState(
     typeof problem?.correct_answer === 'string' ? problem.correct_answer : ''
   );
   const [shortText, setShortText] = useState(
     typeof problem?.correct_answer === 'string' ? problem.correct_answer : ''
+  );
+
+  // Enhanced answer config state
+  const [mcqChoices, setMcqChoices] = useState<MCQChoice[]>(() => {
+    const config = problem?.answer_config;
+    if (config && config.type === 'mcq') {
+      return (config as MCQAnswerConfig).choices;
+    }
+    return ANSWER_CONFIG_CONSTANTS.MCQ.DEFAULT_CHOICES.map(id => ({
+      id,
+      text: '',
+    }));
+  });
+  const [mcqCorrectChoiceId, setMcqCorrectChoiceId] = useState(() => {
+    const config = problem?.answer_config;
+    if (config && config.type === 'mcq') {
+      return (config as MCQAnswerConfig).correct_choice_id;
+    }
+    return '';
+  });
+  const [shortAnswerConfig, setShortAnswerConfig] =
+    useState<ShortAnswerConfigValue>(() => {
+      const config = problem?.answer_config;
+      if (config && config.type === 'short') {
+        if ((config as ShortAnswerTextConfig).mode === 'text') {
+          return {
+            mode: 'text' as const,
+            acceptable_answers: (config as ShortAnswerTextConfig)
+              .acceptable_answers,
+          };
+        }
+        if ((config as ShortAnswerNumericConfig).mode === 'numeric') {
+          const nc = (config as ShortAnswerNumericConfig).numeric_config;
+          return {
+            mode: 'numeric' as const,
+            numeric_config: {
+              correct_value: nc.correct_value,
+              tolerance: nc.tolerance,
+              unit: nc.unit,
+            },
+          };
+        }
+      }
+      return { mode: 'text' as const, acceptable_answers: [] };
+    });
+  // Track whether user is using enhanced mode
+  const [useEnhancedMcq, setUseEnhancedMcq] = useState(
+    !!(problem?.answer_config?.type === 'mcq')
+  );
+  const [useEnhancedShort, setUseEnhancedShort] = useState(
+    !!(problem?.answer_config?.type === 'short')
   );
 
   // Assets
@@ -211,13 +275,77 @@ export default function ProblemForm({
   const correctAnswer = useMemo(() => {
     switch (problemType) {
       case 'mcq':
+        if (useEnhancedMcq && mcqCorrectChoiceId) {
+          return mcqCorrectChoiceId;
+        }
         return mcqChoice;
       case 'short':
+        if (useEnhancedShort && shortAnswerConfig.mode === 'text') {
+          return shortAnswerConfig.acceptable_answers[0] || '';
+        }
+        if (
+          useEnhancedShort &&
+          shortAnswerConfig.mode === 'numeric' &&
+          shortAnswerConfig.numeric_config.correct_value !== ''
+        ) {
+          return String(shortAnswerConfig.numeric_config.correct_value);
+        }
         return shortText;
       case 'extended':
         return undefined;
     }
-  }, [problemType, mcqChoice, shortText]);
+  }, [
+    problemType,
+    mcqChoice,
+    shortText,
+    useEnhancedMcq,
+    useEnhancedShort,
+    mcqCorrectChoiceId,
+    shortAnswerConfig,
+  ]);
+
+  // Build answer_config for submission
+  const answerConfig = useMemo((): AnswerConfig | null => {
+    if (problemType === 'mcq' && useEnhancedMcq) {
+      if (!mcqCorrectChoiceId) return null;
+      return {
+        type: 'mcq',
+        choices: mcqChoices,
+        correct_choice_id: mcqCorrectChoiceId,
+      };
+    }
+    if (problemType === 'short' && useEnhancedShort) {
+      if (shortAnswerConfig.mode === 'text') {
+        if (shortAnswerConfig.acceptable_answers.length === 0) return null;
+        return {
+          type: 'short',
+          mode: 'text',
+          acceptable_answers: shortAnswerConfig.acceptable_answers,
+        };
+      }
+      if (shortAnswerConfig.mode === 'numeric') {
+        const nc = shortAnswerConfig.numeric_config;
+        if (nc.correct_value === '' || nc.tolerance === '') return null;
+        return {
+          type: 'short',
+          mode: 'numeric',
+          numeric_config: {
+            correct_value: Number(nc.correct_value),
+            tolerance: Number(nc.tolerance),
+            unit: nc.unit || undefined,
+          },
+        };
+      }
+    }
+    return null;
+  }, [
+    problemType,
+    useEnhancedMcq,
+    useEnhancedShort,
+    mcqChoices,
+    mcqCorrectChoiceId,
+    shortAnswerConfig,
+  ]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -225,6 +353,28 @@ export default function ProblemForm({
     if (!title.trim()) {
       toast.error('Please enter a problem title');
       return;
+    }
+
+    // Validate enhanced answer config
+    if (problemType === 'mcq' && useEnhancedMcq && !mcqCorrectChoiceId) {
+      toast.error('Please select the correct answer choice');
+      return;
+    }
+    if (problemType === 'short' && useEnhancedShort) {
+      if (
+        shortAnswerConfig.mode === 'text' &&
+        shortAnswerConfig.acceptable_answers.length === 0
+      ) {
+        toast.error('Please add at least one acceptable answer');
+        return;
+      }
+      if (shortAnswerConfig.mode === 'numeric') {
+        const nc = shortAnswerConfig.numeric_config;
+        if (nc.correct_value === '' || nc.tolerance === '') {
+          toast.error('Please fill in the correct value and tolerance');
+          return;
+        }
+      }
     }
 
     setIsSubmitting(true);
@@ -255,12 +405,13 @@ export default function ProblemForm({
           )
         : '';
 
-      const payload = {
+      const payload: Record<string, any> = {
         title: sanitizedTitle,
         content: sanitizedContent,
         problem_type: problemType,
         correct_answer:
           problemType === 'extended' ? '' : sanitizedCorrectAnswer,
+        answer_config: answerConfig,
         auto_mark: autoMarkValue,
         status,
         assets,
@@ -320,6 +471,19 @@ export default function ProblemForm({
         setSolutionAssets([]);
         setShortText('');
         setMcqChoice('');
+        setMcqChoices(
+          ANSWER_CONFIG_CONSTANTS.MCQ.DEFAULT_CHOICES.map(id => ({
+            id,
+            text: '',
+          }))
+        );
+        setMcqCorrectChoiceId('');
+        setShortAnswerConfig({
+          mode: 'text',
+          acceptable_answers: [],
+        });
+        setUseEnhancedMcq(false);
+        setUseEnhancedShort(false);
         setSelectedTagIds([]);
         setProblemType('short');
         setStatus('needs_review');
@@ -551,27 +715,67 @@ export default function ProblemForm({
 
       {/* correct answer (conditional) */}
       {problemType === 'mcq' && (
-        <div className="form-row">
-          <label className="form-label">Correct choice</label>
-          <Input
-            className="form-input w-32"
-            placeholder="e.g. A, B, α, etc."
-            value={mcqChoice}
-            maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
-            onChange={e => setMcqChoice(e.target.value)}
-          />
+        <div className="space-y-3">
+          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+            <input
+              type="checkbox"
+              checked={useEnhancedMcq}
+              onChange={e => setUseEnhancedMcq(e.target.checked)}
+              className="form-checkbox"
+            />
+            Use choice picker
+          </label>
+          {useEnhancedMcq ? (
+            <MCQChoiceEditor
+              choices={mcqChoices}
+              correctChoiceId={mcqCorrectChoiceId}
+              onChoicesChange={setMcqChoices}
+              onCorrectChoiceChange={setMcqCorrectChoiceId}
+              disabled={isSubmitting}
+            />
+          ) : (
+            <div className="form-row">
+              <label className="form-label">Correct choice</label>
+              <Input
+                className="form-input w-32"
+                placeholder="e.g. A, B, α, etc."
+                value={mcqChoice}
+                maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
+                onChange={e => setMcqChoice(e.target.value)}
+              />
+            </div>
+          )}
         </div>
       )}
       {problemType === 'short' && (
-        <div className="form-row">
-          <label className="form-label">Correct text</label>
-          <Input
-            className="form-input"
-            placeholder="Short expected answer"
-            value={shortText}
-            maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
-            onChange={e => setShortText(e.target.value)}
-          />
+        <div className="space-y-3">
+          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+            <input
+              type="checkbox"
+              checked={useEnhancedShort}
+              onChange={e => setUseEnhancedShort(e.target.checked)}
+              className="form-checkbox"
+            />
+            Advanced answer matching
+          </label>
+          {useEnhancedShort ? (
+            <ShortAnswerConfig
+              value={shortAnswerConfig}
+              onChange={setShortAnswerConfig}
+              disabled={isSubmitting}
+            />
+          ) : (
+            <div className="form-row">
+              <label className="form-label">Correct text</label>
+              <Input
+                className="form-input"
+                placeholder="Short expected answer"
+                value={shortText}
+                maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
+                onChange={e => setShortText(e.target.value)}
+              />
+            </div>
+          )}
         </div>
       )}
 

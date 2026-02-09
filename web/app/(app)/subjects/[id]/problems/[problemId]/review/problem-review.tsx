@@ -9,7 +9,7 @@ import { RichTextDisplay } from '@/components/ui/rich-text-display';
 import AnswerInput from './answer-input';
 import SolutionReveal from './solution-reveal';
 import StatusSelector from './status-selector';
-import { Problem, Subject } from '@/lib/types';
+import { Problem, Subject, MCQAnswerConfig } from '@/lib/types';
 
 interface AllProblem {
   id: string;
@@ -218,6 +218,7 @@ export default function ProblemReview({
         <AnswerInput
           problemType={problem.problem_type}
           correctAnswer={problem.correct_answer}
+          answerConfig={problem.answer_config}
           value={userAnswer}
           onChange={setUserAnswer}
           onSubmit={problem.auto_mark ? handleAnswerSubmit : undefined}
@@ -278,9 +279,26 @@ export default function ProblemReview({
                 {isCorrect ? 'Correct!' : 'Incorrect'}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground mt-1">
-              Your answer: {JSON.stringify(submittedAnswer)}
-            </p>
+            {problem.answer_config?.type === 'mcq' ? (
+              <>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Your choice:{' '}
+                  {(() => {
+                    const config = problem.answer_config as MCQAnswerConfig;
+                    const picked = config.choices.find(
+                      c => c.id === submittedAnswer
+                    );
+                    return picked
+                      ? `${picked.id}${picked.text ? `. ${picked.text}` : ''}`
+                      : submittedAnswer;
+                  })()}
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground mt-1">
+                Your answer: {JSON.stringify(submittedAnswer)}
+              </p>
+            )}
             {!isCorrect && problem.auto_mark && (
               <p className="text-sm text-red-600 dark:text-red-400 mt-2">
                 You can try again with a different answer.
@@ -301,6 +319,7 @@ export default function ProblemReview({
         solutionText={problem.solution_text || undefined}
         solutionAssets={problem.solution_assets || []}
         correctAnswer={problem.correct_answer}
+        answerConfig={problem.answer_config}
         problemType={problem.problem_type}
         isRevealed={showSolution}
         onToggle={() => setShowSolution(!showSolution)}
