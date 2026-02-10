@@ -217,8 +217,8 @@ export default function FileManager({
       <div
         className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
           disabled
-            ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
-            : 'border-gray-300 hover:border-gray-400 cursor-pointer'
+            ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/40 cursor-not-allowed'
+            : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 cursor-pointer'
         }`}
         onDrop={disabled ? undefined : handleDrop}
         onDragOver={disabled ? undefined : handleDragOver}
@@ -234,7 +234,7 @@ export default function FileManager({
         />
         <div className="space-y-2">
           <svg
-            className="mx-auto h-12 w-12 text-gray-400"
+            className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
             stroke="currentColor"
             fill="none"
             viewBox="0 0 48 48"
@@ -246,21 +246,21 @@ export default function FileManager({
               strokeLinejoin="round"
             />
           </svg>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-600 dark:text-gray-400">
             {disabled ? (
-              <span className="font-medium text-gray-400">
+              <span className="font-medium text-gray-400 dark:text-gray-500">
                 Expand the form to upload files
               </span>
             ) : (
               <>
-                <span className="font-medium text-blue-600 hover:text-blue-500">
+                <span className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300">
                   Click to upload
                 </span>{' '}
                 or drag and drop
               </>
             )}
           </div>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             {disabled
               ? 'Form must be expanded first'
               : 'Images and PDFs up to 10MB each'}
@@ -270,7 +270,7 @@ export default function FileManager({
 
       {/* Error Message */}
       {error && (
-        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
+        <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-md p-3">
           {error}
         </div>
       )}
@@ -278,14 +278,14 @@ export default function FileManager({
       {/* File List */}
       {files.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-sm font-medium text-gray-700">
+          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Uploaded Files ({files.length})
           </h4>
           <div className="space-y-2">
             {files.map((file, index) => (
               <div
                 key={`file-${index}-${file.name}`}
-                className="flex items-center justify-between bg-gray-50 rounded-md p-3"
+                className="flex items-center justify-between bg-gray-50 dark:bg-gray-800/40 border border-gray-200/50 dark:border-gray-700/50 rounded-md p-3"
               >
                 <div className="flex items-center space-x-3 flex-1 min-w-0">
                   {/* File Icon */}
@@ -294,7 +294,7 @@ export default function FileManager({
                       .toLowerCase()
                       .match(/\.(jpg|jpeg|png|gif|webp)$/) ? (
                       <svg
-                        className="h-8 w-8 text-green-600"
+                        className="h-8 w-8 text-green-600 dark:text-green-400"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -306,7 +306,7 @@ export default function FileManager({
                       </svg>
                     ) : file.name.toLowerCase().endsWith('.pdf') ? (
                       <svg
-                        className="h-8 w-8 text-red-600"
+                        className="h-8 w-8 text-red-600 dark:text-red-400"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -318,7 +318,7 @@ export default function FileManager({
                       </svg>
                     ) : (
                       <svg
-                        className="h-8 w-8 text-gray-600"
+                        className="h-8 w-8 text-gray-600 dark:text-gray-400"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -333,15 +333,21 @@ export default function FileManager({
 
                   {/* File Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                       {file.name}
                     </p>
                     {file.uploading ? (
-                      <p className="text-xs text-blue-600">Uploading...</p>
+                      <p className="text-xs text-blue-600 dark:text-blue-400">
+                        Uploading...
+                      </p>
                     ) : file.error ? (
-                      <p className="text-xs text-red-600">{file.error}</p>
+                      <p className="text-xs text-red-600 dark:text-red-400">
+                        {file.error}
+                      </p>
                     ) : (
-                      <p className="text-xs text-gray-500">Ready</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Ready
+                      </p>
                     )}
                   </div>
                 </div>
@@ -353,7 +359,7 @@ export default function FileManager({
                       asChild
                       variant="link"
                       size="sm"
-                      className="text-blue-600 hover:text-blue-800"
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
                     >
                       <Link
                         href={`/api/files/${encodeURIComponent(file.path)}`}
@@ -373,7 +379,7 @@ export default function FileManager({
                         variant="ghost"
                         size="sm"
                         onClick={() => onInsertImage(file.path, file.name)}
-                        className="text-emerald-600 hover:text-emerald-800"
+                        className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300"
                         title="Insert image into editor"
                       >
                         Insert
@@ -385,7 +391,7 @@ export default function FileManager({
                     size="sm"
                     onClick={() => handleDeleteFile(file)}
                     disabled={file.uploading}
-                    className="text-red-600 hover:text-red-800 disabled:text-gray-400"
+                    className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 disabled:text-gray-400 dark:disabled:text-gray-500"
                   >
                     Delete
                   </Button>

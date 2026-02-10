@@ -579,7 +579,7 @@ export default function ProblemForm({
           type="button"
           variant="outline"
           onClick={() => setIsExpanded(true)}
-          className="flex-1 border-dashed text-muted-foreground hover:border-primary/50 hover:text-foreground justify-start"
+          className="flex-1 border-dashed text-muted-foreground hover:border-amber-400/50 dark:hover:border-amber-500/50 hover:bg-amber-50/50 dark:hover:bg-amber-950/20 hover:text-amber-900 dark:hover:text-amber-100 justify-start transition-colors"
         >
           + Add a new problem
         </Button>
@@ -666,199 +666,260 @@ export default function ProblemForm({
       </div>
 
       {/* Problem Settings */}
-      <div className="form-section">
-        <div className="form-row">
-          <label className="form-label">Type</label>
-          <Select
-            value={problemType}
-            onValueChange={value => setProblemType(value as ProblemType)}
-          >
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PROBLEM_TYPE_VALUES.map(type => (
-                <SelectItem key={type} value={type}>
-                  {getProblemTypeDisplayName(type)}
+      <div className="rounded-2xl border border-amber-200/40 dark:border-amber-800/30 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/40 dark:to-amber-900/20 p-6">
+        <div className="mb-4">
+          <h4 className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">
+            Problem Settings
+          </h4>
+          <p className="text-xs text-amber-600/80 dark:text-amber-400/80">
+            Configure the basic properties
+          </p>
+        </div>
+        <div className="form-section">
+          <div className="form-row">
+            <label className="form-label">Type</label>
+            <Select
+              value={problemType}
+              onValueChange={value => setProblemType(value as ProblemType)}
+            >
+              <SelectTrigger className="w-48 rounded-xl">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PROBLEM_TYPE_VALUES.map(type => (
+                  <SelectItem key={type} value={type}>
+                    {getProblemTypeDisplayName(type)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="form-row">
+            <label className="form-label">Status</label>
+            <Select
+              value={status}
+              onValueChange={value => setStatus(value as any)}
+            >
+              <SelectTrigger className="w-36 rounded-xl">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="needs_review">
+                  <StatusBadge status="needs_review" />
                 </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+                <SelectItem value="wrong">
+                  <StatusBadge status="wrong" />
+                </SelectItem>
+                <SelectItem value="mastered">
+                  <StatusBadge status="mastered" />
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-        <div className="form-row">
-          <label className="form-label">Status</label>
-          <Select
-            value={status}
-            onValueChange={value => setStatus(value as any)}
-          >
-            <SelectTrigger className="w-36">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="needs_review">
-                <StatusBadge status="needs_review" />
-              </SelectItem>
-              <SelectItem value="wrong">
-                <StatusBadge status="wrong" />
-              </SelectItem>
-              <SelectItem value="mastered">
-                <StatusBadge status="mastered" />
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="form-row">
-          <label className="form-label">Options</label>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={autoMarkValue}
-              disabled={isAutoMarkDisabled}
-              onChange={e => setAutoMark(e.target.checked)}
-              className="form-checkbox"
-            />
-            Auto-mark during revision
-            {isAutoMarkDisabled && (
-              <span className="text-body-sm text-muted-foreground">
-                (not available for extended response)
-              </span>
-            )}
-          </label>
+          <div className="form-row">
+            <label className="form-label">Options</label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={autoMarkValue}
+                disabled={isAutoMarkDisabled}
+                onChange={e => setAutoMark(e.target.checked)}
+                className="form-checkbox"
+              />
+              Auto-mark during revision
+              {isAutoMarkDisabled && (
+                <span className="text-body-sm text-muted-foreground">
+                  (not available for extended response)
+                </span>
+              )}
+            </label>
+          </div>
         </div>
       </div>
 
       {/* Answer Configuration - MCQ */}
       {problemType === 'mcq' && (
-        <div className="form-section">
-          <div className="form-row">
-            <label className="form-label">Answer type</label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={useEnhancedMcq}
-                onChange={e => setUseEnhancedMcq(e.target.checked)}
-                className="form-checkbox"
-              />
-              Use choice picker
-            </label>
+        <div className="rounded-2xl border border-blue-200/40 dark:border-blue-800/30 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/20 p-6">
+          <div className="mb-4">
+            <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-1">
+              Answer Configuration
+            </h4>
+            <p className="text-xs text-blue-600/80 dark:text-blue-400/80">
+              Define the correct answer for multiple choice
+            </p>
           </div>
-
-          {useEnhancedMcq ? (
-            <MCQChoiceEditor
-              choices={mcqChoices}
-              correctChoiceId={mcqCorrectChoiceId}
-              onChoicesChange={setMcqChoices}
-              onCorrectChoiceChange={setMcqCorrectChoiceId}
-              disabled={isSubmitting}
-            />
-          ) : (
+          <div className="form-section">
             <div className="form-row">
-              <label className="form-label">Correct choice</label>
-              <Input
-                className="form-input w-32"
-                placeholder="e.g. A, B, α, etc."
-                value={mcqChoice}
-                maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
-                onChange={e => setMcqChoice(e.target.value)}
-              />
+              <label className="form-label">Answer type</label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer group">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    checked={useEnhancedMcq}
+                    onChange={e => setUseEnhancedMcq(e.target.checked)}
+                    className="form-checkbox peer"
+                  />
+                  <div className="absolute inset-0 rounded pointer-events-none peer-checked:bg-amber-500/10 dark:peer-checked:bg-amber-500/20 transition-colors" />
+                </div>
+                <span className="group-hover:text-foreground transition-colors">
+                  Use choice picker
+                </span>
+              </label>
             </div>
-          )}
+
+            {useEnhancedMcq ? (
+              <MCQChoiceEditor
+                choices={mcqChoices}
+                correctChoiceId={mcqCorrectChoiceId}
+                onChoicesChange={setMcqChoices}
+                onCorrectChoiceChange={setMcqCorrectChoiceId}
+                disabled={isSubmitting}
+              />
+            ) : (
+              <div className="form-row">
+                <label className="form-label">Correct choice</label>
+                <Input
+                  className="form-input w-32"
+                  placeholder="e.g. A, B, α, etc."
+                  value={mcqChoice}
+                  maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
+                  onChange={e => setMcqChoice(e.target.value)}
+                />
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {/* Answer Configuration - Short */}
       {problemType === 'short' && (
-        <div className="form-section">
-          <div className="form-row">
-            <label className="form-label">Answer type</label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={useEnhancedShort}
-                onChange={e => setUseEnhancedShort(e.target.checked)}
-                className="form-checkbox"
-              />
-              Advanced answer matching
-            </label>
+        <div className="rounded-2xl border border-rose-200/40 dark:border-rose-800/30 bg-gradient-to-br from-rose-50 to-rose-100/50 dark:from-rose-950/40 dark:to-rose-900/20 p-6">
+          <div className="mb-4">
+            <h4 className="text-sm font-semibold text-rose-800 dark:text-rose-300 mb-1">
+              Answer Configuration
+            </h4>
+            <p className="text-xs text-rose-600/80 dark:text-rose-400/80">
+              Define acceptable answers for short response
+            </p>
           </div>
-
-          {useEnhancedShort ? (
-            <ShortAnswerConfig
-              value={shortAnswerConfig}
-              onChange={setShortAnswerConfig}
-              disabled={isSubmitting}
-            />
-          ) : (
+          <div className="form-section">
             <div className="form-row">
-              <label className="form-label">Correct text</label>
-              <Input
-                className="form-input"
-                placeholder="Short expected answer"
-                value={shortText}
-                maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
-                onChange={e => setShortText(e.target.value)}
-              />
+              <label className="form-label">Answer type</label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer group">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    checked={useEnhancedShort}
+                    onChange={e => setUseEnhancedShort(e.target.checked)}
+                    className="form-checkbox peer"
+                  />
+                  <div className="absolute inset-0 rounded pointer-events-none peer-checked:bg-amber-500/10 dark:peer-checked:bg-amber-500/20 transition-colors" />
+                </div>
+                <span className="group-hover:text-foreground transition-colors">
+                  Advanced answer matching
+                </span>
+              </label>
             </div>
-          )}
+
+            {useEnhancedShort ? (
+              <ShortAnswerConfig
+                value={shortAnswerConfig}
+                onChange={setShortAnswerConfig}
+                disabled={isSubmitting}
+              />
+            ) : (
+              <div className="form-row">
+                <label className="form-label">Correct text</label>
+                <Input
+                  className="form-input"
+                  placeholder="Short expected answer"
+                  value={shortText}
+                  maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
+                  onChange={e => setShortText(e.target.value)}
+                />
+              </div>
+            )}
+          </div>
         </div>
       )}
 
-      {/* solution text + assets */}
-      <div className="form-row-start">
-        <label className="form-label pt-2">Solution (text)</label>
-        <div className="flex-1 relative">
-          <RichTextEditor
-            ref={solutionEditorRef}
-            content={solutionText}
-            onChange={setSolutionText}
-            placeholder="What did you do wrong? What did you learn from it?"
-            height="300px"
-            maxHeight="500px"
-            disabled={isSubmitting}
-            maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
-            showCharacterCount={true}
-          />
+      {/* Solution */}
+      <div className="rounded-2xl border border-green-200/40 dark:border-green-800/30 bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/40 dark:to-green-900/20 p-6">
+        <div className="mb-4">
+          <h4 className="text-sm font-semibold text-green-800 dark:text-green-300 mb-1">
+            Solution
+          </h4>
+          <p className="text-xs text-green-600/80 dark:text-green-400/80">
+            Document what you learned and supporting materials
+          </p>
         </div>
-      </div>
-      <div className="form-row-start">
-        <label className="form-label pt-2">Solution assets</label>
-        <div className="flex-1">
-          <FileManager
-            role="solution"
-            problemId={isEditMode ? problem.id : problemUuid || 'disabled'}
-            isEditMode={isEditMode}
-            initialFiles={solutionAssets}
-            onFilesChange={setSolutionAssets}
-            onInsertImage={handleInsertSolutionImage}
-            disabled={!isEditMode && !problemUuid}
-          />
+        <div className="space-y-6">
+          <div className="form-row-start">
+            <label className="form-label pt-2">Solution (text)</label>
+            <div className="flex-1 relative">
+              <RichTextEditor
+                ref={solutionEditorRef}
+                content={solutionText}
+                onChange={setSolutionText}
+                placeholder="What did you do wrong? What did you learn from it?"
+                height="300px"
+                maxHeight="500px"
+                disabled={isSubmitting}
+                maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
+                showCharacterCount={true}
+              />
+            </div>
+          </div>
+          <div className="form-row-start">
+            <label className="form-label pt-2">Solution assets</label>
+            <div className="flex-1">
+              <FileManager
+                role="solution"
+                problemId={isEditMode ? problem.id : problemUuid || 'disabled'}
+                isEditMode={isEditMode}
+                initialFiles={solutionAssets}
+                onFilesChange={setSolutionAssets}
+                onInsertImage={handleInsertSolutionImage}
+                disabled={!isEditMode && !problemUuid}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Tags */}
-      <div className="form-section">
-        <label className="form-label-top">Tags</label>
-        <div className="flex flex-wrap gap-3">
-          {tags.length ? (
-            tags.map(t => (
-              <label
-                key={t.id}
-                className="flex items-center gap-2 text-foreground"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedTagIds.includes(t.id)}
-                  onChange={() => toggleTag(t.id)}
-                  className="form-checkbox"
-                />
-                <span>{t.name}</span>
-              </label>
-            ))
-          ) : (
-            <p className="text-body-sm text-muted-foreground">No tags yet.</p>
-          )}
+      <div className="rounded-2xl border border-gray-200/40 dark:border-gray-700/30 bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-gray-800/40 dark:to-gray-700/20 p-6">
+        <div className="mb-4">
+          <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-300 mb-1">
+            Tags
+          </h4>
+          <p className="text-xs text-gray-600 dark:text-gray-400">
+            Organize problems by topic or category
+          </p>
+        </div>
+        <div className="form-section">
+          <div className="flex flex-wrap gap-3">
+            {tags.length ? (
+              tags.map(t => (
+                <label
+                  key={t.id}
+                  className="flex items-center gap-2 text-foreground"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedTagIds.includes(t.id)}
+                    onChange={() => toggleTag(t.id)}
+                    className="form-checkbox"
+                  />
+                  <span>{t.name}</span>
+                </label>
+              ))
+            ) : (
+              <p className="text-body-sm text-muted-foreground">No tags yet.</p>
+            )}
+          </div>
         </div>
       </div>
 
