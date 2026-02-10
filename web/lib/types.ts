@@ -32,6 +32,7 @@ export interface Problem {
   content: string | null;
   problem_type: ProblemType;
   correct_answer: string | null;
+  answer_config?: AnswerConfig | null;
   auto_mark: boolean;
   status: ProblemStatus;
   subject_id: string;
@@ -75,6 +76,42 @@ export interface Attempt {
   cause?: string;
   created_at: string;
 }
+
+// =====================================================
+// Answer Configuration Types
+// =====================================================
+
+export interface MCQChoice {
+  id: string;
+  text: string;
+}
+
+export interface MCQAnswerConfig {
+  type: 'mcq';
+  choices: MCQChoice[];
+  correct_choice_id: string;
+}
+
+export interface ShortAnswerTextConfig {
+  type: 'short';
+  mode: 'text';
+  acceptable_answers: string[];
+}
+
+export interface ShortAnswerNumericConfig {
+  type: 'short';
+  mode: 'numeric';
+  numeric_config: {
+    correct_value: number;
+    tolerance: number;
+    unit?: string;
+  };
+}
+
+export type AnswerConfig =
+  | MCQAnswerConfig
+  | ShortAnswerTextConfig
+  | ShortAnswerNumericConfig;
 
 // =====================================================
 // Extended/Computed Types (for UI)
@@ -163,6 +200,7 @@ export interface SolutionRevealProps {
   solutionText?: string;
   solutionAssets: SolutionAsset[];
   correctAnswer?: any;
+  answerConfig?: AnswerConfig | null;
   problemType?: string;
   isRevealed: boolean;
   onToggle: () => void;
@@ -175,6 +213,7 @@ export interface AssetPreviewProps {
 export interface AnswerInputProps {
   problemType: ProblemType;
   correctAnswer?: any;
+  answerConfig?: AnswerConfig | null;
   value: any;
   onChange: (value: any) => void;
   onSubmit?: () => void;

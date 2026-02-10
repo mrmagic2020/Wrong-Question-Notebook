@@ -6,8 +6,8 @@ import {
   handleAsyncError,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
-import { ProblemType } from '@/lib/schemas';
 import { revalidateProblemAndSubject } from '@/lib/cache-invalidation';
+import { markAnswer } from '@/lib/answer-marking';
 
 export async function POST(
   req: Request,
@@ -65,44 +65,17 @@ export async function POST(
       );
     }
 
-    // Compare answers based on problem type
-    let isCorrect = false;
-
-    // Extract the actual answer from the correct_answer field
-    let correctAnswerValue = '';
-    if (problem.correct_answer) {
-      if (typeof problem.correct_answer === 'string') {
-        // If it's already a string, use it directly
-        correctAnswerValue = problem.correct_answer;
-      } else if (
-        typeof problem.correct_answer === 'object' &&
-        problem.correct_answer !== null
-      ) {
-        // If it's an object, extract the choice or value
-        correctAnswerValue =
-          problem.correct_answer.choice ||
-          problem.correct_answer.value ||
-          String(problem.correct_answer);
-      } else {
-        // Fallback to string conversion
-        correctAnswerValue = String(problem.correct_answer);
-      }
-    }
-
-    if (problem.problem_type === ProblemType.enum.mcq) {
-      // For MCQ, case-insensitive comparison with trimmed whitespace
-      const userAnswer = String(submitted_answer).trim().toLowerCase();
-      const correctAnswer = correctAnswerValue.trim().toLowerCase();
-      isCorrect = userAnswer === correctAnswer;
-    } else if (problem.problem_type === ProblemType.enum.short) {
-      // For short answer, case-insensitive comparison with trimmed whitespace
-      const userAnswer = String(submitted_answer).trim().toLowerCase();
-      const correctAnswer = correctAnswerValue.trim().toLowerCase();
-      isCorrect = userAnswer === correctAnswer;
-    } else {
-      // For extended response, we don't auto-mark
-      isCorrect = false;
-    }
+    // Compare answers using the marking utility
+    const isCorrect = markAnswer(
+      problem.problem_type,
+      submitted_answer,
+      problem.answer_config ?? null,
+      typeof problem.correct_answer === 'string'
+        ? problem.correct_answer
+        : problem.correct_answer
+          ? String(problem.correct_answer)
+          : null
+    );
 
     // Create attempt record
     const attemptData = {

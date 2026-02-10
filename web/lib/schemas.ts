@@ -3,6 +3,7 @@ import {
   PROBLEM_CONSTANTS,
   PROBLEM_SET_CONSTANTS,
   VALIDATION_CONSTANTS,
+  ANSWER_CONFIG_CONSTANTS,
   USER_ROLES,
   GENDER_OPTIONS,
 } from './constants';
@@ -48,6 +49,66 @@ const Asset = z.object({
   kind: z.enum(['image', 'pdf']).optional(),
 });
 
+// =====================================================
+// Answer Configuration Schemas
+// =====================================================
+
+const MCQChoiceSchema = z.object({
+  id: z.string().min(1).max(10),
+  text: z
+    .string()
+    .max(ANSWER_CONFIG_CONSTANTS.MCQ.MAX_CHOICE_TEXT_LENGTH)
+    .default(''),
+});
+
+const MCQAnswerConfigSchema = z
+  .object({
+    type: z.literal('mcq'),
+    choices: z
+      .array(MCQChoiceSchema)
+      .min(ANSWER_CONFIG_CONSTANTS.MCQ.MIN_CHOICES)
+      .max(ANSWER_CONFIG_CONSTANTS.MCQ.MAX_CHOICES),
+    correct_choice_id: z.string().min(1),
+  })
+  .refine(data => data.choices.some(c => c.id === data.correct_choice_id), {
+    message: 'correct_choice_id must match one of the choice IDs',
+  });
+
+const ShortAnswerTextConfigSchema = z.object({
+  type: z.literal('short'),
+  mode: z.literal('text'),
+  acceptable_answers: z
+    .array(
+      z
+        .string()
+        .min(1)
+        .max(ANSWER_CONFIG_CONSTANTS.SHORT_ANSWER.MAX_ANSWER_LENGTH)
+    )
+    .min(1)
+    .max(ANSWER_CONFIG_CONSTANTS.SHORT_ANSWER.MAX_ACCEPTABLE_ANSWERS),
+});
+
+const ShortAnswerNumericConfigSchema = z.object({
+  type: z.literal('short'),
+  mode: z.literal('numeric'),
+  numeric_config: z.object({
+    correct_value: z.number(),
+    tolerance: z
+      .number()
+      .min(ANSWER_CONFIG_CONSTANTS.SHORT_ANSWER.NUMERIC.MIN_TOLERANCE),
+    unit: z
+      .string()
+      .max(ANSWER_CONFIG_CONSTANTS.SHORT_ANSWER.NUMERIC.MAX_UNIT_LENGTH)
+      .optional(),
+  }),
+});
+
+export const AnswerConfigSchema = z.union([
+  MCQAnswerConfigSchema,
+  ShortAnswerTextConfigSchema,
+  ShortAnswerNumericConfigSchema,
+]);
+
 export const CreateProblemDto = z.object({
   id: z.uuid().optional(), // Allow client-provided UUID for direct upload approach
   subject_id: z.uuid(),
@@ -61,6 +122,7 @@ export const CreateProblemDto = z.object({
     .string()
     .max(VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX)
     .optional(),
+  answer_config: AnswerConfigSchema.nullable().optional(),
   auto_mark: z.boolean().default(false),
   status: ProblemStatus.default(PROBLEM_CONSTANTS.STATUS.NEEDS_REVIEW),
   assets: z.array(Asset).default([]),
