@@ -30,6 +30,20 @@ function markWithConfig(
   submittedAnswer: string | number,
   config: AnswerConfig
 ): boolean {
+  // Extended problems should never be auto-marked
+  if (problemType === 'extended') {
+    return false;
+  }
+
+  // Validate that config type matches problem type
+  // If mismatched, fall back to legacy marking by returning false
+  if (problemType === 'mcq' && config.type !== 'mcq') {
+    return false;
+  }
+  if (problemType === 'short' && config.type !== 'short') {
+    return false;
+  }
+
   if (config.type === 'mcq') {
     return markMCQ(submittedAnswer, config);
   }
