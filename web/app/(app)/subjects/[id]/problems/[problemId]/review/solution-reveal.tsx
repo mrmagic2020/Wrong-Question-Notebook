@@ -90,8 +90,14 @@ export default function SolutionReveal({
   isRevealed,
   onToggle,
 }: SolutionRevealProps) {
-  const hasSolution = solutionText || solutionAssets.length > 0;
   const hasStructuredAnswer = !!answerConfig;
+  const hasCorrectAnswer =
+    hasStructuredAnswer ||
+    (correctAnswer !== undefined && correctAnswer !== null);
+
+  // Consider it a "solution" if there's solution text, assets, OR a correct answer
+  const hasSolution =
+    solutionText || solutionAssets.length > 0 || hasCorrectAnswer;
 
   return (
     <div className="bg-card rounded-lg border border-border p-6">
