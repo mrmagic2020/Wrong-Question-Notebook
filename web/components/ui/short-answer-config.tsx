@@ -140,6 +140,7 @@ export function ShortAnswerConfig({
                         type="button"
                         onClick={() => removeAnswer(i)}
                         className="ml-0.5 text-amber-600 hover:text-red-500 dark:text-amber-400 dark:hover:text-red-400"
+                        aria-label="Remove acceptable answer"
                       >
                         <X className="h-3 w-3" />
                       </button>
