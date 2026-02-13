@@ -91,7 +91,7 @@ export default function StatusPieChart({
         cornerRadius: 8,
         titleFont: {
           size: 14,
-          weight: '600',
+          weight: 'bold' as const,
         },
         bodyFont: {
           size: 13,
@@ -125,7 +125,7 @@ export default function StatusPieChart({
 
       {/* Legend */}
       <div className="flex flex-wrap justify-center gap-x-5 gap-y-2">
-        {data.map((d, i) => (
+        {data.map(d => (
           <div key={d.label} className="flex items-center gap-2 text-sm">
             <div
               className="h-3 w-3 rounded-full shadow-sm"
