@@ -27,6 +27,10 @@ interface ProblemReviewProps {
   isProblemSetMode?: boolean;
   problemSetId?: string;
   isReadOnly?: boolean;
+  /** Hide the built-in bottom navigation (session mode uses its own nav) */
+  hideNavigation?: boolean;
+  /** Called when the user selects a problem status */
+  onStatusSelected?: (status: ProblemStatus) => void;
 }
 
 export default function ProblemReview({
@@ -38,6 +42,8 @@ export default function ProblemReview({
   isProblemSetMode = false,
   problemSetId,
   isReadOnly = false,
+  hideNavigation = false,
+  onStatusSelected,
 }: ProblemReviewProps) {
   const router = useRouter();
   const [userAnswer, setUserAnswer] = useState<any>('');
@@ -132,6 +138,9 @@ export default function ProblemReview({
         }
         throw new Error(errorMessage);
       }
+
+      // Notify parent about status selection (for session progress tracking)
+      onStatusSelected?.(newStatus);
 
       // Refresh the page to get updated data
       router.refresh();
@@ -339,32 +348,34 @@ export default function ProblemReview({
         </div>
       )}
 
-      {/* Navigation */}
-      <div className="flex justify-between items-center bg-card rounded-lg border border-border p-4">
-        <Button
-          onClick={() =>
-            effectivePrevProblem && navigateToProblem(effectivePrevProblem.id)
-          }
-          disabled={!effectivePrevProblem}
-          variant="secondary"
-        >
-          ← Previous
-        </Button>
+      {/* Navigation (hidden in session mode where session nav handles it) */}
+      {!hideNavigation && (
+        <div className="flex justify-between items-center bg-card rounded-lg border border-border p-4">
+          <Button
+            onClick={() =>
+              effectivePrevProblem && navigateToProblem(effectivePrevProblem.id)
+            }
+            disabled={!effectivePrevProblem}
+            variant="secondary"
+          >
+            ← Previous
+          </Button>
 
-        <span className="text-sm text-muted-foreground">
-          {currentIndex + 1} of {allProblems.length}
-        </span>
+          <span className="text-sm text-muted-foreground">
+            {currentIndex + 1} of {allProblems.length}
+          </span>
 
-        <Button
-          onClick={() =>
-            effectiveNextProblem && navigateToProblem(effectiveNextProblem.id)
-          }
-          disabled={!effectiveNextProblem}
-          variant="secondary"
-        >
-          Next →
-        </Button>
-      </div>
+          <Button
+            onClick={() =>
+              effectiveNextProblem && navigateToProblem(effectiveNextProblem.id)
+            }
+            disabled={!effectiveNextProblem}
+            variant="secondary"
+          >
+            Next →
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

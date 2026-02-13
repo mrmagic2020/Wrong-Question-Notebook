@@ -51,6 +51,20 @@ export interface ProblemSetShare {
   shared_with_email: string;
 }
 
+export interface FilterConfig {
+  tag_ids: string[];
+  statuses: ProblemStatus[];
+  problem_types: ProblemType[];
+  days_since_review: number | null;
+  include_never_reviewed: boolean;
+}
+
+export interface SessionConfig {
+  randomize: boolean;
+  session_size: number | null;
+  auto_advance: boolean;
+}
+
 export interface ProblemSet {
   id: string;
   name: string;
@@ -61,6 +75,43 @@ export interface ProblemSet {
   updated_at: string;
   shared_with_emails?: string[];
   problem_set_shares?: ProblemSetShare[];
+  is_smart: boolean;
+  filter_config?: FilterConfig | null;
+  session_config?: SessionConfig | null;
+}
+
+export interface ReviewSessionState {
+  id: string;
+  user_id: string;
+  problem_set_id: string;
+  started_at: string;
+  last_activity_at: string;
+  is_active: boolean;
+  session_state: {
+    problem_ids: string[];
+    current_index: number;
+    completed_problem_ids: string[];
+    skipped_problem_ids: string[];
+  };
+}
+
+export interface ReviewSessionResult {
+  id: string;
+  session_state_id: string;
+  problem_id: string;
+  completed_at: string;
+  was_correct: boolean | null;
+  was_skipped: boolean;
+}
+
+export interface ReviewSessionSummary {
+  total_problems: number;
+  completed_count: number;
+  skipped_count: number;
+  correct_count: number;
+  incorrect_count: number;
+  started_at: string;
+  completed_at: string | null;
 }
 
 export interface Asset {

@@ -24,6 +24,7 @@ import {
   Users,
   Globe,
   Share,
+  Sparkles,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProblemSetSharingLevel } from '@/lib/schemas';
@@ -35,6 +36,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import ProblemSetEditDialog from '@/app/(app)/problem-sets/problem-set-edit-dialog';
+import CreateSmartSetDialog from '@/components/review/create-smart-set-dialog';
 import { ProblemSetWithDetails, ProblemSetsPageClientProps } from '@/lib/types';
 
 export default function ProblemSetsPageClient({
@@ -61,6 +63,7 @@ export default function ProblemSetsPageClient({
     open: false,
     problemSet: null,
   });
+  const [smartSetDialogOpen, setSmartSetDialogOpen] = useState(false);
 
   const filteredProblemSets = useMemo(() => {
     const q = searchText.trim().toLowerCase();
@@ -201,6 +204,13 @@ export default function ProblemSetsPageClient({
                 className="pl-10"
               />
             </div>
+            <Button
+              variant="outline"
+              onClick={() => setSmartSetDialogOpen(true)}
+            >
+              <Sparkles className="mr-2 h-4 w-4" />
+              Smart Set
+            </Button>
             <Button onClick={() => router.push('/subjects')}>
               <Plus className="mr-2 h-4 w-4" />
               Create New Set
@@ -227,15 +237,23 @@ export default function ProblemSetsPageClient({
                     {problemSet.subject_name}
                   </CardDescription>
                 </div>
-                <Badge
-                  variant={getSharingVariant(problemSet.sharing_level)}
-                  className="ml-2"
-                >
-                  {getSharingIcon(problemSet.sharing_level)}
-                  <span className="ml-1">
-                    {getSharingLabel(problemSet.sharing_level)}
-                  </span>
-                </Badge>
+                <div className="flex gap-1 ml-2">
+                  {problemSet.is_smart && (
+                    <Badge
+                      variant="outline"
+                      className="border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400"
+                    >
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      Smart
+                    </Badge>
+                  )}
+                  <Badge variant={getSharingVariant(problemSet.sharing_level)}>
+                    {getSharingIcon(problemSet.sharing_level)}
+                    <span className="ml-1">
+                      {getSharingLabel(problemSet.sharing_level)}
+                    </span>
+                  </Badge>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="flex flex-1 flex-col pt-0">
@@ -346,13 +364,23 @@ export default function ProblemSetsPageClient({
           onOpenChange={open => setEditDialog(prev => ({ ...prev, open }))}
           problemSet={editDialog.problemSet}
           onSuccess={() => {
-            // Refresh the problem sets list after 1 second
             setTimeout(() => {
               window.location.reload();
             }, 1000);
           }}
         />
       )}
+
+      {/* Create Smart Set Dialog */}
+      <CreateSmartSetDialog
+        open={smartSetDialogOpen}
+        onOpenChange={setSmartSetDialogOpen}
+        onSuccess={() => {
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        }}
+      />
     </div>
   );
 }

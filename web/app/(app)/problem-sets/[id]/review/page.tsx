@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { requireUser } from '@/lib/supabase/requireUser';
 import { notFound } from 'next/navigation';
 import ProblemReview from '@/app/(app)/subjects/[id]/problems/[problemId]/review/problem-review';
+import SessionReviewClient from './session-review-client';
 
 export async function generateMetadata({
   params,
@@ -111,16 +112,30 @@ export default async function ProblemSetReviewPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ problemId?: string }>;
+  searchParams: Promise<{ problemId?: string; sessionId?: string }>;
 }) {
   const { id } = await params;
-  const { problemId } = await searchParams;
+  const { problemId, sessionId } = await searchParams;
 
   const problemSet = await loadProblemSet(id);
   if (!problemSet) {
     notFound();
   }
 
+  // Session-aware review mode
+  if (sessionId) {
+    return (
+      <SessionReviewClient
+        problemSetId={id}
+        sessionId={sessionId}
+        subjectId={problemSet.subject_id}
+        subjectName={problemSet.subject_name}
+        isReadOnly={!problemSet.isOwner}
+      />
+    );
+  }
+
+  // Legacy review mode (no session)
   const problems = await loadProblemSetProblems(id);
 
   if (problems.length === 0) {
@@ -129,7 +144,7 @@ export default async function ProblemSetReviewPage({
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">No Problems in Set</h1>
           <p className="text-muted-foreground mb-4">
-            This problem set doesn't have any problems yet.
+            This problem set doesn&apos;t have any problems yet.
           </p>
           <a
             href={`/problem-sets/${id}`}

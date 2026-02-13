@@ -1,0 +1,75 @@
+import { NextResponse } from 'next/server';
+import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
+import { withSecurity } from '@/lib/security-middleware';
+import {
+  createApiErrorResponse,
+  createApiSuccessResponse,
+  handleAsyncError,
+  isValidUuid,
+} from '@/lib/common-utils';
+import { ERROR_MESSAGES } from '@/lib/constants';
+import { calculateSessionStats } from '@/lib/review-utils';
+
+async function completeSession(
+  req: Request,
+  { params }: { params: Promise<{ sessionId: string }> }
+) {
+  const { user, supabase } = await requireUser();
+  if (!user) return unauthorised();
+
+  const { sessionId } = await params;
+
+  if (!isValidUuid(sessionId)) {
+    return NextResponse.json(
+      createApiErrorResponse('Invalid session ID format', 400),
+      { status: 400 }
+    );
+  }
+
+  try {
+    // Mark session as complete
+    const { data: session, error: updateError } = await supabase
+      .from('review_session_state')
+      .update({
+        is_active: false,
+        last_activity_at: new Date().toISOString(),
+      })
+      .eq('id', sessionId)
+      .eq('user_id', user.id)
+      .select()
+      .single();
+
+    if (updateError || !session) {
+      return NextResponse.json(
+        createApiErrorResponse(
+          session ? ERROR_MESSAGES.DATABASE_ERROR : 'Session not found',
+          session ? 500 : 404,
+          updateError?.message
+        ),
+        { status: session ? 500 : 404 }
+      );
+    }
+
+    // Get all results
+    const { data: results } = await supabase
+      .from('review_session_results')
+      .select('*')
+      .eq('session_state_id', sessionId);
+
+    const summary = calculateSessionStats(results || [], session);
+
+    return NextResponse.json(
+      createApiSuccessResponse({
+        session,
+        summary,
+      })
+    );
+  } catch (error) {
+    const { message, status } = handleAsyncError(error);
+    return NextResponse.json(createApiErrorResponse(message, status), {
+      status,
+    });
+  }
+}
+
+export const POST = withSecurity(completeSession, { rateLimitType: 'api' });
