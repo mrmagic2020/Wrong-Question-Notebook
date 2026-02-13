@@ -86,7 +86,7 @@ async function startSession(
       // Manual set: get problems from problem_set_problems
       const { data: pspData } = await supabase
         .from('problem_set_problems')
-        .select('problem_id, problems(id)')
+        .select('problem_id, problems(id, status)')
         .eq('problem_set_id', id);
 
       problems = (pspData || [])
@@ -111,6 +111,12 @@ async function startSession(
     const sessionProblems = applySessionConfig(problems, sessionConfig);
     const problemIds = sessionProblems.map(p => p.id);
 
+    // Capture initial statuses for delta calculation in summary
+    const initialStatuses: Record<string, string> = {};
+    for (const p of sessionProblems) {
+      initialStatuses[p.id] = p.status;
+    }
+
     // Create new session
     const { data: newSession, error: sessionError } = await supabase
       .from('review_session_state')
@@ -123,6 +129,8 @@ async function startSession(
           current_index: 0,
           completed_problem_ids: [],
           skipped_problem_ids: [],
+          initial_statuses: initialStatuses,
+          elapsed_ms: 0,
         },
       })
       .select()

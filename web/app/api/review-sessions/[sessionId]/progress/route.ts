@@ -35,7 +35,7 @@ async function updateProgress(
     );
   }
 
-  const { problemId, wasCorrect, wasSkipped, currentIndex } = body;
+  const { problemId, wasCorrect, wasSkipped, currentIndex, elapsed_ms } = body;
 
   if (!problemId || !isValidUuid(problemId)) {
     return NextResponse.json(
@@ -65,6 +65,10 @@ async function updateProgress(
     const sessionState = { ...session.session_state };
     if (typeof currentIndex === 'number') {
       sessionState.current_index = currentIndex;
+    }
+
+    if (typeof elapsed_ms === 'number') {
+      sessionState.elapsed_ms = elapsed_ms;
     }
 
     if (wasSkipped) {

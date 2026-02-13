@@ -56,7 +56,25 @@ async function completeSession(
       .select('*')
       .eq('session_state_id', sessionId);
 
-    const summary = calculateSessionStats(results || [], session);
+    // Fetch current problem statuses for delta calculation
+    const problemIds = session.session_state?.problem_ids || [];
+    const currentStatuses: Record<string, string> = {};
+    if (problemIds.length > 0) {
+      const { data: problems } = await supabase
+        .from('problems')
+        .select('id, status')
+        .in('id', problemIds);
+
+      for (const p of problems || []) {
+        currentStatuses[p.id] = p.status;
+      }
+    }
+
+    const summary = calculateSessionStats(
+      results || [],
+      session,
+      currentStatuses
+    );
 
     return NextResponse.json(
       createApiSuccessResponse({

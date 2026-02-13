@@ -1,7 +1,14 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, SkipForward } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Pause,
+  SkipForward,
+} from 'lucide-react';
+import { formatDuration } from '@/lib/common-utils';
 
 interface ReviewSessionNavProps {
   currentIndex: number;
@@ -22,6 +29,10 @@ interface ReviewSessionNavProps {
   wrapperClassName?: string;
   /** Whether this is the foremost (furthest reached) problem in the session */
   isForemost?: boolean;
+  /** Elapsed time in milliseconds for the session timer */
+  elapsedMs?: number;
+  /** Callback to pause the session */
+  onPause?: () => void;
 }
 
 export default function ReviewSessionNav({
@@ -39,6 +50,8 @@ export default function ReviewSessionNav({
   onFinish,
   wrapperClassName,
   isForemost = true,
+  elapsedMs,
+  onPause,
 }: ReviewSessionNavProps) {
   const progressPercent =
     totalProblems > 0
@@ -75,6 +88,27 @@ export default function ReviewSessionNav({
           />
         </div>
       </div>
+
+      {/* Timer */}
+      {typeof elapsedMs === 'number' && (
+        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+          <Clock className="h-4 w-4" />
+          <span className="font-mono tabular-nums">
+            {formatDuration(elapsedMs)}
+          </span>
+          {onPause && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onPause}
+              className="h-6 w-6 p-0"
+              aria-label="Pause session"
+            >
+              <Pause className="h-3.5 w-3.5" />
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Navigation buttons */}
       <div className="flex justify-between items-center">

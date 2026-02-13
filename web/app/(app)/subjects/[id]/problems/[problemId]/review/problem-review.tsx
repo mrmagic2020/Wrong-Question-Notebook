@@ -41,6 +41,8 @@ interface SessionNavProps {
   isLastProblem?: boolean;
   onFinish?: () => void;
   isForemost?: boolean;
+  elapsedMs?: number;
+  onPause?: () => void;
 }
 
 interface ProblemReviewProps {
@@ -261,7 +263,8 @@ export default function ProblemReview({
                 }
                 className="text-sm text-primary underline hover:text-primary/80 transition-colors"
               >
-                ← {isProblemSetMode ? 'Back to Problem Set' : 'Back to Problems'}
+                ←{' '}
+                {isProblemSetMode ? 'Back to Problem Set' : 'Back to Problems'}
               </Link>
             )}
           </div>

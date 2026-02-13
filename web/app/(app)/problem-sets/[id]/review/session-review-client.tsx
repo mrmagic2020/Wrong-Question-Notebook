@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Clock, LogOut, Loader2, Play } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProblemStatus } from '@/lib/schemas';
 import ProblemReview from '@/app/(app)/subjects/[id]/problems/[problemId]/review/problem-review';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Problem } from '@/lib/types';
+import { formatDuration } from '@/lib/common-utils';
 
 interface SessionReviewClientProps {
   problemSetId: string;
@@ -26,6 +27,8 @@ interface SessionData {
       current_index: number;
       completed_problem_ids: string[];
       skipped_problem_ids: string[];
+      initial_statuses: Record<string, string>;
+      elapsed_ms: number;
     };
   };
   problems: Problem[];
@@ -48,6 +51,11 @@ export default function SessionReviewClient({
   const [statusSelectedForCurrent, setStatusSelectedForCurrent] =
     useState(false);
 
+  // Timer state
+  const [elapsedMs, setElapsedMs] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const fetchSession = useCallback(async () => {
     try {
       const res = await fetch(`/api/review-sessions/${sessionId}`);
@@ -66,6 +74,31 @@ export default function SessionReviewClient({
   useEffect(() => {
     fetchSession();
   }, [fetchSession]);
+
+  // Initialize timer from session state once loaded
+  useEffect(() => {
+    if (sessionData) {
+      const saved = sessionData.session.session_state.elapsed_ms;
+      if (typeof saved === 'number' && saved > 0) {
+        setElapsedMs(saved);
+      }
+    }
+  }, [sessionData?.session.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Timer interval: tick every second when not paused
+  useEffect(() => {
+    if (!loading && sessionData && !isPaused) {
+      timerRef.current = setInterval(() => {
+        setElapsedMs(prev => prev + 1000);
+      }, 1000);
+    }
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [loading, sessionData, isPaused]);
 
   // Reset status selection tracking when navigating to a new problem
   useEffect(() => {
@@ -95,6 +128,7 @@ export default function SessionReviewClient({
           wasSkipped,
           wasCorrect,
           currentIndex: nextIndex,
+          elapsed_ms: elapsedMs,
         }),
       });
 
@@ -210,6 +244,7 @@ export default function SessionReviewClient({
             wasSkipped: false,
             wasCorrect: null,
             currentIndex,
+            elapsed_ms: elapsedMs,
           }),
         });
       } catch {
@@ -267,56 +302,92 @@ export default function SessionReviewClient({
   // Check if we're at the foremost (furthest reached) problem
   // We're at the foremost if the next problem hasn't been completed yet
   const nextProblemId =
-    currentIndex < problemIds.length - 1
-      ? problemIds[currentIndex + 1]
-      : null;
+    currentIndex < problemIds.length - 1 ? problemIds[currentIndex + 1] : null;
   const isForemost =
     !nextProblemId || !completed_problem_ids.includes(nextProblemId);
 
   return (
-    <div className="section-container">
-      {/* Problem Review with integrated session nav in sidebar */}
-      <ProblemReview
-        key={currentProblem.id}
-        problem={currentProblem}
-        subject={{ id: subjectId, name: subjectName }}
-        allProblems={sessionData.problems}
-        prevProblem={prevProblem || null}
-        nextProblem={nextProblem || null}
-        isProblemSetMode={true}
-        problemSetId={problemSetId}
-        isReadOnly={isReadOnly}
-        hideNavigation={true}
-        onStatusSelected={handleStatusSelected}
-        showExitButton={true}
-        onExitSession={() => setExitDialogOpen(true)}
-        sessionNav={{
-          currentIndex,
-          totalProblems: problemIds.length,
-          completedCount: completed_problem_ids.length,
-          skippedCount: skipped_problem_ids.length,
-          onPrevious: handlePrevious,
-          onNext: handleNext,
-          onSkip: handleSkip,
-          hasPrevious: currentIndex > 0,
-          hasNext: currentIndex < problemIds.length - 1,
-          nextEnabled: statusSelectedForCurrent,
-          isLastProblem,
-          onFinish: handleCompleteSession,
-          isForemost,
-        }}
-      />
+    <>
+      <div className="section-container">
+        {/* Problem Review with integrated session nav in sidebar */}
+        <ProblemReview
+          key={currentProblem.id}
+          problem={currentProblem}
+          subject={{ id: subjectId, name: subjectName }}
+          allProblems={sessionData.problems}
+          prevProblem={prevProblem || null}
+          nextProblem={nextProblem || null}
+          isProblemSetMode={true}
+          problemSetId={problemSetId}
+          isReadOnly={isReadOnly}
+          hideNavigation={true}
+          onStatusSelected={handleStatusSelected}
+          showExitButton={true}
+          onExitSession={() => setExitDialogOpen(true)}
+          sessionNav={{
+            currentIndex,
+            totalProblems: problemIds.length,
+            completedCount: completed_problem_ids.length,
+            skippedCount: skipped_problem_ids.length,
+            onPrevious: handlePrevious,
+            onNext: handleNext,
+            onSkip: handleSkip,
+            hasPrevious: currentIndex > 0,
+            hasNext: currentIndex < problemIds.length - 1,
+            nextEnabled: statusSelectedForCurrent,
+            isLastProblem,
+            onFinish: handleCompleteSession,
+            isForemost,
+            elapsedMs,
+            onPause: () => setIsPaused(true),
+          }}
+        />
 
-      {/* Exit Confirmation Dialog */}
-      <ConfirmationDialog
-        isOpen={exitDialogOpen}
-        onCancel={() => setExitDialogOpen(false)}
-        onConfirm={handleExitSession}
-        title="Exit Review Session"
-        message="Your progress will be saved. You can resume this session later."
-        confirmText="Exit"
-        cancelText="Continue Reviewing"
-      />
-    </div>
+        {/* Exit Confirmation Dialog */}
+        <ConfirmationDialog
+          isOpen={exitDialogOpen}
+          onCancel={() => setExitDialogOpen(false)}
+          onConfirm={handleExitSession}
+          title="Exit Review Session"
+          message="Your progress will be saved. You can resume this session later."
+          confirmText="Exit"
+          cancelText="Continue Reviewing"
+        />
+      </div>
+
+      {/* Pause Overlay - outside section-container to cover entire viewport */}
+      {isPaused && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-background/60">
+          <div className="flex flex-col items-center gap-6 p-8 rounded-2xl bg-card border border-border shadow-lg max-w-sm w-full mx-4">
+            <h2 className="text-2xl font-bold text-foreground">
+              Session Paused
+            </h2>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Clock className="h-5 w-5" />
+              <span className="font-mono tabular-nums text-lg">
+                {formatDuration(elapsedMs)}
+              </span>
+            </div>
+            <div className="flex flex-col gap-3 w-full">
+              <Button
+                onClick={() => setIsPaused(false)}
+                className="w-full bg-amber-600 hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800 text-white"
+              >
+                <Play className="h-4 w-4 mr-2" />
+                Continue Reviewing
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleExitSession}
+                className="w-full"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Leave Session
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

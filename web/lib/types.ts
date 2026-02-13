@@ -92,6 +92,8 @@ export interface ReviewSessionState {
     current_index: number;
     completed_problem_ids: string[];
     skipped_problem_ids: string[];
+    initial_statuses: Record<string, ProblemStatus>;
+    elapsed_ms: number;
   };
 }
 
@@ -108,8 +110,9 @@ export interface ReviewSessionSummary {
   total_problems: number;
   completed_count: number;
   skipped_count: number;
-  correct_count: number;
-  incorrect_count: number;
+  status_counts: { mastered: number; needs_review: number; wrong: number };
+  status_deltas: { mastered: number; needs_review: number; wrong: number };
+  elapsed_ms: number;
   started_at: string;
   completed_at: string | null;
 }
