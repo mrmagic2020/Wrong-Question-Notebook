@@ -3,11 +3,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Loader2, LogOut } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProblemStatus } from '@/lib/schemas';
 import ProblemReview from '@/app/(app)/subjects/[id]/problems/[problemId]/review/problem-review';
-import ReviewSessionNav from '@/components/review/review-session-nav';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Problem } from '@/lib/types';
 
@@ -265,22 +264,18 @@ export default function SessionReviewClient({
 
   const isLastProblem = currentIndex >= problemIds.length - 1;
 
-  return (
-    <div className="section-container space-y-4">
-      {/* Exit button */}
-      <div className="flex justify-end">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setExitDialogOpen(true)}
-          className="text-muted-foreground"
-        >
-          <LogOut className="h-4 w-4 mr-1" />
-          Exit Session
-        </Button>
-      </div>
+  // Check if we're at the foremost (furthest reached) problem
+  // We're at the foremost if the next problem hasn't been completed yet
+  const nextProblemId =
+    currentIndex < problemIds.length - 1
+      ? problemIds[currentIndex + 1]
+      : null;
+  const isForemost =
+    !nextProblemId || !completed_problem_ids.includes(nextProblemId);
 
-      {/* Problem Review (bottom nav hidden; session nav below handles navigation) */}
+  return (
+    <div className="section-container">
+      {/* Problem Review with integrated session nav in sidebar */}
       <ProblemReview
         key={currentProblem.id}
         problem={currentProblem}
@@ -293,22 +288,23 @@ export default function SessionReviewClient({
         isReadOnly={isReadOnly}
         hideNavigation={true}
         onStatusSelected={handleStatusSelected}
-      />
-
-      {/* Session Nav (below problem review + status selector) */}
-      <ReviewSessionNav
-        currentIndex={currentIndex}
-        totalProblems={problemIds.length}
-        completedCount={completed_problem_ids.length}
-        skippedCount={skipped_problem_ids.length}
-        onPrevious={handlePrevious}
-        onNext={handleNext}
-        onSkip={handleSkip}
-        hasPrevious={currentIndex > 0}
-        hasNext={currentIndex < problemIds.length - 1}
-        nextEnabled={statusSelectedForCurrent}
-        isLastProblem={isLastProblem}
-        onFinish={handleCompleteSession}
+        showExitButton={true}
+        onExitSession={() => setExitDialogOpen(true)}
+        sessionNav={{
+          currentIndex,
+          totalProblems: problemIds.length,
+          completedCount: completed_problem_ids.length,
+          skippedCount: skipped_problem_ids.length,
+          onPrevious: handlePrevious,
+          onNext: handleNext,
+          onSkip: handleSkip,
+          hasPrevious: currentIndex > 0,
+          hasNext: currentIndex < problemIds.length - 1,
+          nextEnabled: statusSelectedForCurrent,
+          isLastProblem,
+          onFinish: handleCompleteSession,
+          isForemost,
+        }}
       />
 
       {/* Exit Confirmation Dialog */}

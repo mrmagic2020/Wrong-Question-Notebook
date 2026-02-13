@@ -255,6 +255,7 @@ export interface SolutionRevealProps {
   problemType?: string;
   isRevealed: boolean;
   onToggle: () => void;
+  wrapperClassName?: string;
 }
 
 export interface AssetPreviewProps {
@@ -275,6 +276,7 @@ export interface StatusSelectorProps {
   currentStatus: ProblemStatus;
   selectedStatus: ProblemStatus | null;
   onStatusChange: (status: ProblemStatus) => void;
+  compact?: boolean;
 }
 
 // =====================================================

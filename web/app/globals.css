@@ -429,6 +429,42 @@ html body[data-scroll-locked] {
       #2a1f0e 32px
     );
   }
+
+  /* Problem Review Page - Warm Design Classes */
+
+  .review-header-sticky {
+    @apply sticky top-0 z-10 px-4 py-3 backdrop-blur-sm;
+    @apply bg-background/80;
+    @apply border-b border-border/40;
+  }
+
+  .review-section-warm {
+    @apply rounded-2xl p-4 bg-gradient-to-br border;
+  }
+
+  .review-section-blue {
+    @apply review-section-warm from-blue-50 to-indigo-100/50 dark:from-blue-950/40 dark:to-indigo-900/20;
+    @apply border-blue-200/40 dark:border-blue-800/30;
+  }
+
+  .review-section-green {
+    @apply review-section-warm from-green-50 to-emerald-100/50 dark:from-green-950/40 dark:to-emerald-900/20;
+    @apply border-green-200/40 dark:border-green-800/30;
+  }
+
+  .review-section-amber {
+    @apply review-section-warm from-amber-50 to-orange-100/50 dark:from-amber-950/40 dark:to-orange-900/20;
+    @apply border-amber-200/40 dark:border-amber-800/30;
+  }
+
+  .review-section-rose {
+    @apply review-section-warm from-rose-50 to-pink-100/50 dark:from-rose-950/40 dark:to-pink-900/20;
+    @apply border-rose-200/40 dark:border-rose-800/30;
+  }
+
+  .review-icon-small {
+    @apply w-8 h-8 rounded-lg flex items-center justify-center;
+  }
 }
 
 /* Hero Animation Keyframes */

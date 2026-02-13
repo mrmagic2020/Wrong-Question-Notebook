@@ -89,6 +89,7 @@ export default function SolutionReveal({
   problemType,
   isRevealed,
   onToggle,
+  wrapperClassName,
 }: SolutionRevealProps) {
   const hasStructuredAnswer = !!answerConfig;
   const hasCorrectAnswer =
@@ -100,9 +101,15 @@ export default function SolutionReveal({
     solutionText || solutionAssets.length > 0 || hasCorrectAnswer;
 
   return (
-    <div className="bg-card rounded-lg border border-border p-6">
+    <div
+      className={
+        wrapperClassName || 'bg-card rounded-lg border border-border p-4'
+      }
+    >
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-medium text-card-foreground">Solution</h2>
+        <h2 className="text-base font-semibold text-green-900 dark:text-green-100">
+          Solution
+        </h2>
         {hasSolution && (
           <Button onClick={onToggle} variant="secondary">
             {isRevealed ? 'Hide Solution' : 'Reveal Solution'}
