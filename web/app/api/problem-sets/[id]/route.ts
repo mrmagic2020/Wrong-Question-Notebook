@@ -101,7 +101,34 @@ async function updateProblemSet(
     );
   }
 
-  const { shared_with_emails, ...updateData } = parsed.data;
+  // Only include fields that were explicitly provided in the request body.
+  // Zod v4 .partial() preserves .default() values, so fields like is_smart
+  // and sharing_level get defaulted even when not sent. We use the raw body
+  // keys to determine what was actually provided.
+  const providedKeys = new Set(Object.keys(body));
+  const fullUpdateData: Record<string, unknown> = {};
+  const nonColumnKeys = new Set(['shared_with_emails', 'problem_ids']);
+  for (const key of Object.keys(parsed.data)) {
+    if (providedKeys.has(key) && !nonColumnKeys.has(key)) {
+      fullUpdateData[key] = (parsed.data as Record<string, unknown>)[key];
+    }
+  }
+  const shared_with_emails = parsed.data.shared_with_emails;
+
+  // When setting is_smart to true, require filter_config to be present
+  if (providedKeys.has('is_smart') && fullUpdateData.is_smart) {
+    const hasFilterConfig =
+      providedKeys.has('filter_config') && fullUpdateData.filter_config != null;
+    if (!hasFilterConfig) {
+      return NextResponse.json(
+        createApiErrorResponse(
+          'Smart problem sets must include a valid filter_config',
+          400
+        ),
+        { status: 400 }
+      );
+    }
+  }
 
   try {
     // Check if user owns this problem set
@@ -122,7 +149,7 @@ async function updateProblemSet(
     // Update the problem set
     const { data: updatedSet, error: updateError } = await supabase
       .from('problem_sets')
-      .update(updateData)
+      .update(fullUpdateData)
       .eq('id', id)
       .eq('user_id', user.id)
       .select()
@@ -139,39 +166,41 @@ async function updateProblemSet(
       );
     }
 
-    // Handle shared emails based on sharing level
-    if (updateData.sharing_level === 'limited') {
-      // Remove existing shares first
-      await supabase
-        .from('problem_set_shares')
-        .delete()
-        .eq('problem_set_id', id)
-        .eq('shared_by_user_id', user.id);
-
-      // Add new shares if any
-      if (shared_with_emails && shared_with_emails.length > 0) {
-        const shares = shared_with_emails.map(email => ({
-          problem_set_id: id,
-          shared_with_email: email,
-          shared_by_user_id: user.id,
-        }));
-
-        const { error: sharesError } = await supabase
+    // Handle shared emails only when sharing_level was explicitly provided
+    if (providedKeys.has('sharing_level')) {
+      if (fullUpdateData.sharing_level === 'limited') {
+        // Remove existing shares first
+        await supabase
           .from('problem_set_shares')
-          .insert(shares);
+          .delete()
+          .eq('problem_set_id', id)
+          .eq('shared_by_user_id', user.id);
 
-        if (sharesError) {
-          console.error('Failed to update shares:', sharesError);
-          // Don't fail the entire operation for share errors
+        // Add new shares if any
+        if (shared_with_emails && shared_with_emails.length > 0) {
+          const shares = shared_with_emails.map(email => ({
+            problem_set_id: id,
+            shared_with_email: email,
+            shared_by_user_id: user.id,
+          }));
+
+          const { error: sharesError } = await supabase
+            .from('problem_set_shares')
+            .insert(shares);
+
+          if (sharesError) {
+            console.error('Failed to update shares:', sharesError);
+            // Don't fail the entire operation for share errors
+          }
         }
+      } else {
+        // For private and public, remove all existing shares
+        await supabase
+          .from('problem_set_shares')
+          .delete()
+          .eq('problem_set_id', id)
+          .eq('shared_by_user_id', user.id);
       }
-    } else {
-      // For private and public, remove all existing shares
-      await supabase
-        .from('problem_set_shares')
-        .delete()
-        .eq('problem_set_id', id)
-        .eq('shared_by_user_id', user.id);
     }
 
     // Invalidate cache after successful update

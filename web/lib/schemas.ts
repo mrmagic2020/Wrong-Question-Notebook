@@ -336,6 +336,20 @@ export const ProblemSetSharingLevel = z.enum([
 ]);
 export type ProblemSetSharingLevel = z.infer<typeof ProblemSetSharingLevel>;
 
+export const FilterConfigSchema = z.object({
+  tag_ids: z.array(z.uuid()).default([]),
+  statuses: z.array(ProblemStatus).default([]),
+  problem_types: z.array(ProblemType).default([]),
+  days_since_review: z.number().min(0).nullable().optional(),
+  include_never_reviewed: z.boolean().default(true),
+});
+
+export const SessionConfigSchema = z.object({
+  randomize: z.boolean().default(true),
+  session_size: z.number().min(1).max(100).nullable().optional(),
+  auto_advance: z.boolean().default(false),
+});
+
 export const CreateProblemSetDto = z.object({
   subject_id: z.uuid(),
   name: z
@@ -348,6 +362,9 @@ export const CreateProblemSetDto = z.object({
   ),
   shared_with_emails: z.array(z.email()).optional(),
   problem_ids: z.array(z.uuid()).optional(),
+  is_smart: z.boolean().default(false),
+  filter_config: FilterConfigSchema.nullable().optional(),
+  session_config: SessionConfigSchema.nullable().optional(),
 });
 
 export const UpdateProblemSetDto = CreateProblemSetDto.partial().omit({

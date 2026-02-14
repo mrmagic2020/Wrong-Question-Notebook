@@ -19,6 +19,7 @@ import {
   XCircle,
   Clock,
   CheckCircle,
+  Sparkles,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProblemStatus, ProblemSetSharingLevel } from '@/lib/schemas';
@@ -33,6 +34,9 @@ import {
   ProblemSetProgress,
   ProblemSetPageClientProps,
 } from '@/lib/types';
+import ResumeSessionDialog from '@/components/review/resume-session-dialog';
+import EditSmartSetDialog from '@/components/review/edit-smart-set-dialog';
+import { FilterConfig, SessionConfig } from '@/lib/types';
 
 export default function ProblemSetPageClient({
   initialProblemSet,
@@ -58,6 +62,15 @@ export default function ProblemSetPageClient({
     open: false,
     problemIds: [],
     count: 0,
+  });
+  const [editSmartDialog, setEditSmartDialog] = useState(false);
+  const [sessionLoading, setSessionLoading] = useState(false);
+  const [resumeDialog, setResumeDialog] = useState<{
+    open: boolean;
+    session: any;
+  }>({
+    open: false,
+    session: null,
   });
 
   const fetchProgress = useCallback(async () => {
@@ -227,6 +240,78 @@ export default function ProblemSetPageClient({
     }
   };
 
+  const handleStartReview = async () => {
+    setSessionLoading(true);
+    try {
+      const res = await fetch(
+        `/api/problem-sets/${problemSet.id}/start-session`,
+        { method: 'POST' }
+      );
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Failed to start session');
+      }
+      const data = await res.json();
+      const result = data.data;
+
+      if (result.hasActiveSession) {
+        // Show resume dialog
+        setResumeDialog({ open: true, session: result.session });
+      } else {
+        // Navigate to session-aware review page
+        router.push(
+          `/problem-sets/${problemSet.id}/review?sessionId=${result.sessionId}`
+        );
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to start review'
+      );
+    } finally {
+      setSessionLoading(false);
+    }
+  };
+
+  const handleResumeSession = (sessionId: string) => {
+    setResumeDialog({ open: false, session: null });
+    router.push(`/problem-sets/${problemSet.id}/review?sessionId=${sessionId}`);
+  };
+
+  const handleStartNewSession = async () => {
+    setResumeDialog({ open: false, session: null });
+    setSessionLoading(true);
+    try {
+      // Deactivate the old session
+      if (resumeDialog.session?.id) {
+        await fetch(`/api/review-sessions/${resumeDialog.session.id}`, {
+          method: 'DELETE',
+        });
+      }
+      // Start a fresh session
+      const res = await fetch(
+        `/api/problem-sets/${problemSet.id}/start-session`,
+        { method: 'POST' }
+      );
+      if (!res.ok) {
+        throw new Error('Failed to start new session');
+      }
+      const data = await res.json();
+      router.push(
+        `/problem-sets/${problemSet.id}/review?sessionId=${data.data.sessionId}`
+      );
+    } catch {
+      toast.error('Failed to start new session');
+    } finally {
+      setSessionLoading(false);
+    }
+  };
+
+  const handleEditSmartSetSuccess = () => {
+    // Reload the page to get updated data
+    router.refresh();
+    window.location.reload();
+  };
+
   const handleProblemClick = (problemId: string) => {
     router.push(`/problem-sets/${problemSet.id}/review?problemId=${problemId}`);
   };
@@ -273,17 +358,30 @@ export default function ProblemSetPageClient({
           </div>
         </div>
         <div className="flex items-center space-x-2">
+          {problemSet.is_smart && (
+            <Badge
+              variant="outline"
+              className="border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400"
+            >
+              <Sparkles className="h-3 w-3 mr-1" />
+              Smart
+            </Badge>
+          )}
           <Badge variant={getSharingVariant(problemSet.sharing_level)}>
             {getSharingIcon(problemSet.sharing_level)}
             <span className="ml-1">
               {getSharingLabel(problemSet.sharing_level)}
             </span>
           </Badge>
-          <Button
-            onClick={() => router.push(`/problem-sets/${problemSet.id}/review`)}
-          >
+          {problemSet.is_smart && problemSet.isOwner && (
+            <Button variant="outline" onClick={() => setEditSmartDialog(true)}>
+              <Settings className="h-4 w-4 mr-2" />
+              Edit Settings
+            </Button>
+          )}
+          <Button onClick={handleStartReview} disabled={sessionLoading}>
             <Play className="h-4 w-4 mr-2" />
-            Start Review
+            {sessionLoading ? 'Starting...' : 'Start Review'}
           </Button>
         </div>
       </div>
@@ -333,35 +431,97 @@ export default function ProblemSetPageClient({
         </Card>
       </div>
 
+      {/* Smart set filter info */}
+      {problemSet.is_smart && problemSet.filter_config && (
+        <div className="rounded-lg border border-amber-200/40 dark:border-amber-800/30 bg-amber-50/50 dark:bg-amber-950/20 p-4 mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            <span className="text-sm font-medium text-amber-800 dark:text-amber-300">
+              Smart Filter Criteria
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {problemSet.filter_config.statuses?.length > 0 && (
+              <Badge variant="secondary" className="text-xs">
+                Status:{' '}
+                {problemSet.filter_config.statuses
+                  .map((s: string) =>
+                    s === 'needs_review'
+                      ? 'Needs Review'
+                      : s.charAt(0).toUpperCase() + s.slice(1)
+                  )
+                  .join(', ')}
+              </Badge>
+            )}
+            {problemSet.filter_config.problem_types?.length > 0 && (
+              <Badge variant="secondary" className="text-xs">
+                Type:{' '}
+                {problemSet.filter_config.problem_types
+                  .map((t: string) =>
+                    t === 'mcq'
+                      ? 'MCQ'
+                      : t === 'short'
+                        ? 'Short Answer'
+                        : 'Extended'
+                  )
+                  .join(', ')}
+              </Badge>
+            )}
+            {problemSet.filter_config.days_since_review != null && (
+              <Badge variant="secondary" className="text-xs">
+                Not reviewed in {problemSet.filter_config.days_since_review}{' '}
+                days
+              </Badge>
+            )}
+            {problemSet.filter_config.include_never_reviewed && (
+              <Badge variant="secondary" className="text-xs">
+                Includes never-reviewed
+              </Badge>
+            )}
+            {!problemSet.filter_config.statuses?.length &&
+              !problemSet.filter_config.problem_types?.length &&
+              problemSet.filter_config.days_since_review == null && (
+                <span className="text-xs text-muted-foreground">
+                  All problems in subject
+                </span>
+              )}
+          </div>
+        </div>
+      )}
+
       {/* Actions and Search */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-2">
-          {problemSet.isOwner && (
+          {problemSet.isOwner && !problemSet.is_smart && (
             <Button onClick={handleAddProblems} variant="outline">
               <Plus className="h-4 w-4 mr-2" />
               Add Problems
             </Button>
           )}
-          {problemSet.isOwner && selectedProblems.length > 0 && (
-            <Button
-              onClick={() => handleRemoveProblems(selectedProblems)}
-              variant="outline"
-              className="text-destructive hover:bg-destructive/10"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Remove Selected ({selectedProblems.length})
-            </Button>
-          )}
+          {problemSet.isOwner &&
+            !problemSet.is_smart &&
+            selectedProblems.length > 0 && (
+              <Button
+                onClick={() => handleRemoveProblems(selectedProblems)}
+                variant="outline"
+                className="text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Remove Selected ({selectedProblems.length})
+              </Button>
+            )}
         </div>
 
         <div className="flex items-center space-x-2">
-          {problemSet.isOwner && filteredProblems.length > 0 && (
-            <Button variant="outline" size="sm" onClick={handleSelectAll}>
-              {selectedProblems.length === filteredProblems.length
-                ? 'Deselect All'
-                : 'Select All'}
-            </Button>
-          )}
+          {problemSet.isOwner &&
+            !problemSet.is_smart &&
+            filteredProblems.length > 0 && (
+              <Button variant="outline" size="sm" onClick={handleSelectAll}>
+                {selectedProblems.length === filteredProblems.length
+                  ? 'Deselect All'
+                  : 'Select All'}
+              </Button>
+            )}
           <div className="relative w-80">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -388,9 +548,11 @@ export default function ProblemSetPageClient({
               <p className="text-muted-foreground mb-6">
                 {searchText
                   ? `No problems match "${searchText}"`
-                  : 'Add problems to this set to get started with reviews.'}
+                  : problemSet.is_smart
+                    ? 'No problems match the current filter criteria. Try editing the smart set settings.'
+                    : 'Add problems to this set to get started with reviews.'}
               </p>
-              {!searchText && problemSet.isOwner && (
+              {!searchText && problemSet.isOwner && !problemSet.is_smart && (
                 <Button onClick={handleAddProblems}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Problems
@@ -415,7 +577,7 @@ export default function ProblemSetPageClient({
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2 mb-2">
-                      {problemSet.isOwner && (
+                      {problemSet.isOwner && !problemSet.is_smart && (
                         <input
                           type="checkbox"
                           checked={selectedProblems.includes(problem.id)}
@@ -477,6 +639,35 @@ export default function ProblemSetPageClient({
         cancelText="Cancel"
         variant="destructive"
       />
+
+      {/* Resume Session Dialog */}
+      {resumeDialog.session && (
+        <ResumeSessionDialog
+          open={resumeDialog.open}
+          onOpenChange={open => setResumeDialog(prev => ({ ...prev, open }))}
+          session={resumeDialog.session}
+          onResume={handleResumeSession}
+          onStartNew={handleStartNewSession}
+          isLoading={sessionLoading}
+        />
+      )}
+
+      {/* Edit Smart Set Dialog */}
+      {problemSet.is_smart &&
+        problemSet.filter_config &&
+        problemSet.session_config && (
+          <EditSmartSetDialog
+            open={editSmartDialog}
+            onOpenChange={setEditSmartDialog}
+            onSuccess={handleEditSmartSetSuccess}
+            problemSetId={problemSet.id}
+            problemSetName={problemSet.name}
+            subjectId={problemSet.subject_id}
+            subjectName={problemSet.subject_name}
+            filterConfig={problemSet.filter_config as FilterConfig}
+            sessionConfig={problemSet.session_config as SessionConfig}
+          />
+        )}
     </div>
   );
 }

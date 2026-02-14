@@ -8,8 +8,9 @@ import { createApiErrorResponse, handleAsyncError } from '@/lib/common-utils';
  * GET /api/files/[path] - Serve file content using signed URLs with secure access control
  *
  * Access is granted if:
- * 1. File is in user's problems directory (permanent assets) - direct ownership check
+ * 1. File is in the current user's directory (ownership) - fast path
  * 2. File belongs to a problem the user can view via can_view_problem RPC
+ *    (covers public sharing, limited sharing, and smart set sharing)
  *
  * Uses signed URLs for efficient and secure file delivery.
  */
@@ -38,35 +39,16 @@ export async function GET(
   const bucket = FILE_CONSTANTS.STORAGE.BUCKET;
   const name = decodedPath; // Full path is the object name
 
-  // Handle permanent asset files - direct ownership check
-  const isPermanentAssetFile = decodedPath.includes('/problems/');
+  // Fast path: owner can always access their own files
   const isUserOwnedFile = decodedPath.startsWith(`user/${user.id}/`);
 
-  if (isPermanentAssetFile) {
-    // For permanent asset files, ensure they belong to the current user
-    if (!isUserOwnedFile) {
-      return NextResponse.json(
-        createApiErrorResponse(ERROR_MESSAGES.UNAUTHORIZED, 403),
-        { status: 403 }
-      );
-    }
-  } else {
-    // For other files (legacy or shared), check if user can view the problem that contains this asset
+  if (!isUserOwnedFile) {
+    // Non-owned file: check if user can view the problem containing this asset
+    // Both RPCs are SECURITY DEFINER so they bypass RLS
     try {
-      // Find the problem that contains this file
-      // const needleObj = { path: decodedPath };
       const { data: problemId, error: problemError } = await supabase
-        .rpc(`find_problem_by_asset`, { p_path: decodedPath })
+        .rpc('find_problem_by_asset', { p_path: decodedPath })
         .single();
-
-      // const { data: problem, error: problemError } = await supabase
-      //   .from('problems')
-      //   .select('id')
-      //   .or(
-      //     `assets.@>.[{"path":"${decodedPath}"}],solution_assets.@>.[{"path":"${decodedPath}"}]`
-      //   )
-      //   .limit(1)
-      //   .maybeSingle();
 
       if (problemError) {
         console.error('Error finding problem for file:', problemError);
@@ -83,7 +65,7 @@ export async function GET(
         );
       }
 
-      // Check if user can view this problem using the RPC
+      // Check if user can view this problem (owner, public, or limited-shared)
       const { data: canView, error: rpcError } = await supabase
         .rpc('can_view_problem', { p_problem_id: problemId })
         .single();

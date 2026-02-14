@@ -27,6 +27,7 @@ export const CACHE_TAGS = {
   SUBJECTS: 'subjects',
   PROBLEMS: 'problems',
   PROBLEM_SETS: 'problem-sets',
+  REVIEW_SESSIONS: 'review-sessions',
   TAGS: 'tags',
   ADMIN_STATS: 'admin-stats',
   ADMIN_USERS: 'admin-users',
@@ -35,6 +36,7 @@ export const CACHE_TAGS = {
   USER_SUBJECTS: 'user-subjects',
   USER_PROBLEMS: 'user-problems',
   USER_PROBLEM_SETS: 'user-problem-sets',
+  USER_REVIEW_SESSIONS: 'user-review-sessions',
   USER_TAGS: 'user-tags',
 } as const;
 

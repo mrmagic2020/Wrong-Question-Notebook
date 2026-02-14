@@ -2,6 +2,10 @@ import { createClient } from '@/lib/supabase/server';
 import { requireUser } from '@/lib/supabase/requireUser';
 import { notFound } from 'next/navigation';
 import ProblemReview from '@/app/(app)/subjects/[id]/problems/[problemId]/review/problem-review';
+import SessionReviewClient from './session-review-client';
+import { getFilteredProblems } from '@/lib/review-utils';
+import { createServiceClient } from '@/lib/supabase-utils';
+import { FilterConfig } from '@/lib/types';
 
 export async function generateMetadata({
   params,
@@ -44,9 +48,33 @@ async function loadProblemSet(id: string) {
   };
 }
 
-async function loadProblemSetProblems(problemSetId: string) {
+async function loadProblemSetProblems(problemSet: any, userId: string) {
   const supabase = await createClient();
+  const isOwner = problemSet.user_id === userId;
+  const ownerUserId = problemSet.user_id;
 
+  // Smart sets: fetch problems via filter criteria
+  if (problemSet.is_smart && problemSet.filter_config) {
+    const filterConfig: FilterConfig = {
+      tag_ids: problemSet.filter_config.tag_ids ?? [],
+      statuses: problemSet.filter_config.statuses ?? [],
+      problem_types: problemSet.filter_config.problem_types ?? [],
+      days_since_review: problemSet.filter_config.days_since_review ?? null,
+      include_never_reviewed:
+        problemSet.filter_config.include_never_reviewed ?? true,
+    };
+    // For shared smart sets, use service client to bypass RLS
+    const queryClient = isOwner ? supabase : createServiceClient();
+    return getFilteredProblems(
+      queryClient,
+      ownerUserId,
+      problemSet.subject_id,
+      filterConfig,
+      ownerUserId
+    );
+  }
+
+  // Manual sets: fetch via junction table
   const { data: problemSetProblems } = await supabase
     .from('problem_set_problems')
     .select(
@@ -69,7 +97,7 @@ async function loadProblemSetProblems(problemSetId: string) {
       )
     `
     )
-    .eq('problem_set_id', problemSetId);
+    .eq('problem_set_id', problemSet.id);
 
   if (!problemSetProblems) {
     return [];
@@ -111,17 +139,32 @@ export default async function ProblemSetReviewPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ problemId?: string }>;
+  searchParams: Promise<{ problemId?: string; sessionId?: string }>;
 }) {
   const { id } = await params;
-  const { problemId } = await searchParams;
+  const { problemId, sessionId } = await searchParams;
 
   const problemSet = await loadProblemSet(id);
   if (!problemSet) {
     notFound();
   }
 
-  const problems = await loadProblemSetProblems(id);
+  // Session-aware review mode
+  if (sessionId) {
+    return (
+      <SessionReviewClient
+        problemSetId={id}
+        sessionId={sessionId}
+        subjectId={problemSet.subject_id}
+        subjectName={problemSet.subject_name}
+        isReadOnly={!problemSet.isOwner}
+      />
+    );
+  }
+
+  // Legacy review mode (no session)
+  const { user } = await requireUser();
+  const problems = await loadProblemSetProblems(problemSet, user?.id || '');
 
   if (problems.length === 0) {
     return (
@@ -129,7 +172,7 @@ export default async function ProblemSetReviewPage({
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">No Problems in Set</h1>
           <p className="text-muted-foreground mb-4">
-            This problem set doesn't have any problems yet.
+            This problem set doesn&apos;t have any problems yet.
           </p>
           <a
             href={`/problem-sets/${id}`}

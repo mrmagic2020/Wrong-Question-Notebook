@@ -8,7 +8,10 @@ import {
   isValidUuid,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
-import { getProblemSetBasic } from '@/lib/problem-set-utils';
+import { getFilteredProblems } from '@/lib/review-utils';
+import { FilterConfig } from '@/lib/types';
+import { checkLimitedAccess } from '@/lib/problem-set-utils';
+import { createServiceClient } from '@/lib/supabase-utils';
 
 // Cache configuration for this route
 export const revalidate = 300; // 5 minutes
@@ -30,46 +33,101 @@ async function getProblemSetProgress(
   }
 
   try {
-    // Check if user has access to this problem set
-    const problemSet = await getProblemSetBasic(
-      supabase,
-      id,
-      user.id,
-      user.email || ''
-    );
+    // Fetch the problem set to check access and determine if smart
+    const { data: problemSet, error: psError } = await supabase
+      .from('problem_sets')
+      .select('id, user_id, sharing_level, is_smart, filter_config, subject_id')
+      .eq('id', id)
+      .single();
 
-    if (!problemSet) {
+    if (psError || !problemSet) {
       return NextResponse.json(
         createApiErrorResponse('Problem set not found or access denied', 404),
         { status: 404 }
       );
     }
 
-    // Get progress by querying the problems directly instead of using the database function
-    const { data: problemSetProblems, error: problemsError } = await supabase
-      .from('problem_set_problems')
-      .select(
-        `
-        problems(
-          status
-        )
-      `
-      )
-      .eq('problem_set_id', id);
+    // Check access: owner, public, or verified limited access
+    const isOwner = problemSet.user_id === user.id;
+    const isPublic = problemSet.sharing_level === 'public';
+    const isLimited = problemSet.sharing_level === 'limited';
 
-    if (problemsError) {
-      return NextResponse.json(
-        createApiErrorResponse(
-          ERROR_MESSAGES.DATABASE_ERROR,
-          500,
-          problemsError.message
-        ),
-        { status: 500 }
-      );
+    if (!isOwner && !isPublic) {
+      if (isLimited) {
+        const hasAccess = await checkLimitedAccess(
+          supabase,
+          id,
+          user.email || ''
+        );
+        if (!hasAccess) {
+          return NextResponse.json(
+            createApiErrorResponse(
+              'Problem set not found or access denied',
+              404
+            ),
+            { status: 404 }
+          );
+        }
+      } else {
+        return NextResponse.json(
+          createApiErrorResponse('Problem set not found or access denied', 404),
+          { status: 404 }
+        );
+      }
     }
 
-    const problems =
-      problemSetProblems?.map(p => p.problems).filter(Boolean) || [];
+    const ownerUserId = problemSet.user_id;
+    let problems: { status: string }[];
+
+    if (problemSet.is_smart && problemSet.filter_config) {
+      // Smart set: query problems via filter using owner's ID
+      const filterConfig: FilterConfig = {
+        tag_ids: problemSet.filter_config.tag_ids ?? [],
+        statuses: problemSet.filter_config.statuses ?? [],
+        problem_types: problemSet.filter_config.problem_types ?? [],
+        days_since_review: problemSet.filter_config.days_since_review ?? null,
+        include_never_reviewed:
+          problemSet.filter_config.include_never_reviewed ?? true,
+      };
+      // For shared smart sets, use service client to bypass RLS
+      const queryClient = isOwner ? supabase : createServiceClient();
+      const filtered = await getFilteredProblems(
+        queryClient,
+        ownerUserId,
+        problemSet.subject_id,
+        filterConfig,
+        ownerUserId
+      );
+      problems = filtered.map(p => ({ status: p.status }));
+    } else {
+      // Manual set: query via junction table
+      const { data: problemSetProblems, error: problemsError } = await supabase
+        .from('problem_set_problems')
+        .select(
+          `
+          problems(
+            status
+          )
+        `
+        )
+        .eq('problem_set_id', id);
+
+      if (problemsError) {
+        return NextResponse.json(
+          createApiErrorResponse(
+            ERROR_MESSAGES.DATABASE_ERROR,
+            500,
+            problemsError.message
+          ),
+          { status: 500 }
+        );
+      }
+
+      problems =
+        (problemSetProblems?.map((p: any) => p.problems).filter(Boolean) as {
+          status: string;
+        }[]) || [];
+    }
 
     const progress = {
       total_problems: problems.length,

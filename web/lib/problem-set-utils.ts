@@ -1,4 +1,7 @@
 // Note: Caching is now handled at the call site level to prevent data leakage
+import { getFilteredProblems } from './review-utils';
+import { FilterConfig } from './types';
+import { createServiceClient } from './supabase-utils';
 
 /**
  * Check if a user has limited access to a problem set
@@ -141,8 +144,36 @@ export async function getProblemSetWithFullData(
     return null;
   }
 
-  // Transform the data to include problems with tags
-  const problems = transformProblemSetProblems(problemSet.problem_set_problems);
+  // For smart sets, fetch problems via filter; for manual sets, use junction table
+  const isOwner = problemSet.user_id === userId;
+  const ownerUserId = problemSet.user_id;
+  let problems;
+  if (problemSet.is_smart && problemSet.filter_config) {
+    const filterConfig: FilterConfig = {
+      tag_ids: problemSet.filter_config.tag_ids ?? [],
+      statuses: problemSet.filter_config.statuses ?? [],
+      problem_types: problemSet.filter_config.problem_types ?? [],
+      days_since_review: problemSet.filter_config.days_since_review ?? null,
+      include_never_reviewed:
+        problemSet.filter_config.include_never_reviewed ?? true,
+    };
+    // For shared smart sets, use service client to bypass RLS since
+    // smart set problems aren't in the junction table
+    const queryClient = isOwner ? supabase : createServiceClient();
+    const filtered = await getFilteredProblems(
+      queryClient,
+      ownerUserId,
+      problemSet.subject_id,
+      filterConfig,
+      ownerUserId
+    );
+    problems = filtered.map(p => ({
+      ...p,
+      added_at: p.created_at, // Smart sets don't have added_at; use created_at
+    }));
+  } else {
+    problems = transformProblemSetProblems(problemSet.problem_set_problems);
+  }
 
   // Transform shared emails
   const shared_with_emails =
@@ -156,7 +187,7 @@ export async function getProblemSetWithFullData(
     problems,
     problem_count: problems.length,
     shared_with_emails,
-    isOwner: problemSet.user_id === userId,
+    isOwner,
   };
 }
 

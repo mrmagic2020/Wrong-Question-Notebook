@@ -107,7 +107,25 @@ async function createProblemSet(req: Request) {
     );
   }
 
-  const { problem_ids, shared_with_emails, ...problemSetData } = parsed.data;
+  const {
+    problem_ids,
+    shared_with_emails,
+    is_smart,
+    filter_config,
+    session_config,
+    ...problemSetData
+  } = parsed.data;
+
+  // Validate smart set requirements
+  if (is_smart && !filter_config) {
+    return NextResponse.json(
+      createApiErrorResponse(
+        'filter_config is required for smart problem sets',
+        400
+      ),
+      { status: 400 }
+    );
+  }
 
   // Validate that all problem IDs are valid UUIDs
   if (problem_ids && problem_ids.length > 0) {
@@ -133,6 +151,9 @@ async function createProblemSet(req: Request) {
         description,
         sharing_level,
         user_id: user.id,
+        is_smart: is_smart || false,
+        filter_config: is_smart ? filter_config : null,
+        session_config: session_config || null,
       })
       .select()
       .single();

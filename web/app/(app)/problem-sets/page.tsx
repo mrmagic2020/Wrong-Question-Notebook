@@ -12,7 +12,9 @@ import {
   ProblemSetWithDetails,
   ProblemSet,
   ProblemSetShare,
+  FilterConfig,
 } from '@/lib/types';
+import { getFilteredProblemsCount } from '@/lib/review-utils';
 
 export const metadata: Metadata = {
   title: 'All Problem Sets – Wrong Question Notebook',
@@ -61,11 +63,31 @@ async function loadProblemSets() {
             .eq('id', problemSet.subject_id)
             .single();
 
-          // Get problem count
-          const { count: problemCount } = await supabaseClient
-            .from('problem_set_problems')
-            .select('*', { count: 'exact', head: true })
-            .eq('problem_set_id', problemSet.id);
+          // Get problem count (smart sets use filter criteria, not junction table)
+          let problemCount: number | null = 0;
+          if (problemSet.is_smart && problemSet.filter_config) {
+            const filterConfig: FilterConfig = {
+              tag_ids: problemSet.filter_config.tag_ids ?? [],
+              statuses: problemSet.filter_config.statuses ?? [],
+              problem_types: problemSet.filter_config.problem_types ?? [],
+              days_since_review:
+                problemSet.filter_config.days_since_review ?? null,
+              include_never_reviewed:
+                problemSet.filter_config.include_never_reviewed ?? true,
+            };
+            problemCount = await getFilteredProblemsCount(
+              supabaseClient,
+              userId,
+              problemSet.subject_id,
+              filterConfig
+            );
+          } else {
+            const { count } = await supabaseClient
+              .from('problem_set_problems')
+              .select('*', { count: 'exact', head: true })
+              .eq('problem_set_id', problemSet.id);
+            problemCount = count;
+          }
 
           // Transform shared emails
           const shared_with_emails =
