@@ -8,7 +8,6 @@ import {
   FilterConfig,
   SessionConfig,
   ReviewSessionState,
-  ReviewSessionResult,
   ReviewSessionSummary,
 } from './types';
 
@@ -98,6 +97,70 @@ export async function getFilteredProblems(
 }
 
 /**
+ * Count problems matching filter criteria without fetching full rows.
+ * More efficient than getFilteredProblems when only a count is needed.
+ */
+export async function getFilteredProblemsCount(
+  supabase: SupabaseClient,
+  userId: string,
+  subjectId: string,
+  filterConfig: FilterConfig
+): Promise<number> {
+  // Handle tag filtering via junction table
+  let problemIds: string[] | null = null;
+  if (filterConfig.tag_ids.length > 0) {
+    const { data: tagLinks } = await supabase
+      .from('problem_tag')
+      .select('problem_id')
+      .in('tag_id', filterConfig.tag_ids)
+      .eq('user_id', userId);
+
+    problemIds = tagLinks?.map(link => link.problem_id) || [];
+    if (problemIds.length === 0) return 0;
+  }
+
+  let query = supabase
+    .from('problems')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('subject_id', subjectId);
+
+  if (problemIds) {
+    query = query.in('id', problemIds);
+  }
+
+  if (filterConfig.statuses.length > 0) {
+    query = query.in('status', filterConfig.statuses);
+  }
+
+  if (filterConfig.problem_types.length > 0) {
+    query = query.in('problem_type', filterConfig.problem_types);
+  }
+
+  if (filterConfig.days_since_review != null) {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - filterConfig.days_since_review);
+    const cutoffIso = cutoffDate.toISOString();
+
+    if (filterConfig.include_never_reviewed) {
+      query = query.or(
+        `last_reviewed_date.lt.${cutoffIso},last_reviewed_date.is.null`
+      );
+    } else {
+      query = query.lt('last_reviewed_date', cutoffIso);
+    }
+  }
+
+  const { count, error } = await query;
+
+  if (error) {
+    throw new Error(`Failed to count problems: ${error.message}`);
+  }
+
+  return count ?? 0;
+}
+
+/**
  * Apply session configuration to a problem list (randomize, limit).
  */
 export function applySessionConfig(
@@ -133,17 +196,21 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 /**
- * Calculate session statistics from results, state, and current problem statuses.
+ * Calculate session statistics from session state and current problem statuses.
+ * Uses session_state arrays (completed_problem_ids, skipped_problem_ids) for
+ * accurate counts instead of result rows which may contain duplicates.
  */
 export function calculateSessionStats(
-  results: ReviewSessionResult[],
   sessionState: ReviewSessionState,
   currentStatuses: Record<string, string>
 ): ReviewSessionSummary {
-  const completed = results.filter(r => !r.was_skipped);
-  const skipped = results.filter(r => r.was_skipped);
-  const { initial_statuses, problem_ids, elapsed_ms } =
-    sessionState.session_state;
+  const {
+    initial_statuses,
+    problem_ids,
+    elapsed_ms,
+    completed_problem_ids,
+    skipped_problem_ids,
+  } = sessionState.session_state;
 
   // Count current statuses for session problems only
   const status_counts = { mastered: 0, needs_review: 0, wrong: 0 };
@@ -172,8 +239,8 @@ export function calculateSessionStats(
 
   return {
     total_problems: problem_ids.length,
-    completed_count: completed.length,
-    skipped_count: skipped.length,
+    completed_count: completed_problem_ids.length,
+    skipped_count: skipped_problem_ids.length,
     status_counts,
     status_deltas,
     elapsed_ms: elapsed_ms || 0,

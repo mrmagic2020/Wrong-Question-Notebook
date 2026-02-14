@@ -71,6 +71,12 @@ async function updateProgress(
       sessionState.elapsed_ms = elapsed_ms;
     }
 
+    // Determine the action type:
+    // - wasSkipped=true → skip
+    // - wasSkipped=false AND wasCorrect is a boolean → answer (completed)
+    // - otherwise → heartbeat (save position/timer only, no completion tracking)
+    const isAnswer = !wasSkipped && typeof wasCorrect === 'boolean';
+
     if (wasSkipped) {
       if (!sessionState.skipped_problem_ids.includes(problemId)) {
         sessionState.skipped_problem_ids = [
@@ -78,7 +84,7 @@ async function updateProgress(
           problemId,
         ];
       }
-    } else {
+    } else if (isAnswer) {
       if (!sessionState.completed_problem_ids.includes(problemId)) {
         sessionState.completed_problem_ids = [
           ...sessionState.completed_problem_ids,
@@ -115,22 +121,25 @@ async function updateProgress(
       );
     }
 
-    // Create session result entry
-    const { error: resultError } = await supabase
-      .from('review_session_results')
-      .insert({
-        session_state_id: sessionId,
-        problem_id: problemId,
-        was_correct: wasCorrect ?? null,
-        was_skipped: wasSkipped || false,
-      });
+    // Only create result entries and update last_reviewed_date for actual
+    // answers or skips — not for heartbeat/save-state-only requests.
+    if (wasSkipped || isAnswer) {
+      const { error: resultError } = await supabase
+        .from('review_session_results')
+        .insert({
+          session_state_id: sessionId,
+          problem_id: problemId,
+          was_correct: wasCorrect ?? null,
+          was_skipped: wasSkipped || false,
+        });
 
-    if (resultError) {
-      console.error('Failed to create session result:', resultError);
+      if (resultError) {
+        console.error('Failed to create session result:', resultError);
+      }
     }
 
-    // Update problem's last_reviewed_date if it was answered (not just skipped)
-    if (!wasSkipped) {
+    // Update problem's last_reviewed_date only when actually answered
+    if (isAnswer) {
       await supabase
         .from('problems')
         .update({ last_reviewed_date: new Date().toISOString() })

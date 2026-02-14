@@ -45,10 +45,11 @@ async function getProblemSetProgress(
       );
     }
 
-    // Basic ownership check (smart sets are always private/owned)
+    // Only owners and users with public access can view progress.
+    // This covers both 'private' and 'limited' sharing levels.
     if (
       problemSet.user_id !== user.id &&
-      problemSet.sharing_level === 'private'
+      problemSet.sharing_level !== 'public'
     ) {
       return NextResponse.json(
         createApiErrorResponse('Problem set not found or access denied', 404),

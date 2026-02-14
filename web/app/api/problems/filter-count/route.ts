@@ -8,7 +8,7 @@ import {
   handleAsyncError,
   isValidUuid,
 } from '@/lib/common-utils';
-import { getFilteredProblems } from '@/lib/review-utils';
+import { getFilteredProblemsCount } from '@/lib/review-utils';
 
 async function getFilterCount(req: Request) {
   const { user, supabase } = await requireUser();
@@ -50,16 +50,14 @@ async function getFilterCount(req: Request) {
       ...parsed.data,
       days_since_review: parsed.data.days_since_review ?? null,
     };
-    const problems = await getFilteredProblems(
+    const count = await getFilteredProblemsCount(
       supabase,
       user.id,
       subject_id,
       filterConfig
     );
 
-    return NextResponse.json(
-      createApiSuccessResponse({ count: problems.length })
-    );
+    return NextResponse.json(createApiSuccessResponse({ count }));
   } catch (error) {
     const { message, status } = handleAsyncError(error);
     return NextResponse.json(createApiErrorResponse(message, status), {

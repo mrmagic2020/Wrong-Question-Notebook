@@ -115,6 +115,21 @@ async function updateProblemSet(
   }
   const shared_with_emails = parsed.data.shared_with_emails;
 
+  // When setting is_smart to true, require filter_config to be present
+  if (providedKeys.has('is_smart') && fullUpdateData.is_smart) {
+    const hasFilterConfig =
+      providedKeys.has('filter_config') && fullUpdateData.filter_config != null;
+    if (!hasFilterConfig) {
+      return NextResponse.json(
+        createApiErrorResponse(
+          'Smart problem sets must include a valid filter_config',
+          400
+        ),
+        { status: 400 }
+      );
+    }
+  }
+
   try {
     // Check if user owns this problem set
     const { data: existingSet, error: checkError } = await supabase

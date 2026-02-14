@@ -132,10 +132,12 @@ export default function SessionReviewClient({
         }),
       });
 
-      // Update local state
+      // Update local state — mirror server logic:
+      // only track completion when wasCorrect is a boolean (actual answer)
       if (sessionData) {
         const newState = { ...sessionData.session.session_state };
         newState.current_index = nextIndex;
+        const isAnswer = !wasSkipped && typeof wasCorrect === 'boolean';
 
         if (wasSkipped) {
           if (!newState.skipped_problem_ids.includes(problemId)) {
@@ -144,7 +146,7 @@ export default function SessionReviewClient({
               problemId,
             ];
           }
-        } else {
+        } else if (isAnswer) {
           if (!newState.completed_problem_ids.includes(problemId)) {
             newState.completed_problem_ids = [
               ...newState.completed_problem_ids,

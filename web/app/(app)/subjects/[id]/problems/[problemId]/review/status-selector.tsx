@@ -67,6 +67,7 @@ export default function StatusSelector({
             const Icon = option.icon;
             return (
               <button
+                type="button"
                 key={option.value}
                 onClick={() => onStatusChange(option.value)}
                 className={`w-full px-3 py-2 rounded-lg text-left text-sm font-medium border transition-all flex items-center gap-2 ${

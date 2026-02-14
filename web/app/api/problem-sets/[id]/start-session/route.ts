@@ -76,11 +76,20 @@ async function startSession(
           { status: 400 }
         );
       }
+      const filterConfig = {
+        ...problemSet.filter_config,
+        tag_ids: problemSet.filter_config.tag_ids ?? [],
+        statuses: problemSet.filter_config.statuses ?? [],
+        problem_types: problemSet.filter_config.problem_types ?? [],
+        days_since_review: problemSet.filter_config.days_since_review ?? null,
+        include_never_reviewed:
+          problemSet.filter_config.include_never_reviewed ?? true,
+      };
       problems = await getFilteredProblems(
         supabase,
         user.id,
         problemSet.subject_id,
-        problemSet.filter_config
+        filterConfig
       );
     } else {
       // Manual set: get problems from problem_set_problems
@@ -103,7 +112,7 @@ async function startSession(
 
     // Apply session config (randomize, limit)
     const sessionConfig: SessionConfig = problemSet.session_config || {
-      randomize: false,
+      randomize: true,
       session_size: null,
       auto_advance: false,
     };
