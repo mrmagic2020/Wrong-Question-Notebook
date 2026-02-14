@@ -3,6 +3,9 @@ import { requireUser } from '@/lib/supabase/requireUser';
 import { notFound } from 'next/navigation';
 import ProblemReview from '@/app/(app)/subjects/[id]/problems/[problemId]/review/problem-review';
 import SessionReviewClient from './session-review-client';
+import { getFilteredProblems } from '@/lib/review-utils';
+import { createServiceClient } from '@/lib/supabase-utils';
+import { FilterConfig } from '@/lib/types';
 
 export async function generateMetadata({
   params,
@@ -45,9 +48,33 @@ async function loadProblemSet(id: string) {
   };
 }
 
-async function loadProblemSetProblems(problemSetId: string) {
+async function loadProblemSetProblems(problemSet: any, userId: string) {
   const supabase = await createClient();
+  const isOwner = problemSet.user_id === userId;
+  const ownerUserId = problemSet.user_id;
 
+  // Smart sets: fetch problems via filter criteria
+  if (problemSet.is_smart && problemSet.filter_config) {
+    const filterConfig: FilterConfig = {
+      tag_ids: problemSet.filter_config.tag_ids ?? [],
+      statuses: problemSet.filter_config.statuses ?? [],
+      problem_types: problemSet.filter_config.problem_types ?? [],
+      days_since_review: problemSet.filter_config.days_since_review ?? null,
+      include_never_reviewed:
+        problemSet.filter_config.include_never_reviewed ?? true,
+    };
+    // For shared smart sets, use service client to bypass RLS
+    const queryClient = isOwner ? supabase : createServiceClient();
+    return getFilteredProblems(
+      queryClient,
+      ownerUserId,
+      problemSet.subject_id,
+      filterConfig,
+      ownerUserId
+    );
+  }
+
+  // Manual sets: fetch via junction table
   const { data: problemSetProblems } = await supabase
     .from('problem_set_problems')
     .select(
@@ -70,7 +97,7 @@ async function loadProblemSetProblems(problemSetId: string) {
       )
     `
     )
-    .eq('problem_set_id', problemSetId);
+    .eq('problem_set_id', problemSet.id);
 
   if (!problemSetProblems) {
     return [];
@@ -136,7 +163,8 @@ export default async function ProblemSetReviewPage({
   }
 
   // Legacy review mode (no session)
-  const problems = await loadProblemSetProblems(id);
+  const { user } = await requireUser();
+  const problems = await loadProblemSetProblems(problemSet, user?.id || '');
 
   if (problems.length === 0) {
     return (

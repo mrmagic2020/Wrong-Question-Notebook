@@ -9,6 +9,7 @@ import {
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
 import { calculateSessionStats } from '@/lib/review-utils';
+import { createServiceClient } from '@/lib/supabase-utils';
 
 async function completeSession(
   req: Request,
@@ -51,10 +52,13 @@ async function completeSession(
     }
 
     // Fetch current problem statuses for delta calculation
+    // For read-only sessions, use service client since problems belong to owner
+    const isReadOnly = !!session.session_state?.is_read_only;
     const problemIds = session.session_state?.problem_ids || [];
     const currentStatuses: Record<string, string> = {};
     if (problemIds.length > 0) {
-      const { data: problems } = await supabase
+      const queryClient = isReadOnly ? createServiceClient() : supabase;
+      const { data: problems } = await queryClient
         .from('problems')
         .select('id, status')
         .in('id', problemIds);

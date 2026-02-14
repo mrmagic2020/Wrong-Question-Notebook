@@ -14,13 +14,19 @@ import {
 /**
  * Query problems matching filter criteria for a smart problem set.
  * Follows the same query pattern as /api/problems GET endpoint.
+ *
+ * @param ownerUserId - When viewing a shared problem set, pass the owner's ID
+ *   to fetch problems belonging to the owner. Defaults to userId.
  */
 export async function getFilteredProblems(
   supabase: SupabaseClient,
   userId: string,
   subjectId: string,
-  filterConfig: FilterConfig
+  filterConfig: FilterConfig,
+  ownerUserId?: string
 ): Promise<Problem[]> {
+  const effectiveUserId = ownerUserId ?? userId;
+
   // Handle tag filtering via junction table
   let problemIds: string[] | null = null;
   if (filterConfig.tag_ids.length > 0) {
@@ -28,7 +34,7 @@ export async function getFilteredProblems(
       .from('problem_tag')
       .select('problem_id')
       .in('tag_id', filterConfig.tag_ids)
-      .eq('user_id', userId);
+      .eq('user_id', effectiveUserId);
 
     problemIds = tagLinks?.map(link => link.problem_id) || [];
     if (problemIds.length === 0) return [];
@@ -42,7 +48,7 @@ export async function getFilteredProblems(
       problem_tag(tags:tag_id(id, name))
     `
     )
-    .eq('user_id', userId)
+    .eq('user_id', effectiveUserId)
     .eq('subject_id', subjectId);
 
   // Filter by tag-matched problem IDs
@@ -99,13 +105,19 @@ export async function getFilteredProblems(
 /**
  * Count problems matching filter criteria without fetching full rows.
  * More efficient than getFilteredProblems when only a count is needed.
+ *
+ * @param ownerUserId - When viewing a shared problem set, pass the owner's ID
+ *   to count problems belonging to the owner. Defaults to userId.
  */
 export async function getFilteredProblemsCount(
   supabase: SupabaseClient,
   userId: string,
   subjectId: string,
-  filterConfig: FilterConfig
+  filterConfig: FilterConfig,
+  ownerUserId?: string
 ): Promise<number> {
+  const effectiveUserId = ownerUserId ?? userId;
+
   // Handle tag filtering via junction table
   let problemIds: string[] | null = null;
   if (filterConfig.tag_ids.length > 0) {
@@ -113,7 +125,7 @@ export async function getFilteredProblemsCount(
       .from('problem_tag')
       .select('problem_id')
       .in('tag_id', filterConfig.tag_ids)
-      .eq('user_id', userId);
+      .eq('user_id', effectiveUserId);
 
     problemIds = tagLinks?.map(link => link.problem_id) || [];
     if (problemIds.length === 0) return 0;
@@ -122,7 +134,7 @@ export async function getFilteredProblemsCount(
   let query = supabase
     .from('problems')
     .select('id', { count: 'exact', head: true })
-    .eq('user_id', userId)
+    .eq('user_id', effectiveUserId)
     .eq('subject_id', subjectId);
 
   if (problemIds) {

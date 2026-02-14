@@ -8,6 +8,7 @@ import {
   isValidUuid,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
+import { createServiceClient } from '@/lib/supabase-utils';
 
 async function getSession(
   req: Request,
@@ -42,10 +43,14 @@ async function getSession(
     }
 
     // Get all problems in this session
+    // For read-only sessions (shared sets), use service client to bypass RLS
+    // since the problems belong to the set owner, not the viewer
+    const isReadOnly = !!session.session_state?.is_read_only;
     const problemIds = session.session_state?.problem_ids || [];
     let problems: any[] = [];
     if (problemIds.length > 0) {
-      const { data: problemsData } = await supabase
+      const queryClient = isReadOnly ? createServiceClient() : supabase;
+      const { data: problemsData } = await queryClient
         .from('problems')
         .select(
           `

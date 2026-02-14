@@ -10,6 +10,8 @@ import {
 import { ERROR_MESSAGES } from '@/lib/constants';
 import { getFilteredProblems, applySessionConfig } from '@/lib/review-utils';
 import { SessionConfig } from '@/lib/types';
+import { checkProblemSetAccess } from '@/lib/problem-set-utils';
+import { createServiceClient } from '@/lib/supabase-utils';
 
 async function startSession(
   req: Request,
@@ -28,15 +30,31 @@ async function startSession(
   }
 
   try {
-    // Get the problem set
+    // Fetch problem set without owner restriction
     const { data: problemSet, error: psError } = await supabase
       .from('problem_sets')
       .select('*')
       .eq('id', id)
-      .eq('user_id', user.id)
       .single();
 
     if (psError || !problemSet) {
+      return NextResponse.json(
+        createApiErrorResponse('Problem set not found or access denied', 404),
+        { status: 404 }
+      );
+    }
+
+    // Check access (owner, public, or limited)
+    const isOwner = problemSet.user_id === user.id;
+    const hasAccess = await checkProblemSetAccess(
+      supabase,
+      problemSet,
+      user.id,
+      user.email || '',
+      id
+    );
+
+    if (!hasAccess) {
       return NextResponse.json(
         createApiErrorResponse('Problem set not found or access denied', 404),
         { status: 404 }
@@ -64,6 +82,9 @@ async function startSession(
       );
     }
 
+    // Use owner's ID for problem filtering
+    const ownerUserId = problemSet.user_id;
+
     // Get problems for this session
     let problems;
     if (problemSet.is_smart) {
@@ -85,11 +106,14 @@ async function startSession(
         include_never_reviewed:
           problemSet.filter_config.include_never_reviewed ?? true,
       };
+      // For shared smart sets, use service client to bypass RLS
+      const queryClient = isOwner ? supabase : createServiceClient();
       problems = await getFilteredProblems(
-        supabase,
-        user.id,
+        queryClient,
+        ownerUserId,
         problemSet.subject_id,
-        filterConfig
+        filterConfig,
+        ownerUserId
       );
     } else {
       // Manual set: get problems from problem_set_problems
@@ -126,7 +150,7 @@ async function startSession(
       initialStatuses[p.id] = p.status;
     }
 
-    // Create new session
+    // Create new session (mark non-owner sessions as read-only)
     const { data: newSession, error: sessionError } = await supabase
       .from('review_session_state')
       .insert({
@@ -140,6 +164,7 @@ async function startSession(
           skipped_problem_ids: [],
           initial_statuses: initialStatuses,
           elapsed_ms: 0,
+          is_read_only: !isOwner,
         },
       })
       .select()

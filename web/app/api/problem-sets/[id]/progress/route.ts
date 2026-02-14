@@ -10,6 +10,8 @@ import {
 import { ERROR_MESSAGES } from '@/lib/constants';
 import { getFilteredProblems } from '@/lib/review-utils';
 import { FilterConfig } from '@/lib/types';
+import { checkLimitedAccess } from '@/lib/problem-set-utils';
+import { createServiceClient } from '@/lib/supabase-utils';
 
 // Cache configuration for this route
 export const revalidate = 300; // 5 minutes
@@ -45,22 +47,40 @@ async function getProblemSetProgress(
       );
     }
 
-    // Only owners and users with public access can view progress.
-    // This covers both 'private' and 'limited' sharing levels.
-    if (
-      problemSet.user_id !== user.id &&
-      problemSet.sharing_level !== 'public'
-    ) {
-      return NextResponse.json(
-        createApiErrorResponse('Problem set not found or access denied', 404),
-        { status: 404 }
-      );
+    // Check access: owner, public, or verified limited access
+    const isOwner = problemSet.user_id === user.id;
+    const isPublic = problemSet.sharing_level === 'public';
+    const isLimited = problemSet.sharing_level === 'limited';
+
+    if (!isOwner && !isPublic) {
+      if (isLimited) {
+        const hasAccess = await checkLimitedAccess(
+          supabase,
+          id,
+          user.email || ''
+        );
+        if (!hasAccess) {
+          return NextResponse.json(
+            createApiErrorResponse(
+              'Problem set not found or access denied',
+              404
+            ),
+            { status: 404 }
+          );
+        }
+      } else {
+        return NextResponse.json(
+          createApiErrorResponse('Problem set not found or access denied', 404),
+          { status: 404 }
+        );
+      }
     }
 
+    const ownerUserId = problemSet.user_id;
     let problems: { status: string }[];
 
     if (problemSet.is_smart && problemSet.filter_config) {
-      // Smart set: query problems via filter
+      // Smart set: query problems via filter using owner's ID
       const filterConfig: FilterConfig = {
         tag_ids: problemSet.filter_config.tag_ids ?? [],
         statuses: problemSet.filter_config.statuses ?? [],
@@ -69,11 +89,14 @@ async function getProblemSetProgress(
         include_never_reviewed:
           problemSet.filter_config.include_never_reviewed ?? true,
       };
+      // For shared smart sets, use service client to bypass RLS
+      const queryClient = isOwner ? supabase : createServiceClient();
       const filtered = await getFilteredProblems(
-        supabase,
-        user.id,
+        queryClient,
+        ownerUserId,
         problemSet.subject_id,
-        filterConfig
+        filterConfig,
+        ownerUserId
       );
       problems = filtered.map(p => ({ status: p.status }));
     } else {

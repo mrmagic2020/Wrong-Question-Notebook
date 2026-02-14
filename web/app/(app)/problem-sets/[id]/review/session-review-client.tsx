@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Clock, LogOut, Loader2, Play } from 'lucide-react';
+import { Clock, Eye, LogOut, Loader2, Play } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProblemStatus } from '@/lib/schemas';
 import ProblemReview from '@/app/(app)/subjects/[id]/problems/[problemId]/review/problem-review';
@@ -311,6 +311,13 @@ export default function SessionReviewClient({
   return (
     <>
       <div className="section-container">
+        {/* Read-only indicator for shared sessions */}
+        {isReadOnly && (
+          <div className="mb-4 flex items-center gap-2 rounded-xl border border-amber-200/50 dark:border-amber-800/40 bg-amber-50/80 dark:bg-amber-900/20 px-4 py-2.5 text-sm font-medium text-amber-800 dark:text-amber-300">
+            <Eye className="h-4 w-4 shrink-0" />
+            <span>Practice Mode — Progress not tracked</span>
+          </div>
+        )}
         {/* Problem Review with integrated session nav in sidebar */}
         <ProblemReview
           key={currentProblem.id}
