@@ -55,6 +55,7 @@ export default function SessionReviewClient({
   const [elapsedMs, setElapsedMs] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const timerInitializedRef = useRef(false);
 
   const fetchSession = useCallback(async () => {
     try {
@@ -77,13 +78,14 @@ export default function SessionReviewClient({
 
   // Initialize timer from session state once loaded
   useEffect(() => {
-    if (sessionData) {
+    if (sessionData && !timerInitializedRef.current) {
+      timerInitializedRef.current = true;
       const saved = sessionData.session.session_state.elapsed_ms;
       if (typeof saved === 'number' && saved > 0) {
         setElapsedMs(saved);
       }
     }
-  }, [sessionData?.session.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sessionData]);
 
   // Timer interval: tick every second when not paused
   useEffect(() => {
