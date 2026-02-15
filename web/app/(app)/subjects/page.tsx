@@ -27,47 +27,18 @@ async function loadSubjects() {
 
   const cachedLoadSubjects = unstable_cache(
     async (userId: string, supabaseClient: any) => {
-      const { data: subjects, error } = await supabaseClient
-        .from('subjects')
-        .select('*')
-        .order('created_at', { ascending: true });
+      // Use database function to fetch subjects with metadata in a single query
+      const { data: subjects, error } = await supabaseClient.rpc(
+        'get_subjects_with_metadata'
+      );
 
-      // RLS ensures we only see the signed-in user's rows.
+      // RLS ensures we only see the signed-in user's rows via auth.uid() in the function
       if (error) {
         // Fail soft so the page still renders
         return { data: [] as SubjectWithMetadata[] };
       }
 
-      // Enrich with problem_count and last_activity
-      const enriched = await Promise.all(
-        (subjects || []).map(async (subject: any) => {
-          // Count problems
-          const { count } = await supabaseClient
-            .from('problems')
-            .select('*', { count: 'exact', head: true })
-            .eq('subject_id', subject.id);
-
-          // Get most recent last_reviewed_date
-          const { data: lastReviewed } = await supabaseClient
-            .from('problems')
-            .select('last_reviewed_date')
-            .eq('subject_id', subject.id)
-            .order('last_reviewed_date', {
-              ascending: false,
-              nullsFirst: false,
-            })
-            .limit(1)
-            .maybeSingle();
-
-          return {
-            ...subject,
-            problem_count: count ?? 0,
-            last_activity: lastReviewed?.last_reviewed_date ?? null,
-          };
-        })
-      );
-
-      return { data: enriched };
+      return { data: subjects || [] };
     },
     [`subjects-${userId}`],
     {

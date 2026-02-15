@@ -18,11 +18,10 @@ async function getSubjects() {
   if (!user) return unauthorised();
 
   try {
-    const { data: subjects, error: subjectsError } = await supabase
-      .from('subjects')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: true });
+    // Use database function to fetch subjects with metadata in a single query
+    const { data: subjects, error: subjectsError } = await supabase.rpc(
+      'get_subjects_with_metadata'
+    );
 
     if (subjectsError) {
       return NextResponse.json(
@@ -35,33 +34,7 @@ async function getSubjects() {
       );
     }
 
-    // Enrich with problem_count and last_activity
-    const enriched = await Promise.all(
-      (subjects || []).map(async subject => {
-        // Count problems
-        const { count } = await supabase
-          .from('problems')
-          .select('*', { count: 'exact', head: true })
-          .eq('subject_id', subject.id);
-
-        // Get most recent last_reviewed_date
-        const { data: lastReviewed } = await supabase
-          .from('problems')
-          .select('last_reviewed_date')
-          .eq('subject_id', subject.id)
-          .order('last_reviewed_date', { ascending: false, nullsFirst: false })
-          .limit(1)
-          .maybeSingle();
-
-        return {
-          ...subject,
-          problem_count: count ?? 0,
-          last_activity: lastReviewed?.last_reviewed_date ?? null,
-        };
-      })
-    );
-
-    return NextResponse.json(createApiSuccessResponse(enriched));
+    return NextResponse.json(createApiSuccessResponse(subjects || []));
   } catch (error) {
     const { message, status } = handleAsyncError(error);
     return NextResponse.json(createApiErrorResponse(message, status), {
