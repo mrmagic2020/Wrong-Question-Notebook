@@ -50,7 +50,7 @@ export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
                   setOpen(false);
                 }}
                 className={cn('h-12 w-12', value === iconName && 'bg-accent')}
-                aria-label={iconName}
+                aria-label={`Select ${iconName} icon`}
               >
                 <Icon className="w-5 h-5" />
               </Button>
