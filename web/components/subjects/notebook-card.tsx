@@ -29,11 +29,15 @@ export function NotebookCard({
   onDelete,
 }: NotebookCardProps) {
   const color = subject.color || SUBJECT_CONSTANTS.DEFAULT_COLOR;
+  const safeColor =
+    color in SUBJECT_CONSTANTS.COLOR_GRADIENTS
+      ? color
+      : SUBJECT_CONSTANTS.DEFAULT_COLOR;
   const iconName = subject.icon || SUBJECT_CONSTANTS.DEFAULT_ICON;
   const Icon = (Icons as any)[iconName] || Icons.BookOpen;
   const colorClasses =
     SUBJECT_CONSTANTS.COLOR_GRADIENTS[
-      color as keyof typeof SUBJECT_CONSTANTS.COLOR_GRADIENTS
+      safeColor as keyof typeof SUBJECT_CONSTANTS.COLOR_GRADIENTS
     ];
 
   const problemCount = subject.problem_count ?? 0;
