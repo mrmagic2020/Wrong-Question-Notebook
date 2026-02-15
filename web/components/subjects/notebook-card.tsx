@@ -19,6 +19,8 @@ interface NotebookCardProps {
   onClick: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
 /**
@@ -46,6 +48,8 @@ export function NotebookCard({
   onClick,
   onEdit,
   onDelete,
+  className,
+  style,
 }: NotebookCardProps) {
   const color = subject.color || SUBJECT_CONSTANTS.DEFAULT_COLOR;
   const safeColor =
@@ -74,8 +78,10 @@ export function NotebookCard({
         'rounded-2xl border bg-gradient-to-br',
         colorClasses.light,
         colorClasses.dark,
-        colorClasses.border
+        colorClasses.border,
+        className
       )}
+      style={style}
       onClick={onClick}
     >
       <CardHeader className="pb-4">

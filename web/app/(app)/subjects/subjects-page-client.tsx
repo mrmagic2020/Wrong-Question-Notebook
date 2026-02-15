@@ -151,18 +151,24 @@ export default function SubjectsPageClient({
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredSubjects.map(subject => (
+              {filteredSubjects.map((subject, index) => (
                 <NotebookCard
                   key={subject.id}
                   subject={subject}
                   onClick={() => handleSubjectClick(subject.id)}
                   onEdit={() => setEditingSubject(subject)}
                   onDelete={() => handleSubjectDeleted(subject)}
+                  className="notebook-card-enter"
+                  style={{ animationDelay: `${index * 0.08}s` }}
                 />
               ))}
               {!query.trim() && (
                 <PlaceholderNotebookCard
                   onClick={() => setCreateDialogOpen(true)}
+                  className="notebook-card-enter"
+                  style={{
+                    animationDelay: `${filteredSubjects.length * 0.08}s`,
+                  }}
                 />
               )}
             </div>

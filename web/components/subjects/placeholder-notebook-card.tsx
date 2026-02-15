@@ -6,10 +6,14 @@ import { cn } from '@/lib/utils';
 
 interface PlaceholderNotebookCardProps {
   onClick: () => void;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
 export function PlaceholderNotebookCard({
   onClick,
+  className,
+  style,
 }: PlaceholderNotebookCardProps) {
   return (
     <Card
@@ -21,8 +25,10 @@ export function PlaceholderNotebookCard({
         'border-gray-300/60 dark:border-gray-700/50',
         'hover:border-amber-300 dark:hover:border-amber-700',
         'hover:from-amber-50/50 hover:to-amber-100/30',
-        'dark:hover:from-amber-950/20 dark:hover:to-amber-900/10'
+        'dark:hover:from-amber-950/20 dark:hover:to-amber-900/10',
+        className
       )}
+      style={style}
       onClick={onClick}
     >
       <CardHeader className="pb-4">

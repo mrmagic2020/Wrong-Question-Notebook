@@ -1171,7 +1171,7 @@ html body[data-scroll-locked] {
   box-sizing: border-box !important;
 }
 
-/* Notebook card animations */
+/* Notebook card animations - cascading entrance effect */
 @keyframes notebookSlideIn {
   from {
     opacity: 0;
