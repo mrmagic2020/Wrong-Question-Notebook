@@ -3,13 +3,8 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { Mail, Clock, CheckCircle } from 'lucide-react';
 
@@ -98,39 +93,42 @@ export function SignUpSuccess() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <Card>
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
-            <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+    <div className="w-full auth-fade-in">
+      <div className="auth-card-green">
+        {/* Icon header */}
+        <div className="flex justify-center mb-6 auth-icon-entrance">
+          <div className="auth-icon-box-green">
+            <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
           </div>
-          <CardTitle className="text-2xl">Check your email!</CardTitle>
-          <CardDescription>
-            We've sent a confirmation link to your email address
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-4">
-              Please check your email and click the confirmation link to
-              activate your account. You can then sign in to start organizing
-              your learning.
-            </p>
-          </div>
+        </div>
+
+        {/* Title */}
+        <div className="text-center mb-6 space-y-2">
+          <h1 className="auth-title">Check your email!</h1>
+          <p className="auth-subtitle">
+            We&apos;ve sent a confirmation link to your email address
+          </p>
+        </div>
+
+        {/* Message */}
+        <div className="auth-slide-up space-y-6">
+          <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
+            Please check your email and click the confirmation link to activate
+            your account. You can then sign in to start organizing your
+            learning.
+          </p>
 
           {/* Email input and resend functionality */}
           <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="text-sm font-medium">
-                Email address
-              </label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="email">Email address</Label>
+              <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="Enter your email address"
-                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className="rounded-lg"
               />
             </div>
 
@@ -138,7 +136,7 @@ export function SignUpSuccess() {
               onClick={handleResendEmail}
               disabled={isResending || resendCooldown > 0}
               variant="outline"
-              className="w-full"
+              className="w-full btn-cta"
             >
               {isResending ? (
                 <>
@@ -173,15 +171,15 @@ export function SignUpSuccess() {
 
           {/* Action buttons */}
           <div className="space-y-3">
-            <Button asChild className="w-full">
+            <Button asChild className="w-full btn-cta-primary">
               <Link href="/auth/login">Go to Login</Link>
             </Button>
-            <Button asChild variant="outline" className="w-full">
+            <Button asChild variant="outline" className="w-full btn-cta">
               <Link href="/">Back to Home</Link>
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,0 +1,72 @@
+'use client';
+
+import { useState, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
+import { Spinner } from '@/components/ui/spinner';
+import { SubjectFormProps } from '@/lib/types';
+
+export default function SubjectForm({ onSubjectCreated }: SubjectFormProps) {
+  const [name, setName] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault();
+
+    if (!name.trim()) {
+      toast.error('Please enter a subject name');
+      return;
+    }
+
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/subjects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim() }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j?.error ?? 'Failed to create subject');
+      }
+
+      const newSubject = await res.json();
+      setName('');
+
+      if (onSubjectCreated) {
+        onSubjectCreated(newSubject.data);
+      }
+
+      toast.success('Subject created successfully');
+      router.refresh();
+    } catch (err: any) {
+      setError(err.message);
+      toast.error('Failed to create subject');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="form-row">
+      <Input
+        value={name}
+        onChange={e => setName(e.target.value)}
+        placeholder="e.g. Mathematics"
+        disabled={busy}
+        className="w-64"
+        required
+      />
+      <Button type="submit" disabled={busy}>
+        {busy && <Spinner />}
+        {busy ? 'Adding...' : 'Add'}
+      </Button>
+      {error && <span className="form-error">{error}</span>}
+    </form>
+  );
+}

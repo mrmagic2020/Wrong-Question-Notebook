@@ -6,7 +6,7 @@ export function HeroAnimation() {
   return (
     <div className="hero-float relative w-full max-w-md mx-auto">
       {/* Notebook mockup container */}
-      <div className="rounded-2xl border border-amber-200/60 dark:border-amber-900/40 bg-white dark:bg-gray-900 shadow-xl shadow-amber-900/5 dark:shadow-black/30 overflow-hidden">
+      <div className="rounded-2xl border border-amber-200/60 dark:border-amber-900/40 bg-white dark:bg-stone-900 shadow-xl shadow-amber-900/5 dark:shadow-black/30 overflow-hidden">
         {/* Title bar */}
         <div className="flex items-center gap-2 px-4 py-3 bg-amber-50/80 dark:bg-amber-950/30 border-b border-amber-200/40 dark:border-amber-900/30">
           <div className="flex gap-1.5">
@@ -39,7 +39,7 @@ export function HeroAnimation() {
           {/* Problem rows */}
           <div className="space-y-2 pl-1">
             {/* Problem 1 - mastered */}
-            <div className="hero-slide-in-right flex items-center gap-2 rounded-lg px-2.5 py-2 bg-white/60 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-700/50">
+            <div className="hero-slide-in-right flex items-center gap-2 rounded-lg px-2.5 py-2 bg-white/60 dark:bg-stone-800/40 border border-gray-100 dark:border-stone-700/50">
               <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
               <span className="text-xs text-gray-700 dark:text-gray-300 truncate flex-1">
                 Quadratic formula derivation
@@ -50,7 +50,7 @@ export function HeroAnimation() {
             </div>
 
             {/* Problem 2 - transitions from wrong to mastered */}
-            <div className="hero-slide-in-right-delayed flex items-center gap-2 rounded-lg px-2.5 py-2 bg-white/60 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-700/50">
+            <div className="hero-slide-in-right-delayed flex items-center gap-2 rounded-lg px-2.5 py-2 bg-white/60 dark:bg-stone-800/40 border border-gray-100 dark:border-stone-700/50">
               <div className="flex-shrink-0 relative w-4 h-4">
                 <XCircle className="w-4 h-4 text-red-500 absolute inset-0 hero-status-wrong" />
                 <CheckCircle2 className="w-4 h-4 text-green-500 absolute inset-0 hero-status-mastered" />
@@ -69,7 +69,7 @@ export function HeroAnimation() {
             </div>
 
             {/* Problem 3 - needs review */}
-            <div className="hero-slide-in-right-delayed-2 flex items-center gap-2 rounded-lg px-2.5 py-2 bg-white/60 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-700/50">
+            <div className="hero-slide-in-right-delayed-2 flex items-center gap-2 rounded-lg px-2.5 py-2 bg-white/60 dark:bg-stone-800/40 border border-gray-100 dark:border-stone-700/50">
               <Circle className="w-4 h-4 text-amber-500 flex-shrink-0" />
               <span className="text-xs text-gray-700 dark:text-gray-300 truncate flex-1">
                 Taylor series expansion
@@ -90,7 +90,7 @@ export function HeroAnimation() {
                 67%
               </span>
             </div>
-            <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+            <div className="h-2 rounded-full bg-gray-100 dark:bg-stone-800 overflow-hidden">
               <div className="hero-progress-fill h-full rounded-full bg-gradient-to-r from-amber-400 to-green-400" />
             </div>
           </div>

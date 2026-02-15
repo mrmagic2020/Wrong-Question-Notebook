@@ -291,7 +291,7 @@ html body[data-scroll-locked] {
   }
 
   .glass-effect {
-    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm;
+    @apply bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm;
   }
 
   .shadow-soft {
@@ -300,7 +300,7 @@ html body[data-scroll-locked] {
 
   /* Landing / Marketing Page Classes */
   .landing-page-bg {
-    @apply min-h-screen bg-gradient-to-b from-amber-50/80 via-white to-rose-50/50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900;
+    @apply min-h-screen bg-gradient-to-b from-amber-50/80 via-white to-rose-50/50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950;
   }
 
   .landing-section {
@@ -464,6 +464,170 @@ html body[data-scroll-locked] {
 
   .review-icon-small {
     @apply w-8 h-8 rounded-lg flex items-center justify-center;
+  }
+
+  /* ===================================
+     Auth Page Component Classes
+     =================================== */
+
+  /* Auth page background - warm gradient matching landing */
+  .auth-page-bg {
+    @apply h-screen bg-gradient-to-b from-amber-50/80 via-white to-rose-50/50;
+    @apply dark:from-stone-950 dark:via-stone-950 dark:to-stone-950;
+    @apply flex flex-col;
+  }
+
+  /* Base auth card - shared structure */
+  .auth-card {
+    @apply rounded-2xl p-8 bg-gradient-to-br border shadow-md;
+  }
+
+  /* Color-specific auth cards */
+  .auth-card-amber {
+    @apply auth-card from-amber-50 to-amber-100/50 dark:from-amber-950/40 dark:to-amber-900/20;
+    @apply border-amber-200/40 dark:border-amber-800/30;
+  }
+
+  .auth-card-orange {
+    @apply auth-card from-orange-50 to-orange-100/50 dark:from-orange-950/40 dark:to-orange-900/20;
+    @apply border-orange-200/40 dark:border-orange-800/30;
+  }
+
+  .auth-card-rose {
+    @apply auth-card from-rose-50 to-rose-100/50 dark:from-rose-950/40 dark:to-rose-900/20;
+    @apply border-rose-200/40 dark:border-rose-800/30;
+  }
+
+  .auth-card-green {
+    @apply auth-card from-green-50 to-green-100/50 dark:from-green-950/40 dark:to-green-900/20;
+    @apply border-green-200/40 dark:border-green-800/30;
+  }
+
+  .auth-card-red {
+    @apply auth-card from-red-50 to-red-100/50 dark:from-red-950/40 dark:to-red-900/20;
+    @apply border-red-200/40 dark:border-red-800/30;
+  }
+
+  /* Icon containers with color tints */
+  .auth-icon-box-amber {
+    @apply landing-icon-box bg-amber-500/10 dark:bg-amber-500/20;
+  }
+
+  .auth-icon-box-orange {
+    @apply landing-icon-box bg-orange-500/10 dark:bg-orange-500/20;
+  }
+
+  .auth-icon-box-rose {
+    @apply landing-icon-box bg-rose-500/10 dark:bg-rose-500/20;
+  }
+
+  .auth-icon-box-green {
+    @apply landing-icon-box bg-green-500/10 dark:bg-green-500/20;
+  }
+
+  .auth-icon-box-red {
+    @apply landing-icon-box bg-red-500/10 dark:bg-red-500/20;
+  }
+
+  /* Typography for auth pages */
+  .auth-title {
+    @apply text-2xl font-bold text-gray-900 dark:text-white;
+  }
+
+  .auth-subtitle {
+    @apply text-sm text-gray-600 dark:text-gray-400;
+  }
+
+  /* Warm-colored links */
+  .auth-link {
+    @apply text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300;
+    @apply underline-offset-4 transition-colors;
+  }
+
+  .auth-link-rose {
+    @apply text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300;
+    @apply underline-offset-4 transition-colors;
+  }
+
+  /* Animation classes */
+  .auth-fade-in {
+    animation: authFadeIn 0.6s ease-out 0.2s both;
+  }
+
+  .auth-slide-up {
+    animation: authSlideUp 0.5s ease-out 0.3s both;
+  }
+
+  .auth-icon-entrance {
+    animation: authIconEntrance 0.7s ease-out 0.1s both;
+  }
+}
+
+/* Auth Animation Keyframes */
+@keyframes authFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes authSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes authIconEntrance {
+  from {
+    opacity: 0;
+    transform: scale(0.8) rotate(-12deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* ===================================
+   Auth Page Layout
+   =================================== */
+
+/* Auth page container - centered layout */
+.auth-page-container {
+  @apply flex-1 w-full;
+  @apply flex items-center justify-center;
+  @apply p-6 md:p-10;
+  @apply overflow-y-auto;
+}
+
+.auth-form-wrapper {
+  @apply w-full max-w-md;
+  @apply flex-shrink-0;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .auth-fade-in,
+  .auth-slide-up,
+  .auth-icon-entrance {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .auth-float-1,
+  .auth-float-2,
+  .auth-float-3 {
+    animation: none !important;
   }
 }
 
