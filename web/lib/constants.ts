@@ -3,6 +3,10 @@
  * All magic numbers and configuration values should be defined here
  */
 
+// Type-safe icon component map
+import * as Icons from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+
 // =====================================================
 // File Upload Constants
 // =====================================================
@@ -451,10 +455,6 @@ export function suggestIconForSubject(name: string): SubjectIcon {
 
   return SUBJECT_CONSTANTS.DEFAULT_ICON;
 }
-
-// Type-safe icon component map
-import * as Icons from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 
 const ICON_COMPONENT_MAP: Record<SubjectIcon, LucideIcon> = {
   BookOpen: Icons.BookOpen,
