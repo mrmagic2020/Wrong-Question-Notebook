@@ -74,9 +74,11 @@ export function useSubjectForm({
       router.refresh();
 
       return result.data;
-    } catch {
+    } catch (err: unknown) {
       toast.error('Failed to create subject');
-      throw new Error('Failed to create subject');
+      const originalMessage =
+        err instanceof Error ? err.message : String(err);
+      throw new Error(`Failed to create subject: ${originalMessage}`);
     } finally {
       setBusy(false);
     }
