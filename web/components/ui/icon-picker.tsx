@@ -7,8 +7,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { SUBJECT_CONSTANTS, SubjectIcon } from '@/lib/constants';
-import * as Icons from 'lucide-react';
+import {
+  SUBJECT_CONSTANTS,
+  SubjectIcon,
+  getIconComponent,
+} from '@/lib/constants';
 import { cn } from '@/lib/utils';
 
 interface IconPickerProps {
@@ -19,7 +22,7 @@ interface IconPickerProps {
 
 export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
   const [open, setOpen] = useState(false);
-  const IconComponent = (Icons as any)[value] || Icons.BookOpen;
+  const IconComponent = getIconComponent(value);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -36,7 +39,7 @@ export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
       <PopoverContent className="w-72 p-2">
         <div className="grid grid-cols-5 gap-2">
           {SUBJECT_CONSTANTS.ICONS.map(iconName => {
-            const Icon = (Icons as any)[iconName];
+            const Icon = getIconComponent(iconName);
             return (
               <Button
                 key={iconName}

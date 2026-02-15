@@ -451,3 +451,41 @@ export function suggestIconForSubject(name: string): SubjectIcon {
 
   return SUBJECT_CONSTANTS.DEFAULT_ICON;
 }
+
+// Type-safe icon component map
+import * as Icons from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+
+const ICON_COMPONENT_MAP: Record<SubjectIcon, LucideIcon> = {
+  BookOpen: Icons.BookOpen,
+  NotebookPen: Icons.NotebookPen,
+  Calculator: Icons.Calculator,
+  Atom: Icons.Atom,
+  Beaker: Icons.Beaker,
+  Globe: Icons.Globe,
+  Languages: Icons.Languages,
+  Music: Icons.Music,
+  Palette: Icons.Palette,
+  Code: Icons.Code,
+  FlaskConical: Icons.FlaskConical,
+  Microscope: Icons.Microscope,
+  BookMarked: Icons.BookMarked,
+  GraduationCap: Icons.GraduationCap,
+  Lightbulb: Icons.Lightbulb,
+};
+
+// Helper: Get icon component with runtime validation and fallback
+export function getIconComponent(iconName: string): LucideIcon {
+  // Type guard to check if iconName is a valid SubjectIcon
+  if (
+    SUBJECT_CONSTANTS.ICONS.includes(iconName as SubjectIcon) &&
+    iconName in ICON_COMPONENT_MAP
+  ) {
+    return ICON_COMPONENT_MAP[iconName as SubjectIcon];
+  }
+  // Fallback to default icon for invalid names
+  console.warn(
+    `Invalid icon name "${iconName}", falling back to ${SUBJECT_CONSTANTS.DEFAULT_ICON}`
+  );
+  return Icons.BookOpen;
+}

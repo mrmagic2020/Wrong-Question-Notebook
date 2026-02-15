@@ -9,8 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { SubjectWithMetadata } from '@/lib/types';
-import { SUBJECT_CONSTANTS } from '@/lib/constants';
-import * as Icons from 'lucide-react';
+import { SUBJECT_CONSTANTS, getIconComponent } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { Calendar, FileText, MoreVertical, Pencil, Trash2 } from 'lucide-react';
@@ -34,7 +33,7 @@ export function NotebookCard({
       ? color
       : SUBJECT_CONSTANTS.DEFAULT_COLOR;
   const iconName = subject.icon || SUBJECT_CONSTANTS.DEFAULT_ICON;
-  const Icon = (Icons as any)[iconName] || Icons.BookOpen;
+  const Icon = getIconComponent(iconName);
   const colorClasses =
     SUBJECT_CONSTANTS.COLOR_GRADIENTS[
       safeColor as keyof typeof SUBJECT_CONSTANTS.COLOR_GRADIENTS
