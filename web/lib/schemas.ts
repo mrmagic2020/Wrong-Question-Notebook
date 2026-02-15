@@ -6,6 +6,7 @@ import {
   ANSWER_CONFIG_CONSTANTS,
   USER_ROLES,
   GENDER_OPTIONS,
+  SUBJECT_CONSTANTS,
 } from './constants';
 import { isValidHtml, sanitizeHtmlContent } from './html-sanitizer';
 
@@ -321,6 +322,8 @@ export const CreateSubjectDto = z.object({
     .string()
     .min(VALIDATION_CONSTANTS.STRING_LIMITS.SUBJECT_NAME_MIN)
     .max(VALIDATION_CONSTANTS.STRING_LIMITS.SUBJECT_NAME_MAX),
+  color: z.enum(SUBJECT_CONSTANTS.COLORS).optional(),
+  icon: z.enum(SUBJECT_CONSTANTS.ICONS).optional(),
 });
 
 export const UpdateSubjectDto = CreateSubjectDto.partial();

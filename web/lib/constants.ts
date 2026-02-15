@@ -303,3 +303,151 @@ export const GENDER_OPTIONS = {
   OTHER: 'other',
   PREFER_NOT_TO_SAY: 'prefer_not_to_say',
 } as const;
+
+// =====================================================
+// Subject Personalization Constants
+// =====================================================
+export const SUBJECT_CONSTANTS = {
+  COLORS: [
+    'amber',
+    'orange',
+    'rose',
+    'blue',
+    'emerald',
+    'purple',
+    'teal',
+    'pink',
+  ] as const,
+  DEFAULT_COLOR: 'amber',
+  DEFAULT_ICON: 'BookOpen',
+
+  ICONS: [
+    'BookOpen',
+    'NotebookPen',
+    'Calculator',
+    'Atom',
+    'Beaker',
+    'Globe',
+    'Languages',
+    'Music',
+    'Palette',
+    'Code',
+    'FlaskConical',
+    'Microscope',
+    'BookMarked',
+    'GraduationCap',
+    'Lightbulb',
+  ] as const,
+
+  // Smart icon suggestions based on keywords
+  ICON_KEYWORDS: {
+    Calculator: ['math', 'calculus', 'algebra', 'geometry', 'statistics'],
+    Atom: ['physics', 'quantum', 'mechanic'],
+    Beaker: ['chemistry', 'lab'],
+    Code: ['programming', 'coding', 'computer', 'software'],
+    Globe: ['geography', 'history', 'social'],
+    Languages: ['chinese', 'spanish', 'french', 'latin', 'language'],
+    Music: ['music', 'composition'],
+    FlaskConical: ['chemistry', 'science'],
+    Microscope: ['biology', 'microbiology'],
+  } as Record<string, string[]>,
+
+  // Tailwind class mappings for each color
+  COLOR_GRADIENTS: {
+    amber: {
+      light: 'from-amber-50 to-amber-100/50',
+      dark: 'dark:from-amber-950/40 dark:to-amber-900/20',
+      border: 'border-amber-200/40 dark:border-amber-800/30',
+      icon: 'bg-amber-500/10 dark:bg-amber-500/20',
+      iconColor: 'text-amber-600 dark:text-amber-400',
+      buttonHover: 'hover:bg-amber-500/10 dark:hover:bg-amber-500/20',
+    },
+    orange: {
+      light: 'from-orange-50 to-orange-100/50',
+      dark: 'dark:from-orange-950/40 dark:to-orange-900/20',
+      border: 'border-orange-200/40 dark:border-orange-800/30',
+      icon: 'bg-orange-500/10 dark:bg-orange-500/20',
+      iconColor: 'text-orange-600 dark:text-orange-400',
+      buttonHover: 'hover:bg-orange-500/10 dark:hover:bg-orange-500/20',
+    },
+    rose: {
+      light: 'from-rose-50 to-rose-100/50',
+      dark: 'dark:from-rose-950/40 dark:to-rose-900/20',
+      border: 'border-rose-200/40 dark:border-rose-800/30',
+      icon: 'bg-rose-500/10 dark:bg-rose-500/20',
+      iconColor: 'text-rose-600 dark:text-rose-400',
+      buttonHover: 'hover:bg-rose-500/10 dark:hover:bg-rose-500/20',
+    },
+    blue: {
+      light: 'from-blue-50 to-blue-100/50',
+      dark: 'dark:from-blue-950/40 dark:to-blue-900/20',
+      border: 'border-blue-200/40 dark:border-blue-800/30',
+      icon: 'bg-blue-500/10 dark:bg-blue-500/20',
+      iconColor: 'text-blue-600 dark:text-blue-400',
+      buttonHover: 'hover:bg-blue-500/10 dark:hover:bg-blue-500/20',
+    },
+    emerald: {
+      light: 'from-emerald-50 to-emerald-100/50',
+      dark: 'dark:from-emerald-950/40 dark:to-emerald-900/20',
+      border: 'border-emerald-200/40 dark:border-emerald-800/30',
+      icon: 'bg-emerald-500/10 dark:bg-emerald-500/20',
+      iconColor: 'text-emerald-600 dark:text-emerald-400',
+      buttonHover: 'hover:bg-emerald-500/10 dark:hover:bg-emerald-500/20',
+    },
+    purple: {
+      light: 'from-purple-50 to-purple-100/50',
+      dark: 'dark:from-purple-950/40 dark:to-purple-900/20',
+      border: 'border-purple-200/40 dark:border-purple-800/30',
+      icon: 'bg-purple-500/10 dark:bg-purple-500/20',
+      iconColor: 'text-purple-600 dark:text-purple-400',
+      buttonHover: 'hover:bg-purple-500/10 dark:hover:bg-purple-500/20',
+    },
+    teal: {
+      light: 'from-teal-50 to-teal-100/50',
+      dark: 'dark:from-teal-950/40 dark:to-teal-900/20',
+      border: 'border-teal-200/40 dark:border-teal-800/30',
+      icon: 'bg-teal-500/10 dark:bg-teal-500/20',
+      iconColor: 'text-teal-600 dark:text-teal-400',
+      buttonHover: 'hover:bg-teal-500/10 dark:hover:bg-teal-500/20',
+    },
+    pink: {
+      light: 'from-pink-50 to-pink-100/50',
+      dark: 'dark:from-pink-950/40 dark:to-pink-900/20',
+      border: 'border-pink-200/40 dark:border-pink-800/30',
+      icon: 'bg-pink-500/10 dark:bg-pink-500/20',
+      iconColor: 'text-pink-600 dark:text-pink-400',
+      buttonHover: 'hover:bg-pink-500/10 dark:hover:bg-pink-500/20',
+    },
+  },
+} as const;
+
+export type SubjectColor = (typeof SUBJECT_CONSTANTS.COLORS)[number];
+export type SubjectIcon = (typeof SUBJECT_CONSTANTS.ICONS)[number];
+
+// Helper: Get next color in rotation
+export function getNextSubjectColor(
+  existingSubjects: Array<{ color?: string }>
+): SubjectColor {
+  const colorCounts = SUBJECT_CONSTANTS.COLORS.map(color => ({
+    color,
+    count: existingSubjects.filter(s => s.color === color).length,
+  }));
+
+  // Return color with lowest count
+  return colorCounts.sort((a, b) => a.count - b.count)[0].color;
+}
+
+// Helper: Suggest icon based on subject name
+export function suggestIconForSubject(name: string): SubjectIcon {
+  const lowerName = name.toLowerCase();
+
+  for (const [icon, keywords] of Object.entries(
+    SUBJECT_CONSTANTS.ICON_KEYWORDS
+  )) {
+    if (keywords.some(kw => lowerName.includes(kw))) {
+      return icon as SubjectIcon;
+    }
+  }
+
+  return SUBJECT_CONSTANTS.DEFAULT_ICON;
+}

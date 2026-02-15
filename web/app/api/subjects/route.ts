@@ -18,24 +18,50 @@ async function getSubjects() {
   if (!user) return unauthorised();
 
   try {
-    const { data, error } = await supabase
+    const { data: subjects, error: subjectsError } = await supabase
       .from('subjects')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: true });
 
-    if (error) {
+    if (subjectsError) {
       return NextResponse.json(
         createApiErrorResponse(
           ERROR_MESSAGES.DATABASE_ERROR,
           500,
-          error.message
+          subjectsError.message
         ),
         { status: 500 }
       );
     }
 
-    return NextResponse.json(createApiSuccessResponse(data));
+    // Enrich with problem_count and last_activity
+    const enriched = await Promise.all(
+      (subjects || []).map(async subject => {
+        // Count problems
+        const { count } = await supabase
+          .from('problems')
+          .select('*', { count: 'exact', head: true })
+          .eq('subject_id', subject.id);
+
+        // Get most recent last_reviewed_date
+        const { data: lastReviewed } = await supabase
+          .from('problems')
+          .select('last_reviewed_date')
+          .eq('subject_id', subject.id)
+          .order('last_reviewed_date', { ascending: false, nullsFirst: false })
+          .limit(1)
+          .maybeSingle();
+
+        return {
+          ...subject,
+          problem_count: count ?? 0,
+          last_activity: lastReviewed?.last_reviewed_date ?? null,
+        };
+      })
+    );
+
+    return NextResponse.json(createApiSuccessResponse(enriched));
   } catch (error) {
     const { message, status } = handleAsyncError(error);
     return NextResponse.json(createApiErrorResponse(message, status), {
@@ -79,7 +105,7 @@ async function createSubject(req: Request) {
   try {
     const { data, error } = await supabase
       .from('subjects')
-      .insert({ user_id: user.id, name: parsed.data.name })
+      .insert({ user_id: user.id, ...parsed.data })
       .select()
       .single();
 
