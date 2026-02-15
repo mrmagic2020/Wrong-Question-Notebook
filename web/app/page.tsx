@@ -65,7 +65,7 @@ export default async function Home() {
                 {isSignedIn ? (
                   <>
                     <Button asChild size="lg" className="btn-cta-primary">
-                      <Link href="/subjects">Open your notebook</Link>
+                      <Link href="/subjects">Go to shelf</Link>
                     </Button>
                     <Button
                       asChild

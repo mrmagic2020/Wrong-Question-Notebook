@@ -237,22 +237,22 @@ export default function ProblemSetsPageClient({
                     {problemSet.subject_name}
                   </CardDescription>
                 </div>
-                <div className="flex gap-1 ml-2">
-                  {problemSet.is_smart && (
-                    <Badge
-                      variant="outline"
-                      className="border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400"
-                    >
-                      <Sparkles className="h-3 w-3 mr-1" />
-                      Smart
-                    </Badge>
-                  )}
+                <div className="flex flex-col gap-1 ml-2">
                   <Badge variant={getSharingVariant(problemSet.sharing_level)}>
                     {getSharingIcon(problemSet.sharing_level)}
                     <span className="ml-1">
                       {getSharingLabel(problemSet.sharing_level)}
                     </span>
                   </Badge>
+                  {problemSet.is_smart && (
+                    <Badge
+                      variant="outline"
+                      className="self-end border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400"
+                    >
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      Smart
+                    </Badge>
+                  )}
                 </div>
               </div>
             </CardHeader>

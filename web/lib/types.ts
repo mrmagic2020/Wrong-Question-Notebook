@@ -11,6 +11,8 @@ import { ColumnDef } from '@tanstack/react-table';
 export interface Subject {
   id: string;
   name: string;
+  color?: string;
+  icon?: string;
   created_at?: string;
 }
 

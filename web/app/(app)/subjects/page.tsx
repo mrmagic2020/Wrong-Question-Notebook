@@ -7,9 +7,10 @@ import {
   CACHE_TAGS,
   createUserCacheTag,
 } from '@/lib/cache-config';
+import { SubjectWithMetadata } from '@/lib/types';
 
 export const metadata: Metadata = {
-  title: 'All Subjects – Wrong Question Notebook',
+  title: 'Your Notebook Shelf – Wrong Question Notebook',
   description: 'View and manage your subjects',
 };
 
@@ -21,22 +22,23 @@ async function loadSubjects() {
   const userId = authData.user?.id;
 
   if (!userId) {
-    return { data: [] as any[] };
+    return { data: [] as SubjectWithMetadata[] };
   }
 
   const cachedLoadSubjects = unstable_cache(
     async (userId: string, supabaseClient: any) => {
-      const { data, error } = await supabaseClient
-        .from('subjects')
-        .select('*')
-        .order('created_at', { ascending: true });
+      // Use database function to fetch subjects with metadata in a single query
+      const { data: subjects, error } = await supabaseClient.rpc(
+        'get_subjects_with_metadata'
+      );
 
-      // RLS ensures we only see the signed-in user's rows.
+      // RLS ensures we only see the signed-in user's rows via auth.uid() in the function
       if (error) {
-        // Fail soft so the page still renders; you can also throw to show the Next error page.
-        return { data: [] as any[] };
+        // Fail soft so the page still renders
+        return { data: [] as SubjectWithMetadata[] };
       }
-      return { data: data ?? [] };
+
+      return { data: subjects || [] };
     },
     [`subjects-${userId}`],
     {

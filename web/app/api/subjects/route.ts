@@ -18,24 +18,23 @@ async function getSubjects() {
   if (!user) return unauthorised();
 
   try {
-    const { data, error } = await supabase
-      .from('subjects')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: true });
+    // Use database function to fetch subjects with metadata in a single query
+    const { data: subjects, error: subjectsError } = await supabase.rpc(
+      'get_subjects_with_metadata'
+    );
 
-    if (error) {
+    if (subjectsError) {
       return NextResponse.json(
         createApiErrorResponse(
           ERROR_MESSAGES.DATABASE_ERROR,
           500,
-          error.message
+          subjectsError.message
         ),
         { status: 500 }
       );
     }
 
-    return NextResponse.json(createApiSuccessResponse(data));
+    return NextResponse.json(createApiSuccessResponse(subjects || []));
   } catch (error) {
     const { message, status } = handleAsyncError(error);
     return NextResponse.json(createApiErrorResponse(message, status), {
@@ -79,7 +78,7 @@ async function createSubject(req: Request) {
   try {
     const { data, error } = await supabase
       .from('subjects')
-      .insert({ user_id: user.id, name: parsed.data.name })
+      .insert({ user_id: user.id, ...parsed.data })
       .select()
       .single();
 
