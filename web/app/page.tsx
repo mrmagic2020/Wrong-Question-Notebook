@@ -102,7 +102,7 @@ export default async function Home() {
         </section>
 
         {/* How It Works Section */}
-        <section className="landing-section bg-amber-50/50 dark:bg-gray-800/30">
+        <section className="landing-section bg-amber-50/50 dark:bg-stone-800/20">
           <div className="max-w-5xl mx-auto px-6">
             <div className="landing-section-header">
               <h2 className="landing-section-title">How it works</h2>
@@ -251,7 +251,7 @@ export default async function Home() {
         </section>
 
         {/* Student-focused CTA Section */}
-        <section className="landing-section ruled-lines bg-amber-50/30 dark:bg-gray-800/20">
+        <section className="landing-section ruled-lines bg-amber-50/30 dark:bg-stone-800/15">
           <div className="max-w-3xl mx-auto text-center px-6">
             <div className="space-y-6">
               <div className="inline-flex items-center gap-1.5 rounded-full bg-rose-100/80 dark:bg-rose-900/30 px-3 py-1 text-xs font-medium text-rose-700 dark:text-rose-300 border border-rose-200/50 dark:border-rose-800/40">
@@ -283,7 +283,7 @@ export default async function Home() {
         </section>
 
         {/* Footer */}
-        <footer className="w-full border-t border-amber-200/30 dark:border-gray-800 glass-effect">
+        <footer className="w-full border-t border-amber-200/30 dark:border-stone-800 glass-effect">
           <div className="landing-section-inner py-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="flex items-center gap-2">

@@ -3,19 +3,13 @@
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ROUTES, ERROR_MESSAGES } from '@/lib/constants';
+import { UserPlus } from 'lucide-react';
 
 export function SignUpForm({
   className,
@@ -60,65 +54,74 @@ export function SignUpForm({
   };
 
   return (
-    <div className={cn('form-container', className)} {...props}>
-      <Card>
-        <CardHeader>
-          <CardTitle className="heading-md">Sign up</CardTitle>
-          <CardDescription>Create a new account</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignUp}>
-            <div className="form-container">
-              <div className="form-section">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                />
-              </div>
-              <div className="form-section">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                />
-              </div>
-              <div className="form-section">
-                <Label htmlFor="repeat-password">Repeat Password</Label>
-                <Input
-                  id="repeat-password"
-                  type="password"
-                  required
-                  value={repeatPassword}
-                  onChange={e => setRepeatPassword(e.target.value)}
-                />
-              </div>
-              {error && <p className="form-error">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Creating an account...' : 'Sign up'}
-              </Button>
-            </div>
-            <div className="mt-4 text-center">
-              <p className="text-body-sm">
-                Already have an account?{' '}
-                <Link
-                  href="/auth/login"
-                  className="underline underline-offset-4"
-                >
-                  Login
-                </Link>
-              </p>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+    <div className={cn('w-full auth-fade-in', className)} {...props}>
+      <div className="auth-card-orange">
+        {/* Icon header */}
+        <div className="flex justify-center mb-6 auth-icon-entrance">
+          <div className="auth-icon-box-orange">
+            <UserPlus className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+          </div>
+        </div>
+
+        {/* Title */}
+        <div className="text-center mb-6 space-y-2">
+          <h1 className="auth-title">Create your notebook</h1>
+          <p className="auth-subtitle">
+            Start organizing your learning journey
+          </p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSignUp} className="auth-slide-up space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="m@example.com"
+              required
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              required
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="repeat-password">Repeat Password</Label>
+            <Input
+              id="repeat-password"
+              type="password"
+              required
+              value={repeatPassword}
+              onChange={e => setRepeatPassword(e.target.value)}
+            />
+          </div>
+          {error && <p className="form-error">{error}</p>}
+          <Button
+            type="submit"
+            className="w-full btn-cta-primary"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Creating account...' : 'Sign up'}
+          </Button>
+        </form>
+
+        {/* Links */}
+        <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
+          Already have an account?{' '}
+          <Link href="/auth/login" className="auth-link underline">
+            Login
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
