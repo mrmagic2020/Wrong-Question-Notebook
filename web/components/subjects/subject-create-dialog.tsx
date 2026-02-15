@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -14,14 +14,7 @@ import { IconPicker } from '@/components/ui/icon-picker';
 import { ColorPicker } from '@/components/ui/color-picker';
 import { Spinner } from '@/components/ui/spinner';
 import { SubjectWithMetadata } from '@/lib/types';
-import { toast } from 'sonner';
-import {
-  SUBJECT_CONSTANTS,
-  getNextSubjectColor,
-  suggestIconForSubject,
-  SubjectColor,
-  SubjectIcon,
-} from '@/lib/constants';
+import { useSubjectForm } from '@/lib/hooks/useSubjectForm';
 
 interface SubjectCreateDialogProps {
   open: boolean;
@@ -36,55 +29,31 @@ export function SubjectCreateDialog({
   existingSubjects,
   onSuccess,
 }: SubjectCreateDialogProps) {
-  const [name, setName] = useState('');
-  const [color, setColor] = useState<SubjectColor>(
-    SUBJECT_CONSTANTS.DEFAULT_COLOR
-  );
-  const [icon, setIcon] = useState<SubjectIcon>(SUBJECT_CONSTANTS.DEFAULT_ICON);
-  const [busy, setBusy] = useState(false);
+  const {
+    name,
+    color,
+    icon,
+    busy,
+    setName,
+    setColor,
+    setIcon,
+    handleSubmit,
+    resetForm,
+  } = useSubjectForm({
+    existingSubjects,
+    onSuccess: subject => {
+      onSuccess(subject);
+      onOpenChange(false);
+    },
+    resetOnSuccess: false, // We'll reset manually when dialog closes
+  });
 
-  // Auto-suggest icon when name changes
-  useEffect(() => {
-    if (name.trim()) {
-      setIcon(suggestIconForSubject(name));
-    }
-  }, [name]);
-
-  // Auto-rotate color when dialog opens
+  // Reset form when dialog opens
   useEffect(() => {
     if (open) {
-      setName('');
-      setColor(getNextSubjectColor(existingSubjects));
-      setIcon(SUBJECT_CONSTANTS.DEFAULT_ICON);
+      resetForm();
     }
-  }, [open, existingSubjects]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) {
-      toast.error('Subject name is required');
-      return;
-    }
-
-    setBusy(true);
-    try {
-      const res = await fetch('/api/subjects', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), color, icon }),
-      });
-      if (!res.ok) throw new Error('Failed to create subject');
-
-      const result = await res.json();
-      toast.success('Subject created');
-      onSuccess(result.data);
-      onOpenChange(false);
-    } catch {
-      toast.error('Failed to create subject');
-    } finally {
-      setBusy(false);
-    }
-  };
+  }, [open, resetForm]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
