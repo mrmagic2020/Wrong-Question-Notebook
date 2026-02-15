@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { SubjectWithMetadata } from '@/lib/types';
 import { SUBJECT_CONSTANTS, getIconComponent } from '@/lib/constants';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, isValid, parseISO } from 'date-fns';
 import { Calendar, FileText, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 
 interface NotebookCardProps {
@@ -19,6 +19,26 @@ interface NotebookCardProps {
   onClick: () => void;
   onEdit: () => void;
   onDelete: () => void;
+}
+
+/**
+ * Safely formats a date string using date-fns formatDistanceToNow.
+ * Returns null if the date is invalid or formatting fails.
+ */
+function formatSafeDate(dateString: string | null | undefined): string | null {
+  if (!dateString) return null;
+
+  try {
+    const date = parseISO(dateString);
+    if (!isValid(date)) {
+      console.warn(`Invalid date string: "${dateString}"`);
+      return null;
+    }
+    return formatDistanceToNow(date, { addSuffix: true });
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return null;
+  }
 }
 
 export function NotebookCard({
@@ -42,6 +62,10 @@ export function NotebookCard({
   const problemCount = subject.problem_count ?? 0;
   const lastActivity = subject.last_activity;
   const createdAt = subject.created_at;
+
+  // Safely format dates, will be null if date is invalid
+  const formattedCreatedAt = formatSafeDate(createdAt);
+  const formattedLastActivity = formatSafeDate(lastActivity);
 
   return (
     <Card
@@ -108,23 +132,19 @@ export function NotebookCard({
           </span>
         </div>
 
-        {createdAt && (
+        {formattedCreatedAt && (
           <div className="flex items-center gap-2">
             <Calendar className={cn('w-4 h-4', colorClasses.iconColor)} />
             <span className="text-gray-500 dark:text-gray-500 text-xs">
-              Created{' '}
-              {formatDistanceToNow(new Date(createdAt), { addSuffix: true })}
+              Created {formattedCreatedAt}
             </span>
           </div>
         )}
 
-        {lastActivity && (
+        {formattedLastActivity && (
           <div className="pt-2 border-t border-current/10">
             <span className="text-xs text-gray-500 dark:text-gray-500">
-              Last reviewed{' '}
-              {formatDistanceToNow(new Date(lastActivity), {
-                addSuffix: true,
-              })}
+              Last reviewed {formattedLastActivity}
             </span>
           </div>
         )}
