@@ -26,7 +26,9 @@ export function useUnsavedChanges(hasUnsavedData: boolean) {
     if (!hasUnsavedData) return;
 
     const handleClick = (e: MouseEvent) => {
-      const anchor = (e.target as HTMLElement).closest('a');
+      const target = e.target;
+      if (!(target instanceof HTMLElement)) return;
+      const anchor = target.closest('a');
       if (!anchor) return;
 
       // Only intercept internal navigation links
