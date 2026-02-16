@@ -91,7 +91,7 @@ export function ShortAnswerConfig({
     <div className="space-y-3">
       <div className="form-row">
         <label className="form-label">Answer mode</label>
-        <div className="inline-flex rounded-lg border border-border p-0.5">
+        <div className="inline-flex self-start rounded-lg border border-border p-0.5">
           <button
             type="button"
             onClick={() => handleModeChange('text')}
