@@ -181,15 +181,15 @@ html body[data-scroll-locked] {
   }
 
   .form-row {
-    @apply flex items-center gap-3;
+    @apply flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3;
   }
 
   .form-row-start {
-    @apply flex items-start gap-3;
+    @apply flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3;
   }
 
   .form-label {
-    @apply w-32 text-label text-muted-foreground;
+    @apply text-label text-muted-foreground sm:w-32;
   }
 
   .form-label-top {
@@ -765,6 +765,7 @@ html body[data-scroll-locked] {
   float: left;
   height: 0;
   pointer-events: none;
+  font-size: 0.875rem; /* text-sm */
 }
 
 /* Unified rich text styling - used by both editor and display components */

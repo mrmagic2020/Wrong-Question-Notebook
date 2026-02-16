@@ -10,6 +10,7 @@ import {
   useRef,
 } from 'react';
 import { toast } from 'sonner';
+import { useUnsavedChanges } from '@/lib/hooks/useUnsavedChanges';
 import FileManager from '@/components/ui/file-manager';
 import {
   Select,
@@ -31,6 +32,14 @@ import {
 } from '@/components/ui/short-answer-config';
 import { VALIDATION_CONSTANTS, ANSWER_CONFIG_CONSTANTS } from '@/lib/constants';
 import { Spinner } from '@/components/ui/spinner';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import {
   Tag,
   ProblemFormProps,
@@ -554,17 +563,39 @@ export default function ProblemForm({
     [isEditMode]
   );
 
-  // Clean up unsaved problem assets when component unmounts or user leaves page (CREATE mode only)
+  // Track whether the form has unsaved data
+  const hasUnsavedData = useMemo(() => {
+    if (!isExpanded && !isEditMode) return false;
+    return (
+      title.trim().length > 0 ||
+      content.length > 0 ||
+      problemAssets.length > 0 ||
+      solutionText.length > 0 ||
+      solutionAssets.length > 0 ||
+      selectedTagIds.length > 0
+    );
+  }, [
+    isExpanded,
+    isEditMode,
+    title,
+    content,
+    problemAssets,
+    solutionText,
+    solutionAssets,
+    selectedTagIds,
+  ]);
+
+  // Warn user before leaving page with unsaved form data
+  useUnsavedChanges(hasUnsavedData);
+
+  // Clean up unsaved problem assets when component unmounts or user leaves page
   useEffect(() => {
-    // Cleanup on page unload/refresh/close (when user truly leaves)
     const handleBeforeUnload = () => {
       cleanupUnsavedProblem(problemUuid);
     };
 
-    // Add event listener for page unload
     window.addEventListener('beforeunload', handleBeforeUnload);
 
-    // Return cleanup function for component unmount (navigation within app)
     return () => {
       cleanupUnsavedProblem(problemUuid);
       window.removeEventListener('beforeunload', handleBeforeUnload);
@@ -631,297 +662,337 @@ export default function ProblemForm({
         </div>
       </div>
 
-      {/* content */}
-      <div className="form-row-start">
-        <label className="form-label pt-2">Content</label>
-        <div className="flex-1 relative">
-          <RichTextEditor
-            ref={contentEditorRef}
-            content={content}
-            onChange={setContent}
-            placeholder="Describe the problem with rich formatting, math equations, and more..."
-            height="300px"
-            maxHeight="500px"
-            disabled={isSubmitting}
-            maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
-            showCharacterCount={true}
-          />
-        </div>
-      </div>
+      {/* All sections in a single accordion */}
+      <Accordion
+        type="multiple"
+        defaultValue={['content', 'settings', 'answer']}
+      >
+        {/* Content + Problem Assets */}
+        <AccordionItem
+          value="content"
+          className="rounded-2xl border border-gray-200/40 dark:border-gray-700/30 bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-gray-800/40 dark:to-gray-700/20 px-4"
+        >
+          <AccordionTrigger className="hover:no-underline py-3">
+            <span className="text-sm font-semibold text-gray-800 dark:text-gray-300">
+              Content <span className="text-red-500">*</span>
+            </span>
+          </AccordionTrigger>
+          <AccordionContent className="space-y-4">
+            <div className="form-row-start">
+              <label className="form-label pt-2">Content</label>
+              <div className="flex-1 relative">
+                <RichTextEditor
+                  ref={contentEditorRef}
+                  content={content}
+                  onChange={setContent}
+                  placeholder="Describe the problem with rich formatting, math equations, and more..."
+                  height="200px"
+                  maxHeight="500px"
+                  disabled={isSubmitting}
+                  maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
+                  showCharacterCount={true}
+                />
+              </div>
+            </div>
+            <div className="form-row-start">
+              <label className="form-label pt-2">Problem assets</label>
+              <div className="flex-1">
+                <FileManager
+                  role="problem"
+                  problemId={
+                    isEditMode ? problem.id : problemUuid || 'disabled'
+                  }
+                  isEditMode={isEditMode}
+                  initialFiles={problemAssets}
+                  onFilesChange={setProblemAssets}
+                  onInsertImage={handleInsertProblemImage}
+                  disabled={!isEditMode && !problemUuid}
+                />
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
 
-      {/* problem assets */}
-      <div className="form-row-start">
-        <label className="form-label pt-2">Problem assets</label>
-        <div className="flex-1">
-          <FileManager
-            role="problem"
-            problemId={isEditMode ? problem.id : problemUuid || 'disabled'}
-            isEditMode={isEditMode}
-            initialFiles={problemAssets}
-            onFilesChange={setProblemAssets}
-            onInsertImage={handleInsertProblemImage}
-            disabled={!isEditMode && !problemUuid}
-          />
-        </div>
-      </div>
+        {/* Problem Settings */}
+        <AccordionItem
+          value="settings"
+          className="rounded-2xl border border-amber-200/40 dark:border-amber-800/30 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/40 dark:to-amber-900/20 px-4 mt-4"
+        >
+          <AccordionTrigger className="hover:no-underline py-3">
+            <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+              Problem Settings <span className="text-red-500">*</span>
+            </span>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="form-section">
+              <div className="form-row">
+                <label className="form-label">Type</label>
+                <Select
+                  value={problemType}
+                  onValueChange={value => setProblemType(value as ProblemType)}
+                >
+                  <SelectTrigger className="w-48 rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PROBLEM_TYPE_VALUES.map(type => (
+                      <SelectItem key={type} value={type}>
+                        {getProblemTypeDisplayName(type)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-      {/* Problem Settings */}
-      <div className="rounded-2xl border border-amber-200/40 dark:border-amber-800/30 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/40 dark:to-amber-900/20 p-6">
-        <div className="mb-4">
-          <h4 className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">
-            Problem Settings
-          </h4>
-          <p className="text-xs text-amber-600/80 dark:text-amber-400/80">
-            Configure the basic properties
-          </p>
-        </div>
-        <div className="form-section">
-          <div className="form-row">
-            <label className="form-label">Type</label>
-            <Select
-              value={problemType}
-              onValueChange={value => setProblemType(value as ProblemType)}
-            >
-              <SelectTrigger className="w-48 rounded-xl">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {PROBLEM_TYPE_VALUES.map(type => (
-                  <SelectItem key={type} value={type}>
-                    {getProblemTypeDisplayName(type)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              <div className="form-row">
+                <label className="form-label">Status</label>
+                <Select
+                  value={status}
+                  onValueChange={value => setStatus(value as any)}
+                >
+                  <SelectTrigger className="w-36 rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="needs_review">
+                      <StatusBadge status="needs_review" />
+                    </SelectItem>
+                    <SelectItem value="wrong">
+                      <StatusBadge status="wrong" />
+                    </SelectItem>
+                    <SelectItem value="mastered">
+                      <StatusBadge status="mastered" />
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <div className="form-row">
-            <label className="form-label">Status</label>
-            <Select
-              value={status}
-              onValueChange={value => setStatus(value as any)}
-            >
-              <SelectTrigger className="w-36 rounded-xl">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="needs_review">
-                  <StatusBadge status="needs_review" />
-                </SelectItem>
-                <SelectItem value="wrong">
-                  <StatusBadge status="wrong" />
-                </SelectItem>
-                <SelectItem value="mastered">
-                  <StatusBadge status="mastered" />
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              <div className="form-row">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="auto-mark-switch"
+                    checked={autoMarkValue}
+                    disabled={isAutoMarkDisabled}
+                    onCheckedChange={setAutoMark}
+                  />
+                  <Label
+                    htmlFor="auto-mark-switch"
+                    className={`text-sm cursor-pointer ${isAutoMarkDisabled ? 'text-muted-foreground' : ''}`}
+                  >
+                    Auto Mark
+                    {isAutoMarkDisabled && (
+                      <span className="text-body-sm text-muted-foreground ml-1">
+                        (not available for extended response)
+                      </span>
+                    )}
+                  </Label>
+                </div>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
 
-          <div className="form-row">
-            <label className="form-label">Options</label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={autoMarkValue}
-                disabled={isAutoMarkDisabled}
-                onChange={e => setAutoMark(e.target.checked)}
-                className="form-checkbox"
-              />
-              Auto-mark during revision
-              {isAutoMarkDisabled && (
-                <span className="text-body-sm text-muted-foreground">
-                  (not available for extended response)
+        {/* Answer Configuration - MCQ */}
+        {problemType === 'mcq' && (
+          <AccordionItem
+            value="answer"
+            className="rounded-2xl border border-blue-200/40 dark:border-blue-800/30 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/20 px-4 mt-4"
+          >
+            <AccordionTrigger className="hover:no-underline py-3">
+              <span className="text-sm font-semibold text-blue-800 dark:text-blue-300">
+                Answer Configuration
+              </span>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="form-section">
+                <div className="form-row">
+                  <span className="form-label">Mode</span>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="enhanced-mcq-switch"
+                      checked={useEnhancedMcq}
+                      onCheckedChange={setUseEnhancedMcq}
+                    />
+                    <Label
+                      htmlFor="enhanced-mcq-switch"
+                      className="text-sm cursor-pointer"
+                    >
+                      Use choice picker
+                    </Label>
+                  </div>
+                </div>
+
+                {useEnhancedMcq ? (
+                  <MCQChoiceEditor
+                    choices={mcqChoices}
+                    correctChoiceId={mcqCorrectChoiceId}
+                    onChoicesChange={setMcqChoices}
+                    onCorrectChoiceChange={setMcqCorrectChoiceId}
+                    disabled={isSubmitting}
+                  />
+                ) : (
+                  <div className="form-row">
+                    <label className="form-label">Correct choice</label>
+                    <Input
+                      className="form-input w-32"
+                      placeholder="e.g. A, B, α, etc."
+                      value={mcqChoice}
+                      maxLength={
+                        VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX
+                      }
+                      onChange={e => setMcqChoice(e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        )}
+
+        {/* Answer Configuration - Short */}
+        {problemType === 'short' && (
+          <AccordionItem
+            value="answer"
+            className="rounded-2xl border border-rose-200/40 dark:border-rose-800/30 bg-gradient-to-br from-rose-50 to-rose-100/50 dark:from-rose-950/40 dark:to-rose-900/20 px-4 mt-4"
+          >
+            <AccordionTrigger className="hover:no-underline py-3">
+              <span className="text-sm font-semibold text-rose-800 dark:text-rose-300">
+                Answer Configuration
+              </span>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="form-section">
+                <div className="form-row">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="enhanced-short-switch"
+                      checked={useEnhancedShort}
+                      onCheckedChange={setUseEnhancedShort}
+                    />
+                    <Label
+                      htmlFor="enhanced-short-switch"
+                      className="text-sm cursor-pointer"
+                    >
+                      Advanced Mode
+                    </Label>
+                  </div>
+                </div>
+
+                {useEnhancedShort ? (
+                  <ShortAnswerConfig
+                    value={shortAnswerConfig}
+                    onChange={setShortAnswerConfig}
+                    disabled={isSubmitting}
+                  />
+                ) : (
+                  <div className="form-row">
+                    <label className="form-label">Correct text</label>
+                    <Input
+                      className="form-input"
+                      placeholder="Short expected answer"
+                      value={shortText}
+                      maxLength={
+                        VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX
+                      }
+                      onChange={e => setShortText(e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        )}
+        {/* Solution */}
+        <AccordionItem
+          value="solution"
+          className="rounded-2xl border border-green-200/40 dark:border-green-800/30 bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/40 dark:to-green-900/20 px-4 mt-4"
+        >
+          <AccordionTrigger className="hover:no-underline py-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-green-800 dark:text-green-300">
+                Solution
+              </span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="space-y-4">
+            <div className="form-row-start">
+              <label className="form-label pt-2">Solution (text)</label>
+              <div className="flex-1 relative">
+                <RichTextEditor
+                  ref={solutionEditorRef}
+                  content={solutionText}
+                  onChange={setSolutionText}
+                  placeholder="What did you do wrong? What did you learn from it?"
+                  height="200px"
+                  maxHeight="500px"
+                  disabled={isSubmitting}
+                  maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
+                  showCharacterCount={true}
+                />
+              </div>
+            </div>
+            <div className="form-row-start">
+              <label className="form-label pt-2">Solution assets</label>
+              <div className="flex-1">
+                <FileManager
+                  role="solution"
+                  problemId={
+                    isEditMode ? problem.id : problemUuid || 'disabled'
+                  }
+                  isEditMode={isEditMode}
+                  initialFiles={solutionAssets}
+                  onFilesChange={setSolutionAssets}
+                  onInsertImage={handleInsertSolutionImage}
+                  disabled={!isEditMode && !problemUuid}
+                />
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Tags */}
+        <AccordionItem
+          value="tags"
+          className="rounded-2xl border border-gray-200/40 dark:border-gray-700/30 bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-gray-800/40 dark:to-gray-700/20 px-4 mt-4"
+        >
+          <AccordionTrigger className="hover:no-underline py-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-gray-800 dark:text-gray-300">
+                Tags
+              </span>
+              {selectedTagIds.length > 0 && (
+                <span className="text-xs text-amber-600 dark:text-amber-400">
+                  {selectedTagIds.length} selected
                 </span>
               )}
-            </label>
-          </div>
-        </div>
-      </div>
-
-      {/* Answer Configuration - MCQ */}
-      {problemType === 'mcq' && (
-        <div className="rounded-2xl border border-blue-200/40 dark:border-blue-800/30 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/20 p-6">
-          <div className="mb-4">
-            <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-1">
-              Answer Configuration
-            </h4>
-            <p className="text-xs text-blue-600/80 dark:text-blue-400/80">
-              Define the correct answer for multiple choice
-            </p>
-          </div>
-          <div className="form-section">
-            <div className="form-row">
-              <label className="form-label">Answer type</label>
-              <label className="flex items-center gap-2 text-sm cursor-pointer group">
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={useEnhancedMcq}
-                    onChange={e => setUseEnhancedMcq(e.target.checked)}
-                    className="form-checkbox peer"
-                  />
-                  <div className="absolute inset-0 rounded pointer-events-none peer-checked:bg-amber-500/10 dark:peer-checked:bg-amber-500/20 transition-colors" />
-                </div>
-                <span className="group-hover:text-foreground transition-colors">
-                  Use choice picker
-                </span>
-              </label>
             </div>
-
-            {useEnhancedMcq ? (
-              <MCQChoiceEditor
-                choices={mcqChoices}
-                correctChoiceId={mcqCorrectChoiceId}
-                onChoicesChange={setMcqChoices}
-                onCorrectChoiceChange={setMcqCorrectChoiceId}
-                disabled={isSubmitting}
-              />
-            ) : (
-              <div className="form-row">
-                <label className="form-label">Correct choice</label>
-                <Input
-                  className="form-input w-32"
-                  placeholder="e.g. A, B, α, etc."
-                  value={mcqChoice}
-                  maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
-                  onChange={e => setMcqChoice(e.target.value)}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Answer Configuration - Short */}
-      {problemType === 'short' && (
-        <div className="rounded-2xl border border-rose-200/40 dark:border-rose-800/30 bg-gradient-to-br from-rose-50 to-rose-100/50 dark:from-rose-950/40 dark:to-rose-900/20 p-6">
-          <div className="mb-4">
-            <h4 className="text-sm font-semibold text-rose-800 dark:text-rose-300 mb-1">
-              Answer Configuration
-            </h4>
-            <p className="text-xs text-rose-600/80 dark:text-rose-400/80">
-              Define acceptable answers for short response
-            </p>
-          </div>
-          <div className="form-section">
-            <div className="form-row">
-              <label className="form-label">Answer type</label>
-              <label className="flex items-center gap-2 text-sm cursor-pointer group">
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={useEnhancedShort}
-                    onChange={e => setUseEnhancedShort(e.target.checked)}
-                    className="form-checkbox peer"
-                  />
-                  <div className="absolute inset-0 rounded pointer-events-none peer-checked:bg-amber-500/10 dark:peer-checked:bg-amber-500/20 transition-colors" />
-                </div>
-                <span className="group-hover:text-foreground transition-colors">
-                  Advanced answer matching
-                </span>
-              </label>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="flex flex-wrap gap-3">
+              {tags.length ? (
+                tags.map(t => (
+                  <label
+                    key={t.id}
+                    className="flex items-center gap-2 text-foreground"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedTagIds.includes(t.id)}
+                      onChange={() => toggleTag(t.id)}
+                      className="form-checkbox"
+                    />
+                    <span>{t.name}</span>
+                  </label>
+                ))
+              ) : (
+                <p className="text-body-sm text-muted-foreground">
+                  No tags yet.
+                </p>
+              )}
             </div>
-
-            {useEnhancedShort ? (
-              <ShortAnswerConfig
-                value={shortAnswerConfig}
-                onChange={setShortAnswerConfig}
-                disabled={isSubmitting}
-              />
-            ) : (
-              <div className="form-row">
-                <label className="form-label">Correct text</label>
-                <Input
-                  className="form-input"
-                  placeholder="Short expected answer"
-                  value={shortText}
-                  maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
-                  onChange={e => setShortText(e.target.value)}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Solution */}
-      <div className="rounded-2xl border border-green-200/40 dark:border-green-800/30 bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/40 dark:to-green-900/20 p-6">
-        <div className="mb-4">
-          <h4 className="text-sm font-semibold text-green-800 dark:text-green-300 mb-1">
-            Solution
-          </h4>
-          <p className="text-xs text-green-600/80 dark:text-green-400/80">
-            Document what you learned and supporting materials
-          </p>
-        </div>
-        <div className="space-y-6">
-          <div className="form-row-start">
-            <label className="form-label pt-2">Solution (text)</label>
-            <div className="flex-1 relative">
-              <RichTextEditor
-                ref={solutionEditorRef}
-                content={solutionText}
-                onChange={setSolutionText}
-                placeholder="What did you do wrong? What did you learn from it?"
-                height="300px"
-                maxHeight="500px"
-                disabled={isSubmitting}
-                maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX}
-                showCharacterCount={true}
-              />
-            </div>
-          </div>
-          <div className="form-row-start">
-            <label className="form-label pt-2">Solution assets</label>
-            <div className="flex-1">
-              <FileManager
-                role="solution"
-                problemId={isEditMode ? problem.id : problemUuid || 'disabled'}
-                isEditMode={isEditMode}
-                initialFiles={solutionAssets}
-                onFilesChange={setSolutionAssets}
-                onInsertImage={handleInsertSolutionImage}
-                disabled={!isEditMode && !problemUuid}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Tags */}
-      <div className="rounded-2xl border border-gray-200/40 dark:border-gray-700/30 bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-gray-800/40 dark:to-gray-700/20 p-6">
-        <div className="mb-4">
-          <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-300 mb-1">
-            Tags
-          </h4>
-          <p className="text-xs text-gray-600 dark:text-gray-400">
-            Organize problems by topic or category
-          </p>
-        </div>
-        <div className="form-section">
-          <div className="flex flex-wrap gap-3">
-            {tags.length ? (
-              tags.map(t => (
-                <label
-                  key={t.id}
-                  className="flex items-center gap-2 text-foreground"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedTagIds.includes(t.id)}
-                    onChange={() => toggleTag(t.id)}
-                    className="form-checkbox"
-                  />
-                  <span>{t.name}</span>
-                </label>
-              ))
-            ) : (
-              <p className="text-body-sm text-muted-foreground">No tags yet.</p>
-            )}
-          </div>
-        </div>
-      </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
       <div className="form-actions">
         <Button type="submit" disabled={isSubmitting}>
