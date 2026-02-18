@@ -4,6 +4,7 @@ import {
   createApiRateLimit,
   createFileUploadRateLimit,
   createAuthRateLimit,
+  getUserKey,
 } from './rate-limit';
 import { validateRequest, getSecurityHeaders } from './request-validation';
 import { validateFileUpload } from './file-security';
@@ -21,6 +22,11 @@ export interface SecurityConfig {
     | 'custom'
     | 'readOnly'
     | 'problemCreation';
+  /** How to identify the requester for rate limiting.
+   *  - 'user': extract user ID from Supabase JWT cookie (falls back to IP)
+   *  - 'ip': use client IP address
+   *  Defaults to 'user' for all types except 'auth'. */
+  rateLimitKey?: 'ip' | 'user';
   customRateLimit?: {
     windowMs: number;
     maxRequests: number;
@@ -33,6 +39,7 @@ export function createSecurityMiddleware(config: SecurityConfig = {}) {
     enableRequestValidation = true,
     enableFileValidation = false,
     rateLimitType = 'api',
+    rateLimitKey = rateLimitType === 'auth' ? 'ip' : 'user',
     customRateLimit,
   } = config;
 
@@ -70,28 +77,33 @@ export function createSecurityMiddleware(config: SecurityConfig = {}) {
 
     // 2. Rate limiting
     if (enableRateLimit) {
+      const keyGenerator = rateLimitKey === 'user' ? getUserKey : undefined;
+
       let rateLimitResponse: NextResponse | null = null;
 
       if (rateLimitType === 'custom' && customRateLimit) {
-        const rateLimit = createRateLimit(customRateLimit);
+        const rateLimit = createRateLimit({
+          ...customRateLimit,
+          keyGenerator,
+        });
         rateLimitResponse = rateLimit(req);
       } else {
         switch (rateLimitType) {
           case 'fileUpload':
-            rateLimitResponse = createFileUploadRateLimit()(req);
+            rateLimitResponse = createFileUploadRateLimit(keyGenerator)(req);
             break;
           case 'auth':
             rateLimitResponse = createAuthRateLimit()(req);
             break;
           case 'readOnly':
-            rateLimitResponse = createApiRateLimit()(req); // Use API rate limit for read-only
+            rateLimitResponse = createApiRateLimit(keyGenerator)(req);
             break;
           case 'problemCreation':
-            rateLimitResponse = createApiRateLimit()(req); // Use API rate limit for problem creation
+            rateLimitResponse = createApiRateLimit(keyGenerator)(req);
             break;
           case 'api':
           default:
-            rateLimitResponse = createApiRateLimit()(req);
+            rateLimitResponse = createApiRateLimit(keyGenerator)(req);
             break;
         }
       }

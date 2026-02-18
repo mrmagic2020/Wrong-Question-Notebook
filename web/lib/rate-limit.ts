@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { RATE_LIMIT_CONSTANTS } from './constants';
+import { RATE_LIMIT_CONSTANTS, ENV_VARS } from './constants';
 
 /**
  * Rate limiting configuration interface
@@ -119,32 +119,97 @@ export function createRateLimit(config: RateLimitConfig) {
 }
 
 /**
- * Generates a default rate limit key based on client IP
- * Falls back to 'unknown' if IP cannot be determined
- *
- * @param req - The incoming request
- * @returns Rate limit key string
+ * Generates a rate limit key based on client IP.
+ * Falls back to 'unknown' if IP cannot be determined.
  */
-function getDefaultKey(req: NextRequest): string {
-  // Use IP address as default key
+function getIpKey(req: NextRequest): string {
   const forwarded = req.headers.get('x-forwarded-for');
   const ip = forwarded ? forwarded.split(',')[0] : 'unknown';
-  return `rate_limit:${ip}`;
+  return `rate_limit:ip:${ip}`;
 }
 
 /**
- * Pre-configured rate limiters for common use cases
- * Each limiter has appropriate limits for its specific use case:
+ * Extracts the Supabase project ref from NEXT_PUBLIC_SUPABASE_URL.
+ * URL format: https://{ref}.supabase.co
+ */
+function getProjectRef(): string | null {
+  const url = process.env[ENV_VARS.SUPABASE_URL];
+  if (!url) return null;
+  const match = url.match(/https:\/\/([^.]+)\.supabase/);
+  return match?.[1] ?? null;
+}
+
+/**
+ * Generates a rate limit key based on the authenticated user's ID,
+ * extracted from the Supabase JWT cookie. Falls back to IP-based key
+ * if no valid auth cookie is found.
+ */
+export function getUserKey(req: NextRequest): string {
+  try {
+    const ref = getProjectRef();
+    if (!ref) return getIpKey(req);
+
+    const cookieName = `sb-${ref}-auth-token`;
+    let token = req.cookies.get(cookieName)?.value;
+
+    // Supabase may chunk large cookies: sb-{ref}-auth-token.0, .1, etc.
+    if (!token) {
+      const chunks: string[] = [];
+      for (let i = 0; ; i++) {
+        const chunk = req.cookies.get(`${cookieName}.${i}`)?.value;
+        if (!chunk) break;
+        chunks.push(chunk);
+      }
+      if (chunks.length > 0) token = chunks.join('');
+    }
+
+    if (!token) return getIpKey(req);
+
+    // Decode JWT payload (base64url) to extract `sub` (user ID).
+    // No verification needed -- auth is checked later in requireUser().
+    // A forged `sub` only isolates the attacker's own rate limit bucket.
+    const payload = token.split('.')[1];
+    if (!payload) return getIpKey(req);
+
+    const decoded = JSON.parse(Buffer.from(payload, 'base64url').toString());
+    if (decoded.sub) return `rate_limit:user:${decoded.sub}`;
+  } catch {
+    // Fall through to IP-based key
+  }
+  return getIpKey(req);
+}
+
+/** @deprecated Use getIpKey or getUserKey instead */
+function getDefaultKey(req: NextRequest): string {
+  return getIpKey(req);
+}
+
+type KeyGenerator = (req: NextRequest) => string;
+
+/**
+ * Pre-configured rate limiters for common use cases.
+ * Each accepts an optional keyGenerator to control how requesters are identified
+ * (defaults to IP-based if not provided).
+ *
  * - API: General API endpoints (100 req/15min)
  * - File Upload: Upload operations (20 req/hour)
- * - Auth: Authentication attempts (5 req/15min)
+ * - Auth: Authentication attempts (5 req/15min, always IP-based)
  * - Problem Creation: Creating problems (50 req/hour)
  */
-export const createApiRateLimit = () =>
-  createRateLimit(RATE_LIMIT_CONSTANTS.CONFIGURATIONS.api);
-export const createFileUploadRateLimit = () =>
-  createRateLimit(RATE_LIMIT_CONSTANTS.CONFIGURATIONS.fileUpload);
+export const createApiRateLimit = (keyGenerator?: KeyGenerator) =>
+  createRateLimit({
+    ...RATE_LIMIT_CONSTANTS.CONFIGURATIONS.api,
+    keyGenerator,
+  });
+export const createFileUploadRateLimit = (keyGenerator?: KeyGenerator) =>
+  createRateLimit({
+    ...RATE_LIMIT_CONSTANTS.CONFIGURATIONS.fileUpload,
+    keyGenerator,
+  });
 export const createAuthRateLimit = () =>
   createRateLimit(RATE_LIMIT_CONSTANTS.CONFIGURATIONS.auth);
-export const createProblemCreationRateLimit = () =>
-  createRateLimit(RATE_LIMIT_CONSTANTS.CONFIGURATIONS.problemCreation);
+export const createProblemCreationRateLimit = (keyGenerator?: KeyGenerator) =>
+  createRateLimit({
+    ...RATE_LIMIT_CONSTANTS.CONFIGURATIONS.problemCreation,
+    keyGenerator,
+  });
