@@ -184,6 +184,11 @@ function getDefaultKey(req: NextRequest): string {
   return getIpKey(req);
 }
 
+/** @internal Test-only helper to reset rate limit state between tests */
+export function _resetRateLimitStore() {
+  rateLimitStore.clear();
+}
+
 type KeyGenerator = (req: NextRequest) => string;
 
 /**
