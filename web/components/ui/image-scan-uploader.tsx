@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { toast } from 'sonner';
 import {
   Upload,
@@ -227,9 +228,11 @@ export function ImageScanUploader({
         <div className="rounded-2xl border border-gray-200/40 dark:border-gray-700/30 bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-gray-800/40 dark:to-gray-700/20 p-4">
           <div className="flex items-start gap-4">
             {imagePreview && (
-              <img
+              <Image
                 src={imagePreview}
                 alt="Preview"
+                width={32}
+                height={32}
                 className="h-32 w-32 rounded-xl object-cover border border-gray-200/40 dark:border-gray-700/30"
               />
             )}
