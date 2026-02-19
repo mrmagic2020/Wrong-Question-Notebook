@@ -5,6 +5,7 @@ import {
   createFileUploadRateLimit,
   createAuthRateLimit,
   getUserKey,
+  createProblemCreationRateLimit,
 } from './rate-limit';
 import { validateRequest, getSecurityHeaders } from './request-validation';
 import { validateFileUpload } from './file-security';
@@ -99,7 +100,8 @@ export function createSecurityMiddleware(config: SecurityConfig = {}) {
             rateLimitResponse = createApiRateLimit(keyGenerator)(req);
             break;
           case 'problemCreation':
-            rateLimitResponse = createApiRateLimit(keyGenerator)(req);
+            rateLimitResponse =
+              createProblemCreationRateLimit(keyGenerator)(req);
             break;
           case 'api':
           default:
