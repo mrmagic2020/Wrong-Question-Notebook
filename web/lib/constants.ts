@@ -299,6 +299,30 @@ export const ANSWER_CONFIG_CONSTANTS = {
 } as const;
 
 // =====================================================
+// AI Constants
+// =====================================================
+export const AI_CONSTANTS = {
+  EXTRACTION: {
+    MAX_IMAGE_SIZE: FILE_CONSTANTS.MAX_FILE_SIZE.IMAGE,
+    ALLOWED_MIME_TYPES: [
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'image/gif',
+    ] as readonly string[],
+    RATE_LIMIT: { windowMs: 60 * 1000, maxRequests: 100 },
+  },
+} as const;
+
+// =====================================================
+// Usage Quota Constants
+// =====================================================
+export const USAGE_QUOTA_CONSTANTS = {
+  RESOURCE_TYPES: { AI_EXTRACTION: 'ai_extraction' },
+  DEFAULTS: { AI_EXTRACTION_DAILY_LIMIT: 10 },
+} as const;
+
+// =====================================================
 // Gender Options
 // =====================================================
 export const GENDER_OPTIONS = {

@@ -52,6 +52,21 @@ const eslintConfig = [
       '@typescript-eslint/no-require-imports': 'off',
     },
   },
+  {
+    files: ['**/__tests__/**/*.test.ts'],
+    languageOptions: {
+      globals: {
+        describe: 'readonly',
+        it: 'readonly',
+        expect: 'readonly',
+        vi: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+      },
+    },
+  },
 ];
 
 export default eslintConfig;

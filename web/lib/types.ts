@@ -207,6 +207,25 @@ export interface ProblemSetProgress {
 }
 
 // =====================================================
+// AI Extraction Types
+// =====================================================
+
+export interface ExtractionConfidence {
+  problem_type_confidence: 'high' | 'medium' | 'low';
+  content_quality: 'clear' | 'partially_unclear' | 'unclear';
+  has_math: boolean;
+  warnings?: string[];
+}
+
+export interface ExtractedProblemData {
+  problem_type: 'mcq' | 'short' | 'extended';
+  title: string;
+  content: string; // raw text with $...$ and $$...$$ math delimiters
+  mcq_choices?: { id: string; text: string }[];
+  confidence: ExtractionConfidence;
+}
+
+// =====================================================
 // Component Prop Types
 // =====================================================
 

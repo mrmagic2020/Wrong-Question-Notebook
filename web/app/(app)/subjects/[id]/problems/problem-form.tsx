@@ -48,7 +48,14 @@ import {
   MCQAnswerConfig,
   ShortAnswerTextConfig,
   ShortAnswerNumericConfig,
+  ExtractedProblemData,
 } from '@/lib/types';
+import {
+  ImageScanUploader,
+  type ExtractionQuota,
+} from '@/components/ui/image-scan-uploader';
+import { convertMathTextToTipTapHtml } from '@/lib/math-to-tiptap';
+import { PenLine, ScanLine } from 'lucide-react';
 import { Editor } from '@tiptap/react';
 
 export default function ProblemForm({
@@ -155,6 +162,37 @@ export default function ProblemForm({
 
   // Form expansion state (only for create mode)
   const [isExpanded, setIsExpanded] = useState(isEditMode);
+  const [showImageScan, setShowImageScan] = useState(false);
+
+  // Extraction quota state — fetched once, updated from extraction responses
+  const [extractionQuota, setExtractionQuota] =
+    useState<ExtractionQuota | null>(null);
+  useEffect(() => {
+    if (isEditMode) return;
+    fetch('/api/ai/extract-problem/quota')
+      .then(res => res.json())
+      .then(json => {
+        if (json.data) setExtractionQuota(json.data);
+      })
+      .catch(() => {});
+  }, [isEditMode]);
+
+  const handleExtractionComplete = useCallback((data: ExtractedProblemData) => {
+    setTitle(data.title);
+    setProblemType(data.problem_type);
+    setContent(convertMathTextToTipTapHtml(data.content));
+    if (
+      data.problem_type === 'mcq' &&
+      data.mcq_choices &&
+      data.mcq_choices.length > 0
+    ) {
+      setUseEnhancedMcq(true);
+      setMcqChoices(data.mcq_choices);
+      setMcqCorrectChoiceId('');
+    }
+    setShowImageScan(false);
+    setIsExpanded(true);
+  }, []);
 
   const [title, setTitle] = useState(problem?.title || '');
   const [titleFocus, setTitleFocus] = useState(false);
@@ -602,18 +640,42 @@ export default function ProblemForm({
     };
   }, [problemUuid, cleanupUnsavedProblem]);
 
-  // If not expanded (create mode only), show just the expand button
+  // If not expanded (create mode only), show the two entry buttons + optional scanner
   if (!isExpanded && !isEditMode) {
     return (
-      <div className="form-row">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setIsExpanded(true)}
-          className="flex-1 border-dashed text-muted-foreground hover:border-amber-400/50 dark:hover:border-amber-500/50 hover:bg-amber-50/50 dark:hover:bg-amber-950/20 hover:text-amber-900 dark:hover:text-amber-100 justify-start transition-colors"
-        >
-          + Add a new problem
-        </Button>
+      <div className="space-y-3">
+        {!showImageScan && (
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsExpanded(true)}
+              className="border-dashed text-muted-foreground hover:border-amber-400/50 dark:hover:border-amber-500/50 hover:bg-amber-50/50 dark:hover:bg-amber-950/20 hover:text-amber-900 dark:hover:text-amber-100 justify-center transition-colors py-6"
+            >
+              <PenLine className="h-4 w-4 mr-2" />
+              Write manually
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowImageScan(true)}
+              className="border-dashed text-muted-foreground hover:border-blue-400/50 dark:hover:border-blue-500/50 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 hover:text-blue-900 dark:hover:text-blue-100 justify-center transition-colors py-6"
+            >
+              <div className="flex items-center">
+                <ScanLine className="h-4 w-4 mr-2" />
+                Scan from image
+              </div>
+            </Button>
+          </div>
+        )}
+        {showImageScan && (
+          <ImageScanUploader
+            onExtracted={handleExtractionComplete}
+            onCancel={() => setShowImageScan(false)}
+            quota={extractionQuota}
+            onQuotaChange={setExtractionQuota}
+          />
+        )}
       </div>
     );
   }
