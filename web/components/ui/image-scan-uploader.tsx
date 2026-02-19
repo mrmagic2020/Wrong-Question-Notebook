@@ -16,9 +16,17 @@ import { Spinner } from '@/components/ui/spinner';
 import { AI_CONSTANTS } from '@/lib/constants';
 import type { ExtractedProblemData } from '@/lib/types';
 
+export interface ExtractionQuota {
+  used: number;
+  limit: number;
+  remaining: number;
+}
+
 interface ImageScanUploaderProps {
   onExtracted: (data: ExtractedProblemData) => void;
   onCancel: () => void;
+  quota: ExtractionQuota | null;
+  onQuotaChange: (quota: ExtractionQuota) => void;
 }
 
 type UploaderState = 'dropzone' | 'preview' | 'result';
@@ -29,6 +37,8 @@ const MAX_SIZE = AI_CONSTANTS.EXTRACTION.MAX_IMAGE_SIZE;
 export function ImageScanUploader({
   onExtracted,
   onCancel,
+  quota,
+  onQuotaChange,
 }: ImageScanUploaderProps) {
   const [state, setState] = useState<UploaderState>('dropzone');
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -130,9 +140,15 @@ export function ImageScanUploader({
       const json = await res.json();
 
       if (!res.ok) {
+        if (res.status === 429 && json.details?.quota) {
+          onQuotaChange(json.details.quota);
+        }
         throw new Error(json.error || 'Extraction failed');
       }
 
+      if (json.data?.quota) {
+        onQuotaChange(json.data.quota);
+      }
       setExtractionResult(json.data);
       setState('result');
     } catch (err: any) {
@@ -141,7 +157,7 @@ export function ImageScanUploader({
     } finally {
       setIsExtracting(false);
     }
-  }, [imageFile]);
+  }, [imageFile, onQuotaChange]);
 
   const reset = useCallback(() => {
     setImageFile(null);
@@ -150,6 +166,22 @@ export function ImageScanUploader({
     setError(null);
     setState('dropzone');
   }, []);
+
+  const quotaExhausted = quota !== null && quota.remaining <= 0;
+
+  const quotaIndicator = quota ? (
+    <p
+      className={`text-xs ${
+        quota.remaining <= 0
+          ? 'text-rose-600 dark:text-rose-400'
+          : quota.remaining <= 2
+            ? 'text-amber-600 dark:text-amber-400'
+            : 'text-gray-500 dark:text-gray-400'
+      }`}
+    >
+      {quota.used} of {quota.limit} daily extractions used
+    </p>
+  ) : null;
 
   const confidenceColor = (
     level: 'high' | 'medium' | 'low' | 'clear' | 'partially_unclear' | 'unclear'
@@ -203,6 +235,7 @@ export function ImageScanUploader({
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 JPEG, PNG, WebP, or GIF up to 5MB
               </p>
+              {quotaIndicator && <div className="mt-1">{quotaIndicator}</div>}
             </div>
           </div>
         </div>
@@ -254,36 +287,41 @@ export function ImageScanUploader({
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-end gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={reset}
-            disabled={isExtracting}
-            className="text-muted-foreground"
-          >
-            <X className="h-4 w-4 mr-1" />
-            Remove
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            onClick={handleExtract}
-            disabled={isExtracting}
-          >
-            {isExtracting ? (
-              <>
-                <Spinner />
-                Extracting...
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-4 w-4 mr-1" />
-                Extract
-              </>
-            )}
-          </Button>
+        <div className="flex items-center justify-between">
+          <div>{quotaIndicator}</div>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={reset}
+              disabled={isExtracting}
+              className="text-muted-foreground"
+            >
+              <X className="h-4 w-4 mr-1" />
+              Remove
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleExtract}
+              disabled={isExtracting || quotaExhausted}
+            >
+              {isExtracting ? (
+                <>
+                  <Spinner />
+                  Extracting...
+                </>
+              ) : quotaExhausted ? (
+                'Daily limit reached'
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4 mr-1" />
+                  Extract
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
     );

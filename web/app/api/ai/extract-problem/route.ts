@@ -9,6 +9,7 @@ import {
   handleAsyncError,
 } from '@/lib/common-utils';
 import { AI_CONSTANTS } from '@/lib/constants';
+import { checkAndIncrementQuota } from '@/lib/usage-quota';
 
 const RequestSchema = z.object({
   image: z.string().min(1),
@@ -89,6 +90,22 @@ async function extractProblem(req: Request) {
   const { user } = await requireUser();
   if (!user) return unauthorised();
 
+  // Check daily quota before proceeding (RPC handles per-user overrides)
+  const quota = await checkAndIncrementQuota(user.id);
+
+  if (!quota.allowed) {
+    return NextResponse.json(
+      createApiErrorResponse('Daily extraction limit reached', 429, {
+        quota: {
+          used: quota.current_usage,
+          limit: quota.daily_limit,
+          remaining: 0,
+        },
+      }),
+      { status: 429 }
+    );
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
@@ -163,7 +180,16 @@ async function extractProblem(req: Request) {
     }
 
     const extraction = JSON.parse(text);
-    return NextResponse.json(createApiSuccessResponse(extraction));
+    return NextResponse.json(
+      createApiSuccessResponse({
+        ...extraction,
+        quota: {
+          used: quota.current_usage,
+          limit: quota.daily_limit,
+          remaining: quota.remaining,
+        },
+      })
+    );
   } catch (error) {
     const { message, status } = handleAsyncError(error);
     return NextResponse.json(createApiErrorResponse(message, status), {
