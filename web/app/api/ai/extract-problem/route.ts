@@ -90,22 +90,6 @@ async function extractProblem(req: Request) {
   const { user } = await requireUser();
   if (!user) return unauthorised();
 
-  // Check daily quota before proceeding (RPC handles per-user overrides)
-  const quota = await checkAndIncrementQuota(user.id);
-
-  if (!quota.allowed) {
-    return NextResponse.json(
-      createApiErrorResponse('Daily extraction limit reached', 429, {
-        quota: {
-          used: quota.current_usage,
-          limit: quota.daily_limit,
-          remaining: 0,
-        },
-      }),
-      { status: 429 }
-    );
-  }
-
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
@@ -140,6 +124,22 @@ async function extractProblem(req: Request) {
     return NextResponse.json(
       createApiErrorResponse('Image too large. Maximum size is 5MB.', 400),
       { status: 400 }
+    );
+  }
+
+  // Check daily quota only after all validation passes (RPC handles per-user overrides)
+  const quota = await checkAndIncrementQuota(user.id);
+
+  if (!quota.allowed) {
+    return NextResponse.json(
+      createApiErrorResponse('Daily extraction limit reached', 429, {
+        quota: {
+          used: quota.current_usage,
+          limit: quota.daily_limit,
+          remaining: 0,
+        },
+      }),
+      { status: 429 }
     );
   }
 
