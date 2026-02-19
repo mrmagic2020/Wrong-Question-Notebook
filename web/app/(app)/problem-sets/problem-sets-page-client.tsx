@@ -204,15 +204,8 @@ export default function ProblemSetsPageClient({
                 className="pl-10"
               />
             </div>
-            <Button
-              variant="outline"
-              onClick={() => setSmartSetDialogOpen(true)}
-            >
+            <Button onClick={() => setSmartSetDialogOpen(true)}>
               <Sparkles className="mr-2 h-4 w-4" />
-              Smart Set
-            </Button>
-            <Button onClick={() => router.push('/subjects')}>
-              <Plus className="mr-2 h-4 w-4" />
               Create New Set
             </Button>
           </>
