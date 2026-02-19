@@ -120,13 +120,9 @@ export function ImageScanUploader({
     setError(null);
 
     try {
-      const buffer = await imageFile.arrayBuffer();
-      const bytes = new Uint8Array(buffer);
-      let binary = '';
-      for (let i = 0; i < bytes.length; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      const base64 = btoa(binary);
+      // imagePreview is already a data URL (data:<mime>;base64,<data>)
+      // Extract the base64 portion directly instead of re-reading the file
+      const base64 = imagePreview!.split(',')[1];
 
       const res = await fetch('/api/ai/extract-problem', {
         method: 'POST',
@@ -157,7 +153,7 @@ export function ImageScanUploader({
     } finally {
       setIsExtracting(false);
     }
-  }, [imageFile, onQuotaChange]);
+  }, [imageFile, imagePreview, onQuotaChange]);
 
   const reset = useCallback(() => {
     setImageFile(null);
@@ -356,7 +352,7 @@ export function ImageScanUploader({
             </span>
             {confidence.has_math && (
               <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border bg-blue-100/80 text-blue-800 border-blue-200/50 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800/40">
-                Contains math
+                Contains equations
               </span>
             )}
           </div>
