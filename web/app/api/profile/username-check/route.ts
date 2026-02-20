@@ -19,12 +19,19 @@ export async function GET(req: NextRequest) {
   }
 
   const serviceSupabase = createServiceClient();
-  const { data } = await serviceSupabase
+  const { data, error: dbError } = await serviceSupabase
     .from('user_profiles')
     .select('id')
     .eq('username', username)
     .neq('id', user.id)
     .maybeSingle();
+
+  if (dbError) {
+    return NextResponse.json(
+      createApiErrorResponse('Failed to check username availability', 500),
+      { status: 500 }
+    );
+  }
 
   return NextResponse.json(createApiSuccessResponse({ available: !data }));
 }
