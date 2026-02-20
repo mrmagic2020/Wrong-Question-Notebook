@@ -71,12 +71,19 @@ export async function PATCH(req: NextRequest) {
   // Check username uniqueness if provided and changed
   if (validatedData.username) {
     const serviceSupabase = createServiceClient();
-    const { data: existing } = await serviceSupabase
+    const { data: existing, error: checkError } = await serviceSupabase
       .from('user_profiles')
       .select('id')
       .eq('username', validatedData.username)
       .neq('id', user.id)
       .maybeSingle();
+
+    if (checkError) {
+      return NextResponse.json(
+        createApiErrorResponse('Failed to check username availability', 500),
+        { status: 500 }
+      );
+    }
 
     if (existing) {
       return NextResponse.json(
