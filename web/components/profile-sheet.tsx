@@ -390,7 +390,7 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
                   setFieldErrors(prev => ({ ...prev, username: [] }));
                 }}
                 onBlur={() => checkUsername(username)}
-                placeholder="your_username"
+                placeholder="Enter username"
                 maxLength={50}
                 className="text-sm pr-8"
               />

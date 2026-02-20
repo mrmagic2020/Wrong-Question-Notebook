@@ -37,8 +37,9 @@ export async function PATCH(req: NextRequest) {
 
   const rawBody = body as Record<string, unknown>;
 
-  // Fields that can be explicitly cleared to null
+  // Fields that can be explicitly cleared to null ('' or null → null in DB)
   const clearableFields = [
+    'username',
     'first_name',
     'last_name',
     'bio',
@@ -54,11 +55,6 @@ export async function PATCH(req: NextRequest) {
       nullUpdates[key] = null;
       delete rawBody[key];
     }
-  }
-
-  // Strip empty username (omit rather than null)
-  if (rawBody.username === '') {
-    delete rawBody.username;
   }
 
   const parsed = CreateUserProfileDto.partial().safeParse(rawBody);
