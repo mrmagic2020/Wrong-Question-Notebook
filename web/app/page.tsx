@@ -3,11 +3,11 @@ import { Navigation } from '@/components/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
+  Award,
   BookOpen,
   ClipboardCheck,
   NotebookPen,
   Search,
-  Sparkles,
   Target,
   Trophy,
   Zap,
@@ -46,7 +46,7 @@ export default async function Home() {
             {/* Left side - text */}
             <div className="space-y-6 text-center lg:text-left">
               <div className="inline-flex items-center gap-2 rounded-full bg-amber-100/80 dark:bg-amber-900/30 px-4 py-1.5 text-sm font-medium text-amber-800 dark:text-amber-300 border border-amber-200/50 dark:border-amber-800/40">
-                <Sparkles className="w-3.5 h-3.5" />
+                <Award className="w-3.5 h-3.5" />
                 Made by students, for students
               </div>
 
@@ -113,7 +113,7 @@ export default async function Home() {
 
             <div className="grid md:grid-cols-3 gap-8 md:gap-6 relative">
               {/* Connecting line (desktop only) */}
-              <div className="hidden md:block absolute top-12 left-[20%] right-[20%] h-px bg-gradient-to-r from-amber-300 via-orange-300 to-rose-300 dark:from-amber-700 dark:via-orange-700 dark:to-rose-700" />
+              <div className="hidden md:block absolute top-8 left-[20%] right-[20%] h-px bg-gradient-to-r from-amber-300 via-orange-300 to-rose-300 dark:from-amber-700 dark:via-orange-700 dark:to-rose-700" />
 
               {/* Step 1 */}
               <div className="flex flex-col items-center text-center space-y-4">
