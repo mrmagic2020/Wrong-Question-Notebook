@@ -54,10 +54,16 @@ export async function POST(req: NextRequest) {
   const serviceSupabase = createServiceClient();
   const filePath = `${user.id}/avatar`;
 
-  // Delete existing avatar (ignore error if not found)
-  await serviceSupabase.storage
+  // Delete existing avatar before upload — ignore "not found" but fail on real errors
+  const { error: removeError } = await serviceSupabase.storage
     .from(FILE_CONSTANTS.STORAGE.AVATAR_BUCKET)
     .remove([filePath]);
+  if (removeError && removeError.message !== 'Object not found') {
+    return NextResponse.json(
+      createApiErrorResponse('Failed to remove existing avatar', 500),
+      { status: 500 }
+    );
+  }
 
   const fileBuffer = await file.arrayBuffer();
 
@@ -99,9 +105,15 @@ export async function DELETE() {
   const serviceSupabase = createServiceClient();
   const filePath = `${user.id}/avatar`;
 
-  await serviceSupabase.storage
+  const { error: removeError } = await serviceSupabase.storage
     .from(FILE_CONSTANTS.STORAGE.AVATAR_BUCKET)
     .remove([filePath]);
+  if (removeError && removeError.message !== 'Object not found') {
+    return NextResponse.json(
+      createApiErrorResponse('Failed to remove avatar', 500),
+      { status: 500 }
+    );
+  }
 
   const { error: updateError } = await serviceSupabase
     .from('user_profiles')
