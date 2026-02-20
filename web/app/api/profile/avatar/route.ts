@@ -81,7 +81,19 @@ export async function POST(req: NextRequest) {
   }
 
   // Construct public URL with cache-busting query param
-  const avatarUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${FILE_CONSTANTS.STORAGE.AVATAR_BUCKET}/${filePath}?v=${Date.now()}`;
+  const { data: publicUrlData } = await serviceSupabase.storage
+    .from(FILE_CONSTANTS.STORAGE.AVATAR_BUCKET)
+    .getPublicUrl(filePath);
+
+  const baseAvatarUrl = publicUrlData?.publicUrl;
+  if (!baseAvatarUrl) {
+    return NextResponse.json(
+      createApiErrorResponse('Failed to get avatar URL', 500),
+      { status: 500 }
+    );
+  }
+
+  const avatarUrl = `${baseAvatarUrl}?v=${Date.now()}`;
 
   // Update profile with new avatar URL
   const { error: updateError } = await serviceSupabase
