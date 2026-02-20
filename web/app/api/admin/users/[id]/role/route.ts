@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import {
-  isCurrentUserAdmin,
+  isCurrentUserSuperAdmin,
   getUserProfile,
   getUserProfileWithServiceRole,
   updateUserRole,
@@ -14,8 +14,8 @@ export async function PATCH(
 ) {
   try {
     // Check if user is admin
-    const isAdmin = await isCurrentUserAdmin();
-    if (!isAdmin) {
+    const isSuperAdmin = await isCurrentUserSuperAdmin();
+    if (!isSuperAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

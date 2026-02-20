@@ -19,6 +19,7 @@ export const CACHE_DURATIONS = {
 
   // Less critical freshness - 15 minutes
   ADMIN_STATS: 15 * 60, // 15 minutes
+  ADMIN_ACTIVITY: 10 * 60, // 10 minutes
 } as const;
 
 // Cache tags for organized invalidation
@@ -31,6 +32,7 @@ export const CACHE_TAGS = {
   TAGS: 'tags',
   ADMIN_STATS: 'admin-stats',
   ADMIN_USERS: 'admin-users',
+  ADMIN_ACTIVITY: 'admin-activity',
 
   // User-specific tags (will be combined with user ID)
   USER_SUBJECTS: 'user-subjects',

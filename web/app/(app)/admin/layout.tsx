@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { isCurrentUserAdmin } from '@/lib/user-management';
-import { AdminSidebar } from '@/components/admin/admin-sidebar';
+import { isCurrentUserSuperAdmin } from '@/lib/user-management';
+import { AdminLayoutShell } from '@/components/admin/admin-layout-shell';
+import { ROUTES } from '@/lib/constants';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -15,24 +16,15 @@ export default async function AdminLayout({
 }) {
   const supabase = await createClient();
 
-  // Check if user is authenticated
   const { data: authData, error: authError } = await supabase.auth.getUser();
   if (authError || !authData.user) {
-    redirect('/auth/login');
+    redirect(ROUTES.AUTH.LOGIN);
   }
 
-  // Check if user is admin
-  const isAdmin = await isCurrentUserAdmin();
-  if (!isAdmin) {
-    redirect('/subjects');
+  const isSuperAdmin = await isCurrentUserSuperAdmin();
+  if (!isSuperAdmin) {
+    redirect(ROUTES.SUBJECTS);
   }
 
-  return (
-    <div className="flex h-screen bg-background">
-      <AdminSidebar />
-      <main className="flex-1 overflow-auto">
-        <div className="container mx-auto p-6">{children}</div>
-      </main>
-    </div>
-  );
+  return <AdminLayoutShell>{children}</AdminLayoutShell>;
 }

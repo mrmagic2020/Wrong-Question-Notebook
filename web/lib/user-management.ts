@@ -367,20 +367,25 @@ export async function updateAdminSetting(
   key: string,
   value: Record<string, unknown>
 ): Promise<AdminSettingsType | null> {
-  const serviceSupabase = createServiceClient();
-
-  const { data: authData } = await serviceSupabase.auth.getUser();
-  if (!authData.user) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
     return null;
   }
 
+  const serviceSupabase = createServiceClient();
   const { data, error } = await serviceSupabase
     .from('admin_settings')
-    .update({
-      value,
-      updated_by: authData.user.id,
-    })
-    .eq('key', key)
+    .upsert(
+      {
+        key,
+        value,
+        updated_by: user.id,
+      },
+      { onConflict: 'key' }
+    )
     .select()
     .single();
 
@@ -433,6 +438,337 @@ export async function getUserActivity(
   }
 
   return data;
+}
+
+/**
+ * Get all users with total count for paginated admin table
+ */
+export async function getAllUsersWithCount(
+  limit: number = DATABASE_CONSTANTS.PAGINATION.DEFAULT_LIMIT,
+  offset: number = 0,
+  search?: string,
+  role?: string,
+  sortColumn: string = 'created_at',
+  sortDir: 'asc' | 'desc' = 'desc'
+): Promise<{ users: UserProfileType[]; total_count: number }> {
+  const serviceSupabase = createServiceClient();
+
+  let query = serviceSupabase
+    .from('user_profiles')
+    .select('*', { count: 'exact' });
+
+  if (search) {
+    query = query.or(
+      `username.ilike.%${search}%,first_name.ilike.%${search}%,last_name.ilike.%${search}%`
+    );
+  }
+
+  if (role) {
+    query = query.eq('user_role', role);
+  }
+
+  const allowedSortColumns = [
+    'created_at',
+    'username',
+    'user_role',
+    'is_active',
+    'last_login_at',
+  ];
+  const col = allowedSortColumns.includes(sortColumn)
+    ? sortColumn
+    : 'created_at';
+
+  query = query
+    .order(col, { ascending: sortDir === 'asc' })
+    .range(offset, offset + limit - 1);
+
+  const { data, count, error } = await query;
+
+  if (error || !data) {
+    return { users: [], total_count: 0 };
+  }
+
+  return { users: data, total_count: count || 0 };
+}
+
+/**
+ * Get content statistics for admin dashboard
+ */
+export async function getContentStatistics(): Promise<{
+  total_problems: number;
+  total_subjects: number;
+  total_problem_sets: number;
+  total_attempts: number;
+}> {
+  const serviceSupabase = createServiceClient();
+
+  const [problems, subjects, problemSets, attempts] = await Promise.all([
+    serviceSupabase
+      .from('problems')
+      .select('*', { count: 'exact', head: true }),
+    serviceSupabase
+      .from('subjects')
+      .select('*', { count: 'exact', head: true }),
+    serviceSupabase
+      .from('problem_sets')
+      .select('*', { count: 'exact', head: true }),
+    serviceSupabase
+      .from('attempts')
+      .select('*', { count: 'exact', head: true }),
+  ]);
+
+  return {
+    total_problems: problems.count || 0,
+    total_subjects: subjects.count || 0,
+    total_problem_sets: problemSets.count || 0,
+    total_attempts: attempts.count || 0,
+  };
+}
+
+/**
+ * Get per-user content statistics
+ */
+export async function getUserContentStatistics(userId: string): Promise<{
+  subjects: number;
+  problems: number;
+  problem_sets: number;
+  attempts: number;
+}> {
+  const serviceSupabase = createServiceClient();
+
+  const [subjects, problems, problemSets, attempts] = await Promise.all([
+    serviceSupabase
+      .from('subjects')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId),
+    serviceSupabase
+      .from('problems')
+      .select('*, subjects!inner(user_id)', { count: 'exact', head: true })
+      .eq('subjects.user_id', userId),
+    serviceSupabase
+      .from('problem_sets')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId),
+    serviceSupabase
+      .from('attempts')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId),
+  ]);
+
+  return {
+    subjects: subjects.count || 0,
+    problems: problems.count || 0,
+    problem_sets: problemSets.count || 0,
+    attempts: attempts.count || 0,
+  };
+}
+
+/**
+ * Get storage usage for a specific user
+ */
+export async function getUserStorageUsage(
+  userId: string
+): Promise<{ totalBytes: number; fileCount: number }> {
+  const serviceSupabase = createServiceClient();
+  let totalBytes = 0;
+  let fileCount = 0;
+
+  async function listRecursive(path: string) {
+    const { data: items } = await serviceSupabase.storage
+      .from('problem-uploads')
+      .list(path, { limit: 1000 });
+
+    if (!items) return;
+
+    for (const item of items) {
+      const itemPath = `${path}/${item.name}`;
+      if (item.metadata?.size) {
+        totalBytes += item.metadata.size;
+        fileCount++;
+      } else if (!item.metadata?.mimetype) {
+        await listRecursive(itemPath);
+      }
+    }
+  }
+
+  await listRecursive(`user/${userId}`);
+  return { totalBytes, fileCount };
+}
+
+/**
+ * Get total storage usage across all users
+ */
+export async function getTotalStorageUsage(): Promise<{
+  totalBytes: number;
+  fileCount: number;
+}> {
+  const serviceSupabase = createServiceClient();
+  let totalBytes = 0;
+  let fileCount = 0;
+
+  async function listRecursive(path: string) {
+    const { data: items } = await serviceSupabase.storage
+      .from('problem-uploads')
+      .list(path, { limit: 1000 });
+
+    if (!items) return;
+
+    for (const item of items) {
+      const itemPath = path ? `${path}/${item.name}` : item.name;
+      if (item.metadata?.size) {
+        totalBytes += item.metadata.size;
+        fileCount++;
+      } else if (!item.metadata?.mimetype) {
+        await listRecursive(itemPath);
+      }
+    }
+  }
+
+  await listRecursive('');
+  return { totalBytes, fileCount };
+}
+
+/**
+ * Get filtered activity with total count
+ */
+export async function getFilteredActivity(options: {
+  limit?: number;
+  offset?: number;
+  userId?: string;
+  action?: string;
+  fromDate?: string;
+  toDate?: string;
+}): Promise<{ activities: UserActivityLogType[]; total_count: number }> {
+  const serviceSupabase = createServiceClient();
+  const {
+    limit = DATABASE_CONSTANTS.PAGINATION.ACTIVITY_LIMIT,
+    offset = 0,
+    userId,
+    action,
+    fromDate,
+    toDate,
+  } = options;
+
+  let query = serviceSupabase
+    .from('user_activity_log')
+    .select('*, user_profiles!inner(username, first_name, last_name)', {
+      count: 'exact',
+    });
+
+  if (userId) {
+    query = query.eq('user_id', userId);
+  }
+  if (action) {
+    query = query.eq('action', action);
+  }
+  if (fromDate) {
+    query = query.gte('created_at', fromDate);
+  }
+  if (toDate) {
+    query = query.lte('created_at', toDate);
+  }
+
+  query = query
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  const { data, count, error } = await query;
+
+  if (error || !data) {
+    return { activities: [], total_count: 0 };
+  }
+
+  return { activities: data, total_count: count || 0 };
+}
+
+/**
+ * Get announcement from admin_settings
+ */
+export async function getAnnouncement(): Promise<{
+  enabled: boolean;
+  message: string;
+  type: 'info' | 'warning' | 'success';
+} | null> {
+  const serviceSupabase = createServiceClient();
+
+  const { data, error } = await serviceSupabase
+    .from('admin_settings')
+    .select('value')
+    .eq('key', 'site_announcement')
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  const val = data.value as Record<string, unknown>;
+  return {
+    enabled: (val.enabled as boolean) || false,
+    message: (val.message as string) || '',
+    type: (val.type as 'info' | 'warning' | 'success') || 'info',
+  };
+}
+
+/**
+ * Set announcement in admin_settings
+ */
+export async function setAnnouncement(
+  enabled: boolean,
+  message: string,
+  type: 'info' | 'warning' | 'success'
+): Promise<boolean> {
+  const serviceSupabase = createServiceClient();
+
+  const { error } = await serviceSupabase.from('admin_settings').upsert(
+    {
+      key: 'site_announcement',
+      value: { enabled, message, type },
+      description: 'Site-wide announcement banner',
+    },
+    { onConflict: 'key' }
+  );
+
+  return !error;
+}
+
+/**
+ * Set user quota override
+ */
+export async function setUserQuotaOverride(
+  userId: string,
+  resourceType: string,
+  dailyLimit: number
+): Promise<boolean> {
+  const serviceSupabase = createServiceClient();
+
+  const { error } = await serviceSupabase.from('user_quota_overrides').upsert(
+    {
+      user_id: userId,
+      resource_type: resourceType,
+      daily_limit: dailyLimit,
+    },
+    { onConflict: 'user_id,resource_type' }
+  );
+
+  return !error;
+}
+
+/**
+ * Remove user quota override
+ */
+export async function removeUserQuotaOverride(
+  userId: string,
+  resourceType: string
+): Promise<boolean> {
+  const serviceSupabase = createServiceClient();
+
+  const { error } = await serviceSupabase
+    .from('user_quota_overrides')
+    .delete()
+    .eq('user_id', userId)
+    .eq('resource_type', resourceType);
+
+  return !error;
 }
 
 /**
