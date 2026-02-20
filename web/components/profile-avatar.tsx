@@ -18,8 +18,12 @@ const sizeMap = {
 
 function safeSrc(url: string): string | null {
   try {
-    const { protocol } = new URL(url);
-    return protocol === 'https:' || protocol === 'blob:' ? url : null;
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'blob:') return null;
+    // Return the URL parser's normalized serialization rather than the original
+    // string. The URL constructor percent-encodes HTML metacharacters such as
+    // `"`, `<`, and `>`, preventing them from reaching any HTML rendering sink.
+    return parsed.href;
   } catch {
     return null;
   }
