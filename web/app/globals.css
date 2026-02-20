@@ -430,6 +430,31 @@ html body[data-scroll-locked] {
     );
   }
 
+  /* ===================================
+     Admin Panel Classes
+     =================================== */
+
+  .admin-page-bg {
+    @apply min-h-screen bg-gradient-to-br from-amber-50/60 via-white to-rose-50/40;
+    @apply dark:from-stone-950 dark:via-stone-900 dark:to-stone-950;
+  }
+
+  .admin-sidebar {
+    @apply bg-gradient-to-b from-amber-50/80 to-orange-50/50;
+    @apply dark:from-stone-900 dark:to-stone-950;
+    @apply border-r border-amber-200/40 dark:border-stone-800;
+  }
+
+  .admin-stat-card {
+    @apply rounded-2xl p-5 bg-gradient-to-br border transition-shadow hover:shadow-md;
+  }
+
+  .admin-section-card {
+    @apply rounded-2xl p-6 bg-gradient-to-br border;
+    @apply from-white to-amber-50/30 border-amber-200/30;
+    @apply dark:from-stone-900 dark:to-stone-900/80 dark:border-stone-800/50;
+  }
+
   /* Problem Review Page - Warm Design Classes */
 
   .review-header-sticky {

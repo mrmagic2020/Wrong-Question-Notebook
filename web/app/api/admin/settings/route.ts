@@ -1,18 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import {
-  isCurrentUserAdmin,
   isCurrentUserSuperAdmin,
   getAdminSettings,
-  // updateAdminSetting,
 } from '@/lib/user-management';
 import { CreateAdminSettingsDto } from '@/lib/schemas';
 
 export async function GET() {
   try {
-    // Check if user is admin
-    const isAdmin = await isCurrentUserAdmin();
-    if (!isAdmin) {
+    const isSuperAdmin = await isCurrentUserSuperAdmin();
+    if (!isSuperAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

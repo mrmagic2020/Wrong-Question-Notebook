@@ -1,25 +1,27 @@
 import { NextResponse } from 'next/server';
 import {
-  isCurrentUserAdmin,
+  isCurrentUserSuperAdmin,
   getUserStatistics,
-  // getRecentActivity,
+  getContentStatistics,
+  getTotalStorageUsage,
 } from '@/lib/user-management';
 
-// Force dynamic rendering since we use cookies for authentication
 export const dynamic = 'force-dynamic';
-
-// Cache configuration for this route
 export const revalidate = 900; // 15 minutes
 
 export async function GET() {
   try {
-    // Check if user is admin
-    const isAdmin = await isCurrentUserAdmin();
-    if (!isAdmin) {
+    const isSuperAdmin = await isCurrentUserSuperAdmin();
+    if (!isSuperAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const statistics = await getUserStatistics();
+    const [statistics, contentStats, storageStats] = await Promise.all([
+      getUserStatistics(),
+      getContentStatistics(),
+      getTotalStorageUsage(),
+    ]);
+
     if (!statistics) {
       return NextResponse.json(
         { error: 'Failed to fetch statistics' },
@@ -27,7 +29,11 @@ export async function GET() {
       );
     }
 
-    return NextResponse.json({ statistics });
+    return NextResponse.json({
+      statistics,
+      contentStats,
+      storageStats,
+    });
   } catch (error) {
     console.error('Error fetching statistics:', error);
     return NextResponse.json(

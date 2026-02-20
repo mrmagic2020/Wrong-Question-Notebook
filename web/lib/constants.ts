@@ -235,7 +235,9 @@ export const ROUTES = {
   ADMIN: {
     DASHBOARD: '/admin',
     USERS: '/admin/users',
+    ACTIVITY: '/admin/activity',
     SETTINGS: '/admin/settings',
+    ANNOUNCEMENTS: '/admin/announcements',
   },
   SUBJECTS: '/subjects',
   HOME: '/',
