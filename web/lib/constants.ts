@@ -37,6 +37,8 @@ export const FILE_CONSTANTS = {
   // Storage configuration
   STORAGE: {
     BUCKET: 'problem-uploads',
+    AVATAR_BUCKET: 'avatars',
+    AVATAR_MAX_SIZE: 2 * 1024 * 1024, // 2MB
     CACHE_CONTROL: '3600',
     SIGNED_URL_EXPIRES_IN: 60 * 5, // 5 minutes
     // File security headers

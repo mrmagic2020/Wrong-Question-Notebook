@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { AuthButton } from '@/components/auth-button';
+import { ProfileButton } from '@/components/profile-button';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { NotebookPen } from 'lucide-react';
 import { hasEnvVars } from '@/lib/server-utils';
@@ -39,7 +39,7 @@ export function Navigation({
         </div>
 
         <div className="flex items-center gap-3">
-          {hasEnvVars && <AuthButton />}
+          {hasEnvVars && <ProfileButton />}
           <ThemeSwitcher />
         </div>
       </div>
