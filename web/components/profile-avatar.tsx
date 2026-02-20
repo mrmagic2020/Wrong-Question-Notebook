@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 interface ProfileAvatarProps {
   avatarUrl?: string | null;
   firstName?: string | null;
@@ -45,11 +47,13 @@ export function ProfileAvatar({
       style={{ width: px, height: px }}
     >
       {src ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <Image
           src={src}
           alt="Profile avatar"
-          className="w-full h-full object-cover"
+          width={px}
+          height={px}
+          className="object-cover"
+          unoptimized={src.startsWith('blob:')}
         />
       ) : (
         <span className={text}>{initials}</span>
