@@ -27,6 +27,8 @@ const styles: Record<AnnouncementType, { bg: string; icon: typeof Info }> = {
   },
 };
 
+const STORAGE_KEY = 'wqn_dismissed_announcement';
+
 export function AnnouncementBanner() {
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [dismissed, setDismissed] = useState(false);
@@ -36,7 +38,12 @@ export function AnnouncementBanner() {
       .then(r => (r.ok ? r.json() : null))
       .then(data => {
         if (data?.announcement?.enabled && data.announcement.message) {
-          setAnnouncement(data.announcement as Announcement);
+          const a = data.announcement as Announcement;
+          const dismissedMessage = localStorage.getItem(STORAGE_KEY);
+          if (dismissedMessage === a.message) {
+            setDismissed(true);
+          }
+          setAnnouncement(a);
         }
       })
       .catch(() => {});
@@ -59,7 +66,11 @@ export function AnnouncementBanner() {
       <Icon className="h-4 w-4 flex-shrink-0" />
       <p className="flex-1">{announcement.message}</p>
       <button
-        onClick={() => setDismissed(true)}
+        onClick={() => {
+          if (announcement)
+            localStorage.setItem(STORAGE_KEY, announcement.message);
+          setDismissed(true);
+        }}
         className="flex-shrink-0 p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
       >
         <X className="h-3.5 w-3.5" />
