@@ -284,277 +284,282 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
 
   return (
     <>
-    <Sheet open={open} onOpenChange={handleOpenChange}>
-      <SheetTrigger asChild>
-        <button
-          className="flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-accent transition-colors"
-          aria-label="Open profile"
-          onClick={() => setOpen(true)}
+      <Sheet open={open} onOpenChange={handleOpenChange}>
+        <SheetTrigger asChild>
+          <button
+            className="flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-accent transition-colors"
+            aria-label="Open profile"
+            onClick={() => setOpen(true)}
+          >
+            <ProfileAvatar
+              avatarUrl={displayAvatarUrl}
+              firstName={firstName || null}
+              lastName={lastName || null}
+              email={email}
+              size="sm"
+            />
+            <span className="hidden sm:block max-w-[140px] truncate text-sm text-muted-foreground">
+              {username || email}
+            </span>
+          </button>
+        </SheetTrigger>
+
+        <SheetContent
+          side="right"
+          className="flex flex-col overflow-y-auto p-0"
         >
-          <ProfileAvatar
-            avatarUrl={displayAvatarUrl}
-            firstName={firstName || null}
-            lastName={lastName || null}
-            email={email}
-            size="sm"
-          />
-          <span className="hidden sm:block max-w-[140px] truncate text-sm text-muted-foreground">
-            {username || email}
-          </span>
-        </button>
-      </SheetTrigger>
+          <SheetHeader className="px-4 pt-4 pb-2">
+            <SheetTitle>Profile</SheetTitle>
+          </SheetHeader>
 
-      <SheetContent side="right" className="flex flex-col overflow-y-auto p-0">
-        <SheetHeader className="px-4 pt-4 pb-2">
-          <SheetTitle>Profile</SheetTitle>
-        </SheetHeader>
-
-        <div className="flex flex-col gap-5 px-4 py-2 flex-1">
-          {/* Avatar section */}
-          <div className="flex flex-col items-center gap-3 pt-2">
-            <div className="relative">
-              <ProfileAvatar
-                avatarUrl={displayAvatarUrl}
-                firstName={firstName || null}
-                lastName={lastName || null}
-                email={email}
-                size="lg"
-              />
-              {avatarUploading && (
-                <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
-                  <Loader2 className="w-5 h-5 text-white animate-spin" />
-                </div>
+          <div className="flex flex-col gap-5 px-4 py-2 flex-1">
+            {/* Avatar section */}
+            <div className="flex flex-col items-center gap-3 pt-2">
+              <div className="relative">
+                <ProfileAvatar
+                  avatarUrl={displayAvatarUrl}
+                  firstName={firstName || null}
+                  lastName={lastName || null}
+                  email={email}
+                  size="lg"
+                />
+                {avatarUploading && (
+                  <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
+                    <Loader2 className="w-5 h-5 text-white animate-spin" />
+                  </div>
+                )}
+              </div>
+              {avatarError && (
+                <p className="text-xs text-destructive text-center">
+                  {avatarError}
+                </p>
               )}
-            </div>
-            {avatarError && (
-              <p className="text-xs text-destructive text-center">
-                {avatarError}
-              </p>
-            )}
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={avatarUploading}
-                className="text-xs"
-              >
-                <Camera className="w-3 h-3 mr-1" />
-                Change photo
-              </Button>
-              {(avatarUrl || avatarPreview) && (
+              <div className="flex gap-2">
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
-                  onClick={handleAvatarRemove}
+                  onClick={() => fileInputRef.current?.click()}
                   disabled={avatarUploading}
-                  className="text-xs text-destructive hover:text-destructive"
+                  className="text-xs"
                 >
-                  <X className="w-3 h-3 mr-1" />
-                  Remove
+                  <Camera className="w-3 h-3 mr-1" />
+                  Change photo
                 </Button>
-              )}
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              className="hidden"
-              onChange={handleAvatarSelect}
-            />
-          </div>
-
-          {/* Email (read-only) */}
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Email</Label>
-            <p className="text-sm text-muted-foreground truncate">{email}</p>
-          </div>
-
-          {/* Username */}
-          <div className="space-y-1">
-            <Label htmlFor="sheet-username" className="text-xs">
-              Username
-            </Label>
-            <div className="relative">
-              <Input
-                id="sheet-username"
-                value={username}
-                onChange={e => {
-                  // Only allow alphanumeric, underscore, hyphen
-                  const sanitized = e.target.value.replace(
-                    /[^a-zA-Z0-9_-]/g,
-                    ''
-                  );
-                  setUsername(sanitized);
-                  setUsernameError(null);
-                  setFieldErrors(prev => ({ ...prev, username: [] }));
-                }}
-                onBlur={() => checkUsername(username)}
-                placeholder="Enter username"
-                maxLength={50}
-                className="text-sm pr-8"
+                {(avatarUrl || avatarPreview) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleAvatarRemove}
+                    disabled={avatarUploading}
+                    className="text-xs text-destructive hover:text-destructive"
+                  >
+                    <X className="w-3 h-3 mr-1" />
+                    Remove
+                  </Button>
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                onChange={handleAvatarSelect}
               />
-              {usernameChecking && (
-                <Loader2 className="absolute right-2 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
+            </div>
+
+            {/* Email (read-only) */}
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Email</Label>
+              <p className="text-sm text-muted-foreground truncate">{email}</p>
+            </div>
+
+            {/* Username */}
+            <div className="space-y-1">
+              <Label htmlFor="sheet-username" className="text-xs">
+                Username
+              </Label>
+              <div className="relative">
+                <Input
+                  id="sheet-username"
+                  value={username}
+                  onChange={e => {
+                    // Only allow alphanumeric, underscore, hyphen
+                    const sanitized = e.target.value.replace(
+                      /[^a-zA-Z0-9_-]/g,
+                      ''
+                    );
+                    setUsername(sanitized);
+                    setUsernameError(null);
+                    setFieldErrors(prev => ({ ...prev, username: [] }));
+                  }}
+                  onBlur={() => checkUsername(username)}
+                  placeholder="Enter username"
+                  maxLength={50}
+                  className="text-sm pr-8"
+                />
+                {usernameChecking && (
+                  <Loader2 className="absolute right-2 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
+                )}
+              </div>
+              {(usernameError ?? fieldErrors.username?.[0]) && (
+                <p className="text-xs text-destructive">
+                  {usernameError ?? fieldErrors.username?.[0]}
+                </p>
               )}
             </div>
-            {(usernameError ?? fieldErrors.username?.[0]) && (
-              <p className="text-xs text-destructive">
-                {usernameError ?? fieldErrors.username?.[0]}
+
+            {/* First name */}
+            <div className="space-y-1">
+              <Label htmlFor="sheet-first-name" className="text-xs">
+                First name
+              </Label>
+              <Input
+                id="sheet-first-name"
+                value={firstName}
+                onChange={e => {
+                  setFirstName(e.target.value);
+                  setFieldErrors(prev => ({ ...prev, first_name: [] }));
+                }}
+                placeholder="First name"
+                maxLength={100}
+                className="text-sm"
+              />
+              {fieldErrors.first_name?.[0] && (
+                <p className="text-xs text-destructive">
+                  {fieldErrors.first_name[0]}
+                </p>
+              )}
+            </div>
+
+            {/* Last name */}
+            <div className="space-y-1">
+              <Label htmlFor="sheet-last-name" className="text-xs">
+                Last name
+              </Label>
+              <Input
+                id="sheet-last-name"
+                value={lastName}
+                onChange={e => {
+                  setLastName(e.target.value);
+                  setFieldErrors(prev => ({ ...prev, last_name: [] }));
+                }}
+                placeholder="Last name"
+                maxLength={100}
+                className="text-sm"
+              />
+              {fieldErrors.last_name?.[0] && (
+                <p className="text-xs text-destructive">
+                  {fieldErrors.last_name[0]}
+                </p>
+              )}
+            </div>
+
+            {/* Bio */}
+            <div className="space-y-1">
+              <Label htmlFor="sheet-bio" className="text-xs">
+                Bio
+              </Label>
+              <Textarea
+                id="sheet-bio"
+                value={bio}
+                onChange={e => setBio(e.target.value)}
+                placeholder="Tell us about yourself..."
+                maxLength={500}
+                rows={3}
+                className="text-sm resize-none"
+              />
+              <p className="text-xs text-muted-foreground text-right">
+                {bio.length}/500
               </p>
+            </div>
+
+            {/* Date of birth */}
+            <div className="space-y-1">
+              <Label htmlFor="sheet-dob" className="text-xs">
+                Date of birth
+              </Label>
+              <Input
+                id="sheet-dob"
+                type="date"
+                value={dateOfBirth}
+                onChange={e => setDateOfBirth(e.target.value)}
+                className="text-sm"
+              />
+            </div>
+
+            {/* Gender */}
+            <div className="space-y-1">
+              <Label className="text-xs">Gender</Label>
+              <Select
+                value={gender || undefined}
+                onValueChange={val => setGender(val)}
+              >
+                <SelectTrigger className="text-sm">
+                  <SelectValue placeholder="Select gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="prefer_not_to_say">
+                    Prefer not to say
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {saveError && (
+              <p className="text-xs text-destructive">{saveError}</p>
             )}
           </div>
 
-          {/* First name */}
-          <div className="space-y-1">
-            <Label htmlFor="sheet-first-name" className="text-xs">
-              First name
-            </Label>
-            <Input
-              id="sheet-first-name"
-              value={firstName}
-              onChange={e => {
-                setFirstName(e.target.value);
-                setFieldErrors(prev => ({ ...prev, first_name: [] }));
-              }}
-              placeholder="First name"
-              maxLength={100}
-              className="text-sm"
-            />
-            {fieldErrors.first_name?.[0] && (
-              <p className="text-xs text-destructive">
-                {fieldErrors.first_name[0]}
-              </p>
-            )}
-          </div>
-
-          {/* Last name */}
-          <div className="space-y-1">
-            <Label htmlFor="sheet-last-name" className="text-xs">
-              Last name
-            </Label>
-            <Input
-              id="sheet-last-name"
-              value={lastName}
-              onChange={e => {
-                setLastName(e.target.value);
-                setFieldErrors(prev => ({ ...prev, last_name: [] }));
-              }}
-              placeholder="Last name"
-              maxLength={100}
-              className="text-sm"
-            />
-            {fieldErrors.last_name?.[0] && (
-              <p className="text-xs text-destructive">
-                {fieldErrors.last_name[0]}
-              </p>
-            )}
-          </div>
-
-          {/* Bio */}
-          <div className="space-y-1">
-            <Label htmlFor="sheet-bio" className="text-xs">
-              Bio
-            </Label>
-            <Textarea
-              id="sheet-bio"
-              value={bio}
-              onChange={e => setBio(e.target.value)}
-              placeholder="Tell us about yourself..."
-              maxLength={500}
-              rows={3}
-              className="text-sm resize-none"
-            />
-            <p className="text-xs text-muted-foreground text-right">
-              {bio.length}/500
-            </p>
-          </div>
-
-          {/* Date of birth */}
-          <div className="space-y-1">
-            <Label htmlFor="sheet-dob" className="text-xs">
-              Date of birth
-            </Label>
-            <Input
-              id="sheet-dob"
-              type="date"
-              value={dateOfBirth}
-              onChange={e => setDateOfBirth(e.target.value)}
-              className="text-sm"
-            />
-          </div>
-
-          {/* Gender */}
-          <div className="space-y-1">
-            <Label className="text-xs">Gender</Label>
-            <Select
-              value={gender || undefined}
-              onValueChange={val => setGender(val)}
+          <SheetFooter className="flex-col gap-2 px-4 pb-4">
+            <Button
+              onClick={handleSave}
+              disabled={saving || saved || !!usernameError || usernameChecking}
+              className="w-full"
             >
-              <SelectTrigger className="text-sm">
-                <SelectValue placeholder="Select gender" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-                <SelectItem value="prefer_not_to_say">
-                  Prefer not to say
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              {saving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : saved ? (
+                <>
+                  <Check className="mr-2 h-4 w-4" />
+                  Saved
+                </>
+              ) : (
+                'Save changes'
+              )}
+            </Button>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Sign out</span>
+              <LogoutButton />
+            </div>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
-          {saveError && <p className="text-xs text-destructive">{saveError}</p>}
-        </div>
-
-        <SheetFooter className="flex-col gap-2 px-4 pb-4">
-          <Button
-            onClick={handleSave}
-            disabled={saving || saved || !!usernameError || usernameChecking}
-            className="w-full"
-          >
-            {saving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : saved ? (
-              <>
-                <Check className="mr-2 h-4 w-4" />
-                Saved
-              </>
-            ) : (
-              'Save changes'
-            )}
-          </Button>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Sign out</span>
-            <LogoutButton />
-          </div>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
-
-    <AlertDialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Discard changes?</AlertDialogTitle>
-          <AlertDialogDescription>
-            You have unsaved changes. If you close now, they will be lost.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Keep editing</AlertDialogCancel>
-          <AlertDialogAction
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            onClick={handleDiscardChanges}
-          >
-            Discard
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      <AlertDialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Discard changes?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes. If you close now, they will be lost.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep editing</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleDiscardChanges}
+            >
+              Discard
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
