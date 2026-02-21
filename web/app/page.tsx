@@ -285,17 +285,25 @@ export default async function Home() {
         {/* Footer */}
         <footer className="w-full border-t border-amber-200/30 dark:border-stone-800 glass-effect">
           <div className="landing-section-inner py-8">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="flex items-center gap-2">
                 <NotebookPen className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                 <span className="font-semibold text-gray-900 dark:text-white">
                   Wrong Question Notebook
                 </span>
               </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                &copy; 2025&ndash;2026 MagicWorks. Built with Next.js and
-                Supabase.
-              </p>
+              <div className="flex items-center gap-4 text-sm">
+                <Link
+                  href="/privacy"
+                  className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  Privacy Policy
+                </Link>
+                <p className="text-gray-500 dark:text-gray-400">
+                  &copy; 2025&ndash;2026 MagicWorks. Built with Next.js and
+                  Supabase.
+                </p>
+              </div>
             </div>
           </div>
         </footer>
