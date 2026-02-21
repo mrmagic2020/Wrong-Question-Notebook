@@ -18,6 +18,7 @@ export function SignUpForm({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
+  const [agreedToPrivacy, setAgreedToPrivacy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -27,6 +28,12 @@ export function SignUpForm({
     const supabase = createClient();
     setIsLoading(true);
     setError(null);
+
+    if (!agreedToPrivacy) {
+      setError('You must agree to the Privacy Policy to create an account.');
+      setIsLoading(false);
+      return;
+    }
 
     if (password !== repeatPassword) {
       setError('Passwords do not match');
@@ -103,6 +110,29 @@ export function SignUpForm({
               value={repeatPassword}
               onChange={e => setRepeatPassword(e.target.value)}
             />
+          </div>
+          <div className="flex items-start gap-2">
+            <input
+              id="privacy-policy"
+              type="checkbox"
+              checked={agreedToPrivacy}
+              onChange={e => setAgreedToPrivacy(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 accent-orange-500"
+            />
+            <label
+              htmlFor="privacy-policy"
+              className="text-sm text-gray-600 dark:text-gray-400"
+            >
+              I have read and agree to the{' '}
+              <a
+                href="/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="auth-link underline"
+              >
+                Privacy Policy
+              </a>
+            </label>
           </div>
           {error && <p className="form-error">{error}</p>}
           <Button
