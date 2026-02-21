@@ -71,13 +71,7 @@
     "tiptap-extension-resizable-image": "^2.0.0",
     "zod": "^4.1.11"
   },
-  "overrides": {
-    "minimatch": ">=10.2.1",
-    "glob": ">=11",
-    "rimraf": ">=6"
-  },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

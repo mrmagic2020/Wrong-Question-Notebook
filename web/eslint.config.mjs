@@ -1,20 +1,15 @@
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { FlatCompat } from '@eslint/eslintrc';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
+import nextCoreWebVitals from 'eslint-config-next/core-web-vitals';
+import nextTypescript from 'eslint-config-next/typescript';
+import prettierConfig from 'eslint-config-prettier';
+import prettierPlugin from 'eslint-plugin-prettier';
 
 const eslintConfig = [
-  ...compat.extends('next/core-web-vitals', 'next/typescript'),
-  ...compat.extends('prettier'),
+  ...nextCoreWebVitals,
+  ...nextTypescript,
+  prettierConfig,
   {
     plugins: {
-      prettier: (await import('eslint-plugin-prettier')).default,
+      prettier: prettierPlugin,
     },
     rules: {
       // Prettier integration
@@ -32,6 +27,12 @@ const eslintConfig = [
       // React specific rules
       'react-hooks/exhaustive-deps': 'warn',
       'react/no-unescaped-entities': 'off',
+
+      // React Compiler rules — disabled (project does not use React Compiler)
+      'react-hooks/react-compiler': 'off',
+      'react-hooks/static-components': 'off',
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/incompatible-library': 'off',
     },
   },
   {
