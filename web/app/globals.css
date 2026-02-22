@@ -584,11 +584,6 @@ html body[data-scroll-locked] {
     @apply dark:from-stone-900 dark:to-stone-900/80 dark:border-stone-800/50;
   }
 
-  .stats-page-bg {
-    @apply min-h-screen bg-gradient-to-b from-amber-50/80 via-white to-rose-50/50;
-    @apply dark:from-stone-950 dark:via-stone-900 dark:to-stone-950;
-  }
-
   /* Streak flame animation */
   .stats-streak-flame {
     animation: streakFlicker 1.5s ease-in-out infinite;
