@@ -73,16 +73,44 @@ async function loadStatistics() {
         client.rpc('get_recent_study_activity', { p_user_id: uid }),
       ]);
 
+      // Log individual RPC errors but fall back gracefully
+      const rpcResults = [
+        { name: 'get_user_statistics', res: overviewRes },
+        { name: 'get_study_streaks', res: streaksRes },
+        { name: 'get_session_statistics', res: sessionRes },
+        { name: 'get_subject_breakdown', res: subjectRes },
+        { name: 'get_weekly_progress', res: weeklyRes },
+        { name: 'get_activity_heatmap', res: heatmapRes },
+        { name: 'get_recent_study_activity', res: recentRes },
+      ];
+      for (const { name, res } of rpcResults) {
+        if (res.error) {
+          console.error(`Statistics RPC ${name} failed:`, res.error.message);
+        }
+      }
+
       return {
-        overview:
-          (overviewRes.data as StatisticsOverview) ?? emptyData.overview,
-        streaks: (streaksRes.data as StudyStreaks) ?? emptyData.streaks,
-        sessionStats:
-          (sessionRes.data as SessionStatistics) ?? emptyData.sessionStats,
-        subjectBreakdown: (subjectRes.data as SubjectBreakdownRow[]) ?? [],
-        weeklyProgress: (weeklyRes.data as WeeklyProgressPoint[]) ?? [],
-        activityHeatmap: (heatmapRes.data as ActivityDay[]) ?? [],
-        recentActivity: (recentRes.data as RecentStudyActivity[]) ?? [],
+        overview: overviewRes.error
+          ? emptyData.overview
+          : ((overviewRes.data as StatisticsOverview) ?? emptyData.overview),
+        streaks: streaksRes.error
+          ? emptyData.streaks
+          : ((streaksRes.data as StudyStreaks) ?? emptyData.streaks),
+        sessionStats: sessionRes.error
+          ? emptyData.sessionStats
+          : ((sessionRes.data as SessionStatistics) ?? emptyData.sessionStats),
+        subjectBreakdown: subjectRes.error
+          ? []
+          : ((subjectRes.data as SubjectBreakdownRow[]) ?? []),
+        weeklyProgress: weeklyRes.error
+          ? []
+          : ((weeklyRes.data as WeeklyProgressPoint[]) ?? []),
+        activityHeatmap: heatmapRes.error
+          ? []
+          : ((heatmapRes.data as ActivityDay[]) ?? []),
+        recentActivity: recentRes.error
+          ? []
+          : ((recentRes.data as RecentStudyActivity[]) ?? []),
       };
     },
     [`statistics-${userId}`],
