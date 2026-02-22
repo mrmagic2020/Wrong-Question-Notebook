@@ -8,6 +8,7 @@ import {
   isValidUuid,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
+import { revalidateUserStatistics } from '@/lib/cache-invalidation';
 
 async function updateProgress(
   req: Request,
@@ -139,6 +140,9 @@ async function updateProgress(
       if (resultError) {
         console.error('Failed to create session result:', resultError);
       }
+
+      // Invalidate statistics cache on answer/skip
+      await revalidateUserStatistics(user.id);
     }
 
     // Update problem's last_reviewed_date only when actually answered

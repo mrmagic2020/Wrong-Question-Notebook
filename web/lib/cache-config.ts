@@ -20,6 +20,9 @@ export const CACHE_DURATIONS = {
   // Less critical freshness - 15 minutes
   ADMIN_STATS: 15 * 60, // 15 minutes
   ADMIN_ACTIVITY: 10 * 60, // 10 minutes
+
+  // Statistics dashboard - 5 minutes
+  STATISTICS: 5 * 60, // 5 minutes
 } as const;
 
 // Cache tags for organized invalidation
@@ -40,6 +43,7 @@ export const CACHE_TAGS = {
   USER_PROBLEM_SETS: 'user-problem-sets',
   USER_REVIEW_SESSIONS: 'user-review-sessions',
   USER_TAGS: 'user-tags',
+  USER_STATISTICS: 'user-statistics',
 } as const;
 
 // Helper function to create user-specific cache tags
@@ -79,6 +83,7 @@ export const CACHE_KEYS = {
   TAGS_LIST: 'tags-list',
   ADMIN_STATISTICS: 'admin-statistics',
   ADMIN_USERS_LIST: 'admin-users-list',
+  USER_STATISTICS: 'user-statistics',
 } as const;
 
 // Type definitions for better TypeScript support

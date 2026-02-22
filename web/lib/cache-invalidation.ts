@@ -180,3 +180,12 @@ export async function revalidateProblemSetPage(
 export async function revalidateAdminPage(): Promise<void> {
   await revalidatePath('/admin');
 }
+
+/**
+ * Revalidate user statistics cache
+ */
+export async function revalidateUserStatistics(userId: string): Promise<void> {
+  const userStatsTag = createUserCacheTag(CACHE_TAGS.USER_STATISTICS, userId);
+  await revalidateTag(userStatsTag, 'max');
+  await revalidateTag(CACHE_TAGS.USER_STATISTICS, 'max');
+}

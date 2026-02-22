@@ -416,3 +416,66 @@ export type TagFormProps = {
   subjectId: string;
   onTagCreated?: (tag: Tag) => void;
 };
+
+// =====================================================
+// Statistics Dashboard Types
+// =====================================================
+
+export interface StatisticsOverview {
+  total_problems: number;
+  mastered_count: number;
+  needs_review_count: number;
+  wrong_count: number;
+  mastery_rate: number;
+}
+
+export interface StudyStreaks {
+  current_streak: number;
+  longest_streak: number;
+}
+
+export interface SessionStatistics {
+  total_sessions: number;
+  avg_duration_ms: number;
+  avg_problems_per_session: number;
+  total_review_time_ms: number;
+}
+
+export interface SubjectBreakdownRow {
+  subject_id: string;
+  subject_name: string;
+  total: number;
+  mastered: number;
+  needs_review: number;
+  wrong: number;
+  mastery_pct: number;
+}
+
+export interface WeeklyProgressPoint {
+  week_start: string;
+  cumulative_mastered: number;
+}
+
+export interface ActivityDay {
+  activity_date: string;
+  activity_count: number;
+}
+
+export interface RecentStudyActivity {
+  problem_id: string;
+  problem_title: string;
+  subject_name: string;
+  old_status: string | null;
+  new_status: string;
+  changed_at: string;
+}
+
+export interface StatisticsData {
+  overview: StatisticsOverview;
+  streaks: StudyStreaks;
+  sessionStats: SessionStatistics;
+  subjectBreakdown: SubjectBreakdownRow[];
+  weeklyProgress: WeeklyProgressPoint[];
+  activityHeatmap: ActivityDay[];
+  recentActivity: RecentStudyActivity[];
+}
