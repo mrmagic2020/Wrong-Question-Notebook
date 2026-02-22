@@ -303,6 +303,14 @@ export const ANSWER_CONFIG_CONSTANTS = {
 } as const;
 
 // =====================================================
+// CAPTCHA Constants
+// =====================================================
+export const CAPTCHA_CONSTANTS = {
+  // Cloudflare Turnstile site key
+  TURNSTILE_SITE_KEY: '0x4AAAAAACgUHR0HEEo3h1J4',
+} as const;
+
+// =====================================================
 // AI Constants
 // =====================================================
 export const AI_CONSTANTS = {

@@ -7,9 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { ROUTES, ERROR_MESSAGES } from '@/lib/constants';
+import { useRef, useState } from 'react';
+import { ROUTES, ERROR_MESSAGES, CAPTCHA_CONSTANTS } from '@/lib/constants';
 import { LogIn } from 'lucide-react';
+import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
 
 interface LoginFormProps extends React.ComponentPropsWithoutRef<'div'> {
   redirectTo?: string;
@@ -20,6 +21,11 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | undefined>(
+    undefined
+  );
+  const [captchaError, setCaptchaError] = useState<string | null>(null);
+  const captchaRef = useRef<TurnstileInstance>(null);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -32,6 +38,7 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
+        options: { captchaToken },
       });
       if (error) throw error;
       // Redirect to intended destination or subjects page after successful login
@@ -41,6 +48,8 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
       setError(
         error instanceof Error ? error.message : ERROR_MESSAGES.INTERNAL_ERROR
       );
+      setCaptchaToken(undefined);
+      captchaRef.current?.reset();
     } finally {
       setIsLoading(false);
     }
@@ -96,10 +105,40 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
             />
           </div>
           {error && <p className="form-error">{error}</p>}
+          <div className="flex flex-col items-center gap-1">
+            <Turnstile
+              ref={captchaRef}
+              siteKey={CAPTCHA_CONSTANTS.TURNSTILE_SITE_KEY}
+              onSuccess={token => {
+                setCaptchaToken(token);
+                setCaptchaError(null);
+              }}
+              onExpire={() => setCaptchaToken(undefined)}
+              onError={() => {
+                setCaptchaToken(undefined);
+                setCaptchaError('Security verification failed.');
+              }}
+            />
+            {captchaError && (
+              <p className="form-error text-center">
+                {captchaError}{' '}
+                <button
+                  type="button"
+                  className="underline"
+                  onClick={() => {
+                    setCaptchaError(null);
+                    captchaRef.current?.reset();
+                  }}
+                >
+                  Try again
+                </button>
+              </p>
+            )}
+          </div>
           <Button
             type="submit"
             className="w-full btn-cta-primary"
-            disabled={isLoading}
+            disabled={isLoading || !captchaToken}
           >
             {isLoading ? 'Logging in...' : 'Login'}
           </Button>
