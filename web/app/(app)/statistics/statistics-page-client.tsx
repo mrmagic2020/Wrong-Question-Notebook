@@ -75,7 +75,7 @@ export default function StatisticsPageClient({
         </div>
         <div className="lg:col-span-7 stats-bento-card min-h-[300px]">
           <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">
-            Subject Breakdown
+            Notebook Breakdown
           </h3>
           <div className="h-[250px]">
             <SubjectBarChart data={subjectBreakdown} />
@@ -95,7 +95,7 @@ export default function StatisticsPageClient({
         </div>
         <div className="lg:col-span-5 stats-bento-card min-h-[300px]">
           <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">
-            Subject Mastery Radar
+            Mastery Radar
           </h3>
           <div className="h-[250px]">
             <SubjectRadarChart data={subjectBreakdown} />

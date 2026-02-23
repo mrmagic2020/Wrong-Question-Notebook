@@ -135,7 +135,7 @@ export default async function SubjectProblemsPage({
     return (
       <div className="section-container">
         <p className="text-body-sm text-muted-foreground">Subject not found.</p>
-        <BackLink href={ROUTES.SUBJECTS}>Back to Subjects</BackLink>
+        <BackLink href={ROUTES.SUBJECTS}>Back to Shelf</BackLink>
       </div>
     );
   }
@@ -146,10 +146,10 @@ export default async function SubjectProblemsPage({
         <div className="page-header">
           <h1 className="page-title">{subject.name} — Problems</h1>
           <p className="page-description">
-            Problems are isolated to this subject.
+            Start logging problems in this notebook!
           </p>
         </div>
-        <BackLink href={ROUTES.SUBJECTS}>Back to Subjects</BackLink>
+        <BackLink href={ROUTES.SUBJECTS}>Back to Shelf</BackLink>
       </div>
 
       {/* Problems page with create form and search */}

@@ -44,7 +44,7 @@ export function PlaceholderNotebookCard({
           </div>
         </div>
         <h3 className="text-xl font-semibold mt-3 text-gray-500 dark:text-gray-400">
-          New Subject
+          New Notebook
         </h3>
       </CardHeader>
 

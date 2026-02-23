@@ -59,11 +59,11 @@ export function SubjectCreateDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create New Subject</DialogTitle>
+          <DialogTitle>Create New Notebook</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label>Subject Name</Label>
+            <Label>Notebook Name</Label>
             <Input
               value={name}
               onChange={e => setName(e.target.value)}
@@ -97,7 +97,7 @@ export function SubjectCreateDialog({
             </Button>
             <Button type="submit" disabled={busy}>
               {busy && <Spinner />}
-              {busy ? 'Creating...' : 'Create Subject'}
+              {busy ? 'Creating...' : 'Create Notebook'}
             </Button>
           </div>
         </form>

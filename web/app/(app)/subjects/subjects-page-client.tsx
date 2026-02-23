@@ -110,7 +110,7 @@ export default function SubjectsPageClient({
                   ref={searchInputRef}
                   value={query}
                   onChange={e => setQuery(e.target.value)}
-                  placeholder="Search subjects..."
+                  placeholder="Search notebooks..."
                   className="pl-10"
                 />
               </div>
@@ -126,7 +126,7 @@ export default function SubjectsPageClient({
             <div className="space-y-2">
               <h3 className="text-lg font-semibold">Your shelf is empty</h3>
               <p className="text-sm text-muted-foreground max-w-md">
-                Click the placeholder card below to create your first subject.
+                Click the placeholder card below to create your first notebook.
                 Try "Mathematics", "Physics", or "Computer Science".
               </p>
             </div>
@@ -144,7 +144,7 @@ export default function SubjectsPageClient({
             <div className="space-y-2">
               <h3 className="text-lg font-semibold">No matches</h3>
               <p className="text-sm text-muted-foreground">
-                No subjects match "{query.trim()}".
+                No notebooks match "{query.trim()}".
               </p>
             </div>
             <Button variant="outline" onClick={() => setQuery('')}>
