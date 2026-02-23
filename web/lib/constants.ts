@@ -510,6 +510,15 @@ const ICON_COMPONENT_MAP: Record<SubjectIcon, LucideIcon> = {
   Lightbulb: Icons.Lightbulb,
 };
 
+// =====================================================
+// Cookie Consent Constants
+// =====================================================
+export const COOKIE_CONSENT_CONSTANTS = {
+  COOKIE_NAME: 'wqn-cookie-consent',
+  CONSENT_VERSION: 1, // bump to force re-consent if categories change
+  MAX_AGE_SECONDS: 182 * 24 * 60 * 60, // ~6 months
+} as const;
+
 // Helper: Get icon component with runtime validation and fallback
 export function getIconComponent(iconName: string): LucideIcon {
   // Type guard to check if iconName is a valid SubjectIcon

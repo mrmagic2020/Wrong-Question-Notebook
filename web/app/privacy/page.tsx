@@ -600,15 +600,79 @@ export default function PrivacyPage() {
             </h2>
 
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              <strong>In Short:</strong> We may use cookies and other tracking
-              technologies to collect and store your information.
+              <strong>In Short:</strong> We use essential cookies for
+              authentication and optional analytics cookies only with your
+              explicit consent.
             </p>
 
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              We may use cookies and similar tracking technologies (like web
-              beacons and pixels) to access or store information. We use these
-              technologies primarily for authentication and security purposes,
-              and to maintain your session.
+              We use cookies and similar technologies to operate our Services
+              and, with your consent, to understand how they are used. When you
+              first visit our site, a cookie consent banner allows you to accept
+              or reject non-essential cookies. You can change your preferences
+              at any time via the &quot;Cookie Preferences&quot; link in the
+              site footer.
+            </p>
+
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-3">
+              Cookies we use
+            </h3>
+
+            <div className="overflow-x-auto mb-4">
+              <table className="w-full text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
+                <thead>
+                  <tr className="bg-gray-50 dark:bg-gray-800/50">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700">
+                      Cookie
+                    </th>
+                    <th className="text-left px-3 py-2 font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700">
+                      Category
+                    </th>
+                    <th className="text-left px-3 py-2 font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700">
+                      Purpose
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-gray-200 dark:border-gray-700">
+                    <td className="px-3 py-2">
+                      <code className="text-xs">sb-*-auth-token</code>
+                    </td>
+                    <td className="px-3 py-2">Essential</td>
+                    <td className="px-3 py-2">
+                      Supabase authentication session
+                    </td>
+                  </tr>
+                  <tr className="border-b border-gray-200 dark:border-gray-700">
+                    <td className="px-3 py-2">
+                      <code className="text-xs">wqn-cookie-consent</code>
+                    </td>
+                    <td className="px-3 py-2">Essential</td>
+                    <td className="px-3 py-2">
+                      Stores your cookie preferences
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-2">
+                      <code className="text-xs">_vercel_*</code>
+                    </td>
+                    <td className="px-3 py-2">Analytics (consent required)</td>
+                    <td className="px-3 py-2">
+                      Vercel Analytics &amp; Speed Insights &mdash; only set
+                      after you explicitly consent
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              <strong>
+                Analytics cookies are never set without your consent.
+              </strong>{' '}
+              If you reject analytics cookies or do not interact with the
+              consent banner, no analytics scripts are loaded and no analytics
+              cookies are placed on your device.
             </p>
 
             <hr className="my-6 border-gray-200 dark:border-gray-700" />

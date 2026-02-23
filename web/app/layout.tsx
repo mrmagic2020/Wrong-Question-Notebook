@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
 import { ThemeProvider } from 'next-themes';
-import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Toaster } from '@/components/ui/sonner';
+import { ConsentProvider } from '@/components/cookie-consent/consent-provider';
+import { ConditionalAnalytics } from '@/components/cookie-consent/conditional-analytics';
 import './globals.css';
 
 const defaultUrl = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
@@ -37,11 +37,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <ConsentProvider>
+            {children}
+            <ConditionalAnalytics />
+          </ConsentProvider>
         </ThemeProvider>
         <Toaster />
-        <SpeedInsights />
-        <Analytics />
         <script
           dangerouslySetInnerHTML={{
             __html: `

@@ -15,6 +15,7 @@ import {
 import { createClient } from '@/lib/supabase/server';
 import { hasEnvVars } from '@/lib/server-utils';
 import { HeroAnimation } from '@/components/landing/hero-animation';
+import { CookiePreferencesTrigger } from '@/components/cookie-consent/cookie-preferences-trigger';
 
 const siteUrl = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
   ? `https://${process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}`
@@ -299,6 +300,7 @@ export default async function Home() {
                 >
                   Privacy Policy
                 </Link>
+                <CookiePreferencesTrigger />
                 <p className="text-gray-500 dark:text-gray-400">
                   &copy; 2025&ndash;2026 MagicWorks. Built with Next.js and
                   Supabase.

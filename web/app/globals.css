@@ -600,6 +600,11 @@ html body[data-scroll-locked] {
     animation: streakFlicker 1.5s ease-in-out infinite;
   }
 
+  /* Cookie consent banner animation */
+  .cookie-banner-slide-up {
+    animation: cookieBannerSlideUp 0.4s ease-out 0.8s both;
+  }
+
   /* Animation classes */
   .auth-fade-in {
     animation: authFadeIn 0.6s ease-out 0.2s both;
@@ -1402,6 +1407,18 @@ html body[data-scroll-locked] {
   word-break: break-word !important;
   overflow-wrap: anywhere !important;
   box-sizing: border-box !important;
+}
+
+/* Cookie banner animation */
+@keyframes cookieBannerSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Notebook card animations - cascading entrance effect */
