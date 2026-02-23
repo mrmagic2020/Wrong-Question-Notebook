@@ -1,5 +1,4 @@
 import sanitizeHtml from 'sanitize-html';
-import { logger } from './logger';
 
 /**
  * Sanitizes HTML content to prevent XSS attacks
@@ -11,10 +10,25 @@ export function sanitizeHtmlContent(html: string): string {
   }
 
   // Special handling for math content - use a more permissive config
-  if (html.includes('katex') || html.includes('tiptap')) {
+  // Match "katex" or "tiptap" as class attribute values to avoid false triggers
+  // from plain text that happens to contain these words
+  const MATH_CLASS_PATTERN = /class="[^"]*\b(?:katex|tiptap)\b[^"]*"/;
+  if (MATH_CLASS_PATTERN.test(html)) {
     // Use a more permissive config for math content
+    const baseConfig = getSanitizeConfig();
+    const baseAttrs =
+      baseConfig.allowedAttributes &&
+      typeof baseConfig.allowedAttributes === 'object'
+        ? baseConfig.allowedAttributes
+        : {};
     const mathConfig = {
-      ...getSanitizeConfig(),
+      ...baseConfig,
+      allowedAttributes: {
+        ...baseAttrs,
+        // KaTeX uses inline styles on span/div for layout
+        span: [...((baseAttrs.span as string[]) ?? []), 'style'],
+        div: [...((baseAttrs.div as string[]) ?? []), 'style'],
+      },
       // Allow all classes for math elements to preserve KaTeX styling
       allowedClasses: {
         span: ['*'],
@@ -26,27 +40,7 @@ export function sanitizeHtmlContent(html: string): string {
   }
 
   // Use standard config for non-math content
-  const sanitized = sanitizeHtml(html, getSanitizeConfig());
-
-  // Ensure the sanitized HTML is valid and complete
-  // This prevents issues where HTML might be truncated
-  if (typeof window !== 'undefined') {
-    try {
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = sanitized;
-      // If parsing succeeded, return the sanitized content
-      return sanitized;
-    } catch {
-      // If parsing failed, return the original content (it will be sanitized again)
-      logger.warn('HTML sanitization resulted in invalid HTML', {
-        component: 'HTMLSanitizer',
-        action: 'sanitizeHtmlContent',
-      });
-      return html;
-    }
-  }
-
-  return sanitized;
+  return sanitizeHtml(html, getSanitizeConfig());
 }
 
 /**
@@ -142,7 +136,7 @@ function getSanitizeConfig(): sanitizeHtml.IOptions {
       code: ['class'],
 
       // General attributes
-      '*': ['id', 'style'],
+      '*': ['id'],
     },
 
     // Allow specific classes for images
@@ -158,8 +152,8 @@ function getSanitizeConfig(): sanitizeHtml.IOptions {
       img: ['http', 'https'],
     },
 
-    // Allow protocol relative URLs for images
-    allowProtocolRelative: true,
+    // Disallow protocol-relative URLs (e.g. //evil.com) to prevent phishing
+    allowProtocolRelative: false,
 
     // Disallowed tags for security
     disallowedTagsMode: 'discard',
@@ -212,6 +206,8 @@ function getSanitizeConfig(): sanitizeHtml.IOptions {
       // Validate image URLs for security
       img: (tagName, attribs) => {
         if (attribs.src) {
+          const srcLower = attribs.src.toLowerCase();
+
           // Block dangerous protocols
           const dangerousProtocols = [
             'javascript:',
@@ -221,25 +217,21 @@ function getSanitizeConfig(): sanitizeHtml.IOptions {
             'ftp:',
           ];
           if (
-            dangerousProtocols.some(protocol =>
-              attribs.src.toLowerCase().startsWith(protocol)
-            )
+            dangerousProtocols.some(protocol => srcLower.startsWith(protocol))
           ) {
-            // Remove the src attribute to prevent XSS
             const { src, ...safeAttribs } = attribs;
-            void src; // Explicitly mark as intentionally unused
+            void src;
             return { tagName, attribs: safeAttribs };
           }
 
           // Only allow http://, https://, or relative paths starting with /api/files/
           if (
-            !attribs.src.startsWith('http://') &&
-            !attribs.src.startsWith('https://') &&
+            !srcLower.startsWith('http://') &&
+            !srcLower.startsWith('https://') &&
             !attribs.src.startsWith('/api/files/')
           ) {
-            // Remove the src attribute for invalid URLs
             const { src, ...safeAttribs } = attribs;
-            void src; // Explicitly mark as intentionally unused
+            void src;
             return { tagName, attribs: safeAttribs };
           }
         }
@@ -247,19 +239,6 @@ function getSanitizeConfig(): sanitizeHtml.IOptions {
       },
     },
   };
-}
-
-/**
- * Validates that the provided HTML is safe (contains only allowed tags and attributes)
- * Returns true if the HTML is safe, false otherwise
- */
-export function isValidHtml(html: string): boolean {
-  if (!html || typeof html !== 'string') {
-    return true; // Empty or non-string content is considered valid
-  }
-
-  const sanitized = sanitizeHtmlContent(html);
-  return sanitized === html;
 }
 
 /**

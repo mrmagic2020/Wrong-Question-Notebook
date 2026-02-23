@@ -8,7 +8,7 @@ import {
   GENDER_OPTIONS,
   SUBJECT_CONSTANTS,
 } from './constants';
-import { isValidHtml, sanitizeHtmlContent } from './html-sanitizer';
+import { sanitizeHtmlContent } from './html-sanitizer';
 
 // Database enum values - these should match the PostgreSQL enum type
 export const PROBLEM_TYPE_VALUES = [
@@ -32,17 +32,7 @@ export type ProblemStatus = z.infer<typeof ProblemStatus>;
 const htmlContent = z
   .string()
   .max(VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX)
-  .transform(html => {
-    // Sanitize the HTML content
-    const sanitized = sanitizeHtmlContent(html);
-
-    // Validate that the sanitized content is safe
-    if (!isValidHtml(sanitized)) {
-      throw new Error('Invalid HTML content detected');
-    }
-
-    return sanitized;
-  })
+  .transform(html => sanitizeHtmlContent(html))
   .optional();
 
 const Asset = z.object({
