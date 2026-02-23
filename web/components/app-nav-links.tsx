@@ -15,7 +15,6 @@ import {
 
 const APP_LINKS = [
   { href: '/subjects', label: 'Subjects' },
-  { href: '/tags', label: 'Tags' },
   { href: '/problem-sets', label: 'Problem Sets' },
   { href: '/statistics', label: 'Statistics' },
 ] as const;

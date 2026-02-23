@@ -168,7 +168,6 @@ export async function revalidateProblemSetsPage(): Promise<void> {
 export async function revalidateSubjectPage(subjectId: string): Promise<void> {
   await revalidatePath(`/subjects/${subjectId}`);
   await revalidatePath(`/subjects/${subjectId}/problems`);
-  await revalidatePath(`/subjects/${subjectId}/tags`);
 }
 
 export async function revalidateProblemSetPage(

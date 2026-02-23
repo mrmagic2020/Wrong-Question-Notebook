@@ -359,11 +359,6 @@ export interface ProblemSetPageClientProps {
   };
 }
 
-export interface TagsPageClientProps {
-  initialSubject: Subject;
-  initialTags: Tag[];
-}
-
 // =====================================================
 // Enhanced Table Types
 // =====================================================
@@ -403,18 +398,6 @@ export type SubjectRowProps = {
   onSubjectDeleted?: (subjectId: string) => void;
   onSubjectUpdated?: (subject: Subject) => void;
   showConfirmation?: (config: ConfirmationConfig) => void;
-};
-
-export type TagRowProps = {
-  tag: Tag;
-  onTagDeleted?: (tagId: string) => void;
-  onTagUpdated?: (tag: Tag) => void;
-  showConfirmation?: (config: ConfirmationConfig) => void;
-};
-
-export type TagFormProps = {
-  subjectId: string;
-  onTagCreated?: (tag: Tag) => void;
 };
 
 // =====================================================

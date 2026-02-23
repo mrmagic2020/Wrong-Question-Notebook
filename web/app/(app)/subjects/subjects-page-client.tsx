@@ -6,6 +6,7 @@ import { NotebookCard } from '@/components/subjects/notebook-card';
 import { PlaceholderNotebookCard } from '@/components/subjects/placeholder-notebook-card';
 import { SubjectEditDialog } from '@/components/subjects/subject-edit-dialog';
 import { SubjectCreateDialog } from '@/components/subjects/subject-create-dialog';
+import { TagManageDialog } from '@/components/subjects/tag-manage-dialog';
 import { PageHeader } from '@/components/page-header';
 import { useConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,8 @@ export default function SubjectsPageClient({
   const [subjects, setSubjects] = useState(initialSubjects);
   const [query, setQuery] = useState('');
   const [editingSubject, setEditingSubject] =
+    useState<SubjectWithMetadata | null>(null);
+  const [managingTagsSubject, setManagingTagsSubject] =
     useState<SubjectWithMetadata | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -157,6 +160,7 @@ export default function SubjectsPageClient({
                   subject={subject}
                   onClick={() => handleSubjectClick(subject.id)}
                   onEdit={() => setEditingSubject(subject)}
+                  onManageTags={() => setManagingTagsSubject(subject)}
                   onDelete={() => handleSubjectDeleted(subject)}
                   className="notebook-card-enter"
                   style={{ animationDelay: `${index * 0.08}s` }}
@@ -208,6 +212,15 @@ export default function SubjectsPageClient({
         existingSubjects={subjects}
         onSuccess={handleSubjectCreated}
       />
+
+      {managingTagsSubject && (
+        <TagManageDialog
+          open={!!managingTagsSubject}
+          onOpenChange={open => !open && setManagingTagsSubject(null)}
+          subjectId={managingTagsSubject.id}
+          subjectName={managingTagsSubject.name}
+        />
+      )}
 
       {ConfirmationDialogComponent}
     </>
