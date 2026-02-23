@@ -22,7 +22,8 @@ const IMG_STYLES: Record<string, RegExp[]> = {
 const CSS_COLOR = [/^#[0-9a-fA-F]{3,6}$/, /^[a-zA-Z]{1,20}$/];
 
 /** CSS keyword values used by KaTeX for vertical-align. */
-const CSS_VALIGN_KEYWORD = /^(?:bottom|top|middle|baseline|text-top|text-bottom|sub|super)$/;
+const CSS_VALIGN_KEYWORD =
+  /^(?:bottom|top|middle|baseline|text-top|text-bottom|sub|super)$/;
 
 /** CSS border-style keyword values. */
 const CSS_BORDER_STYLE = /^(?:solid|dashed|dotted|none)$/;
