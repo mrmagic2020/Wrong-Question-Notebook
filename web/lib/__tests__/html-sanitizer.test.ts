@@ -326,6 +326,71 @@ describe('sanitizeHtmlContent', () => {
       const result = sanitizeHtmlContent(input);
       expect(result).toContain('mord mathnormal');
     });
+
+    it('should trigger math mode for single-quoted class attributes', () => {
+      const input =
+        "<span class='katex'><span style='font-size:1em'>x</span></span>";
+      const result = sanitizeHtmlContent(input);
+      expect(result).toContain('font-size:1em');
+    });
+
+    it('should preserve color style in math mode for \\textcolor', () => {
+      const input =
+        '<span class="katex"><span style="color:#cc0000">x</span></span>';
+      const result = sanitizeHtmlContent(input);
+      expect(result).toContain('color:#cc0000');
+    });
+
+    it('should preserve named color in math mode', () => {
+      const input =
+        '<span class="katex"><span style="color:red">x</span></span>';
+      const result = sanitizeHtmlContent(input);
+      expect(result).toContain('color:red');
+    });
+
+    it('should preserve background-color in math mode for \\colorbox', () => {
+      const input =
+        '<span class="katex"><span style="background-color:#ffa500">x</span></span>';
+      const result = sanitizeHtmlContent(input);
+      expect(result).toContain('background-color:#ffa500');
+    });
+
+    it('should preserve vertical-align keyword in math mode', () => {
+      const input =
+        '<span class="katex"><span style="vertical-align:bottom">x</span></span>';
+      const result = sanitizeHtmlContent(input);
+      expect(result).toContain('vertical-align:bottom');
+    });
+
+    it('should preserve margin shorthand in math mode', () => {
+      const input =
+        '<span class="katex"><span style="margin:0 -0.1667em">x</span></span>';
+      const result = sanitizeHtmlContent(input);
+      expect(result).toContain('margin:0 -0.1667em');
+    });
+
+    it('should preserve border properties in math mode for \\boxed', () => {
+      const input =
+        '<span class="katex"><span style="border-width:0.04em;border-style:solid">x</span></span>';
+      const result = sanitizeHtmlContent(input);
+      expect(result).toContain('border-width:0.04em');
+      expect(result).toContain('border-style:solid');
+    });
+
+    it('should preserve border-right-width in math mode for angle brackets', () => {
+      const input =
+        '<span class="katex"><span style="border-right-width:0.049em;border-right-style:solid">x</span></span>';
+      const result = sanitizeHtmlContent(input);
+      expect(result).toContain('border-right-width:0.049em');
+      expect(result).toContain('border-right-style:solid');
+    });
+
+    it('should preserve border-top-width in math mode for fraction rules', () => {
+      const input =
+        '<span class="katex"><span style="border-top-width:0.04em">x</span></span>';
+      const result = sanitizeHtmlContent(input);
+      expect(result).toContain('border-top-width:0.04em');
+    });
   });
 
   // ---------------------------------------------------------------------------

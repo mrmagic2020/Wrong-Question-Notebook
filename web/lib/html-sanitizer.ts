@@ -18,6 +18,19 @@ const IMG_STYLES: Record<string, RegExp[]> = {
   'object-fit': [/^(?:contain|cover|fill|none|scale-down)$/],
 };
 
+/** Safe CSS color value: hex (#abc, #aabbcc) or named color (red, blue). */
+const CSS_COLOR = [/^#[0-9a-fA-F]{3,6}$/, /^[a-zA-Z]{1,20}$/];
+
+/** CSS keyword values used by KaTeX for vertical-align. */
+const CSS_VALIGN_KEYWORD = /^(?:bottom|top|middle|baseline|text-top|text-bottom|sub|super)$/;
+
+/** CSS border-style keyword values. */
+const CSS_BORDER_STYLE = /^(?:solid|dashed|dotted|none)$/;
+
+/** Matches two-value CSS shorthand (e.g. "0 -0.1667em" for margin). */
+const CSS_NUMERIC_PAIR =
+  /^-?\d+(?:\.\d+)?(?:px|em|rem|ex|%|cm|mm|in|pt|pc|ch|vh|vw)?\s+-?\d+(?:\.\d+)?(?:px|em|rem|ex|%|cm|mm|in|pt|pc|ch|vh|vw)?$/;
+
 /** Verified against katex.renderToString output for complex formulas. */
 const KATEX_STYLES: Record<string, RegExp[]> = {
   height: [CSS_NUMERIC],
@@ -28,7 +41,8 @@ const KATEX_STYLES: Record<string, RegExp[]> = {
   left: [CSS_NUMERIC],
   right: [CSS_NUMERIC],
   bottom: [CSS_NUMERIC],
-  'vertical-align': [CSS_NUMERIC],
+  'vertical-align': [CSS_NUMERIC, CSS_VALIGN_KEYWORD],
+  margin: [CSS_NUMERIC, CSS_NUMERIC_PAIR],
   'margin-left': [CSS_NUMERIC],
   'margin-right': [CSS_NUMERIC],
   'margin-top': [CSS_NUMERIC],
@@ -36,7 +50,14 @@ const KATEX_STYLES: Record<string, RegExp[]> = {
   'padding-left': [CSS_NUMERIC],
   'padding-right': [CSS_NUMERIC],
   'font-size': [CSS_NUMERIC],
+  color: CSS_COLOR,
+  'background-color': CSS_COLOR,
   'border-bottom-width': [CSS_NUMERIC],
+  'border-top-width': [CSS_NUMERIC],
+  'border-right-width': [CSS_NUMERIC],
+  'border-width': [CSS_NUMERIC],
+  'border-style': [CSS_BORDER_STYLE],
+  'border-right-style': [CSS_BORDER_STYLE],
   position: [/^relative$/],
 };
 
@@ -46,9 +67,11 @@ const KATEX_STYLES: Record<string, RegExp[]> = {
 
 /**
  * Detects KaTeX/TipTap math content by looking for class attribute values.
+ * Handles double-quoted, single-quoted, and unquoted class attributes.
  * Uses word-boundary matching so plain text containing "katex" won't trigger.
  */
-const MATH_CLASS_PATTERN = /class="[^"]*\b(?:katex|tiptap)\b[^"]*"/;
+const MATH_CLASS_PATTERN =
+  /class\s*=\s*(?:"[^"]*\b(?:katex|tiptap)\b[^"]*"|'[^']*\b(?:katex|tiptap)\b[^']*')/;
 
 /** Attributes shared by both span and div (KaTeX math rendering). */
 const MATH_ELEMENT_ATTRS = [
