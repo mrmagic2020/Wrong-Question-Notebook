@@ -611,7 +611,7 @@ export default function PrivacyPage() {
               first visit our site, a cookie consent banner allows you to accept
               or reject non-essential cookies. You can change your preferences
               at any time via the &quot;Cookie Preferences&quot; link in the
-              site footer.
+              home page footer.
             </p>
 
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-3">
