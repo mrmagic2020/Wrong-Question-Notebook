@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import TagForm from './tag-form';
+import { BackLink } from '@/components/back-link';
 import TagRow from './tag-row';
 import { useConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,12 +36,9 @@ export default function TagsPageClient({
             <h1 className="page-title">{initialSubject.name} — Tags</h1>
             <p className="page-description">Tags are scoped to this subject.</p>
           </div>
-          <Link
-            href={`/subjects/${initialSubject.id}/problems`}
-            className="text-sm text-primary underline hover:text-primary/80 transition-colors"
-          >
-            ← Back to Problems
-          </Link>
+          <BackLink href={`/subjects/${initialSubject.id}/problems`}>
+            Back to Problems
+          </BackLink>
         </div>
 
         <Card className="card-section">

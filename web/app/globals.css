@@ -268,6 +268,17 @@ html body[data-scroll-locked] {
     @apply w-1 h-1 bg-current rounded-full animate-pulse;
   }
 
+  /* Back Link - warm pill-shaped navigation element */
+  .back-link {
+    @apply inline-flex items-center gap-1.5 text-sm font-medium rounded-full;
+    @apply px-3 py-1 whitespace-nowrap;
+    @apply text-amber-700 dark:text-amber-300;
+    @apply bg-amber-100/60 dark:bg-amber-900/30;
+    @apply border border-amber-200/50 dark:border-amber-800/40;
+    @apply hover:bg-amber-200/70 dark:hover:bg-amber-800/40;
+    @apply transition-colors;
+  }
+
   /* Interactive Elements */
   .interactive-hover {
     @apply transition-colors hover:text-foreground;

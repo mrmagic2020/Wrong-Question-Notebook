@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
-import Link from 'next/link';
 import ProblemsPageClient from './problems-page-client';
 import { ROUTES } from '@/lib/constants';
+import { BackLink } from '@/components/back-link';
 import { unstable_cache } from 'next/cache';
 import {
   CACHE_DURATIONS,
@@ -135,12 +135,7 @@ export default async function SubjectProblemsPage({
     return (
       <div className="section-container">
         <p className="text-body-sm text-muted-foreground">Subject not found.</p>
-        <Link
-          href={ROUTES.SUBJECTS}
-          className="text-primary underline hover:text-primary/80 transition-colors"
-        >
-          Back to Subjects
-        </Link>
+        <BackLink href={ROUTES.SUBJECTS}>Back to Subjects</BackLink>
       </div>
     );
   }
@@ -154,12 +149,7 @@ export default async function SubjectProblemsPage({
             Problems are isolated to this subject.
           </p>
         </div>
-        <Link
-          href={ROUTES.SUBJECTS}
-          className="text-sm text-primary underline hover:text-primary/80 transition-colors"
-        >
-          ← Back to Subjects
-        </Link>
+        <BackLink href={ROUTES.SUBJECTS}>Back to Subjects</BackLink>
       </div>
 
       {/* Problems page with create form and search */}

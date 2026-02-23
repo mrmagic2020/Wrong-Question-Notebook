@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { BackLink } from '@/components/back-link';
 import {
-  ArrowLeft,
   CheckCircle,
   AlertTriangle,
   XCircle,
@@ -138,13 +137,10 @@ export default function SummaryClient({
   if (!summary) {
     return (
       <div className="section-container text-center py-12">
-        <p className="text-muted-foreground">Failed to load summary.</p>
-        <Button
-          className="mt-4"
-          onClick={() => router.push(`/problem-sets/${problemSetId}`)}
-        >
+        <p className="text-muted-foreground mb-4">Failed to load summary.</p>
+        <BackLink onClick={() => router.push(`/problem-sets/${problemSetId}`)}>
           Back to Problem Set
-        </Button>
+        </BackLink>
       </div>
     );
   }
@@ -307,13 +303,9 @@ export default function SummaryClient({
 
       {/* Actions */}
       <div className="flex justify-center">
-        <Button
-          variant="outline"
-          onClick={() => router.push(`/problem-sets/${problemSetId}`)}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
+        <BackLink onClick={() => router.push(`/problem-sets/${problemSetId}`)}>
           Back to Problem Set
-        </Button>
+        </BackLink>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
-import Link from 'next/link';
 import TagsPageClient from './tags-page-client';
+import { BackLink } from '@/components/back-link';
 import { unstable_cache } from 'next/cache';
 import {
   CACHE_DURATIONS,
@@ -74,12 +74,7 @@ export default async function SubjectTagsPage({
     return (
       <div className="space-y-4">
         <p className="text-muted-foreground">Subject not found.</p>
-        <Link
-          href="/subjects"
-          className="text-primary underline hover:text-primary/80 transition-colors"
-        >
-          Back to Subjects
-        </Link>
+        <BackLink href="/subjects">Back to Subjects</BackLink>
       </div>
     );
   }

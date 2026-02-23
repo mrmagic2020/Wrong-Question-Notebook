@@ -987,7 +987,7 @@ const RichTextEditor = React.forwardRef<Editor, RichTextEditorProps>(
                       <Label htmlFor="math-latex">LaTeX Formula</Label>
                       <Input
                         id="math-latex"
-                        placeholder="E = mc^2, \\frac{a}{b}, \\sum_{i=1}^{n} i"
+                        placeholder="E = mc^2, \frac{a}{b}, \sum_{i=1}^{n} i"
                         value={mathLatex}
                         onChange={e => setMathLatex(e.target.value)}
                         onKeyDown={e => {

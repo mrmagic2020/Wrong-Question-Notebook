@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { BackLink } from '@/components/back-link';
 import { Clock, Eye, LogOut, Loader2, Play } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProblemStatus } from '@/lib/schemas';
@@ -282,9 +283,9 @@ export default function SessionReviewClient({
         <p className="text-muted-foreground mb-4">
           The current problem could not be loaded.
         </p>
-        <Button onClick={() => router.push(`/problem-sets/${problemSetId}`)}>
+        <BackLink onClick={() => router.push(`/problem-sets/${problemSetId}`)}>
           Back to Problem Set
-        </Button>
+        </BackLink>
       </div>
     );
   }

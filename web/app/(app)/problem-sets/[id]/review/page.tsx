@@ -3,6 +3,7 @@ import { requireUser } from '@/lib/supabase/requireUser';
 import { notFound } from 'next/navigation';
 import ProblemReview from '@/app/(app)/subjects/[id]/problems/[problemId]/review/problem-review';
 import SessionReviewClient from './session-review-client';
+import { BackLink } from '@/components/back-link';
 import { getFilteredProblems } from '@/lib/review-utils';
 import { createServiceClient } from '@/lib/supabase-utils';
 import { FilterConfig } from '@/lib/types';
@@ -174,12 +175,7 @@ export default async function ProblemSetReviewPage({
           <p className="text-muted-foreground mb-4">
             This problem set doesn&apos;t have any problems yet.
           </p>
-          <a
-            href={`/problem-sets/${id}`}
-            className="text-primary underline hover:text-primary/80"
-          >
-            Back to Problem Set
-          </a>
+          <BackLink href={`/problem-sets/${id}`}>Back to Problem Set</BackLink>
         </div>
       </div>
     );

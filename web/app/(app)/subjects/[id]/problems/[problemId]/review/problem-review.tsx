@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { BackLink } from '@/components/back-link';
 import { ProblemType, ProblemStatus } from '@/lib/schemas';
 import { RichTextDisplay } from '@/components/ui/rich-text-display';
 import AnswerInput from './answer-input';
@@ -255,17 +255,15 @@ export default function ProblemReview({
               </Button>
             )}
             {!showExitButton && (
-              <Link
+              <BackLink
                 href={
                   isProblemSetMode
                     ? `/problem-sets/${problemSetId}`
                     : `/subjects/${subject.id}/problems`
                 }
-                className="text-sm text-primary underline hover:text-primary/80 transition-colors"
               >
-                ←{' '}
                 {isProblemSetMode ? 'Back to Problem Set' : 'Back to Problems'}
-              </Link>
+              </BackLink>
             )}
           </div>
         </div>

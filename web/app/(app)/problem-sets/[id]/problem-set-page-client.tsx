@@ -7,8 +7,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { RichTextDisplay } from '@/components/ui/rich-text-display';
 import { Input } from '@/components/ui/input';
+import { BackLink } from '@/components/back-link';
 import {
-  ArrowLeft,
   Play,
   Plus,
   Trash2,
@@ -337,14 +337,7 @@ export default function ProblemSetPageClient({
       {/* Header */}
       <div className="page-header flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push('/problem-sets')}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
+          <BackLink onClick={() => router.push('/problem-sets')}>Back</BackLink>
           <div>
             <h1 className="page-title">{problemSet.name}</h1>
             <p
