@@ -7,6 +7,9 @@ export default defineConfig({
     globals: true,
     include: ['**/__tests__/**/*.test.ts'],
     isolate: true,
+    coverage: {
+      provider: 'v8',
+    },
   },
   resolve: {
     alias: {
