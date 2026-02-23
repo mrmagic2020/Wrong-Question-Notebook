@@ -55,7 +55,7 @@ import {
   type ExtractionQuota,
 } from '@/components/ui/image-scan-uploader';
 import { convertMathTextToTipTapHtml } from '@/lib/math-to-tiptap';
-import { PenLine, ScanLine } from 'lucide-react';
+import { PenLine, Plus, ScanLine } from 'lucide-react';
 import { Editor } from '@tiptap/react';
 
 export default function ProblemForm({
@@ -112,10 +112,43 @@ export default function ProblemForm({
     return [];
   });
 
+  const [newTagName, setNewTagName] = useState('');
+  const [creatingTag, setCreatingTag] = useState(false);
+
   function toggleTag(id: string) {
     setSelectedTagIds(prev =>
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
     );
+  }
+
+  async function handleCreateTag() {
+    const trimmed = newTagName.trim();
+    if (!trimmed) return;
+    if (tags.some(t => t.name.toLowerCase() === trimmed.toLowerCase())) {
+      toast.error('A tag with this name already exists');
+      return;
+    }
+
+    setCreatingTag(true);
+    try {
+      const res = await fetch('/api/tags', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject_id: subjectId, name: trimmed }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j?.error ?? 'Failed to create tag');
+
+      const created: Tag = j.data;
+      setTags(prev => [...prev, created]);
+      setSelectedTagIds(prev => [...prev, created.id]);
+      setNewTagName('');
+      toast.success('Tag created');
+    } catch (e: any) {
+      toast.error(e.message || 'Failed to create tag');
+    } finally {
+      setCreatingTag(false);
+    }
   }
 
   // Image insertion callbacks
@@ -1030,27 +1063,57 @@ export default function ProblemForm({
             </div>
           </AccordionTrigger>
           <AccordionContent>
-            <div className="flex flex-wrap gap-3">
-              {tags.length ? (
-                tags.map(t => (
-                  <label
-                    key={t.id}
-                    className="flex items-center gap-2 text-foreground"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedTagIds.includes(t.id)}
-                      onChange={() => toggleTag(t.id)}
-                      className="form-checkbox"
-                    />
-                    <span>{t.name}</span>
-                  </label>
-                ))
-              ) : (
-                <p className="text-body-sm text-muted-foreground">
-                  No tags yet.
-                </p>
-              )}
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-2">
+                {tags.length ? (
+                  tags.map(t => {
+                    const selected = selectedTagIds.includes(t.id);
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => toggleTag(t.id)}
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm transition-colors ${
+                          selected
+                            ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 border border-amber-300/60 dark:border-amber-700/50'
+                            : 'bg-gray-100/80 dark:bg-gray-800/40 text-gray-600 dark:text-gray-400 border border-gray-200/50 dark:border-gray-700/40 hover:bg-gray-200/80 dark:hover:bg-gray-700/40'
+                        }`}
+                      >
+                        {t.name}
+                      </button>
+                    );
+                  })
+                ) : (
+                  <p className="text-body-sm text-muted-foreground">
+                    No tags yet. Create one below.
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center gap-2 border-t border-gray-200/40 dark:border-gray-700/30 pt-3">
+                <Input
+                  placeholder="New tag name"
+                  value={newTagName}
+                  onChange={e => setNewTagName(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleCreateTag();
+                    }
+                  }}
+                  disabled={creatingTag}
+                  className="h-8 flex-1 text-sm"
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCreateTag}
+                  disabled={creatingTag || !newTagName.trim()}
+                >
+                  {creatingTag ? <Spinner /> : <Plus className="h-3.5 w-3.5" />}
+                  Add
+                </Button>
+              </div>
             </div>
           </AccordionContent>
         </AccordionItem>

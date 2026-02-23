@@ -12,12 +12,20 @@ import { SubjectWithMetadata } from '@/lib/types';
 import { SUBJECT_CONSTANTS, getIconComponent } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow, isValid, parseISO } from 'date-fns';
-import { Calendar, FileText, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import {
+  Calendar,
+  FileText,
+  MoreVertical,
+  Pencil,
+  Tags,
+  Trash2,
+} from 'lucide-react';
 
 interface NotebookCardProps {
   subject: SubjectWithMetadata;
   onClick: () => void;
   onEdit: () => void;
+  onManageTags: () => void;
   onDelete: () => void;
   className?: string;
   style?: React.CSSProperties;
@@ -47,6 +55,7 @@ export function NotebookCard({
   subject,
   onClick,
   onEdit,
+  onManageTags,
   onDelete,
   className,
   style,
@@ -112,6 +121,14 @@ export function NotebookCard({
                 }}
               >
                 <Pencil className="mr-2 h-4 w-4" /> Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={e => {
+                  e.stopPropagation();
+                  onManageTags();
+                }}
+              >
+                <Tags className="mr-2 h-4 w-4" /> Manage Tags
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={e => {
