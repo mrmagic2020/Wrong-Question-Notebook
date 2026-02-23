@@ -244,8 +244,8 @@ export default function ProblemReview({
                 size="sm"
                 onClick={() => setTagsExpanded(!tagsExpanded)}
               >
-                <Tag className="h-4 w-4 mr-1" />
-                {tagsExpanded ? 'Hide' : 'Show'} tags
+                <Tag className="h-4 w-4" aria-label="Toggle tags visibility" />
+                Tags
               </Button>
             )}
             {showExitButton && onExitSession && (
