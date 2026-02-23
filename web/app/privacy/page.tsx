@@ -1,3 +1,5 @@
+import { COOKIE_CONSENT_CONSTANTS } from '@/lib/constants';
+
 export const metadata = {
   title: 'Privacy Policy | Wrong Question Notebook',
   description:
@@ -645,7 +647,9 @@ export default function PrivacyPage() {
                   </tr>
                   <tr className="border-b border-gray-200 dark:border-gray-700">
                     <td className="px-3 py-2">
-                      <code className="text-xs">wqn-cookie-consent</code>
+                      <code className="text-xs">
+                        {COOKIE_CONSENT_CONSTANTS.COOKIE_NAME}
+                      </code>
                     </td>
                     <td className="px-3 py-2">Essential</td>
                     <td className="px-3 py-2">

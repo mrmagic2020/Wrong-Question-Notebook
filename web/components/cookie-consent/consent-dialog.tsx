@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useConsent } from './consent-provider';
+import { COOKIE_CONSENT_CONSTANTS } from '@/lib/constants';
 
 interface ConsentDialogProps {
   open: boolean;
@@ -73,7 +74,7 @@ export function ConsentDialog({ open, onOpenChange }: ConsentDialogProps) {
               </li>
               <li>
                 <code className="text-[11px] bg-amber-200/30 dark:bg-amber-800/20 rounded px-1">
-                  wqn-cookie-consent
+                  {COOKIE_CONSENT_CONSTANTS.COOKIE_NAME}
                 </code>{' '}
                 &mdash; Your cookie preferences
               </li>
