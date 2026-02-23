@@ -7,6 +7,7 @@ export function CookiePreferencesTrigger() {
 
   return (
     <button
+      type="button"
       onClick={openPreferences}
       className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
     >
