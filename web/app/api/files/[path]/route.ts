@@ -90,6 +90,7 @@ export async function GET(
       // Find the problem this asset belongs to (uses service client to bypass RLS)
       const { data: problemId, error: problemError } = await serviceClient
         .rpc('find_problem_by_asset', { p_path: decodedPath })
+        .returns<string>()
         .single();
 
       if (problemError) {
@@ -129,10 +130,7 @@ export async function GET(
         }
       } else {
         // Anonymous user: check if problem is in any public problem set
-        const isPublic = await isProblemInPublicSet(
-          serviceClient,
-          problemId as unknown as string
-        );
+        const isPublic = await isProblemInPublicSet(serviceClient, problemId);
         if (!isPublic) {
           return NextResponse.json(
             createApiErrorResponse(ERROR_MESSAGES.NOT_FOUND, 404),
