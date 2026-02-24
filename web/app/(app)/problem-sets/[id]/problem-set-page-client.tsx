@@ -38,6 +38,7 @@ import {
 import ResumeSessionDialog from '@/components/review/resume-session-dialog';
 import EditSmartSetDialog from '@/components/review/edit-smart-set-dialog';
 import { FilterConfig, SessionConfig } from '@/lib/types';
+import { useReviewSession } from '@/lib/hooks/useReviewSession';
 
 export default function ProblemSetPageClient({
   initialProblemSet,
@@ -66,14 +67,14 @@ export default function ProblemSetPageClient({
     count: 0,
   });
   const [editSmartDialog, setEditSmartDialog] = useState(false);
-  const [sessionLoading, setSessionLoading] = useState(false);
-  const [resumeDialog, setResumeDialog] = useState<{
-    open: boolean;
-    session: any;
-  }>({
-    open: false,
-    session: null,
-  });
+  const {
+    sessionLoading,
+    resumeDialog,
+    startReview,
+    resumeSession,
+    startNewSession,
+    setResumeDialogOpen,
+  } = useReviewSession();
 
   const fetchProgress = useCallback(async () => {
     try {
@@ -242,72 +243,6 @@ export default function ProblemSetPageClient({
     }
   };
 
-  const handleStartReview = async () => {
-    setSessionLoading(true);
-    try {
-      const res = await fetch(
-        `/api/problem-sets/${problemSet.id}/start-session`,
-        { method: 'POST' }
-      );
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || 'Failed to start session');
-      }
-      const data = await res.json();
-      const result = data.data;
-
-      if (result.hasActiveSession) {
-        // Show resume dialog
-        setResumeDialog({ open: true, session: result.session });
-      } else {
-        // Navigate to session-aware review page
-        router.push(
-          `/problem-sets/${problemSet.id}/review?sessionId=${result.sessionId}`
-        );
-      }
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'Failed to start review'
-      );
-    } finally {
-      setSessionLoading(false);
-    }
-  };
-
-  const handleResumeSession = (sessionId: string) => {
-    setResumeDialog({ open: false, session: null });
-    router.push(`/problem-sets/${problemSet.id}/review?sessionId=${sessionId}`);
-  };
-
-  const handleStartNewSession = async () => {
-    setResumeDialog({ open: false, session: null });
-    setSessionLoading(true);
-    try {
-      // Deactivate the old session
-      if (resumeDialog.session?.id) {
-        await fetch(`/api/review-sessions/${resumeDialog.session.id}`, {
-          method: 'DELETE',
-        });
-      }
-      // Start a fresh session
-      const res = await fetch(
-        `/api/problem-sets/${problemSet.id}/start-session`,
-        { method: 'POST' }
-      );
-      if (!res.ok) {
-        throw new Error('Failed to start new session');
-      }
-      const data = await res.json();
-      router.push(
-        `/problem-sets/${problemSet.id}/review?sessionId=${data.data.sessionId}`
-      );
-    } catch {
-      toast.error('Failed to start new session');
-    } finally {
-      setSessionLoading(false);
-    }
-  };
-
   const handleEditSmartSetSuccess = () => {
     // Reload the page to get updated data
     router.refresh();
@@ -375,7 +310,10 @@ export default function ProblemSetPageClient({
             </Button>
           )}
           {isAuthenticated ? (
-            <Button onClick={handleStartReview} disabled={sessionLoading}>
+            <Button
+              onClick={() => startReview(problemSet.id)}
+              disabled={!!sessionLoading}
+            >
               <Play className="h-4 w-4 mr-2" />
               {sessionLoading ? 'Starting...' : 'Start Review'}
             </Button>
@@ -652,11 +590,11 @@ export default function ProblemSetPageClient({
       {resumeDialog.session && (
         <ResumeSessionDialog
           open={resumeDialog.open}
-          onOpenChange={open => setResumeDialog(prev => ({ ...prev, open }))}
+          onOpenChange={setResumeDialogOpen}
           session={resumeDialog.session}
-          onResume={handleResumeSession}
-          onStartNew={handleStartNewSession}
-          isLoading={sessionLoading}
+          onResume={resumeSession}
+          onStartNew={startNewSession}
+          isLoading={!!sessionLoading}
         />
       )}
 

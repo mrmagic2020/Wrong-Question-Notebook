@@ -37,7 +37,9 @@ import {
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import ProblemSetEditDialog from '@/app/(app)/problem-sets/problem-set-edit-dialog';
 import CreateSmartSetDialog from '@/components/review/create-smart-set-dialog';
+import ResumeSessionDialog from '@/components/review/resume-session-dialog';
 import { ProblemSetWithDetails, ProblemSetsPageClientProps } from '@/lib/types';
+import { useReviewSession } from '@/lib/hooks/useReviewSession';
 
 export default function ProblemSetsPageClient({
   initialProblemSets,
@@ -64,6 +66,14 @@ export default function ProblemSetsPageClient({
     problemSet: null,
   });
   const [smartSetDialogOpen, setSmartSetDialogOpen] = useState(false);
+  const {
+    sessionLoading,
+    resumeDialog,
+    startReview,
+    resumeSession,
+    startNewSession,
+    setResumeDialogOpen,
+  } = useReviewSession();
 
   const filteredProblemSets = useMemo(() => {
     const q = searchText.trim().toLowerCase();
@@ -292,13 +302,16 @@ export default function ProblemSetsPageClient({
                       Edit
                     </DropdownMenuItem>
                     <DropdownMenuItem
+                      disabled={sessionLoading === problemSet.id}
                       onClick={e => {
                         e.stopPropagation();
-                        router.push(`/problem-sets/${problemSet.id}/review`);
+                        startReview(problemSet.id);
                       }}
                     >
                       <Play className="h-4 w-4 mr-2" />
-                      Start Review
+                      {sessionLoading === problemSet.id
+                        ? 'Starting...'
+                        : 'Start Review'}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={e => {
@@ -374,6 +387,18 @@ export default function ProblemSetsPageClient({
           }, 1000);
         }}
       />
+
+      {/* Resume Session Dialog */}
+      {resumeDialog.session && (
+        <ResumeSessionDialog
+          open={resumeDialog.open}
+          onOpenChange={setResumeDialogOpen}
+          session={resumeDialog.session}
+          onResume={resumeSession}
+          onStartNew={startNewSession}
+          isLoading={!!sessionLoading}
+        />
+      )}
     </div>
   );
 }
