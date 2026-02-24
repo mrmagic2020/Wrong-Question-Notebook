@@ -20,6 +20,7 @@ import {
   Clock,
   CheckCircle,
   Sparkles,
+  LogIn,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProblemStatus, ProblemSetSharingLevel } from '@/lib/schemas';
@@ -40,6 +41,7 @@ import { FilterConfig, SessionConfig } from '@/lib/types';
 
 export default function ProblemSetPageClient({
   initialProblemSet,
+  isAuthenticated = true,
 }: ProblemSetPageClientProps) {
   const router = useRouter();
   const [problemSet, setProblemSet] = useState<
@@ -372,10 +374,23 @@ export default function ProblemSetPageClient({
               Edit Settings
             </Button>
           )}
-          <Button onClick={handleStartReview} disabled={sessionLoading}>
-            <Play className="h-4 w-4 mr-2" />
-            {sessionLoading ? 'Starting...' : 'Start Review'}
-          </Button>
+          {isAuthenticated ? (
+            <Button onClick={handleStartReview} disabled={sessionLoading}>
+              <Play className="h-4 w-4 mr-2" />
+              {sessionLoading ? 'Starting...' : 'Start Review'}
+            </Button>
+          ) : (
+            <Button
+              onClick={() =>
+                router.push(
+                  `/auth/login?redirect=/problem-sets/${problemSet.id}`
+                )
+              }
+            >
+              <LogIn className="h-4 w-4 mr-2" />
+              Log in to Review
+            </Button>
+          )}
         </div>
       </div>
 

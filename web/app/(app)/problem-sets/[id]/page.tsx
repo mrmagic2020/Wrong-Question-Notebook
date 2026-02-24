@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import { requireUser } from '@/lib/supabase/requireUser';
 import { getProblemSetWithFullData } from '@/lib/problem-set-utils';
+import { createServiceClient } from '@/lib/supabase-utils';
 import ProblemSetPageClient from './problem-set-page-client';
 import { unstable_cache } from 'next/cache';
 import {
@@ -27,37 +28,58 @@ async function loadProblemSet(id: string) {
   const supabase = await createClient();
   const { user } = await requireUser();
 
-  if (!user) {
-    return null;
+  if (user) {
+    // Authenticated user: use their Supabase client with caching
+    const cachedLoadProblemSet = unstable_cache(
+      async (
+        problemSetId: string,
+        userId: string,
+        userEmail: string,
+        supabaseClient: any
+      ) => {
+        return await getProblemSetWithFullData(
+          supabaseClient,
+          problemSetId,
+          userId,
+          userEmail
+        );
+      },
+      [`problem-set-${id}-${user.id}`],
+      {
+        tags: [
+          CACHE_TAGS.PROBLEM_SETS,
+          createProblemSetCacheTag(CACHE_TAGS.PROBLEM_SETS, id),
+          createUserCacheTag(CACHE_TAGS.USER_PROBLEM_SETS, user.id),
+        ],
+        revalidate: CACHE_DURATIONS.PROBLEM_SETS,
+      }
+    );
+
+    return await cachedLoadProblemSet(id, user.id, user.email || '', supabase);
   }
 
-  const cachedLoadProblemSet = unstable_cache(
-    async (
-      problemSetId: string,
-      userId: string,
-      userEmail: string,
-      supabaseClient: any
-    ) => {
-      // Use the shared utility function to get complete problem set data
+  // Anonymous user: use service client to bypass RLS, only public sets accessible
+  const cachedLoadPublicProblemSet = unstable_cache(
+    async (problemSetId: string) => {
+      const serviceClient = createServiceClient();
       return await getProblemSetWithFullData(
-        supabaseClient,
+        serviceClient,
         problemSetId,
-        userId,
-        userEmail
+        null,
+        null
       );
     },
-    [`problem-set-${id}-${user.id}`],
+    [`problem-set-public-${id}`],
     {
       tags: [
         CACHE_TAGS.PROBLEM_SETS,
         createProblemSetCacheTag(CACHE_TAGS.PROBLEM_SETS, id),
-        createUserCacheTag(CACHE_TAGS.USER_PROBLEM_SETS, user.id),
       ],
       revalidate: CACHE_DURATIONS.PROBLEM_SETS,
     }
   );
 
-  return await cachedLoadProblemSet(id, user.id, user.email || '', supabase);
+  return await cachedLoadPublicProblemSet(id);
 }
 
 export default async function ProblemSetPage({
@@ -72,5 +94,12 @@ export default async function ProblemSetPage({
     notFound();
   }
 
-  return <ProblemSetPageClient initialProblemSet={problemSet} />;
+  const { user } = await requireUser();
+
+  return (
+    <ProblemSetPageClient
+      initialProblemSet={problemSet}
+      isAuthenticated={!!user}
+    />
+  );
 }

@@ -32,17 +32,25 @@ export async function checkLimitedAccess(
 }
 
 /**
- * Check if a user has access to a problem set (owner, public, or limited access)
+ * Check if a user has access to a problem set (owner, public, or limited access).
+ * Passing null for userId/userEmail indicates an anonymous (unauthenticated) user;
+ * anonymous users can only access public problem sets.
  */
 export async function checkProblemSetAccess(
   supabase: any,
   problemSet: { user_id: string; sharing_level: string },
-  userId: string,
-  userEmail: string,
+  userId: string | null,
+  userEmail: string | null,
   problemSetId: string
 ): Promise<boolean> {
-  const isOwner = problemSet.user_id === userId;
   const isPublic = problemSet.sharing_level === 'public';
+
+  // Anonymous users can only access public sets
+  if (!userId) {
+    return isPublic;
+  }
+
+  const isOwner = problemSet.user_id === userId;
   const isLimited = problemSet.sharing_level === 'limited';
 
   if (isOwner || isPublic) {
@@ -50,7 +58,7 @@ export async function checkProblemSetAccess(
   }
 
   if (isLimited) {
-    return await checkLimitedAccess(supabase, problemSetId, userEmail);
+    return await checkLimitedAccess(supabase, problemSetId, userEmail || '');
   }
 
   return false;
@@ -93,8 +101,8 @@ export function transformProblemSetProblems(problemSetProblems: any[]): any[] {
 export async function getProblemSetWithFullData(
   supabase: any,
   problemSetId: string,
-  userId: string,
-  userEmail: string
+  userId: string | null,
+  userEmail: string | null
 ) {
   // Get the problem set with problems and their details
   const { data: problemSet, error: problemSetError } = await supabase
@@ -145,7 +153,7 @@ export async function getProblemSetWithFullData(
   }
 
   // For smart sets, fetch problems via filter; for manual sets, use junction table
-  const isOwner = problemSet.user_id === userId;
+  const isOwner = !!userId && problemSet.user_id === userId;
   const ownerUserId = problemSet.user_id;
   let problems;
   if (problemSet.is_smart && problemSet.filter_config) {
@@ -198,8 +206,8 @@ export async function getProblemSetWithFullData(
 export async function getProblemSetBasic(
   supabase: any,
   problemSetId: string,
-  userId: string,
-  userEmail: string
+  userId: string | null,
+  userEmail: string | null
 ) {
   // Get the basic problem set data
   const { data: problemSet, error: problemSetError } = await supabase

@@ -1,8 +1,49 @@
 import { NextResponse } from 'next/server';
-import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
+import { requireUser } from '@/lib/supabase/requireUser';
 import { createServiceClient } from '@/lib/supabase-utils';
 import { FILE_CONSTANTS, ERROR_MESSAGES } from '@/lib/constants';
 import { createApiErrorResponse, handleAsyncError } from '@/lib/common-utils';
+
+/**
+ * Check if a problem is part of any public problem set.
+ * Covers manual sets (via junction table) and smart sets (same subject + owner).
+ */
+async function isProblemInPublicSet(
+  serviceClient: any,
+  problemId: string
+): Promise<boolean> {
+  // Check manual problem sets
+  const { data: manualMatch } = await serviceClient
+    .from('problem_set_problems')
+    .select('problem_set_id, problem_sets!inner(sharing_level)')
+    .eq('problem_id', problemId)
+    .eq('problem_sets.sharing_level', 'public')
+    .limit(1)
+    .maybeSingle();
+
+  if (manualMatch) return true;
+
+  // Check smart sets: problem's subject has a public smart set by the same owner
+  const { data: problem } = await serviceClient
+    .from('problems')
+    .select('subject_id, user_id')
+    .eq('id', problemId)
+    .single();
+
+  if (!problem) return false;
+
+  const { data: smartMatch } = await serviceClient
+    .from('problem_sets')
+    .select('id')
+    .eq('subject_id', problem.subject_id)
+    .eq('user_id', problem.user_id)
+    .eq('sharing_level', 'public')
+    .eq('is_smart', true)
+    .limit(1)
+    .maybeSingle();
+
+  return !!smartMatch;
+}
 
 /**
  * GET /api/files/[path] - Serve file content using signed URLs with secure access control
@@ -11,6 +52,7 @@ import { createApiErrorResponse, handleAsyncError } from '@/lib/common-utils';
  * 1. File is in the current user's directory (ownership) - fast path
  * 2. File belongs to a problem the user can view via can_view_problem RPC
  *    (covers public sharing, limited sharing, and smart set sharing)
+ * 3. (Anonymous) File belongs to a problem in a public problem set
  *
  * Uses signed URLs for efficient and secure file delivery.
  */
@@ -19,7 +61,6 @@ export async function GET(
   { params }: { params: Promise<{ path: string }> }
 ) {
   const { user, supabase } = await requireUser();
-  if (!user) return unauthorised();
 
   const { path } = await params;
   const decodedPath = decodeURIComponent(path);
@@ -40,13 +81,14 @@ export async function GET(
   const name = decodedPath; // Full path is the object name
 
   // Fast path: owner can always access their own files
-  const isUserOwnedFile = decodedPath.startsWith(`user/${user.id}/`);
+  const isUserOwnedFile = user && decodedPath.startsWith(`user/${user.id}/`);
 
   if (!isUserOwnedFile) {
-    // Non-owned file: check if user can view the problem containing this asset
-    // Both RPCs are SECURITY DEFINER so they bypass RLS
+    const serviceClient = createServiceClient();
+
     try {
-      const { data: problemId, error: problemError } = await supabase
+      // Find the problem this asset belongs to (uses service client to bypass RLS)
+      const { data: problemId, error: problemError } = await serviceClient
         .rpc('find_problem_by_asset', { p_path: decodedPath })
         .single();
 
@@ -65,24 +107,38 @@ export async function GET(
         );
       }
 
-      // Check if user can view this problem (owner, public, or limited-shared)
-      const { data: canView, error: rpcError } = await supabase
-        .rpc('can_view_problem', { p_problem_id: problemId })
-        .single();
+      if (user) {
+        // Authenticated non-owner: use can_view_problem RPC
+        const { data: canView, error: rpcError } = await supabase
+          .rpc('can_view_problem', { p_problem_id: problemId })
+          .single();
 
-      if (rpcError) {
-        console.error('Error checking problem access:', rpcError);
-        return NextResponse.json(
-          createApiErrorResponse(ERROR_MESSAGES.DATABASE_ERROR, 500),
-          { status: 500 }
-        );
-      }
+        if (rpcError) {
+          console.error('Error checking problem access:', rpcError);
+          return NextResponse.json(
+            createApiErrorResponse(ERROR_MESSAGES.DATABASE_ERROR, 500),
+            { status: 500 }
+          );
+        }
 
-      if (!canView) {
-        return NextResponse.json(
-          createApiErrorResponse(ERROR_MESSAGES.NOT_FOUND, 404),
-          { status: 404 }
+        if (!canView) {
+          return NextResponse.json(
+            createApiErrorResponse(ERROR_MESSAGES.NOT_FOUND, 404),
+            { status: 404 }
+          );
+        }
+      } else {
+        // Anonymous user: check if problem is in any public problem set
+        const isPublic = await isProblemInPublicSet(
+          serviceClient,
+          problemId as unknown as string
         );
+        if (!isPublic) {
+          return NextResponse.json(
+            createApiErrorResponse(ERROR_MESSAGES.NOT_FOUND, 404),
+            { status: 404 }
+          );
+        }
       }
     } catch (error) {
       console.error('Unexpected error checking file access:', error);

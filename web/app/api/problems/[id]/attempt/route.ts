@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
+import { requireUser } from '@/lib/supabase/requireUser';
 import {
   createApiErrorResponse,
   createApiSuccessResponse,
@@ -8,13 +8,13 @@ import {
 import { ERROR_MESSAGES } from '@/lib/constants';
 import { revalidateProblemAndSubject } from '@/lib/cache-invalidation';
 import { markAnswer } from '@/lib/answer-marking';
+import { createServiceClient } from '@/lib/supabase-utils';
 
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { user, supabase } = await requireUser();
-  if (!user) return unauthorised();
 
   const { id: problemId } = await params;
   let body;
@@ -32,8 +32,11 @@ export async function POST(
   }
 
   try {
+    // Use service client for anonymous users to bypass RLS
+    const queryClient = user ? supabase : createServiceClient();
+
     // Get the problem to check if auto-marking is enabled
-    const { data: problem, error: problemError } = await supabase
+    const { data: problem, error: problemError } = await queryClient
       .from('problems')
       .select('*')
       .eq('id', problemId)
@@ -77,37 +80,47 @@ export async function POST(
           : null
     );
 
-    // Create attempt record
-    const attemptData = {
-      problem_id: problemId,
-      submitted_answer,
-      is_correct: isCorrect,
-      user_id: user.id,
-    };
+    if (user) {
+      // Authenticated user: create attempt record
+      const attemptData = {
+        problem_id: problemId,
+        submitted_answer,
+        is_correct: isCorrect,
+        user_id: user.id,
+      };
 
-    const { data: attempt, error: attemptError } = await supabase
-      .from('attempts')
-      .insert(attemptData)
-      .select()
-      .single();
+      const { data: attempt, error: attemptError } = await supabase
+        .from('attempts')
+        .insert(attemptData)
+        .select()
+        .single();
 
-    if (attemptError) {
+      if (attemptError) {
+        return NextResponse.json(
+          createApiErrorResponse(
+            ERROR_MESSAGES.DATABASE_ERROR,
+            500,
+            attemptError.message
+          ),
+          { status: 500 }
+        );
+      }
+
+      // Invalidate cache after successful attempt creation
+      await revalidateProblemAndSubject(problemId, problem.subject_id);
+
       return NextResponse.json(
-        createApiErrorResponse(
-          ERROR_MESSAGES.DATABASE_ERROR,
-          500,
-          attemptError.message
-        ),
-        { status: 500 }
+        createApiSuccessResponse({
+          data: attempt,
+          is_correct: isCorrect,
+        })
       );
     }
 
-    // Invalidate cache after successful attempt creation - only the specific problem and its subject
-    await revalidateProblemAndSubject(problemId, problem.subject_id);
-
+    // Anonymous user: return correctness without saving an attempt record
     return NextResponse.json(
       createApiSuccessResponse({
-        data: attempt,
+        data: { is_correct: isCorrect },
         is_correct: isCorrect,
       })
     );

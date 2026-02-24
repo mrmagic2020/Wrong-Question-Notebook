@@ -14,6 +14,7 @@ import {
   revalidateUserProblemSets,
   revalidateProblemSet,
 } from '@/lib/cache-invalidation';
+import { createServiceClient } from '@/lib/supabase-utils';
 
 // Cache configuration for this route
 export const revalidate = 300; // 5 minutes
@@ -23,7 +24,6 @@ async function getProblemSet(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { user, supabase } = await requireUser();
-  if (!user) return unauthorised();
 
   const { id } = await params;
 
@@ -35,11 +35,14 @@ async function getProblemSet(
   }
 
   try {
+    // Use service client for anonymous users to bypass RLS
+    const queryClient = user ? supabase : createServiceClient();
+
     const problemSet = await getProblemSetWithFullData(
-      supabase,
+      queryClient,
       id,
-      user.id,
-      user.email || ''
+      user?.id ?? null,
+      user?.email ?? null
     );
 
     if (!problemSet) {

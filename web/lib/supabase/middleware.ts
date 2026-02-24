@@ -137,7 +137,11 @@ export async function updateSession(request: NextRequest) {
     !user &&
     !request.nextUrl.pathname.startsWith('/login') &&
     !request.nextUrl.pathname.startsWith('/auth') &&
-    !request.nextUrl.pathname.startsWith('/privacy')
+    !request.nextUrl.pathname.startsWith('/privacy') &&
+    !request.nextUrl.pathname.startsWith('/problem-sets/') &&
+    !request.nextUrl.pathname.startsWith('/api/problem-sets/') &&
+    !request.nextUrl.pathname.startsWith('/api/files/') &&
+    !request.nextUrl.pathname.startsWith('/api/problems/')
   ) {
     const loginUrl = new URL(ROUTES.AUTH.LOGIN, request.url);
     loginUrl.searchParams.set(

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
+import { requireUser } from '@/lib/supabase/requireUser';
 import { withSecurity } from '@/lib/security-middleware';
 import {
   createApiErrorResponse,
@@ -21,7 +21,6 @@ async function getProblemSetProgress(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { user, supabase } = await requireUser();
-  if (!user) return unauthorised();
 
   const { id } = await params;
 
@@ -33,8 +32,11 @@ async function getProblemSetProgress(
   }
 
   try {
+    // Use service client for anonymous users to bypass RLS
+    const queryClient = user ? supabase : createServiceClient();
+
     // Fetch the problem set to check access and determine if smart
-    const { data: problemSet, error: psError } = await supabase
+    const { data: problemSet, error: psError } = await queryClient
       .from('problem_sets')
       .select('id, user_id, sharing_level, is_smart, filter_config, subject_id')
       .eq('id', id)
@@ -48,14 +50,14 @@ async function getProblemSetProgress(
     }
 
     // Check access: owner, public, or verified limited access
-    const isOwner = problemSet.user_id === user.id;
+    const isOwner = !!user && problemSet.user_id === user.id;
     const isPublic = problemSet.sharing_level === 'public';
     const isLimited = problemSet.sharing_level === 'limited';
 
     if (!isOwner && !isPublic) {
-      if (isLimited) {
+      if (isLimited && user) {
         const hasAccess = await checkLimitedAccess(
-          supabase,
+          queryClient,
           id,
           user.email || ''
         );
@@ -89,10 +91,10 @@ async function getProblemSetProgress(
         include_never_reviewed:
           problemSet.filter_config.include_never_reviewed ?? true,
       };
-      // For shared smart sets, use service client to bypass RLS
-      const queryClient = isOwner ? supabase : createServiceClient();
+      // For non-owner access (shared or anonymous), use service client to bypass RLS
+      const problemQueryClient = isOwner ? supabase : createServiceClient();
       const filtered = await getFilteredProblems(
-        queryClient,
+        problemQueryClient,
         ownerUserId,
         problemSet.subject_id,
         filterConfig,
@@ -100,17 +102,19 @@ async function getProblemSetProgress(
       );
       problems = filtered.map(p => ({ status: p.status }));
     } else {
-      // Manual set: query via junction table
-      const { data: problemSetProblems, error: problemsError } = await supabase
-        .from('problem_set_problems')
-        .select(
-          `
+      // Manual set: query via junction table (use service client for non-owner access)
+      const problemQueryClient = isOwner ? supabase : createServiceClient();
+      const { data: problemSetProblems, error: problemsError } =
+        await problemQueryClient
+          .from('problem_set_problems')
+          .select(
+            `
           problems(
             status
           )
         `
-        )
-        .eq('problem_set_id', id);
+          )
+          .eq('problem_set_id', id);
 
       if (problemsError) {
         return NextResponse.json(

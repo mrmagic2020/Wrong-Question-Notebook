@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { requireUser } from '@/lib/supabase/requireUser';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import ProblemReview from '@/app/(app)/subjects/[id]/problems/[problemId]/review/problem-review';
 import SessionReviewClient from './session-review-client';
 import { BackLink } from '@/components/back-link';
@@ -24,7 +24,10 @@ async function loadProblemSet(id: string) {
   const supabase = await createClient();
   const { user } = await requireUser();
 
-  const { data: problemSet, error: problemSetError } = await supabase
+  // Use service client if no authenticated user (for loading public sets metadata)
+  const queryClient = user ? supabase : createServiceClient();
+
+  const { data: problemSet, error: problemSetError } = await queryClient
     .from('problem_sets')
     .select('*')
     .eq('id', id)
@@ -34,13 +37,13 @@ async function loadProblemSet(id: string) {
     return null;
   }
 
-  const { data: subject } = await supabase
+  const { data: subject } = await queryClient
     .from('subjects')
     .select('name')
     .eq('id', problemSet.subject_id)
     .single();
 
-  const isOwner = user && problemSet.user_id === user.id;
+  const isOwner = !!user && problemSet.user_id === user.id;
 
   return {
     ...problemSet,
@@ -49,9 +52,9 @@ async function loadProblemSet(id: string) {
   };
 }
 
-async function loadProblemSetProblems(problemSet: any, userId: string) {
+async function loadProblemSetProblems(problemSet: any, userId: string | null) {
   const supabase = await createClient();
-  const isOwner = problemSet.user_id === userId;
+  const isOwner = !!userId && problemSet.user_id === userId;
   const ownerUserId = problemSet.user_id;
 
   // Smart sets: fetch problems via filter criteria
@@ -64,7 +67,7 @@ async function loadProblemSetProblems(problemSet: any, userId: string) {
       include_never_reviewed:
         problemSet.filter_config.include_never_reviewed ?? true,
     };
-    // For shared smart sets, use service client to bypass RLS
+    // For non-owner access (shared or anonymous), use service client to bypass RLS
     const queryClient = isOwner ? supabase : createServiceClient();
     return getFilteredProblems(
       queryClient,
@@ -76,7 +79,9 @@ async function loadProblemSetProblems(problemSet: any, userId: string) {
   }
 
   // Manual sets: fetch via junction table
-  const { data: problemSetProblems } = await supabase
+  // Use service client for non-owner access to bypass RLS
+  const queryClient = isOwner ? supabase : createServiceClient();
+  const { data: problemSetProblems } = await queryClient
     .from('problem_set_problems')
     .select(
       `
@@ -92,6 +97,7 @@ async function loadProblemSetProblems(problemSet: any, userId: string) {
         subject_id,
         correct_answer,
         auto_mark,
+        answer_config,
         assets,
         solution_text,
         solution_assets
@@ -106,7 +112,7 @@ async function loadProblemSetProblems(problemSet: any, userId: string) {
 
   // Get tags for all problems
   const problemIds = problemSetProblems.map(p => p.problem_id);
-  const { data: tagLinks } = await supabase
+  const { data: tagLinks } = await queryClient
     .from('problem_tag')
     .select('problem_id, tags:tag_id ( id, name )')
     .in('problem_id', problemIds);
@@ -144,14 +150,19 @@ export default async function ProblemSetReviewPage({
 }) {
   const { id } = await params;
   const { problemId, sessionId } = await searchParams;
+  const { user } = await requireUser();
 
-  const problemSet = await loadProblemSet(id);
-  if (!problemSet) {
-    notFound();
-  }
-
-  // Session-aware review mode
+  // Session-based review requires authentication (sessions are tied to user_id)
   if (sessionId) {
+    if (!user) {
+      redirect(`/auth/login?redirect=/problem-sets/${id}/review`);
+    }
+
+    const problemSet = await loadProblemSet(id);
+    if (!problemSet) {
+      notFound();
+    }
+
     return (
       <SessionReviewClient
         problemSetId={id}
@@ -163,9 +174,22 @@ export default async function ProblemSetReviewPage({
     );
   }
 
-  // Legacy review mode (no session)
-  const { user } = await requireUser();
-  const problems = await loadProblemSetProblems(problemSet, user?.id || '');
+  // Legacy review mode: allow anonymous access for public problem sets
+  const problemSet = await loadProblemSet(id);
+  if (!problemSet) {
+    // If no user and problem set not found (could be private), redirect to login
+    if (!user) {
+      redirect(`/auth/login?redirect=/problem-sets/${id}/review`);
+    }
+    notFound();
+  }
+
+  // If anonymous user and problem set is not public, redirect to login
+  if (!user && problemSet.sharing_level !== 'public') {
+    redirect(`/auth/login?redirect=/problem-sets/${id}/review`);
+  }
+
+  const problems = await loadProblemSetProblems(problemSet, user?.id ?? null);
 
   if (problems.length === 0) {
     return (

@@ -357,6 +357,7 @@ export interface ProblemSetPageClientProps {
   initialProblemSet: ProblemSetWithDetails & {
     problems: ProblemInSet[];
   };
+  isAuthenticated?: boolean;
 }
 
 // =====================================================
