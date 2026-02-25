@@ -39,6 +39,7 @@ import { HeroScroll } from '@/components/landing/hero-scroll';
 import { FeatureShowcase } from '@/components/features/feature-showcase';
 import { ScreenshotFrame } from '@/components/features/screenshot-frame';
 import { ComparisonTable } from '@/components/features/comparison-table';
+import { FeatureBadge } from '@/components/features/feature-badge';
 import { CookiePreferencesTrigger } from '@/components/cookie-consent/cookie-preferences-trigger';
 
 const siteUrl = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
@@ -70,10 +71,7 @@ export default async function Home() {
           <div className="max-w-6xl mx-auto w-full grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left side - text */}
             <div className="space-y-6 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 rounded-full bg-amber-100/80 dark:bg-amber-900/30 px-4 py-1.5 text-sm font-medium text-amber-800 dark:text-amber-300 border border-amber-200/50 dark:border-amber-800/40">
-                <Award className="w-3.5 h-3.5" />
-                Made by students, for students
-              </div>
+              <FeatureBadge icon={Award} label="Made by students, for students" color="amber" />
 
               <div className="space-y-3">
                 <h1 className="landing-hero-title">
@@ -132,13 +130,13 @@ export default async function Home() {
             <div className="landing-section-inner">
               <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
                 <div className="space-y-6">
-                  <div
-                    className="opacity-0 inline-flex items-center gap-2 rounded-full bg-rose-100/80 dark:bg-rose-900/30 px-4 py-1.5 text-sm font-medium text-rose-800 dark:text-rose-300 border border-rose-200/50 dark:border-rose-800/40"
+                  <FeatureBadge
+                    icon={NotebookPen}
+                    label="Rich Content"
+                    color="rose"
+                    className="opacity-0"
                     data-animate="features-fade-in-left"
-                  >
-                    <NotebookPen className="w-3.5 h-3.5" />
-                    Rich Content
-                  </div>
+                  />
 
                   <h2
                     className="opacity-0 text-3xl md:text-4xl font-bold text-gray-900 dark:text-white"
@@ -310,13 +308,13 @@ export default async function Home() {
                 </div>
 
                 <div className="space-y-6 order-1 lg:order-2">
-                  <div
-                    className="opacity-0 inline-flex items-center gap-2 rounded-full bg-blue-100/80 dark:bg-blue-900/30 px-4 py-1.5 text-sm font-medium text-blue-800 dark:text-blue-300 border border-blue-200/50 dark:border-blue-800/40"
+                  <FeatureBadge
+                    icon={Filter}
+                    label="Smart Organization"
+                    color="blue"
+                    className="opacity-0"
                     data-animate="features-fade-in-right"
-                  >
-                    <Filter className="w-3.5 h-3.5" />
-                    Smart Organization
-                  </div>
+                  />
 
                   <h2
                     className="opacity-0 text-3xl md:text-4xl font-bold text-gray-900 dark:text-white"
@@ -392,13 +390,13 @@ export default async function Home() {
             <div className="landing-section-inner space-y-10">
               {/* Header */}
               <div className="text-center">
-                <div
-                  className="opacity-0 inline-flex items-center gap-2 rounded-full bg-amber-100/80 dark:bg-amber-900/30 px-4 py-1.5 text-sm font-medium text-amber-800 dark:text-amber-300 border border-amber-200/50 dark:border-amber-800/40 mb-6"
+                <FeatureBadge
+                  icon={Sparkles}
+                  label="AI-Powered"
+                  color="amber"
+                  className="opacity-0 mb-6"
                   data-animate="features-fade-in-up"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  AI-Powered
-                </div>
+                />
 
                 <h2
                   className="opacity-0 text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4"
@@ -474,13 +472,13 @@ export default async function Home() {
             <div className="landing-section-inner">
               <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
                 <div className="space-y-6">
-                  <div
-                    className="opacity-0 inline-flex items-center gap-2 rounded-full bg-green-100/80 dark:bg-green-900/30 px-4 py-1.5 text-sm font-medium text-green-800 dark:text-green-300 border border-green-200/50 dark:border-green-800/40"
+                  <FeatureBadge
+                    icon={Play}
+                    label="Interactive Review"
+                    color="green"
+                    className="opacity-0"
                     data-animate="features-fade-in-left"
-                  >
-                    <Play className="w-3.5 h-3.5" />
-                    Interactive Review
-                  </div>
+                  />
 
                   <h2
                     className="opacity-0 text-3xl md:text-4xl font-bold text-gray-900 dark:text-white"
@@ -582,13 +580,13 @@ export default async function Home() {
                 </div>
 
                 <div className="space-y-6 order-1 lg:order-2">
-                  <div
-                    className="opacity-0 inline-flex items-center gap-2 rounded-full bg-orange-100/80 dark:bg-orange-900/30 px-4 py-1.5 text-sm font-medium text-orange-800 dark:text-orange-300 border border-orange-200/50 dark:border-orange-800/40"
+                  <FeatureBadge
+                    icon={BarChart3}
+                    label="Analytics"
+                    color="orange"
+                    className="opacity-0"
                     data-animate="features-fade-in-right"
-                  >
-                    <BarChart3 className="w-3.5 h-3.5" />
-                    Analytics
-                  </div>
+                  />
 
                   <h2
                     className="opacity-0 text-3xl md:text-4xl font-bold text-gray-900 dark:text-white"
