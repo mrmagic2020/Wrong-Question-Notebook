@@ -127,33 +127,6 @@ export default async function Home() {
         </HeroScroll>
 
         <FeatureShowcase>
-          {/* Comparison Table */}
-          <section className="landing-section bg-amber-50/30 dark:bg-stone-800/20">
-            <div className="landing-section-inner">
-              <div className="landing-section-header">
-                <h2
-                  className="opacity-0 landing-section-title"
-                  data-animate="features-fade-in-up"
-                >
-                  Why Wrong Question Notebook?
-                </h2>
-                <p
-                  className="opacity-0 landing-section-subtitle"
-                  data-animate="features-fade-in-up"
-                >
-                  See how WQN compares to traditional methods
-                </p>
-              </div>
-
-              <div
-                className="opacity-0 rounded-2xl border border-gray-200/60 dark:border-gray-800/40 bg-white/60 dark:bg-gray-900/40 overflow-hidden shadow-sm"
-                data-animate="features-fade-in-up"
-              >
-                <ComparisonTable />
-              </div>
-            </div>
-          </section>
-
           {/* Rich Text + Math */}
           <section className="landing-section">
             <div className="landing-section-inner">
@@ -800,6 +773,33 @@ export default async function Home() {
                     </p>
                   </div>
                 </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Comparison Table */}
+          <section className="landing-section bg-amber-50/30 dark:bg-stone-800/20">
+            <div className="landing-section-inner">
+              <div className="landing-section-header">
+                <h2
+                  className="opacity-0 landing-section-title"
+                  data-animate="features-fade-in-up"
+                >
+                  Why Wrong Question Notebook?
+                </h2>
+                <p
+                  className="opacity-0 landing-section-subtitle"
+                  data-animate="features-fade-in-up"
+                >
+                  See how WQN compares to traditional methods
+                </p>
+              </div>
+
+              <div
+                className="opacity-0 rounded-2xl border border-gray-200/60 dark:border-gray-800/40 bg-white/60 dark:bg-gray-900/40 overflow-hidden shadow-sm"
+                data-animate="features-fade-in-up"
+              >
+                <ComparisonTable />
               </div>
             </div>
           </section>

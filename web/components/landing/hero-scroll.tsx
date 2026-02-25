@@ -76,7 +76,7 @@ export function HeroScroll({ children }: HeroScrollProps) {
       </div>
 
       {/* Bottom spacer — 2x top to position content at 1/3 */}
-      <div className="flex-[2] flex flex-col justify-end items-center">
+      <div className="flex-[1.5] flex flex-col justify-end items-center">
         <div
           ref={indicatorRef}
           className="flex flex-col items-center gap-2 pb-6 animate-bounce-subtle"
