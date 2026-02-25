@@ -2,6 +2,10 @@
 
 import { useEffect, useRef, type ReactNode } from 'react';
 
+const CONTENT_FADE_SPEED = 1.5; // fully faded by ~67% scroll
+const INDICATOR_FADE_SPEED = 4; // fully faded by ~25% scroll
+const SCROLL_TRANSLATE_DISTANCE = 60; // px content shifts up at full scroll
+
 interface HeroScrollProps {
   children: ReactNode;
 }
@@ -38,15 +42,15 @@ export function HeroScroll({ children }: HeroScrollProps) {
         const progress = Math.min(1, Math.max(0, scrollY / sectionHeight));
 
         // Content: translate up and fade out
-        const translateY = progress * -60;
-        const opacity = 1 - progress * 1.5; // fades out by ~67% scroll
+        const translateY = progress * -SCROLL_TRANSLATE_DISTANCE;
+        const opacity = 1 - progress * CONTENT_FADE_SPEED;
         content.style.transform = `translateY(${translateY}px)`;
         content.style.opacity = `${Math.max(0, opacity)}`;
 
         // Indicator: fade with scroll, permanently hide once fully faded
         if (indicator) {
           if (!indicatorDismissed) {
-            const indicatorOpacity = 1 - progress * 4; // gone by ~25% scroll
+            const indicatorOpacity = 1 - progress * INDICATOR_FADE_SPEED;
             indicator.style.opacity = `${Math.max(0, indicatorOpacity)}`;
             if (indicatorOpacity <= 0) {
               indicatorDismissed = true;
