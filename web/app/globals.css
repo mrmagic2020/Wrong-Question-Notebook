@@ -865,6 +865,27 @@ html body[data-scroll-locked] {
   }
 }
 
+/* Scroll indicator animation */
+@keyframes bounceSubtle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+
+.animate-bounce-subtle {
+  animation: bounceSubtle 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-bounce-subtle {
+    animation: none;
+  }
+}
+
 /* KaTeX math rendering styles */
 .tiptap-mathematics-render {
   /* Base styles for both inline and block math */

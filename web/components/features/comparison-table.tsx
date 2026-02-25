@@ -99,7 +99,7 @@ export function ComparisonTable() {
               <th className="text-center p-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-[24%]">
                 Digital Document
               </th>
-              <th className="text-center p-4 text-sm font-semibold text-amber-700 dark:text-amber-300 w-[24%] bg-amber-200/50 dark:bg-amber-900/20 rounded-t-xl">
+              <th className="text-center p-4 text-sm font-semibold text-amber-700 dark:text-amber-300 w-[24%] bg-amber-200/50 dark:bg-amber-900/20 rounded-t-2xl">
                 WQN
               </th>
             </tr>
@@ -133,7 +133,12 @@ export function ComparisonTable() {
                     </span>
                   </div>
                 </td>
-                <td className="p-4 bg-amber-200/30 dark:bg-amber-900/20">
+                <td
+                  className={
+                    'p-4 bg-amber-200/30 dark:bg-amber-900/20' +
+                    (i === rows.length - 1 ? ' rounded-b-2xl' : '')
+                  }
+                >
                   <div className="flex flex-col items-center gap-1">
                     <StatusIcon type={row.wqn.icon} />
                     <span className="text-xs font-medium text-amber-700 dark:text-amber-300">

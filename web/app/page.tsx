@@ -3,18 +3,42 @@ import { Navigation } from '@/components/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
+  ArrowRight,
   Award,
+  BarChart3,
   BookOpen,
-  ClipboardCheck,
+  Calendar,
+  CheckCircle2,
+  CircleDot,
+  Clock,
+  FileText,
+  Filter,
+  Flame,
+  ImageIcon,
+  Moon,
+  MoveDown,
   NotebookPen,
-  Search,
+  PenLine,
+  PieChart,
+  Play,
+  Share2,
+  Shuffle,
+  Sigma,
+  Sparkles,
+  Subscript,
+  Tags,
   Target,
-  Trophy,
-  Zap,
+  TrendingUp,
+  Type,
 } from 'lucide-react';
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/server';
 import { hasEnvVars } from '@/lib/server-utils';
 import { HeroAnimation } from '@/components/landing/hero-animation';
+import { HeroScroll } from '@/components/landing/hero-scroll';
+import { FeatureShowcase } from '@/components/features/feature-showcase';
+import { ScreenshotFrame } from '@/components/features/screenshot-frame';
+import { ComparisonTable } from '@/components/features/comparison-table';
 import { CookiePreferencesTrigger } from '@/components/cookie-consent/cookie-preferences-trigger';
 
 const siteUrl = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
@@ -42,8 +66,8 @@ export default async function Home() {
         <Navigation />
 
         {/* Hero Section */}
-        <section className="flex-1 px-6 py-16 lg:py-24">
-          <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <HeroScroll>
+          <div className="max-w-6xl mx-auto w-full grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left side - text */}
             <div className="space-y-6 text-center lg:text-left">
               <div className="inline-flex items-center gap-2 rounded-full bg-amber-100/80 dark:bg-amber-900/30 px-4 py-1.5 text-sm font-medium text-amber-800 dark:text-amber-300 border border-amber-200/50 dark:border-amber-800/40">
@@ -100,188 +124,722 @@ export default async function Home() {
               <HeroAnimation />
             </div>
           </div>
-        </section>
+        </HeroScroll>
 
-        {/* How It Works Section */}
-        <section className="landing-section bg-amber-50/50 dark:bg-stone-800/20">
-          <div className="max-w-5xl mx-auto px-6">
-            <div className="landing-section-header">
-              <h2 className="landing-section-title">How it works</h2>
-              <p className="landing-section-subtitle">
-                Three simple steps to turn mistakes into mastery
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-8 md:gap-6 relative">
-              {/* Connecting line (desktop only) */}
-              <div className="hidden md:block absolute top-8 left-[20%] right-[20%] h-px bg-gradient-to-r from-amber-300 via-orange-300 to-rose-300 dark:from-amber-700 dark:via-orange-700 dark:to-rose-700" />
-
-              {/* Step 1 */}
-              <div className="flex flex-col items-center text-center space-y-4">
-                <div className="relative z-10 w-14 h-14 rounded-2xl bg-amber-100 dark:bg-amber-900/40 border-2 border-amber-300 dark:border-amber-700 flex items-center justify-center shadow-sm">
-                  <ClipboardCheck className="w-6 h-6 text-amber-700 dark:text-amber-300" />
-                </div>
-                <div className="space-y-1.5">
-                  <span className="landing-step-label text-amber-600 dark:text-amber-400">
-                    Step 1
-                  </span>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Add your problems
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 max-w-[240px] mx-auto leading-relaxed">
-                    Log the questions you got wrong and organize them by subject
-                  </p>
-                </div>
+        <FeatureShowcase>
+          {/* Comparison Table */}
+          <section className="landing-section bg-amber-50/30 dark:bg-stone-800/20">
+            <div className="landing-section-inner">
+              <div className="landing-section-header">
+                <h2
+                  className="opacity-0 landing-section-title"
+                  data-animate="features-fade-in-up"
+                >
+                  Why Wrong Question Notebook?
+                </h2>
+                <p
+                  className="opacity-0 landing-section-subtitle"
+                  data-animate="features-fade-in-up"
+                >
+                  See how WQN compares to traditional methods
+                </p>
               </div>
 
-              {/* Step 2 */}
-              <div className="flex flex-col items-center text-center space-y-4">
-                <div className="relative z-10 w-14 h-14 rounded-2xl bg-orange-100 dark:bg-orange-900/40 border-2 border-orange-300 dark:border-orange-700 flex items-center justify-center shadow-sm">
-                  <Search className="w-6 h-6 text-orange-700 dark:text-orange-300" />
-                </div>
-                <div className="space-y-1.5">
-                  <span className="landing-step-label text-orange-600 dark:text-orange-400">
-                    Step 2
-                  </span>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Review &amp; practice
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 max-w-[240px] mx-auto leading-relaxed">
-                    Revisit problems that need work and track what&apos;s
-                    improving
-                  </p>
-                </div>
-              </div>
-
-              {/* Step 3 */}
-              <div className="flex flex-col items-center text-center space-y-4">
-                <div className="relative z-10 w-14 h-14 rounded-2xl bg-rose-100 dark:bg-rose-900/40 border-2 border-rose-300 dark:border-rose-700 flex items-center justify-center shadow-sm">
-                  <Trophy className="w-6 h-6 text-rose-700 dark:text-rose-300" />
-                </div>
-                <div className="space-y-1.5">
-                  <span className="landing-step-label text-rose-600 dark:text-rose-400">
-                    Step 3
-                  </span>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Master them
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 max-w-[240px] mx-auto leading-relaxed">
-                    Watch your progress grow as wrong answers become mastered
-                    skills
-                  </p>
-                </div>
+              <div
+                className="opacity-0 rounded-2xl border border-gray-200/60 dark:border-gray-800/40 bg-white/60 dark:bg-gray-900/40 overflow-hidden shadow-sm"
+                data-animate="features-fade-in-up"
+              >
+                <ComparisonTable />
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* Features Section — Bento Grid */}
-        <section className="landing-section">
-          <div className="landing-section-inner">
-            <div className="landing-section-header">
-              <h2 className="landing-section-title">
-                Everything you need to learn smarter
-              </h2>
-              <p className="landing-section-subtitle">
-                Simple tools that make a real difference
-              </p>
-            </div>
+          {/* Rich Text + Math */}
+          <section className="landing-section">
+            <div className="landing-section-inner">
+              <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+                <div className="space-y-6">
+                  <div
+                    className="opacity-0 inline-flex items-center gap-2 rounded-full bg-rose-100/80 dark:bg-rose-900/30 px-4 py-1.5 text-sm font-medium text-rose-800 dark:text-rose-300 border border-rose-200/50 dark:border-rose-800/40"
+                    data-animate="features-fade-in-left"
+                  >
+                    <NotebookPen className="w-3.5 h-3.5" />
+                    Rich Content
+                  </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {/* Feature 1 - Large card spanning 2 columns on lg */}
-              <div className="landing-card lg:col-span-2 from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/20 border-blue-200/40 dark:border-blue-800/30">
-                <div className="landing-icon-box bg-blue-500/10 dark:bg-blue-500/20">
-                  <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="landing-card-title">Organize by Subject</h3>
-                  <p className="landing-card-text max-w-md">
-                    Create subjects for different topics and keep your problems
-                    neatly organized. Everything in its place, easy to find when
-                    you need it.
-                  </p>
-                </div>
-              </div>
+                  <h2
+                    className="opacity-0 text-3xl md:text-4xl font-bold text-gray-900 dark:text-white"
+                    data-animate="features-fade-in-left"
+                  >
+                    Write math, format solutions, capture everything
+                  </h2>
 
-              {/* Feature 2 - Regular card */}
-              <div className="landing-card from-emerald-50 to-green-100/50 dark:from-emerald-950/40 dark:to-green-900/20 border-green-200/40 dark:border-green-800/30">
-                <div className="landing-icon-box bg-green-500/10 dark:bg-green-500/20">
-                  <Target className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  <ul
+                    className="opacity-0 features-bullet-list"
+                    data-animate="features-fade-in-left"
+                  >
+                    <li className="features-bullet-item">
+                      <span className="features-bullet-icon bg-rose-500/10 dark:bg-rose-500/20">
+                        <Sigma className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                      </span>
+                      <span>
+                        <strong className="text-gray-900 dark:text-white">
+                          LaTeX math
+                        </strong>{' '}
+                        <span className="text-gray-600 dark:text-gray-400">
+                          &mdash; inline and block equations
+                        </span>
+                      </span>
+                    </li>
+                    <li className="features-bullet-item">
+                      <span className="features-bullet-icon bg-rose-500/10 dark:bg-rose-500/20">
+                        <Type className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                      </span>
+                      <span>
+                        <strong className="text-gray-900 dark:text-white">
+                          Full formatting
+                        </strong>{' '}
+                        <span className="text-gray-600 dark:text-gray-400">
+                          &mdash; headings, bold, italic, lists, code blocks
+                        </span>
+                      </span>
+                    </li>
+                    <li className="features-bullet-item">
+                      <span className="features-bullet-icon bg-rose-500/10 dark:bg-rose-500/20">
+                        <ImageIcon className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                      </span>
+                      <span>
+                        <strong className="text-gray-900 dark:text-white">
+                          Embed images
+                        </strong>{' '}
+                        <span className="text-gray-600 dark:text-gray-400">
+                          &mdash; directly in problems and solutions
+                        </span>
+                      </span>
+                    </li>
+                    <li className="features-bullet-item">
+                      <span className="features-bullet-icon bg-rose-500/10 dark:bg-rose-500/20">
+                        <Subscript className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                      </span>
+                      <span>
+                        <strong className="text-gray-900 dark:text-white">
+                          Special characters
+                        </strong>{' '}
+                        <span className="text-gray-600 dark:text-gray-400">
+                          &mdash; subscript, superscript, and more
+                        </span>
+                      </span>
+                    </li>
+                  </ul>
                 </div>
-                <div className="space-y-2">
-                  <h3 className="landing-card-title">Track Progress</h3>
-                  <p className="landing-card-text">
-                    See which problems you&apos;ve mastered and which still need
-                    attention at a glance.
-                  </p>
-                </div>
-              </div>
 
-              {/* Feature 3 - Regular card */}
-              <div className="landing-card from-amber-50 to-yellow-100/50 dark:from-amber-950/40 dark:to-yellow-900/20 border-amber-200/40 dark:border-amber-800/30">
-                <div className="landing-icon-box bg-amber-500/10 dark:bg-amber-500/20">
-                  <Zap className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="landing-card-title">Quick Access</h3>
-                  <p className="landing-card-text">
-                    Find and review problems instantly with search and
-                    filtering. No digging around.
-                  </p>
-                </div>
-              </div>
-
-              {/* Feature 4 - spans 2 columns on lg */}
-              <div className="landing-card lg:col-span-2 from-rose-50 to-pink-100/50 dark:from-rose-950/40 dark:to-pink-900/20 border-rose-200/40 dark:border-rose-800/30">
-                <div className="landing-icon-box bg-rose-500/10 dark:bg-rose-500/20">
-                  <NotebookPen className="w-6 h-6 text-rose-600 dark:text-rose-400" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="landing-card-title">
-                    Rich Notes &amp; Solutions
-                  </h3>
-                  <p className="landing-card-text max-w-md">
-                    Write detailed notes, solutions, and explanations with a
-                    full rich-text editor. Add math formulas, images, and more
-                    to capture your thinking.
-                  </p>
+                <div
+                  className="opacity-0"
+                  data-animate="features-fade-in-right"
+                >
+                  <ScreenshotFrame
+                    src="/features/editor-math.png"
+                    darkSrc="/features/editor-math-dark.png"
+                    alt="TipTap editor showing a math formula with toolbar"
+                    placeholderLabel="Rich text editor with math"
+                    accentColor="rose"
+                  />
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* Student-focused CTA Section */}
-        <section className="landing-section ruled-lines bg-amber-50/30 dark:bg-stone-800/15">
-          <div className="max-w-3xl mx-auto text-center px-6">
-            <div className="space-y-6">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-rose-100/80 dark:bg-rose-900/30 px-3 py-1 text-xs font-medium text-rose-700 dark:text-rose-300 border border-rose-200/50 dark:border-rose-800/40">
-                <NotebookPen className="w-3 h-3" />
-                Built by students who&apos;ve been there
+          {/* Problem Types */}
+          <section className="landing-section bg-amber-50/30 dark:bg-stone-800/20">
+            <div className="landing-section-inner">
+              <div className="landing-section-header">
+                <h2
+                  className="opacity-0 landing-section-title"
+                  data-animate="features-fade-in-up"
+                >
+                  Three problem types, one notebook
+                </h2>
+                <p
+                  className="opacity-0 landing-section-subtitle"
+                  data-animate="features-fade-in-up"
+                >
+                  MCQ, short answer, or extended &mdash; WQN handles them all
+                </p>
               </div>
 
-              <h2 className="landing-section-title">
-                Your wrong answers are your best teachers
-              </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
-                We built this because we needed it ourselves. Stop losing track
-                of the problems that matter most.
-              </p>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div
+                  className="opacity-0 landing-card from-amber-50 to-yellow-100/50 dark:from-amber-950/40 dark:to-yellow-900/20 border-amber-200/40 dark:border-amber-800/30"
+                  data-animate="features-fade-in-up"
+                >
+                  <div className="landing-icon-box bg-amber-500/10 dark:bg-amber-500/20">
+                    <CircleDot className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="landing-card-title">Multiple Choice</h3>
+                    <p className="landing-card-text">
+                      Radio button choices with auto-marking and a visual choice
+                      picker. Know instantly if you got it right.
+                    </p>
+                  </div>
+                </div>
 
-              <div className="pt-2">
-                {isSignedIn ? (
-                  <Button asChild size="lg" className="btn-cta-primary">
-                    <Link href="/subjects">Continue learning</Link>
-                  </Button>
-                ) : (
-                  <Button asChild size="lg" className="btn-cta-primary">
-                    <Link href="/auth/sign-up">Start Your Notebook</Link>
-                  </Button>
-                )}
+                <div
+                  className="opacity-0 landing-card from-orange-50 to-orange-100/50 dark:from-orange-950/40 dark:to-orange-900/20 border-orange-200/40 dark:border-orange-800/30"
+                  data-animate="features-fade-in-up"
+                >
+                  <div className="landing-icon-box bg-orange-500/10 dark:bg-orange-500/20">
+                    <PenLine className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="landing-card-title">Short Answer</h3>
+                    <p className="landing-card-text">
+                      Text or numeric answers with tolerance. Supports multiple
+                      accepted answers for flexible marking.
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  className="opacity-0 landing-card from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/20 border-blue-200/40 dark:border-blue-800/30"
+                  data-animate="features-fade-in-up"
+                >
+                  <div className="landing-icon-box bg-blue-500/10 dark:bg-blue-500/20">
+                    <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="landing-card-title">Extended Answer</h3>
+                    <p className="landing-card-text">
+                      Free-form responses for proofs, essays, and explanations.
+                      Full rich-text support included.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+
+          {/* Smart Problem Sets */}
+          <section className="landing-section">
+            <div className="landing-section-inner">
+              <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+                <div
+                  className="opacity-0 order-2 lg:order-1"
+                  data-animate="features-fade-in-left"
+                >
+                  <ScreenshotFrame
+                    src="/features/smart-sets.png"
+                    darkSrc="/features/smart-sets-dark.png"
+                    alt="Smart problem set creation dialog with filter options"
+                    placeholderLabel="Smart problem set filters"
+                    accentColor="blue"
+                  />
+                </div>
+
+                <div className="space-y-6 order-1 lg:order-2">
+                  <div
+                    className="opacity-0 inline-flex items-center gap-2 rounded-full bg-blue-100/80 dark:bg-blue-900/30 px-4 py-1.5 text-sm font-medium text-blue-800 dark:text-blue-300 border border-blue-200/50 dark:border-blue-800/40"
+                    data-animate="features-fade-in-right"
+                  >
+                    <Filter className="w-3.5 h-3.5" />
+                    Smart Organization
+                  </div>
+
+                  <h2
+                    className="opacity-0 text-3xl md:text-4xl font-bold text-gray-900 dark:text-white"
+                    data-animate="features-fade-in-right"
+                  >
+                    Problem sets that build themselves
+                  </h2>
+
+                  <ul
+                    className="opacity-0 features-bullet-list"
+                    data-animate="features-fade-in-right"
+                  >
+                    <li className="features-bullet-item">
+                      <span className="features-bullet-icon bg-blue-500/10 dark:bg-blue-500/20">
+                        <Tags className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      </span>
+                      <span>
+                        <strong className="text-gray-900 dark:text-white">
+                          Filter by tags
+                        </strong>{' '}
+                        <span className="text-gray-600 dark:text-gray-400">
+                          &mdash; for targeted review
+                        </span>
+                      </span>
+                    </li>
+                    <li className="features-bullet-item">
+                      <span className="features-bullet-icon bg-blue-500/10 dark:bg-blue-500/20">
+                        <BarChart3 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      </span>
+                      <span>
+                        <strong className="text-gray-900 dark:text-white">
+                          Filter by mastery status
+                        </strong>{' '}
+                        <span className="text-gray-600 dark:text-gray-400">
+                          &mdash; focus on what needs work
+                        </span>
+                      </span>
+                    </li>
+                    <li className="features-bullet-item">
+                      <span className="features-bullet-icon bg-blue-500/10 dark:bg-blue-500/20">
+                        <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      </span>
+                      <span>
+                        <strong className="text-gray-900 dark:text-white">
+                          Filter by last review
+                        </strong>{' '}
+                        <span className="text-gray-600 dark:text-gray-400">
+                          &mdash; catch problems slipping away
+                        </span>
+                      </span>
+                    </li>
+                    <li className="features-bullet-item">
+                      <span className="features-bullet-icon bg-blue-500/10 dark:bg-blue-500/20">
+                        <Shuffle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      </span>
+                      <span>
+                        <strong className="text-gray-900 dark:text-white">
+                          Randomize order
+                        </strong>{' '}
+                        <span className="text-gray-600 dark:text-gray-400">
+                          &mdash; and set session sizes
+                        </span>
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* AI Extraction */}
+          <section className="landing-section bg-amber-50/30 dark:bg-stone-800/20">
+            <div className="landing-section-inner space-y-10">
+              {/* Header */}
+              <div className="text-center">
+                <div
+                  className="opacity-0 inline-flex items-center gap-2 rounded-full bg-amber-100/80 dark:bg-amber-900/30 px-4 py-1.5 text-sm font-medium text-amber-800 dark:text-amber-300 border border-amber-200/50 dark:border-amber-800/40 mb-6"
+                  data-animate="features-fade-in-up"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  AI-Powered
+                </div>
+
+                <h2
+                  className="opacity-0 text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4"
+                  data-animate="features-fade-in-up"
+                >
+                  Got a problem? Snap a photo
+                </h2>
+
+                <p
+                  className="opacity-0 text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed"
+                  data-animate="features-fade-in-up"
+                >
+                  Upload an image of any worksheet or handwritten note. Our AI
+                  extracts the problem, detects math, and classifies the type
+                  &mdash; instantly.
+                </p>
+              </div>
+
+              {/* Before → After transformation */}
+              <div
+                className="opacity-0 grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-6 lg:gap-4 items-center max-w-5xl mx-auto"
+                data-animate="features-fade-in-up"
+              >
+                {/* Left: Handwritten photo */}
+                <div className="features-photo-frame">
+                  <Image
+                    src="/features/handwritten-problem.png"
+                    alt="Handwritten math problem on paper"
+                    width={600}
+                    height={400}
+                    className="w-full h-auto"
+                  />
+                </div>
+
+                {/* Arrow connector */}
+                <div className="flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/40 border-2 border-amber-300 dark:border-amber-700 flex items-center justify-center shadow-sm">
+                    <ArrowRight className="w-5 h-5 text-amber-700 dark:text-amber-300 hidden lg:block" />
+                    <MoveDown className="w-5 h-5 text-amber-700 dark:text-amber-300 lg:hidden" />
+                  </div>
+                </div>
+
+                {/* Right: Extracted result in app */}
+                <ScreenshotFrame
+                  src="/features/ai-extraction.png"
+                  darkSrc="/features/ai-extraction-dark.png"
+                  alt="Extracted problem formatted in WQN"
+                  placeholderLabel="Extracted problem in WQN"
+                  accentColor="amber"
+                />
+              </div>
+
+              {/* Badges */}
+              <div
+                className="opacity-0 flex flex-wrap justify-center gap-3"
+                data-animate="features-fade-in-up"
+              >
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100/80 dark:bg-amber-900/30 px-3 py-1 text-xs font-medium text-amber-700 dark:text-amber-300 border border-amber-200/50 dark:border-amber-800/40">
+                  Photos &amp; scans
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100/80 dark:bg-amber-900/30 px-3 py-1 text-xs font-medium text-amber-700 dark:text-amber-300 border border-amber-200/50 dark:border-amber-800/40">
+                  Math extraction
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100/80 dark:bg-amber-900/30 px-3 py-1 text-xs font-medium text-amber-700 dark:text-amber-300 border border-amber-200/50 dark:border-amber-800/40">
+                  Auto-classifies type
+                </span>
+              </div>
+            </div>
+          </section>
+
+          {/* Review Sessions */}
+          <section className="landing-section">
+            <div className="landing-section-inner">
+              <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+                <div className="space-y-6">
+                  <div
+                    className="opacity-0 inline-flex items-center gap-2 rounded-full bg-green-100/80 dark:bg-green-900/30 px-4 py-1.5 text-sm font-medium text-green-800 dark:text-green-300 border border-green-200/50 dark:border-green-800/40"
+                    data-animate="features-fade-in-left"
+                  >
+                    <Play className="w-3.5 h-3.5" />
+                    Interactive Review
+                  </div>
+
+                  <h2
+                    className="opacity-0 text-3xl md:text-4xl font-bold text-gray-900 dark:text-white"
+                    data-animate="features-fade-in-left"
+                  >
+                    Study sessions that track your progress
+                  </h2>
+
+                  <ul
+                    className="opacity-0 features-bullet-list"
+                    data-animate="features-fade-in-left"
+                  >
+                    <li className="features-bullet-item">
+                      <span className="features-bullet-icon bg-green-500/10 dark:bg-green-500/20">
+                        <Clock className="w-4 h-4 text-green-600 dark:text-green-400" />
+                      </span>
+                      <span>
+                        <strong className="text-gray-900 dark:text-white">
+                          Session timer
+                        </strong>{' '}
+                        <span className="text-gray-600 dark:text-gray-400">
+                          &mdash; tracks study time
+                        </span>
+                      </span>
+                    </li>
+                    <li className="features-bullet-item">
+                      <span className="features-bullet-icon bg-green-500/10 dark:bg-green-500/20">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
+                      </span>
+                      <span>
+                        <strong className="text-gray-900 dark:text-white">
+                          Auto-marking
+                        </strong>{' '}
+                        <span className="text-gray-600 dark:text-gray-400">
+                          &mdash; for MCQ and short answer
+                        </span>
+                      </span>
+                    </li>
+                    <li className="features-bullet-item">
+                      <span className="features-bullet-icon bg-green-500/10 dark:bg-green-500/20">
+                        <BarChart3 className="w-4 h-4 text-green-600 dark:text-green-400" />
+                      </span>
+                      <span>
+                        <strong className="text-gray-900 dark:text-white">
+                          Progress bar
+                        </strong>{' '}
+                        <span className="text-gray-600 dark:text-gray-400">
+                          &mdash; shows session completion
+                        </span>
+                      </span>
+                    </li>
+                    <li className="features-bullet-item">
+                      <span className="features-bullet-icon bg-green-500/10 dark:bg-green-500/20">
+                        <FileText className="w-4 h-4 text-green-600 dark:text-green-400" />
+                      </span>
+                      <span>
+                        <strong className="text-gray-900 dark:text-white">
+                          Session summary
+                        </strong>{' '}
+                        <span className="text-gray-600 dark:text-gray-400">
+                          &mdash; with detailed stats
+                        </span>
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div
+                  className="opacity-0"
+                  data-animate="features-fade-in-right"
+                >
+                  <ScreenshotFrame
+                    src="/features/review-session.png"
+                    darkSrc="/features/review-session-dark.png"
+                    alt="Active review session with problem, timer, and progress bar"
+                    placeholderLabel="Interactive review session"
+                    accentColor="green"
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Statistics Dashboard */}
+          <section className="landing-section bg-amber-50/30 dark:bg-stone-800/20">
+            <div className="landing-section-inner">
+              <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+                <div
+                  className="opacity-0 order-2 lg:order-1"
+                  data-animate="features-fade-in-left"
+                >
+                  <ScreenshotFrame
+                    src="/features/statistics.png"
+                    darkSrc="/features/statistics-dark.png"
+                    alt="Statistics dashboard with charts and heatmap"
+                    placeholderLabel="Statistics dashboard"
+                    accentColor="orange"
+                  />
+                </div>
+
+                <div className="space-y-6 order-1 lg:order-2">
+                  <div
+                    className="opacity-0 inline-flex items-center gap-2 rounded-full bg-orange-100/80 dark:bg-orange-900/30 px-4 py-1.5 text-sm font-medium text-orange-800 dark:text-orange-300 border border-orange-200/50 dark:border-orange-800/40"
+                    data-animate="features-fade-in-right"
+                  >
+                    <BarChart3 className="w-3.5 h-3.5" />
+                    Analytics
+                  </div>
+
+                  <h2
+                    className="opacity-0 text-3xl md:text-4xl font-bold text-gray-900 dark:text-white"
+                    data-animate="features-fade-in-right"
+                  >
+                    See how far you&apos;ve come
+                  </h2>
+
+                  <ul
+                    className="opacity-0 features-bullet-list"
+                    data-animate="features-fade-in-right"
+                  >
+                    <li className="features-bullet-item">
+                      <span className="features-bullet-icon bg-orange-500/10 dark:bg-orange-500/20">
+                        <PieChart className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                      </span>
+                      <span>
+                        <strong className="text-gray-900 dark:text-white">
+                          Status distribution
+                        </strong>{' '}
+                        <span className="text-gray-600 dark:text-gray-400">
+                          &mdash; and subject breakdown charts
+                        </span>
+                      </span>
+                    </li>
+                    <li className="features-bullet-item">
+                      <span className="features-bullet-icon bg-orange-500/10 dark:bg-orange-500/20">
+                        <Flame className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                      </span>
+                      <span>
+                        <strong className="text-gray-900 dark:text-white">
+                          Study streaks
+                        </strong>{' '}
+                        <span className="text-gray-600 dark:text-gray-400">
+                          &mdash; with longest streak record
+                        </span>
+                      </span>
+                    </li>
+                    <li className="features-bullet-item">
+                      <span className="features-bullet-icon bg-orange-500/10 dark:bg-orange-500/20">
+                        <Calendar className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                      </span>
+                      <span>
+                        <strong className="text-gray-900 dark:text-white">
+                          Activity heatmap
+                        </strong>{' '}
+                        <span className="text-gray-600 dark:text-gray-400">
+                          &mdash; showing daily study habits
+                        </span>
+                      </span>
+                    </li>
+                    <li className="features-bullet-item">
+                      <span className="features-bullet-icon bg-orange-500/10 dark:bg-orange-500/20">
+                        <TrendingUp className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                      </span>
+                      <span>
+                        <strong className="text-gray-900 dark:text-white">
+                          Weekly progress
+                        </strong>{' '}
+                        <span className="text-gray-600 dark:text-gray-400">
+                          &mdash; line charts over time
+                        </span>
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* More Features */}
+          <section className="landing-section">
+            <div className="landing-section-inner">
+              <div className="landing-section-header">
+                <h2
+                  className="opacity-0 landing-section-title"
+                  data-animate="features-fade-in-up"
+                >
+                  And there&apos;s more
+                </h2>
+                <p
+                  className="opacity-0 landing-section-subtitle"
+                  data-animate="features-fade-in-up"
+                >
+                  Every detail designed to help you study better
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div
+                  className="opacity-0 landing-card from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/20 border-blue-200/40 dark:border-blue-800/30"
+                  data-animate="features-fade-in-up"
+                >
+                  <div className="landing-icon-box bg-blue-500/10 dark:bg-blue-500/20">
+                    <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="landing-card-title">Subject Organization</h3>
+                    <p className="landing-card-text">
+                      Color-coded notebooks with custom icons. Keep every
+                      subject neatly separated and easy to find.
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  className="opacity-0 landing-card from-amber-50 to-yellow-100/50 dark:from-amber-950/40 dark:to-yellow-900/20 border-amber-200/40 dark:border-amber-800/30"
+                  data-animate="features-fade-in-up"
+                >
+                  <div className="landing-icon-box bg-amber-500/10 dark:bg-amber-500/20">
+                    <Tags className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="landing-card-title">Tag System</h3>
+                    <p className="landing-card-text">
+                      Subject-specific tags for fine-grained categorization.
+                      Filter and find problems in seconds.
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  className="opacity-0 landing-card from-rose-50 to-pink-100/50 dark:from-rose-950/40 dark:to-pink-900/20 border-rose-200/40 dark:border-rose-800/30"
+                  data-animate="features-fade-in-up"
+                >
+                  <div className="landing-icon-box bg-rose-500/10 dark:bg-rose-500/20">
+                    <Share2 className="w-6 h-6 text-rose-600 dark:text-rose-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="landing-card-title">Problem Set Sharing</h3>
+                    <p className="landing-card-text">
+                      Private, limited, or public sharing options. Share your
+                      curated problem sets with classmates.
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  className="opacity-0 landing-card from-gray-50 to-gray-100/50 dark:from-gray-950/40 dark:to-gray-900/20 border-gray-200/40 dark:border-gray-800/30"
+                  data-animate="features-fade-in-up"
+                >
+                  <div className="landing-icon-box bg-gray-500/10 dark:bg-gray-500/20">
+                    <Moon className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="landing-card-title">Dark Mode</h3>
+                    <p className="landing-card-text">
+                      Full light and dark theme support. Study comfortably at
+                      any hour.
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  className="opacity-0 landing-card from-emerald-50 to-green-100/50 dark:from-emerald-950/40 dark:to-green-900/20 border-green-200/40 dark:border-green-800/30"
+                  data-animate="features-fade-in-up"
+                >
+                  <div className="landing-icon-box bg-green-500/10 dark:bg-green-500/20">
+                    <Target className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="landing-card-title">Status Tracking</h3>
+                    <p className="landing-card-text">
+                      Wrong, Needs Review, Mastered &mdash; track every
+                      problem&apos;s progression automatically.
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  className="opacity-0 landing-card from-orange-50 to-orange-100/50 dark:from-orange-950/40 dark:to-orange-900/20 border-orange-200/40 dark:border-orange-800/30"
+                  data-animate="features-fade-in-up"
+                >
+                  <div className="landing-icon-box bg-orange-500/10 dark:bg-orange-500/20">
+                    <Flame className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="landing-card-title">Study Streaks</h3>
+                    <p className="landing-card-text">
+                      Consecutive day tracking to build habits. Stay motivated
+                      and keep your streak alive.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* CTA */}
+          <section className="landing-section ruled-lines bg-amber-50/30 dark:bg-stone-800/15">
+            <div className="max-w-3xl mx-auto text-center px-6">
+              <div className="space-y-6">
+                <h2
+                  className="opacity-0 landing-section-title"
+                  data-animate="features-fade-in-up"
+                >
+                  Ready to turn mistakes into mastery?
+                </h2>
+                <p
+                  className="opacity-0 text-lg text-gray-600 dark:text-gray-400 max-w-xl mx-auto"
+                  data-animate="features-fade-in-up"
+                >
+                  Join students who are learning smarter with Wrong Question
+                  Notebook.
+                </p>
+
+                <div
+                  className="opacity-0 pt-2"
+                  data-animate="features-fade-in-up"
+                >
+                  {isSignedIn ? (
+                    <Button asChild size="lg" className="btn-cta-primary">
+                      <Link href="/subjects">Continue learning</Link>
+                    </Button>
+                  ) : (
+                    <Button asChild size="lg" className="btn-cta-primary">
+                      <Link href="/auth/sign-up">Start Your Notebook</Link>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
+        </FeatureShowcase>
 
         {/* Footer */}
         <footer className="w-full border-t border-amber-200/30 dark:border-stone-800 glass-effect">
@@ -294,12 +852,6 @@ export default async function Home() {
                 </span>
               </div>
               <div className="flex items-center gap-4 text-sm">
-                <Link
-                  href="/features"
-                  className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  Features
-                </Link>
                 <Link
                   href="/privacy"
                   className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
