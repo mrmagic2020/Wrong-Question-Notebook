@@ -71,7 +71,11 @@ export default async function Home() {
           <div className="max-w-6xl mx-auto w-full grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left side - text */}
             <div className="space-y-6 text-center lg:text-left">
-              <FeatureBadge icon={Award} label="Made by students, for students" color="amber" />
+              <FeatureBadge
+                icon={Award}
+                label="Made by students, for students"
+                color="amber"
+              />
 
               <div className="space-y-3">
                 <h1 className="landing-hero-title">

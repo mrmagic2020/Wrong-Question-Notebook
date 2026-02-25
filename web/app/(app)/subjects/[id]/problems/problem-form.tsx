@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PROBLEM_TYPE_VALUES, type ProblemType } from '@/lib/schemas';
 import { getProblemTypeDisplayName } from '@/lib/common-utils';
-import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import { RichTextEditor, type RichTextEditorHandle } from '@/components/editor';
 import { MCQChoiceEditor } from '@/components/ui/mcq-choice-editor';
 import {
   ShortAnswerConfig,
@@ -56,7 +56,6 @@ import {
 } from '@/components/ui/image-scan-uploader';
 import { convertMathTextToTipTapHtml } from '@/lib/math-to-tiptap';
 import { PenLine, Plus, ScanLine } from 'lucide-react';
-import { Editor } from '@tiptap/react';
 
 export default function ProblemForm({
   subjectId,
@@ -70,8 +69,11 @@ export default function ProblemForm({
   const isEditMode = !!problem;
 
   // Refs for the rich text editors
-  const contentEditorRef = useRef<Editor>(null);
-  const solutionEditorRef = useRef<Editor>(null);
+  const contentEditorRef = useRef<RichTextEditorHandle>(null);
+  const solutionEditorRef = useRef<RichTextEditorHandle>(null);
+
+  // Key for remounting editors on form reset
+  const [editorKey, setEditorKey] = useState(0);
 
   // Helper function to transform SimpleTag to Tag
   const transformSimpleTagsToTags = useCallback(
@@ -153,13 +155,13 @@ export default function ProblemForm({
 
   // Image insertion callbacks
   const handleInsertProblemImage = useCallback((path: string, name: string) => {
-    if (!contentEditorRef.current) {
+    if (!contentEditorRef.current?.editor) {
       toast.error('Editor not ready');
       return;
     }
 
     const imageUrl = `/api/files/${encodeURIComponent(path)}`;
-    contentEditorRef.current
+    contentEditorRef.current.editor
       .chain()
       .focus()
       .setResizableImage({
@@ -173,13 +175,13 @@ export default function ProblemForm({
 
   const handleInsertSolutionImage = useCallback(
     (path: string, name: string) => {
-      if (!solutionEditorRef.current) {
+      if (!solutionEditorRef.current?.editor) {
         toast.error('Editor not ready');
         return;
       }
 
       const imageUrl = `/api/files/${encodeURIComponent(path)}`;
-      solutionEditorRef.current
+      solutionEditorRef.current.editor
         .chain()
         .focus()
         .setResizableImage({
@@ -213,7 +215,11 @@ export default function ProblemForm({
   const handleExtractionComplete = useCallback((data: ExtractedProblemData) => {
     setTitle(data.title);
     setProblemType(data.problem_type);
-    setContent(convertMathTextToTipTapHtml(data.content));
+    const html = convertMathTextToTipTapHtml(data.content);
+    // Update editor imperatively — onChange callback will sync form state
+    contentEditorRef.current?.setContent(html);
+    // Also update form state directly in case editor isn't mounted yet
+    setContent(html);
     if (
       data.problem_type === 'mcq' &&
       data.mcq_choices &&
@@ -559,8 +565,9 @@ export default function ProblemForm({
         // Reset some fields for create mode
         setTitle('');
         setContent('');
-        setProblemAssets([]);
         setSolutionText('');
+        setEditorKey(k => k + 1); // Remount editors to clear content
+        setProblemAssets([]);
         setSolutionAssets([]);
         setShortText('');
         setMcqChoice('');
@@ -777,8 +784,9 @@ export default function ProblemForm({
               <label className="form-label pt-2">Content</label>
               <div className="flex-1 relative">
                 <RichTextEditor
+                  key={`content-${editorKey}`}
                   ref={contentEditorRef}
-                  content={content}
+                  initialContent={content}
                   onChange={setContent}
                   placeholder="Describe the problem with rich formatting, math equations, and more..."
                   height="200px"
@@ -1014,8 +1022,9 @@ export default function ProblemForm({
               <label className="form-label pt-2">Solution (text)</label>
               <div className="flex-1 relative">
                 <RichTextEditor
+                  key={`solution-${editorKey}`}
                   ref={solutionEditorRef}
-                  content={solutionText}
+                  initialContent={solutionText}
                   onChange={setSolutionText}
                   placeholder="What did you do wrong? What did you learn from it?"
                   height="200px"
