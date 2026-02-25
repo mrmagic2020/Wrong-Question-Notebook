@@ -80,7 +80,7 @@ export default async function Home() {
                 ) : (
                   <>
                     <Button asChild size="lg" className="btn-cta-primary">
-                      <Link href="/auth/sign-up">Get Started Free</Link>
+                      <Link href="/auth/sign-up">Start Your Notebook</Link>
                     </Button>
                     <Button
                       asChild
@@ -294,6 +294,12 @@ export default async function Home() {
                 </span>
               </div>
               <div className="flex items-center gap-4 text-sm">
+                <Link
+                  href="/features"
+                  className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  Features
+                </Link>
                 <Link
                   href="/privacy"
                   className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"

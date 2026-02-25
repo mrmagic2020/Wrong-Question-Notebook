@@ -29,6 +29,11 @@ module.exports = {
       lastmod: new Date().toISOString(),
     });
 
+    result.push({
+      loc: '/features',
+      lastmod: new Date().toISOString(),
+    });
+
     return result;
   },
   robotsTxtOptions: {
