@@ -99,16 +99,28 @@ export function ComparisonTable() {
         <table className="w-full border-collapse">
           <thead>
             <tr>
-              <th className="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-[28%]">
+              <th
+                scope="col"
+                className="text-left p-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-[28%]"
+              >
                 Feature
               </th>
-              <th className="text-center p-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-[24%]">
+              <th
+                scope="col"
+                className="text-center p-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-[24%]"
+              >
                 Physical Notebook
               </th>
-              <th className="text-center p-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-[24%]">
+              <th
+                scope="col"
+                className="text-center p-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-[24%]"
+              >
                 Digital Document
               </th>
-              <th className="text-center p-4 text-sm font-semibold text-amber-700 dark:text-amber-300 w-[24%] bg-amber-200/50 dark:bg-amber-900/20 rounded-t-2xl">
+              <th
+                scope="col"
+                className="text-center p-4 text-sm font-semibold text-amber-700 dark:text-amber-300 w-[24%] bg-amber-200/50 dark:bg-amber-900/20 rounded-t-2xl"
+              >
                 WQN
               </th>
             </tr>
