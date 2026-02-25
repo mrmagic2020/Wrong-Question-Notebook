@@ -64,20 +64,29 @@ function StatusIcon({ type }: { type: 'check' | 'cross' | 'partial' }) {
   if (type === 'check') {
     return (
       <div className="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center">
-        <Check className="w-3 h-3 text-green-600 dark:text-green-400" />
+        <Check
+          className="w-3 h-3 text-green-600 dark:text-green-400"
+          aria-hidden="true"
+        />
       </div>
     );
   }
   if (type === 'partial') {
     return (
       <div className="w-5 h-5 rounded-full bg-yellow-100 dark:bg-yellow-900/40 flex items-center justify-center">
-        <Minus className="w-3 h-3 text-yellow-600 dark:text-yellow-400" />
+        <Minus
+          className="w-3 h-3 text-yellow-600 dark:text-yellow-400"
+          aria-hidden="true"
+        />
       </div>
     );
   }
   return (
     <div className="w-5 h-5 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center">
-      <X className="w-3 h-3 text-red-500 dark:text-red-400" />
+      <X
+        className="w-3 h-3 text-red-500 dark:text-red-400"
+        aria-hidden="true"
+      />
     </div>
   );
 }
