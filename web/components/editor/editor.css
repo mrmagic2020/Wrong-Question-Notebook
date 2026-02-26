@@ -1,0 +1,70 @@
+/* Editor-specific styles — imported by the RichTextEditor component.
+   Display-only styles (.rich-text-content) remain in globals.css. */
+
+/* Placeholder text for empty editor */
+.tiptap p.is-editor-empty:first-child::before {
+  color: hsl(var(--muted-foreground));
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  font-size: 0.875rem;
+}
+
+/* Math node styles (editor only — display uses KaTeX directly).
+   Only constrain max-width on the outer wrapper; do NOT set word-break
+   or overflow-wrap here — they cascade into KaTeX internals and break
+   vertical stacking of limits, fractions, and summations. */
+.tiptap-mathematics-render {
+  max-width: 100%;
+}
+
+.tiptap-mathematics-render--editable {
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.25rem;
+}
+
+.tiptap-mathematics-render--editable:hover {
+  background-color: hsl(var(--muted));
+}
+
+.tiptap-mathematics-render[data-type='inline-math'] {
+  display: inline-block;
+  vertical-align: baseline;
+}
+
+.tiptap-mathematics-render[data-type='block-math'] {
+  display: block;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+/* Editor container */
+.rich-text-editor-container {
+  max-width: 100%;
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Editor-only image interactivity */
+.tiptap img {
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+
+.tiptap img:hover {
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.image-component .image-resizer {
+  border-radius: 0;
+}

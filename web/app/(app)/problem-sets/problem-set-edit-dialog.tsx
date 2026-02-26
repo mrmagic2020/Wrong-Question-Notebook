@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import { RichTextEditor } from '@/components/editor';
 import { VALIDATION_CONSTANTS } from '@/lib/constants';
 import {
   Select,
@@ -190,7 +190,7 @@ export default function ProblemSetEditDialog({
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
             <RichTextEditor
-              content={formData.description}
+              initialContent={formData.description}
               onChange={content =>
                 setFormData(prev => ({ ...prev, description: content }))
               }

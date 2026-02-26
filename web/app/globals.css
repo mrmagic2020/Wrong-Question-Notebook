@@ -886,37 +886,26 @@ html body[data-scroll-locked] {
   }
 }
 
-/* KaTeX math rendering styles */
-.tiptap-mathematics-render {
-  /* Base styles for both inline and block math */
-  word-break: break-word;
-  overflow-wrap: anywhere;
+/* Consolidated word-break and overflow handling for all rich text */
+.rich-text-content *,
+.tiptap * {
   max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  box-sizing: border-box;
 }
 
-.tiptap-mathematics-render--editable {
-  cursor: pointer;
-  transition: background-color 0.2s;
-  border-radius: 0.25rem;
-  padding: 0.125rem 0.25rem;
+/* Reset word-break/overflow for KaTeX internals — KaTeX uses precise
+   inline-table / table-cell positioning for vertical stacking (fractions,
+   limits, summations). The wildcard rules above break that layout. */
+.rich-text-content .katex *,
+.tiptap .katex * {
+  max-width: none;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
-.tiptap-mathematics-render--editable:hover {
-  background-color: hsl(var(--muted));
-}
-
-.tiptap-mathematics-render[data-type='inline-math'] {
-  display: inline;
-  vertical-align: baseline;
-}
-
-.tiptap-mathematics-render[data-type='block-math'] {
-  display: block;
-  margin: 1rem 0;
-  text-align: center;
-}
-
-/* Ensure proper rendering of KaTeX math in display component */
+/* KaTeX math rendering in display component */
 .rich-text-content .katex {
   font-size: 1.2em;
   line-height: 1.2;
@@ -929,7 +918,6 @@ html body[data-scroll-locked] {
   text-align: center;
 }
 
-/* Ensure math doesn't break layout */
 .rich-text-content .katex,
 .rich-text-content .katex-display {
   max-width: 100%;
@@ -937,21 +925,9 @@ html body[data-scroll-locked] {
   overflow-y: hidden;
 }
 
-/* Link styling for rich text editor - scoped to TipTap editor content only */
-
-.tiptap p.is-editor-empty:first-child::before {
-  color: hsl(var(--muted-foreground));
-  content: attr(data-placeholder);
-  float: left;
-  height: 0;
-  pointer-events: none;
-  font-size: 0.875rem; /* text-sm */
-}
-
-/* Unified rich text styling - used by both editor and display components */
+/* Unified rich text styling — used by both editor and display */
 .rich-text-content,
 .tiptap {
-  /* Ensure consistent font rendering */
   font-feature-settings:
     'liga' 1,
     'kern' 1;
@@ -961,179 +937,141 @@ html body[data-scroll-locked] {
   white-space: pre-wrap;
 }
 
-/* Unified heading styles */
+/* Heading styles */
 .rich-text-content h1,
 .tiptap h1 {
-  font-size: 1.5rem !important; /* text-2xl */
-  font-weight: 700 !important; /* font-bold */
-  margin-bottom: 1rem !important; /* mb-4 */
-  color: hsl(var(--foreground)) !important;
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-  max-width: 100% !important;
-  line-height: 1.25 !important;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: hsl(var(--foreground));
+  line-height: 1.25;
 }
 
 .rich-text-content h2,
 .tiptap h2 {
-  font-size: 1.25rem !important; /* text-xl */
-  font-weight: 700 !important; /* font-bold */
-  margin-bottom: 0.75rem !important; /* mb-3 */
-  color: hsl(var(--foreground)) !important;
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-  max-width: 100% !important;
-  line-height: 1.25 !important;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: hsl(var(--foreground));
+  line-height: 1.25;
 }
 
 .rich-text-content h3,
 .tiptap h3 {
-  font-size: 1.125rem !important; /* text-lg */
-  font-weight: 700 !important; /* font-bold */
-  margin-bottom: 0.5rem !important; /* mb-2 */
-  color: hsl(var(--foreground)) !important;
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-  max-width: 100% !important;
-  line-height: 1.25 !important;
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: hsl(var(--foreground));
+  line-height: 1.25;
 }
 
 .rich-text-content h4,
 .tiptap h4 {
-  font-size: 1rem !important; /* text-base */
-  font-weight: 700 !important; /* font-bold */
-  margin-bottom: 0.5rem !important; /* mb-2 */
-  color: hsl(var(--foreground)) !important;
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-  max-width: 100% !important;
-  line-height: 1.25 !important;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: hsl(var(--foreground));
+  line-height: 1.25;
 }
 
 .rich-text-content h5,
 .tiptap h5 {
-  font-size: 0.875rem !important; /* text-sm */
-  font-weight: 700 !important; /* font-bold */
-  margin-bottom: 0.5rem !important; /* mb-2 */
-  color: hsl(var(--foreground)) !important;
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-  max-width: 100% !important;
-  line-height: 1.25 !important;
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: hsl(var(--foreground));
+  line-height: 1.25;
 }
 
 .rich-text-content h6,
 .tiptap h6 {
-  font-size: 0.75rem !important; /* text-xs */
-  font-weight: 700 !important; /* font-bold */
-  margin-bottom: 0.5rem !important; /* mb-2 */
-  color: hsl(var(--foreground)) !important;
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-  max-width: 100% !important;
-  line-height: 1.25 !important;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: hsl(var(--foreground));
+  line-height: 1.25;
 }
 
-/* Unified paragraph styles */
+/* Paragraph styles */
 .rich-text-content p,
 .tiptap p {
-  margin-bottom: 0.5rem !important; /* mb-2 */
-  color: hsl(var(--foreground)) !important;
-  line-height: 1.6 !important; /* leading-relaxed */
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-  max-width: 100% !important;
+  margin-bottom: 0.5rem;
+  color: hsl(var(--foreground));
+  line-height: 1.6;
 }
 
-/* Make empty paragraphs visible as line breaks */
 .rich-text-content p:empty,
 .tiptap p:empty {
-  min-height: 1.6em !important; /* Same as line-height */
-  margin-bottom: 0.5rem !important; /* mb-2 */
-  display: block !important;
+  min-height: 1.6em;
+  margin-bottom: 0.5rem;
+  display: block;
 }
 
-/* Handle paragraphs that contain only whitespace */
 .rich-text-content p:not(:empty):has(br:only-child),
 .tiptap p:not(:empty):has(br:only-child) {
-  min-height: 1.6em !important; /* Same as line-height */
-  margin-bottom: 0.5rem !important; /* mb-2 */
-  display: block !important;
+  min-height: 1.6em;
+  margin-bottom: 0.5rem;
+  display: block;
 }
 
-/* Unified text formatting */
+/* Text formatting */
 .rich-text-content strong,
 .tiptap strong {
-  font-weight: 600 !important; /* font-semibold */
-  color: hsl(var(--foreground)) !important;
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-  max-width: 100% !important;
+  font-weight: 600;
+  color: hsl(var(--foreground));
 }
 
 .rich-text-content em,
 .tiptap em {
-  font-style: italic !important;
-  color: hsl(var(--foreground)) !important;
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-  max-width: 100% !important;
+  font-style: italic;
+  color: hsl(var(--foreground));
 }
 
-/* Unified code styles */
+/* Code styles */
 .rich-text-content code,
 .tiptap code {
-  background-color: hsl(var(--muted)) !important;
-  padding: 0.125rem 0.25rem !important; /* px-1 py-0.5 */
-  border-radius: 0.25rem !important; /* rounded */
-  font-size: 0.875rem !important; /* text-sm */
+  background-color: hsl(var(--muted));
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
   font-family:
     ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo,
-    monospace !important;
-  color: hsl(var(--foreground)) !important;
-  word-break: break-all !important;
-  overflow-wrap: anywhere !important;
-  max-width: 100% !important;
+    monospace;
+  color: hsl(var(--foreground));
+  word-break: break-all;
 }
 
 .rich-text-content pre,
 .tiptap pre {
-  background-color: hsl(var(--muted)) !important;
-  padding: 1rem !important; /* p-4 */
-  border-radius: 0.25rem !important; /* rounded */
-  overflow-x: auto !important;
-  color: hsl(var(--foreground)) !important;
-  max-width: 100% !important;
-  white-space: pre-wrap !important;
+  background-color: hsl(var(--muted));
+  padding: 1rem;
+  border-radius: 0.25rem;
+  overflow-x: auto;
+  color: hsl(var(--foreground));
+  white-space: pre-wrap;
 }
 
-/* Unified list styles with proper nesting support */
+/* List styles — !important needed to override Tailwind's list-none reset */
 .rich-text-content ul,
 .tiptap ul {
-  margin-bottom: 0.5rem !important; /* mb-2 */
-  color: hsl(var(--foreground)) !important;
-  padding-left: 1.5rem !important; /* pl-6 */
-  list-style-type: disc !important; /* Level 1: disc */
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-  max-width: 100% !important;
+  margin-bottom: 0.5rem;
+  color: hsl(var(--foreground));
+  padding-left: 1.5rem;
+  list-style-type: disc !important;
 }
 
-/* Level 2: circle */
 .rich-text-content ul ul,
 .tiptap ul ul {
   list-style-type: circle !important;
-  margin-top: 0.25rem !important;
-  margin-bottom: 0.25rem !important;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
 }
 
-/* Level 3: square */
 .rich-text-content ul ul ul,
 .tiptap ul ul ul {
   list-style-type: square !important;
 }
 
-/* Level 4+: alternating styles */
 .rich-text-content ul ul ul ul,
 .tiptap ul ul ul ul {
   list-style-type: disc !important;
@@ -1151,42 +1089,34 @@ html body[data-scroll-locked] {
 
 .rich-text-content ol,
 .tiptap ol {
-  margin-bottom: 0.5rem !important; /* mb-2 */
-  color: hsl(var(--foreground)) !important;
-  padding-left: 1.5rem !important; /* pl-6 */
-  list-style-type: decimal !important; /* Level 1: decimal */
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-  max-width: 100% !important;
+  margin-bottom: 0.5rem;
+  color: hsl(var(--foreground));
+  padding-left: 1.5rem;
+  list-style-type: decimal !important;
 }
 
-/* Level 2: lower-alpha */
 .rich-text-content ol ol,
 .tiptap ol ol {
   list-style-type: lower-alpha !important;
-  margin-top: 0.25rem !important;
-  margin-bottom: 0.25rem !important;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
 }
 
-/* Level 3: lower-roman */
 .rich-text-content ol ol ol,
 .tiptap ol ol ol {
   list-style-type: lower-roman !important;
 }
 
-/* Level 4: upper-alpha */
 .rich-text-content ol ol ol ol,
 .tiptap ol ol ol ol {
   list-style-type: upper-alpha !important;
 }
 
-/* Level 5: upper-roman */
 .rich-text-content ol ol ol ol ol,
 .tiptap ol ol ol ol ol {
   list-style-type: upper-roman !important;
 }
 
-/* Level 6+: back to decimal */
 .rich-text-content ol ol ol ol ol ol,
 .tiptap ol ol ol ol ol ol {
   list-style-type: decimal !important;
@@ -1194,326 +1124,67 @@ html body[data-scroll-locked] {
 
 .rich-text-content li,
 .tiptap li {
-  margin-bottom: 0.25rem !important; /* mb-1 */
-  color: hsl(var(--foreground)) !important;
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-  max-width: 100% !important;
-  line-height: 1.6 !important;
+  margin-bottom: 0.25rem;
+  color: hsl(var(--foreground));
+  line-height: 1.6;
 }
 
-/* Unified blockquote styles */
+/* Blockquote styles */
 .rich-text-content blockquote,
 .tiptap blockquote {
-  border-left: 4px solid hsl(var(--primary)) !important; /* border-l-4 border-primary */
-  padding-left: 1rem !important; /* pl-4 */
-  font-style: italic !important;
-  color: hsl(var(--foreground)) !important;
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-  max-width: 100% !important;
-  line-height: 1.6 !important;
-  margin: 1rem 0 !important; /* my-4 */
+  border-left: 4px solid hsl(var(--primary));
+  padding-left: 1rem;
+  font-style: italic;
+  color: hsl(var(--foreground));
+  line-height: 1.6;
+  margin: 1rem 0;
 }
 
-/* Unified link styles - specific to rich text content only */
+/* Link styles — !important needed to compete with KaTeX styles */
 .rich-text-content a,
 .tiptap a {
-  color: #2563eb !important; /* Blue-600 - specific blue color */
-  text-decoration: none !important; /* no-underline */
-  transition: color 0.2s ease !important;
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-  max-width: 100% !important;
+  color: #2563eb !important;
+  text-decoration: none;
+  transition: color 0.2s ease;
 }
 
 .rich-text-content a:hover,
 .tiptap a:hover {
-  color: #1d4ed8 !important; /* Blue-700 - darker blue on hover */
-  text-decoration: underline !important;
+  color: #1d4ed8 !important;
+  text-decoration: underline;
 }
 
-/* Dark mode link styling */
 .dark .rich-text-content a,
 .dark .tiptap a {
-  color: #60a5fa !important; /* Blue-400 - lighter blue for dark mode */
+  color: #60a5fa !important;
 }
 
 .dark .rich-text-content a:hover,
 .dark .tiptap a:hover {
-  color: #93c5fd !important; /* Blue-300 - even lighter blue on hover in dark mode */
+  color: #93c5fd !important;
 }
 
-/* Unified table styles */
-.rich-text-content table,
-.tiptap table {
-  width: 100% !important;
-  border-collapse: collapse !important;
-  margin-bottom: 1rem !important; /* mb-4 */
-  color: hsl(var(--foreground)) !important;
-  max-width: 100% !important;
-  table-layout: fixed !important;
-}
-
-.rich-text-content th,
-.tiptap th {
-  border: 1px solid hsl(var(--border)) !important;
-  padding: 0.5rem 0.75rem !important; /* px-3 py-2 */
-  background-color: hsl(var(--muted)) !important;
-  text-align: left !important;
-  color: hsl(var(--foreground)) !important;
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-  max-width: 0 !important;
-  line-height: 1.4 !important;
-}
-
-.rich-text-content td,
-.tiptap td {
-  border: 1px solid hsl(var(--border)) !important;
-  padding: 0.5rem 0.75rem !important; /* px-3 py-2 */
-  color: hsl(var(--foreground)) !important;
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-  max-width: 0 !important;
-  line-height: 1.4 !important;
-}
-
-/* Rich text editor width constraints */
-.ProseMirror {
-  max-width: 100% !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  overflow-wrap: anywhere !important;
-  word-wrap: break-word !important;
-  word-break: break-word !important;
-  overflow-x: hidden !important;
-  box-sizing: border-box !important;
-  hyphens: auto !important;
-  -webkit-hyphens: auto !important;
-  -moz-hyphens: auto !important;
-}
-
-/* Ensure the editor container itself doesn't expand */
-.rich-text-editor-container {
-  max-width: 100% !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  overflow-x: hidden !important;
-  box-sizing: border-box !important;
-  position: relative !important;
-  display: block !important;
-}
-
-/* Ensure editor content doesn't expand beyond container */
-.ProseMirror * {
-  max-width: 100% !important;
-  overflow-wrap: anywhere !important;
-  word-wrap: break-word !important;
-  word-break: break-word !important;
-  box-sizing: border-box !important;
-}
-
-/* Special handling for pre and code blocks */
-.ProseMirror pre {
-  overflow-x: auto !important;
-  white-space: pre-wrap !important;
-  word-wrap: break-word !important;
-}
-
-.ProseMirror code {
-  word-break: break-all !important;
-  overflow-wrap: break-word !important;
-}
-
-/* Table width constraints */
-.ProseMirror table {
-  table-layout: fixed !important;
-  width: 100% !important;
-  max-width: 100% !important;
-}
-
-/* Enhanced nested list support for TipTap editor */
-.ProseMirror ul,
-.ProseMirror ol {
-  margin-bottom: 0.5rem !important;
-  padding-left: 1.5rem !important;
-}
-
-/* Level 1 */
-.ProseMirror ul {
-  list-style-type: disc !important;
-}
-
-.ProseMirror ol {
-  list-style-type: decimal !important;
-}
-
-/* Level 2 */
-.ProseMirror ul ul {
-  list-style-type: circle !important;
-  margin-top: 0.25rem !important;
-  margin-bottom: 0.25rem !important;
-}
-
-.ProseMirror ol ol {
-  list-style-type: lower-alpha !important;
-  margin-top: 0.25rem !important;
-  margin-bottom: 0.25rem !important;
-}
-
-/* Level 3 */
-.ProseMirror ul ul ul {
-  list-style-type: square !important;
-}
-
-.ProseMirror ol ol ol {
-  list-style-type: lower-roman !important;
-}
-
-/* Level 4 */
-.ProseMirror ul ul ul ul {
-  list-style-type: disc !important;
-}
-
-.ProseMirror ol ol ol ol {
-  list-style-type: upper-alpha !important;
-}
-
-/* Level 5 */
-.ProseMirror ul ul ul ul ul {
-  list-style-type: circle !important;
-}
-
-.ProseMirror ol ol ol ol ol {
-  list-style-type: upper-roman !important;
-}
-
-/* Level 6+ */
-.ProseMirror ul ul ul ul ul ul {
-  list-style-type: square !important;
-}
-
-.ProseMirror ol ol ol ol ol ol {
-  list-style-type: decimal !important;
-}
-
-/* Ensure proper spacing for nested list items */
-.ProseMirror li {
-  margin-bottom: 0.25rem !important;
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-  max-width: 100% !important;
-}
-
-.ProseMirror td,
-.ProseMirror th {
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
-  max-width: 0 !important; /* Forces table cells to respect width */
-}
-
-/* Force break long URLs and links */
-.ProseMirror a {
-  word-break: break-all !important;
-  overflow-wrap: anywhere !important;
-  max-width: 100% !important;
-  display: inline-block !important;
-}
-
-/* Force break long text in paragraphs */
-.ProseMirror p {
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-  max-width: 100% !important;
-}
-
-/* Force break long text in headings */
-.ProseMirror h1,
-.ProseMirror h2,
-.ProseMirror h3,
-.ProseMirror h4,
-.ProseMirror h5,
-.ProseMirror h6 {
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-  max-width: 100% !important;
-}
-
-/* Force break any remaining long elements */
-.ProseMirror span,
-.ProseMirror div,
-.ProseMirror strong,
-.ProseMirror em,
-.ProseMirror b,
-.ProseMirror i {
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-}
-
-/* Unified subscript and superscript styles */
+/* Subscript and superscript */
 .rich-text-content sub,
 .tiptap sub {
-  vertical-align: sub !important;
-  font-size: 0.75em !important;
+  vertical-align: sub;
+  font-size: 0.75em;
 }
 
 .rich-text-content sup,
 .tiptap sup {
-  vertical-align: super !important;
-  font-size: 0.75em !important;
+  vertical-align: super;
+  font-size: 0.75em;
 }
 
-/* Unified image styles */
+/* Image styles — !important on max-width to override resizable-image inline widths */
 .rich-text-content img,
 .tiptap img {
   max-width: 100% !important;
-  height: auto !important;
+  height: auto;
   box-shadow:
     0 1px 3px 0 rgba(0, 0, 0, 0.1),
-    0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-}
-
-.image-component .image-resizer {
-  border-radius: 0 !important;
-}
-
-/* Image styles in editor mode */
-.tiptap img {
-  cursor: pointer !important;
-  transition: box-shadow 0.2s ease !important;
-}
-
-.tiptap img:hover {
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
-}
-
-/* Editor-specific image class */
-.editor-image {
-  max-width: 100% !important;
-  height: auto !important;
-  cursor: pointer !important;
-  transition: box-shadow 0.2s ease !important;
-}
-
-.editor-image:hover {
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
-}
-
-/* Emergency fallback for any element that might still expand */
-.ProseMirror > * {
-  max-width: 100% !important;
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-  box-sizing: border-box !important;
+    0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 
 /* Cookie banner animation */

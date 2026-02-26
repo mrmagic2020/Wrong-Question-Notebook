@@ -24,7 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { X, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProblemSetSharingLevel } from '@/lib/schemas';
-import { RichTextEditor } from './ui/rich-text-editor';
+import { RichTextEditor } from '@/components/editor';
 import { VALIDATION_CONSTANTS } from '@/lib/constants';
 
 interface ProblemSetCreationDialogProps {
@@ -204,7 +204,7 @@ export default function ProblemSetCreationDialog({
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
             <RichTextEditor
-              content={formData.description}
+              initialContent={formData.description}
               onChange={content =>
                 setFormData(prev => ({ ...prev, description: content }))
               }
