@@ -182,18 +182,13 @@ const RichTextEditor = React.forwardRef<
       />
 
       {/* Editor content — fills remaining space via flex-1 */}
-      <div
-        className="p-3 overflow-y-auto overflow-x-hidden w-full min-w-0 flex-1 min-h-0"
-        style={{
-          paddingBottom: showCharacterCount || maxLength ? '80px' : '0px',
-        }}
-      >
+      <div className="p-3 overflow-y-auto overflow-x-hidden w-full min-w-0 flex-1 min-h-0">
         <EditorContent editor={editor} />
       </div>
 
-      {/* Character count */}
+      {/* Character count — part of flex layout, not absolutely positioned */}
       {(showCharacterCount || maxLength) && (
-        <div className="absolute bottom-0 left-0 right-0 flex justify-between items-center px-3 py-2 border-t border-border bg-muted/30 text-xs text-muted-foreground">
+        <div className="flex-shrink-0 flex justify-between items-center px-3 py-2 border-t border-border bg-muted/30 text-xs text-muted-foreground">
           <span>
             {editor.storage.characterCount.characters()}{' '}
             {maxLength ? `of ${maxLength}` : ''} text characters
