@@ -2,11 +2,21 @@ import StarterKit from '@tiptap/starter-kit';
 import { Link } from '@tiptap/extension-link';
 import { Subscript } from '@tiptap/extension-subscript';
 import { Superscript } from '@tiptap/extension-superscript';
-import { Mathematics } from '@tiptap/extension-mathematics';
+import { BlockMath, InlineMath } from '@tiptap/extension-mathematics';
 import Typography from '@tiptap/extension-typography';
 import { Placeholder, CharacterCount } from '@tiptap/extensions';
 import { ResizableImage } from 'tiptap-extension-resizable-image';
 import type { Node } from '@tiptap/pm/model';
+import type { KatexOptions } from 'katex';
+
+const sharedKatexOptions: KatexOptions = {
+  strict: false,
+  throwOnError: false,
+  macros: {
+    '\\R': '\\mathbb{R}',
+    '\\N': '\\mathbb{N}',
+  },
+};
 
 interface CreateEditorExtensionsOptions {
   placeholder: string;
@@ -40,25 +50,17 @@ export function createEditorExtensions({
     }),
     Subscript,
     Superscript,
-    Mathematics.configure({
-      inlineOptions: {
-        onClick: (node: Node, pos: number) => {
-          onMathClick(node.attrs.latex || '', false, pos);
-        },
+    InlineMath.configure({
+      onClick: (node: Node, pos: number) => {
+        onMathClick(node.attrs.latex || '', false, pos);
       },
-      blockOptions: {
-        onClick: (node: Node, pos: number) => {
-          onMathClick(node.attrs.latex || '', true, pos);
-        },
+      katexOptions: { ...sharedKatexOptions, displayMode: false },
+    }),
+    BlockMath.configure({
+      onClick: (node: Node, pos: number) => {
+        onMathClick(node.attrs.latex || '', true, pos);
       },
-      katexOptions: {
-        strict: false,
-        throwOnError: false,
-        macros: {
-          '\\R': '\\mathbb{R}',
-          '\\N': '\\mathbb{N}',
-        },
-      },
+      katexOptions: { ...sharedKatexOptions, displayMode: true },
     }),
     Placeholder.configure({
       placeholder,

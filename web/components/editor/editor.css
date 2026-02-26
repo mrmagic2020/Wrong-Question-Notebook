@@ -11,10 +11,11 @@
   font-size: 0.875rem;
 }
 
-/* Math node styles (editor only — display uses KaTeX directly) */
+/* Math node styles (editor only — display uses KaTeX directly).
+   Only constrain max-width on the outer wrapper; do NOT set word-break
+   or overflow-wrap here — they cascade into KaTeX internals and break
+   vertical stacking of limits, fractions, and summations. */
 .tiptap-mathematics-render {
-  word-break: break-word;
-  overflow-wrap: anywhere;
   max-width: 100%;
 }
 
@@ -30,7 +31,7 @@
 }
 
 .tiptap-mathematics-render[data-type='inline-math'] {
-  display: inline;
+  display: inline-block;
   vertical-align: baseline;
 }
 

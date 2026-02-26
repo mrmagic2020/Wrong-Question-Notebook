@@ -895,6 +895,16 @@ html body[data-scroll-locked] {
   box-sizing: border-box;
 }
 
+/* Reset word-break/overflow for KaTeX internals — KaTeX uses precise
+   inline-table / table-cell positioning for vertical stacking (fractions,
+   limits, summations). The wildcard rules above break that layout. */
+.rich-text-content .katex *,
+.tiptap .katex * {
+  max-width: none;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
 /* KaTeX math rendering in display component */
 .rich-text-content .katex {
   font-size: 1.2em;
