@@ -1,7 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
   NotebookPen,
@@ -36,13 +42,13 @@ export function WelcomeModal({ open, onClose }: WelcomeModalProps) {
               <NotebookPen className="w-8 h-8 text-amber-600 dark:text-amber-400" />
             </div>
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white">
                 Welcome to Wrong Question Notebook!
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+              </DialogTitle>
+              <DialogDescription className="text-gray-600 dark:text-gray-400 leading-relaxed">
                 Log the problems you get wrong, review them over time, and track
                 your mastery. Let&apos;s get you started.
-              </p>
+              </DialogDescription>
             </div>
             <DialogFooter className="flex-row justify-center gap-3 sm:justify-center">
               <Button
@@ -65,12 +71,12 @@ export function WelcomeModal({ open, onClose }: WelcomeModalProps) {
         ) : (
           <div className="p-8 space-y-6">
             <div className="text-center space-y-2">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white">
                 How It Works
-              </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              </DialogTitle>
+              <DialogDescription className="text-sm text-gray-500 dark:text-gray-400">
                 Three simple steps to master your learning
-              </p>
+              </DialogDescription>
             </div>
 
             <div className="space-y-4">
