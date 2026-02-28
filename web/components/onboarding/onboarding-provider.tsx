@@ -33,14 +33,19 @@ export function OnboardingProvider({
   showOnboarding: boolean;
   children: React.ReactNode;
 }) {
-  const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(() => {
-    if (!showOnboarding) return false;
+  const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(false);
+
+  // Read localStorage after mount to avoid SSR/client hydration mismatch
+  useEffect(() => {
+    if (!showOnboarding) return;
     try {
-      return localStorage.getItem('wqn:welcome-modal-seen') !== '1';
+      if (localStorage.getItem('wqn:welcome-modal-seen') !== '1') {
+        setIsWelcomeModalOpen(true);
+      }
     } catch {
-      return true;
+      setIsWelcomeModalOpen(true);
     }
-  });
+  }, [showOnboarding]);
   const [checklistStatus, setChecklistStatus] =
     useState<OnboardingStatus | null>(null);
   const [isChecklistExpanded, setIsChecklistExpanded] = useState(true);
