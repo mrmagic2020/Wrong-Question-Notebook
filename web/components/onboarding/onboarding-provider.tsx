@@ -68,6 +68,13 @@ export function OnboardingProvider({
     }, 300);
   }, [fetchStatus]);
 
+  // Clear debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
   // Fetch initial status when onboarding is active
   useEffect(() => {
     if (showOnboarding) {
