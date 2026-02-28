@@ -160,6 +160,9 @@ export function DataTable<TData, TValue>({
                         handleRowClick(problem);
                       }
                     }}
+                    data-onboarding-target={
+                      !isAddToSetMode ? 'review-problem' : undefined
+                    }
                   >
                     {row.getVisibleCells().map(cell => (
                       <TableCell key={cell.id}>
