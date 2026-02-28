@@ -11,6 +11,7 @@ import SolutionReveal from './solution-reveal';
 import StatusSelector from './status-selector';
 import ReviewSessionNav from '@/components/review/review-session-nav';
 import { Problem, Subject, MCQAnswerConfig } from '@/lib/types';
+import { useOnboarding } from '@/components/onboarding/onboarding-provider';
 import {
   BookOpen,
   PencilLine,
@@ -81,6 +82,7 @@ export default function ProblemReview({
   sessionNav,
 }: ProblemReviewProps) {
   const router = useRouter();
+  const { refreshChecklistStatus } = useOnboarding();
   const [userAnswer, setUserAnswer] = useState<any>('');
   const [submittedAnswer, setSubmittedAnswer] = useState<any>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
@@ -182,6 +184,7 @@ export default function ProblemReview({
 
       // Notify parent about status selection (for session progress tracking)
       onStatusSelected?.(newStatus);
+      refreshChecklistStatus();
 
       // Refresh the page to get updated data
       router.refresh();

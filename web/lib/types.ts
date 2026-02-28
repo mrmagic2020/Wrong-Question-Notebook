@@ -226,6 +226,19 @@ export interface ExtractedProblemData {
 }
 
 // =====================================================
+// Onboarding Types
+// =====================================================
+
+export interface OnboardingStatus {
+  hasSubject: boolean;
+  hasProblem: boolean;
+  hasReviewed: boolean;
+  firstSubjectId: string | null;
+  firstProblemId: string | null;
+  firstProblemSubjectId: string | null;
+}
+
+// =====================================================
 // Component Prop Types
 // =====================================================
 

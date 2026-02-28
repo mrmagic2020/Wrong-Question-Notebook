@@ -12,6 +12,7 @@ import { useConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SubjectWithMetadata } from '@/lib/types';
+import { useOnboarding } from '@/components/onboarding/onboarding-provider';
 import { Search, BookMarked } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -29,6 +30,7 @@ export default function SubjectsPageClient({
     useState<SubjectWithMetadata | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const { refreshChecklistStatus } = useOnboarding();
   const { showConfirmation, ConfirmationDialogComponent } =
     useConfirmationDialog();
 
@@ -93,6 +95,7 @@ export default function SubjectsPageClient({
 
   const handleSubjectCreated = (newSubject: SubjectWithMetadata) => {
     setSubjects(prev => [...prev, newSubject]);
+    refreshChecklistStatus();
     router.refresh();
   };
 
@@ -130,7 +133,10 @@ export default function SubjectsPageClient({
                 Try "Mathematics", "Physics", or "Computer Science".
               </p>
             </div>
-            <div className="w-full max-w-sm mt-4 text-left">
+            <div
+              className="w-full max-w-sm mt-4 text-left"
+              data-onboarding-target="create-subject"
+            >
               <PlaceholderNotebookCard
                 onClick={() => setCreateDialogOpen(true)}
               />
@@ -170,6 +176,7 @@ export default function SubjectsPageClient({
                 <PlaceholderNotebookCard
                   onClick={() => setCreateDialogOpen(true)}
                   className="notebook-card-enter"
+                  data-onboarding-target="create-subject"
                   style={{
                     animationDelay: `${filteredSubjects.length * 0.08}s`,
                   }}

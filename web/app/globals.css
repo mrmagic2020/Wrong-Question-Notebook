@@ -646,6 +646,11 @@ html body[data-scroll-locked] {
     animation: cookieBannerSlideUp 0.4s ease-out 0.8s both;
   }
 
+  /* Onboarding checklist slide-up entrance */
+  .onboarding-checklist-enter {
+    animation: onboardingSlideUp 0.4s ease-out both;
+  }
+
   /* Animation classes */
   .auth-fade-in {
     animation: authFadeIn 0.6s ease-out 0.2s both;
@@ -1213,4 +1218,48 @@ html body[data-scroll-locked] {
 
 .notebook-card-enter {
   animation: notebookSlideIn 0.4s ease-out both;
+}
+
+/* Onboarding checklist entrance */
+@keyframes onboardingSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Onboarding spotlight pulse */
+@keyframes onboardingPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+  }
+}
+
+[data-onboarding-step='create-subject']
+  [data-onboarding-target='create-subject'],
+[data-onboarding-step='log-problem'] [data-onboarding-target='log-problem'],
+[data-onboarding-step='review-problem']
+  [data-onboarding-target='review-problem'] {
+  animation: onboardingPulse 2s ease-in-out infinite;
+  border-radius: 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-checklist-enter {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  [data-onboarding-target] {
+    animation: none !important;
+  }
 }

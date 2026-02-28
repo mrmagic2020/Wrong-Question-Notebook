@@ -5,6 +5,7 @@ import ProblemForm from './problem-form';
 import EnhancedProblemsTable from './enhanced-problems-table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProblemsPageClientProps, Problem } from '@/lib/types';
+import { useOnboarding } from '@/components/onboarding/onboarding-provider';
 
 export default function ProblemsPageClient({
   initialProblems,
@@ -14,6 +15,7 @@ export default function ProblemsPageClient({
 }: ProblemsPageClientProps) {
   const [problems, setProblems] = useState(initialProblems);
   const [tagsByProblem, setTagsByProblem] = useState(initialTagsByProblem);
+  const { refreshChecklistStatus } = useOnboarding();
 
   // Handle new problem creation
   const handleProblemCreated = (newProblem: Problem) => {
@@ -23,6 +25,7 @@ export default function ProblemsPageClient({
       ...prev,
       [newProblem.id]: newProblem.tags || [],
     }));
+    refreshChecklistStatus();
   };
 
   // Handle problem deletion
@@ -49,7 +52,7 @@ export default function ProblemsPageClient({
   return (
     <>
       {/* Create form with subject fixed */}
-      <Card className="card-section">
+      <Card className="card-section" data-onboarding-target="log-problem">
         <CardHeader className="card-section-header">
           <CardTitle className="card-section-title">Add a problem</CardTitle>
         </CardHeader>
