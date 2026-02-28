@@ -45,11 +45,15 @@ async function getOnboardingStatus() {
           .maybeSingle(),
       ]);
 
-    if (subjects.error || problems.error || reviewed.error) {
-      const errMsg =
-        subjects.error?.message ||
-        problems.error?.message ||
-        reviewed.error?.message;
+    const queryError =
+      subjects.error ||
+      problems.error ||
+      reviewed.error ||
+      firstSubject.error ||
+      firstProblem.error;
+
+    if (queryError) {
+      const errMsg = queryError.message;
       return NextResponse.json(
         createApiErrorResponse(ERROR_MESSAGES.DATABASE_ERROR, 500, errMsg),
         { status: 500 }
