@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { BackLink } from '@/components/back-link';
 import { ProblemType, ProblemStatus } from '@/lib/schemas';
 import { RichTextDisplay } from '@/components/ui/rich-text-display';
+import MathText from '@/components/ui/math-text';
 import AnswerInput from './answer-input';
 import SolutionReveal from './solution-reveal';
 import StatusSelector from './status-selector';
@@ -395,9 +396,14 @@ export default function ProblemReview({
                             const picked = config.choices.find(
                               c => c.id === submittedAnswer
                             );
-                            return picked
-                              ? `${picked.id}${picked.text ? `. ${picked.text}` : ''}`
-                              : submittedAnswer;
+                            if (!picked) return submittedAnswer;
+                            return picked.text ? (
+                              <>
+                                {picked.id}. <MathText text={picked.text} />
+                              </>
+                            ) : (
+                              picked.id
+                            );
                           })()}
                         </p>
                       </>

@@ -2,6 +2,7 @@
 
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import MathText from '@/components/ui/math-text';
 import { AnswerInputProps } from '@/lib/types';
 import type { MCQAnswerConfig } from '@/lib/types';
 
@@ -55,7 +56,9 @@ export default function AnswerInput({
                 {choice.id}
               </span>
               {choice.text && (
-                <span className="text-sm text-foreground">{choice.text}</span>
+                <span className="text-sm text-foreground">
+                  <MathText text={choice.text} />
+                </span>
               )}
             </label>
           );

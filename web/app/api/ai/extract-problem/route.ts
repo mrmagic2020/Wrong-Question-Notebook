@@ -30,7 +30,7 @@ Your task:
    - "mcq" if it has labeled choices (A, B, C, D or similar)
    - "short" if it expects a brief answer (number, word, short phrase)
    - "extended" if it requires a longer response, proof, or explanation
-4. For MCQ problems, extract each choice with its label and text. MCQ choice text must be plain text only -- do NOT use $...$ or any LaTeX/math notation in mcq_choices, since those fields do not support rich text rendering.
+4. For MCQ problems, extract each choice with its label and text. You MAY use $...$ inline math notation in mcq_choices text when the choice contains mathematical expressions.
 5. Generate a concise title (max 50 characters) summarizing the problem.
 6. Preserve the original language of the problem.
 7. Set confidence fields honestly:
