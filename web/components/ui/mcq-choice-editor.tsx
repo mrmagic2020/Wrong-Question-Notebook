@@ -104,6 +104,8 @@ export function MCQChoiceEditor({
                 </button>
                 {focusedChoiceId !== choice.id && containsMath(choice.text) ? (
                   <div
+                    role="button"
+                    tabIndex={0}
                     className="flex-1 cursor-text px-3 py-2 text-sm"
                     onClick={() => {
                       setFocusedChoiceId(choice.id);
@@ -111,6 +113,16 @@ export function MCQChoiceEditor({
                         inputRefs.current[choice.id]?.focus();
                       });
                     }}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setFocusedChoiceId(choice.id);
+                        requestAnimationFrame(() => {
+                          inputRefs.current[choice.id]?.focus();
+                        });
+                      }
+                    }}
+                    aria-label={`Edit choice ${choice.id}: ${choice.text}`}
                   >
                     <MathText text={choice.text} />
                   </div>
