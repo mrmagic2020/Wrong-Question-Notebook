@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { RichTextDisplay } from '@/components/ui/rich-text-display';
+import MathText from '@/components/ui/math-text';
 import { SolutionRevealProps } from '@/lib/types';
 import type {
   MCQAnswerConfig,
@@ -23,7 +24,13 @@ function StructuredAnswerDisplay({
       <div className="space-y-2">
         <p className="font-mono text-lg">
           {config.correct_choice_id}
-          {correctChoice ? `: ${correctChoice.text}` : ''}
+          {correctChoice ? (
+            <>
+              : <MathText text={correctChoice.text} />
+            </>
+          ) : (
+            ''
+          )}
         </p>
         <div className="space-y-1">
           {config.choices.map(choice => (
@@ -36,7 +43,9 @@ function StructuredAnswerDisplay({
               }`}
             >
               <span className="font-semibold">{choice.id}.</span>
-              <span>{choice.text}</span>
+              <span>
+                <MathText text={choice.text} />
+              </span>
             </div>
           ))}
         </div>

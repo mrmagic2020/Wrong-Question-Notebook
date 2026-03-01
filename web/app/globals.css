@@ -910,6 +910,18 @@ html body[data-scroll-locked] {
   word-break: normal;
 }
 
+/* KaTeX math in inline MathText component (MCQ choices, etc.) */
+.math-text .katex {
+  font-size: 1.1em;
+  line-height: 1.2;
+}
+
+.math-text .katex * {
+  max-width: none;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
 /* KaTeX math rendering in display component */
 .rich-text-content .katex {
   font-size: 1.2em;

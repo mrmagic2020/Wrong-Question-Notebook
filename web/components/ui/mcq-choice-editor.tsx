@@ -1,10 +1,11 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
 import { ANSWER_CONFIG_CONSTANTS } from '@/lib/constants';
+import MathText, { containsMath } from '@/components/ui/math-text';
 import type { MCQChoice } from '@/lib/types';
 
 interface MCQChoiceEditorProps {
@@ -24,6 +25,9 @@ export function MCQChoiceEditor({
 }: MCQChoiceEditorProps) {
   const { MIN_CHOICES, MAX_CHOICES, MAX_CHOICE_TEXT_LENGTH } =
     ANSWER_CONFIG_CONSTANTS.MCQ;
+
+  const [focusedChoiceId, setFocusedChoiceId] = useState<string | null>(null);
+  const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const handleTextChange = useCallback(
     (id: string, text: string) => {
@@ -98,14 +102,33 @@ export function MCQChoiceEditor({
                 >
                   {choice.id}
                 </button>
-                <Input
-                  value={choice.text}
-                  onChange={e => handleTextChange(choice.id, e.target.value)}
-                  placeholder={`Option ${choice.id}...`}
-                  maxLength={MAX_CHOICE_TEXT_LENGTH}
-                  disabled={disabled}
-                  className="flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0"
-                />
+                {focusedChoiceId !== choice.id && containsMath(choice.text) ? (
+                  <div
+                    className="flex-1 cursor-text px-3 py-2 text-sm"
+                    onClick={() => {
+                      setFocusedChoiceId(choice.id);
+                      requestAnimationFrame(() => {
+                        inputRefs.current[choice.id]?.focus();
+                      });
+                    }}
+                  >
+                    <MathText text={choice.text} />
+                  </div>
+                ) : (
+                  <Input
+                    ref={el => {
+                      inputRefs.current[choice.id] = el;
+                    }}
+                    value={choice.text}
+                    onChange={e => handleTextChange(choice.id, e.target.value)}
+                    onFocus={() => setFocusedChoiceId(choice.id)}
+                    onBlur={() => setFocusedChoiceId(null)}
+                    placeholder={`Option ${choice.id}...`}
+                    maxLength={MAX_CHOICE_TEXT_LENGTH}
+                    disabled={disabled}
+                    className="flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0"
+                  />
+                )}
                 {choices.length > MIN_CHOICES && (
                   <Button
                     type="button"
@@ -141,6 +164,9 @@ export function MCQChoiceEditor({
             Click a letter to mark the correct answer
           </p>
         )}
+        <p className="text-xs text-muted-foreground">
+          Tip: Use $...$ for math, e.g. $x^2 + 1$
+        </p>
       </div>
     </div>
   );
