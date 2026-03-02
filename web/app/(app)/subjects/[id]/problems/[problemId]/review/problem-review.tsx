@@ -103,6 +103,11 @@ export default function ProblemReview({
     null
   );
   const [hasRecordedAttempt, setHasRecordedAttempt] = useState(false);
+  const [lastReflection, setLastReflection] = useState<{
+    confidence: number | null;
+    cause: string | null;
+    notes: string | null;
+  }>({ confidence: null, cause: null, notes: null });
   const [logAttemptDialogOpen, setLogAttemptDialogOpen] = useState(false);
   const [timelineRefreshKey, setTimelineRefreshKey] = useState(0);
 
@@ -563,7 +568,13 @@ export default function ProblemReview({
         onOpenChange={setReflectionDialogOpen}
         attemptId={lastAttemptId || undefined}
         isCorrect={lastAttemptCorrect}
-        onSaved={() => setTimelineRefreshKey(k => k + 1)}
+        initialConfidence={lastReflection.confidence}
+        initialCause={lastReflection.cause}
+        initialNotes={lastReflection.notes}
+        onSaved={data => {
+          if (data) setLastReflection(data);
+          setTimelineRefreshKey(k => k + 1);
+        }}
       />
 
       {/* Manual attempt log dialog (POSTs new attempt) */}

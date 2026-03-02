@@ -32,7 +32,11 @@ interface ReflectionDialogProps {
   initialNotes?: string | null;
   /** The recorded response to display (non-editable) in edit mode */
   submittedAnswer?: string;
-  onSaved?: () => void;
+  onSaved?: (data?: {
+    confidence: number | null;
+    cause: string | null;
+    notes: string | null;
+  }) => void;
   onDismissed?: () => void;
 }
 
@@ -110,7 +114,11 @@ export default function ReflectionDialog({
         });
         if (!res.ok) throw new Error('Failed to save reflection');
       }
-      onSaved?.();
+      onSaved?.({
+        confidence,
+        cause: cause || null,
+        notes: notes || null,
+      });
       onOpenChange(false);
     } catch {
       // Silently fail - user can retry
