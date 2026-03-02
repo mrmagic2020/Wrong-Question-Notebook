@@ -221,9 +221,7 @@ export default function ReflectionDialog({
                 <span
                   className={cn(
                     'text-xs',
-                    responseAtLimit
-                      ? 'text-amber-500'
-                      : 'text-muted-foreground'
+                    responseAtLimit ? 'text-amber-500' : 'text-muted-foreground'
                   )}
                 >
                   {response.length}/{RESPONSE_MAX}

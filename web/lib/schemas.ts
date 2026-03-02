@@ -154,16 +154,23 @@ export const CreateAttemptDto = z.object({
     z.record(z.string(), z.unknown()),
   ]),
   is_correct: z.boolean().nullable().optional(), // optional for manual types
-  cause: z.string().optional(), // reflection text
+  cause: z.string().optional(), // categorical reason for correct/incorrect
   is_self_assessed: z.boolean().default(false),
   confidence: z.number().int().min(1).max(5).nullable().optional(),
-  reflection_notes: z.string().max(ATTEMPT_CONSTANTS.MAX_REFLECTION_NOTES_LENGTH).optional(),
+  reflection_notes: z
+    .string()
+    .max(ATTEMPT_CONSTANTS.MAX_REFLECTION_NOTES_LENGTH)
+    .optional(),
 });
 
 export const UpdateAttemptDto = z.object({
   confidence: z.number().int().min(1).max(5).nullable().optional(),
   cause: z.string().nullable().optional(),
-  reflection_notes: z.string().max(ATTEMPT_CONSTANTS.MAX_REFLECTION_NOTES_LENGTH).nullable().optional(),
+  reflection_notes: z
+    .string()
+    .max(ATTEMPT_CONSTANTS.MAX_REFLECTION_NOTES_LENGTH)
+    .nullable()
+    .optional(),
 });
 
 export const ListAttemptsQuery = z.object({

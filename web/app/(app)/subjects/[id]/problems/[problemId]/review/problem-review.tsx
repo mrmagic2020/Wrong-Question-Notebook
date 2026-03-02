@@ -487,7 +487,6 @@ export default function ProblemReview({
               wrapperClassName="bg-gradient-to-br from-green-50 to-emerald-100/50 dark:from-green-950/40 dark:to-emerald-900/20 p-4"
             />
           </div>
-
         </div>
 
         {/* RIGHT COLUMN - Sticky Sidebar */}
