@@ -14,16 +14,20 @@ export default function ConfidenceSelector({
 }: ConfidenceSelectorProps) {
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+      <label
+        id="confidence-label"
+        className="text-sm font-medium text-gray-700 dark:text-gray-300"
+      >
         Confidence
       </label>
-      <div className="flex gap-1.5">
+      <div className="flex gap-1.5" role="group" aria-labelledby="confidence-label">
         {[1, 2, 3, 4, 5].map(level => (
           <button
             key={level}
             type="button"
             onClick={() => onChange(level)}
-            title={ATTEMPT_CONSTANTS.CONFIDENCE_LABELS[level]}
+            aria-pressed={value === level}
+            aria-label={`${level} – ${ATTEMPT_CONSTANTS.CONFIDENCE_LABELS[level]}`}
             className={cn(
               'flex-1 h-9 rounded-lg text-sm font-medium transition-all',
               'border focus:outline-none focus:ring-2 focus:ring-violet-400/50',

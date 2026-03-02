@@ -176,13 +176,21 @@ export default function ReflectionDialog({
           {/* Self-assessment toggle (manual mode) */}
           {isNewAttempt && (
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                id="self-assessment-label"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
                 Did you get it right?
               </label>
-              <div className="flex gap-2">
+              <div
+                className="flex gap-2"
+                role="group"
+                aria-labelledby="self-assessment-label"
+              >
                 <button
                   type="button"
                   onClick={() => setSelfAssessment(true)}
+                  aria-pressed={selfAssessment === true}
                   className={cn(
                     'flex-1 py-2 rounded-lg text-sm font-medium transition-all border',
                     selfAssessment === true
@@ -195,6 +203,7 @@ export default function ReflectionDialog({
                 <button
                   type="button"
                   onClick={() => setSelfAssessment(false)}
+                  aria-pressed={selfAssessment === false}
                   className={cn(
                     'flex-1 py-2 rounded-lg text-sm font-medium transition-all border',
                     selfAssessment === false
