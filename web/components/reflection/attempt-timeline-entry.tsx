@@ -135,7 +135,7 @@ export default function AttemptTimelineEntry({
               <AccordionContent className="pt-2 pb-0">
                 <div className="space-y-2 text-sm">
                   {/* Submitted response */}
-                  {attempt.submitted_answer &&
+                  {attempt.submitted_answer != null &&
                     attempt.submitted_answer !== 'Self-assessed' && (
                       <p className="text-gray-700 dark:text-gray-300 line-clamp-2">
                         <span className="text-xs font-medium text-muted-foreground">
@@ -199,7 +199,7 @@ export default function AttemptTimelineEntry({
         initialCause={attempt.cause}
         initialNotes={attempt.reflection_notes}
         submittedAnswer={
-          attempt.submitted_answer &&
+          attempt.submitted_answer != null &&
           attempt.submitted_answer !== 'Self-assessed'
             ? typeof attempt.submitted_answer === 'string'
               ? attempt.submitted_answer
