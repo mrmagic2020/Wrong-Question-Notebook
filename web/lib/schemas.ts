@@ -148,11 +148,11 @@ export const UpdateTagDto = z.object({
 export const CreateAttemptDto = z.object({
   problem_id: z.uuid(),
   submitted_answer: z.union([
-    z.string(),
+    z.string().max(ATTEMPT_CONSTANTS.MAX_RESPONSE_LENGTH),
     z.number(),
     z.boolean(),
     z.record(z.string(), z.unknown()),
-  ]), // keep flexible; will handle in review endpoints later
+  ]),
   is_correct: z.boolean().nullable().optional(), // optional for manual types
   cause: z.string().optional(), // reflection text
   is_self_assessed: z.boolean().default(false),
