@@ -59,7 +59,7 @@ export async function POST(
       );
     }
 
-    const { submitted_answer } = body;
+    const { submitted_answer, record = true } = body;
 
     if (submitted_answer === undefined || submitted_answer === null) {
       return NextResponse.json(
@@ -81,37 +81,47 @@ export async function POST(
     );
 
     if (user) {
-      // Authenticated user: create attempt record
-      const attemptData = {
-        problem_id: problemId,
-        submitted_answer,
-        is_correct: isCorrect,
-        user_id: user.id,
-      };
+      if (record) {
+        // Authenticated user: create attempt record
+        const attemptData = {
+          problem_id: problemId,
+          submitted_answer,
+          is_correct: isCorrect,
+          user_id: user.id,
+        };
 
-      const { data: attempt, error: attemptError } = await supabase
-        .from('attempts')
-        .insert(attemptData)
-        .select()
-        .single();
+        const { data: attempt, error: attemptError } = await supabase
+          .from('attempts')
+          .insert(attemptData)
+          .select()
+          .single();
 
-      if (attemptError) {
+        if (attemptError) {
+          return NextResponse.json(
+            createApiErrorResponse(
+              ERROR_MESSAGES.DATABASE_ERROR,
+              500,
+              attemptError.message
+            ),
+            { status: 500 }
+          );
+        }
+
+        // Invalidate cache after successful attempt creation
+        await revalidateProblemAndSubject(problemId, problem.subject_id);
+
         return NextResponse.json(
-          createApiErrorResponse(
-            ERROR_MESSAGES.DATABASE_ERROR,
-            500,
-            attemptError.message
-          ),
-          { status: 500 }
+          createApiSuccessResponse({
+            data: attempt,
+            is_correct: isCorrect,
+          })
         );
       }
 
-      // Invalidate cache after successful attempt creation
-      await revalidateProblemAndSubject(problemId, problem.subject_id);
-
+      // Mark-only mode: return correctness without saving
       return NextResponse.json(
         createApiSuccessResponse({
-          data: attempt,
+          data: null,
           is_correct: isCorrect,
         })
       );

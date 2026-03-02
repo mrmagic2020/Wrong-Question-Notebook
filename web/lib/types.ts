@@ -129,8 +129,12 @@ export interface Attempt {
   problem_id: string;
   submitted_answer: string | number | boolean | Record<string, unknown>;
   is_correct: boolean | null;
-  cause?: string;
+  cause: string | null;
+  is_self_assessed: boolean;
+  confidence: number | null;
+  reflection_notes: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 // =====================================================

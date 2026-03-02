@@ -511,6 +511,39 @@ const ICON_COMPONENT_MAP: Record<SubjectIcon, LucideIcon> = {
 };
 
 // =====================================================
+// Attempt & Reflection Constants
+// =====================================================
+export const ATTEMPT_CONSTANTS = {
+  CAUSE_CATEGORIES: {
+    INCORRECT: [
+      { value: 'careless', label: 'Careless mistake' },
+      { value: 'misread', label: 'Misread the question' },
+      { value: 'knowledge_gap', label: 'Knowledge gap' },
+      { value: 'forgot_method', label: 'Forgot the method' },
+      { value: 'ran_out_of_time', label: 'Ran out of time' },
+      { value: 'guessed', label: 'Guessed' },
+      { value: 'other', label: 'Other' },
+    ],
+    CORRECT: [
+      { value: 'confident', label: 'Confident' },
+      { value: 'educated_guess', label: 'Educated guess' },
+      { value: 'elimination', label: 'Process of elimination' },
+      { value: 'lucky', label: 'Got lucky' },
+      { value: 'other', label: 'Other' },
+    ],
+  },
+  CONFIDENCE_LABELS: {
+    1: 'Wild guess',
+    2: 'Uncertain',
+    3: 'Somewhat confident',
+    4: 'Fairly confident',
+    5: 'Absolutely certain',
+  } as Record<number, string>,
+  MAX_REFLECTION_NOTES_LENGTH: 2000,
+  MAX_RESPONSE_LENGTH: 500,
+} as const;
+
+// =====================================================
 // Cookie Consent Constants
 // =====================================================
 export const COOKIE_CONSENT_CONSTANTS = {

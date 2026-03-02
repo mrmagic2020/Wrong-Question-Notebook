@@ -52,6 +52,15 @@ Run from `web/`:
 
 Always run `npm run prepush` before committing to catch issues.
 
+## Changelog
+
+The project maintains a changelog at `CHANGELOG.md` following the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format. **Always update the changelog** when implementing features, fixes, or notable changes:
+
+- Add entries under `## [Unreleased]` using the appropriate category: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`
+- Group related changes under a bold feature name (e.g. `- **Feature Name**`) with sub-bullets for details
+- Keep entries concise but descriptive enough that someone reading the changelog understands what changed
+- Do not include purely internal refactors or dependency bumps unless they affect user-facing behavior
+
 ---
 
 ## UI Design Guidelines
