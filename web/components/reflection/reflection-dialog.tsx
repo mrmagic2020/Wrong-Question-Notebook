@@ -28,8 +28,8 @@ interface ReflectionDialogProps {
   problemId?: string;
   /** Existing values to pre-populate in edit mode */
   initialConfidence?: number | null;
-  initialCause?: string;
-  initialNotes?: string;
+  initialCause?: string | null;
+  initialNotes?: string | null;
   /** The recorded response to display (non-editable) in edit mode */
   submittedAnswer?: string;
   onSaved?: () => void;
