@@ -1,0 +1,79 @@
+import { NextResponse } from 'next/server';
+import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
+import { UpdateAttemptDto } from '@/lib/schemas';
+import {
+  createApiErrorResponse,
+  createApiSuccessResponse,
+  handleAsyncError,
+} from '@/lib/common-utils';
+import { ERROR_MESSAGES } from '@/lib/constants';
+
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { user, supabase } = await requireUser();
+  if (!user) return unauthorised();
+
+  const { id: attemptId } = await params;
+  let body;
+  try {
+    body = await req.json();
+  } catch (error) {
+    return NextResponse.json(
+      createApiErrorResponse(
+        ERROR_MESSAGES.INVALID_REQUEST,
+        400,
+        error as string
+      ),
+      { status: 400 }
+    );
+  }
+
+  const parsed = UpdateAttemptDto.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      createApiErrorResponse(
+        'Invalid request body',
+        400,
+        parsed.error.flatten()
+      ),
+      { status: 400 }
+    );
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('attempts')
+      .update(parsed.data)
+      .eq('id', attemptId)
+      .eq('user_id', user.id)
+      .select()
+      .single();
+
+    if (error) {
+      return NextResponse.json(
+        createApiErrorResponse(
+          ERROR_MESSAGES.DATABASE_ERROR,
+          500,
+          error.message
+        ),
+        { status: 500 }
+      );
+    }
+
+    if (!data) {
+      return NextResponse.json(
+        createApiErrorResponse(ERROR_MESSAGES.NOT_FOUND, 404),
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(createApiSuccessResponse(data));
+  } catch (error) {
+    const { message, status } = handleAsyncError(error);
+    return NextResponse.json(createApiErrorResponse(message, status), {
+      status,
+    });
+  }
+}

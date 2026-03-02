@@ -11,11 +11,14 @@ import AnswerInput from './answer-input';
 import SolutionReveal from './solution-reveal';
 import StatusSelector from './status-selector';
 import ReviewSessionNav from '@/components/review/review-session-nav';
+import ReflectionDialog from '@/components/reflection/reflection-dialog';
+import AttemptTimeline from '@/components/reflection/attempt-timeline';
 import { Problem, Subject, MCQAnswerConfig } from '@/lib/types';
 import { useOnboarding } from '@/components/onboarding/onboarding-provider';
 import {
   BookOpen,
   PencilLine,
+  ClipboardCheck,
   Tag,
   ChevronLeft,
   ChevronRight,
@@ -94,6 +97,14 @@ export default function ProblemReview({
     null
   );
   const [tagsExpanded, setTagsExpanded] = useState(false);
+  const [reflectionDialogOpen, setReflectionDialogOpen] = useState(false);
+  const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
+  const [lastAttemptCorrect, setLastAttemptCorrect] = useState<boolean | null>(
+    null
+  );
+  const [hasRecordedAttempt, setHasRecordedAttempt] = useState(false);
+  const [logAttemptDialogOpen, setLogAttemptDialogOpen] = useState(false);
+  const [timelineRefreshKey, setTimelineRefreshKey] = useState(0);
 
   // Scroll to top when problem changes
   useEffect(() => {
@@ -116,6 +127,7 @@ export default function ProblemReview({
   const handleAnswerSubmit = async () => {
     if (!problem.auto_mark) return;
 
+    const isFirstAttempt = !hasRecordedAttempt;
     setIsSubmitting(true);
     setError(null);
 
@@ -127,6 +139,7 @@ export default function ProblemReview({
         },
         body: JSON.stringify({
           submitted_answer: userAnswer,
+          record: isFirstAttempt,
         }),
       });
 
@@ -138,6 +151,14 @@ export default function ProblemReview({
 
       setSubmittedAnswer(userAnswer);
       setIsCorrect(result.data.is_correct);
+
+      // Capture attempt info for reflection (only on first attempt)
+      if (isFirstAttempt && result.data.data?.id) {
+        setLastAttemptId(result.data.data.id);
+        setLastAttemptCorrect(result.data.is_correct);
+        setHasRecordedAttempt(true);
+        setTimelineRefreshKey(k => k + 1);
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -311,7 +332,7 @@ export default function ProblemReview({
               </div>
 
               {!problem.auto_mark && (
-                <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-md">
+                <div className="ml-10 mb-4 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-md">
                   <p className="text-sm text-blue-800 dark:text-blue-200">
                     This problem requires manual review. Enter your answer below
                     and click "View Solution" to check your work.
@@ -353,6 +374,18 @@ export default function ProblemReview({
                     </Button>
                   )}
 
+                  {problem.auto_mark &&
+                    submittedAnswer !== null &&
+                    lastAttemptId && (
+                      <Button
+                        variant="outline"
+                        onClick={() => setReflectionDialogOpen(true)}
+                      >
+                        <ClipboardCheck className="w-4 h-4 mr-1.5" />
+                        Reflect
+                      </Button>
+                    )}
+
                   {!problem.auto_mark &&
                     userAnswer &&
                     problem.correct_answer && (
@@ -363,6 +396,16 @@ export default function ProblemReview({
                         View Solution
                       </Button>
                     )}
+
+                  {!problem.auto_mark && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setLogAttemptDialogOpen(true)}
+                    >
+                      <ClipboardCheck className="w-4 h-4 mr-1.5" />
+                      Log Attempt
+                    </Button>
+                  )}
                 </div>
 
                 {/* Answer Feedback */}
@@ -444,6 +487,7 @@ export default function ProblemReview({
               wrapperClassName="bg-gradient-to-br from-green-50 to-emerald-100/50 dark:from-green-950/40 dark:to-emerald-900/20 p-4"
             />
           </div>
+
         </div>
 
         {/* RIGHT COLUMN - Sticky Sidebar */}
@@ -505,8 +549,32 @@ export default function ProblemReview({
               </div>
             )
           )}
+
+          {/* Attempt History Timeline (VIOLET gradient) */}
+          <AttemptTimeline
+            problemId={problem.id}
+            refreshKey={timelineRefreshKey}
+          />
         </div>
       </div>
+
+      {/* Auto-mark reflection dialog (PATCHes existing attempt) */}
+      <ReflectionDialog
+        open={reflectionDialogOpen}
+        onOpenChange={setReflectionDialogOpen}
+        attemptId={lastAttemptId || undefined}
+        isCorrect={lastAttemptCorrect}
+        onSaved={() => setTimelineRefreshKey(k => k + 1)}
+      />
+
+      {/* Manual attempt log dialog (POSTs new attempt) */}
+      <ReflectionDialog
+        open={logAttemptDialogOpen}
+        onOpenChange={setLogAttemptDialogOpen}
+        isNewAttempt
+        problemId={problem.id}
+        onSaved={() => setTimelineRefreshKey(k => k + 1)}
+      />
     </div>
   );
 }

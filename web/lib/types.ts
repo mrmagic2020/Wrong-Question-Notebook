@@ -130,7 +130,11 @@ export interface Attempt {
   submitted_answer: string | number | boolean | Record<string, unknown>;
   is_correct: boolean | null;
   cause?: string;
+  is_self_assessed: boolean;
+  confidence: number | null;
+  reflection_notes?: string;
   created_at: string;
+  updated_at: string;
 }
 
 // =====================================================

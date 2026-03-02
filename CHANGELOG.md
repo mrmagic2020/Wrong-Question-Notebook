@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning].
 
 ## [Unreleased]
 
+### Added
+
+- **Attempt History & Self-Reflection**
+  - Post-submission reflection dialog for auto-marked problems (confidence, cause category, notes)
+  - Only the first submission per session is recorded as an attempt; resubmissions are mark-only
+  - "Reflect" button appears after any submission for optional reflection
+  - Manual attempt logging for non-auto-marked problems with self-assessment toggle
+  - Collapsible attempt history timeline in the review sidebar with smooth animations
+  - Expandable timeline entries showing result, confidence dots, cause, and reflection notes
+  - Edit reflection data from timeline entries at any time
+  - `PATCH /api/attempts/[id]` endpoint for updating reflection data
+  - Database migration: `is_self_assessed`, `confidence`, `reflection_notes`, `updated_at` columns on `attempts` table
+
 ## [0.1.0-beta] - 2025-09-27
 
 ### Added

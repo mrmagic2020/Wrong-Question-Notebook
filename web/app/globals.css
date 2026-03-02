@@ -539,6 +539,11 @@ html body[data-scroll-locked] {
     @apply border-rose-200/40 dark:border-rose-800/30;
   }
 
+  .review-section-violet {
+    @apply review-section-warm from-violet-50 to-purple-100/50 dark:from-violet-950/40 dark:to-purple-900/20;
+    @apply border-violet-200/40 dark:border-violet-800/30;
+  }
+
   .review-icon-small {
     @apply w-8 h-8 rounded-lg flex items-center justify-center;
   }
