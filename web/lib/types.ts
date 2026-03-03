@@ -243,6 +243,43 @@ export interface OnboardingStatus {
 }
 
 // =====================================================
+// QR Upload Session Types
+// =====================================================
+
+export type QRSessionStatus = 'pending' | 'uploaded' | 'consumed' | 'expired';
+
+export interface QRUploadSession {
+  id: string;
+  user_id: string;
+  token_hash: string;
+  status: QRSessionStatus;
+  file_path: string | null;
+  mime_type: string | null;
+  created_at: string;
+  expires_at: string;
+  uploaded_at: string | null;
+  consumed_at: string | null;
+}
+
+export interface QRSessionCreateResponse {
+  sessionId: string;
+  token: string;
+  expiresAt: string;
+  uploadUrl: string;
+}
+
+export interface QRSessionStatusResponse {
+  status: QRSessionStatus;
+  filePath: string | null;
+  mimeType: string | null;
+}
+
+export interface QRSessionConsumeResponse {
+  filePath: string;
+  mimeType: string;
+}
+
+// =====================================================
 // Component Prop Types
 // =====================================================
 

@@ -388,3 +388,13 @@ export const AddProblemsToSetDto = z.object({
 export const RemoveProblemsFromSetDto = z.object({
   problem_ids: z.array(z.uuid()),
 });
+
+// =====================================================
+// QR Upload Session Schemas
+// =====================================================
+
+export const QRSessionIdParam = z.uuid();
+
+export const QRUploadQueryParams = z.object({
+  token: z.string().min(1),
+});

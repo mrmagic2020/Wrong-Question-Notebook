@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { toast } from 'sonner';
+import { QRCodeSVG } from 'qrcode.react';
 import {
   Upload,
   X,
@@ -10,11 +11,18 @@ import {
   CheckCircle2,
   Sparkles,
   Image as ImageIcon,
+  Smartphone,
+  RefreshCw,
+  Timer,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
-import { AI_CONSTANTS } from '@/lib/constants';
-import type { ExtractedProblemData } from '@/lib/types';
+import { AI_CONSTANTS, QR_SESSION_CONSTANTS } from '@/lib/constants';
+import type {
+  ExtractedProblemData,
+  QRSessionCreateResponse,
+  QRSessionStatusResponse,
+} from '@/lib/types';
 
 export interface ExtractionQuota {
   used: number;
@@ -29,7 +37,7 @@ interface ImageScanUploaderProps {
   onQuotaChange: (quota: ExtractionQuota) => void;
 }
 
-type UploaderState = 'dropzone' | 'preview' | 'result';
+type UploaderState = 'initial' | 'preview' | 'result';
 
 const ALLOWED_MIME_TYPES = AI_CONSTANTS.EXTRACTION.ALLOWED_MIME_TYPES;
 const MAX_SIZE = AI_CONSTANTS.EXTRACTION.MAX_IMAGE_SIZE;
@@ -40,7 +48,7 @@ export function ImageScanUploader({
   quota,
   onQuotaChange,
 }: ImageScanUploaderProps) {
-  const [state, setState] = useState<UploaderState>('dropzone');
+  const [state, setState] = useState<UploaderState>('initial');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
@@ -50,30 +58,54 @@ export function ImageScanUploader({
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const validateAndSetFile = useCallback((file: File) => {
-    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-      toast.error('Please upload a JPEG, PNG, WebP, or GIF image.');
-      return;
-    }
-    if (file.size > MAX_SIZE) {
-      toast.error('Image is too large. Maximum size is 5MB.');
-      return;
-    }
+  // QR state
+  const [qrSession, setQrSession] = useState<QRSessionCreateResponse | null>(
+    null
+  );
+  const [qrLoading, setQrLoading] = useState(false);
+  const [qrSecondsLeft, setQrSecondsLeft] = useState(0);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    setImageFile(file);
-    setError(null);
-
-    const reader = new FileReader();
-    reader.onload = e => {
-      setImagePreview(e.target?.result as string);
-      setState('preview');
-    };
-    reader.readAsDataURL(file);
+  const stopPolling = useCallback(() => {
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
   }, []);
 
-  // Clipboard paste handler
+  const validateAndSetFile = useCallback(
+    (file: File) => {
+      if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+        toast.error('Please upload a JPEG, PNG, WebP, or GIF image.');
+        return;
+      }
+      if (file.size > MAX_SIZE) {
+        toast.error('Image is too large. Maximum size is 5MB.');
+        return;
+      }
+
+      stopPolling();
+      setImageFile(file);
+      setError(null);
+
+      const reader = new FileReader();
+      reader.onload = e => {
+        setImagePreview(e.target?.result as string);
+        setState('preview');
+      };
+      reader.readAsDataURL(file);
+    },
+    [stopPolling]
+  );
+
+  // Clipboard paste handler — active in initial state
   useEffect(() => {
-    if (state !== 'dropzone') return;
+    if (state !== 'initial') return;
 
     const handlePaste = (e: ClipboardEvent) => {
       const items = e.clipboardData?.items;
@@ -93,6 +125,115 @@ export function ImageScanUploader({
     return () => document.removeEventListener('paste', handlePaste);
   }, [state, validateAndSetFile]);
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
+  }, []);
+
+  const consumeAndLoadImage = useCallback(
+    async (sessionId: string) => {
+      try {
+        const consumeRes = await fetch(
+          `/api/qr-sessions/${sessionId}/consume`,
+          { method: 'POST' }
+        );
+        const consumeJson = await consumeRes.json();
+
+        if (!consumeRes.ok) {
+          throw new Error(consumeJson.error || 'Failed to retrieve image');
+        }
+
+        const { filePath, mimeType } = consumeJson.data;
+
+        const fileRes = await fetch(
+          `/api/files/${encodeURIComponent(filePath)}`
+        );
+        if (!fileRes.ok) {
+          throw new Error('Failed to fetch image');
+        }
+
+        const blob = await fileRes.blob();
+        const fileName = filePath.split('/').pop() || 'photo.jpg';
+        const file = new File([blob], fileName, {
+          type: mimeType || blob.type,
+        });
+
+        validateAndSetFile(file);
+      } catch (err: any) {
+        toast.error(err.message || 'Failed to load image from phone');
+      }
+    },
+    [validateAndSetFile]
+  );
+
+  // Start QR session + polling
+  const createQrSession = useCallback(async () => {
+    setQrLoading(true);
+    try {
+      const res = await fetch('/api/qr-sessions', { method: 'POST' });
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json.error || 'Failed to create QR session');
+      }
+
+      const session: QRSessionCreateResponse = json.data;
+      setQrSession(session);
+
+      // Start countdown
+      const expiresAt = new Date(session.expiresAt).getTime();
+      setQrSecondsLeft(
+        Math.max(0, Math.floor((expiresAt - Date.now()) / 1000))
+      );
+
+      countdownRef.current = setInterval(() => {
+        const remaining = Math.max(
+          0,
+          Math.floor((expiresAt - Date.now()) / 1000)
+        );
+        setQrSecondsLeft(remaining);
+        if (remaining <= 0) {
+          stopPolling();
+        }
+      }, 1000);
+
+      // Start polling
+      pollRef.current = setInterval(async () => {
+        try {
+          const pollRes = await fetch(
+            `/api/qr-sessions/${session.sessionId}/status`
+          );
+          const pollJson = await pollRes.json();
+          if (!pollRes.ok) return;
+
+          const statusData: QRSessionStatusResponse = pollJson.data;
+
+          if (statusData.status === 'uploaded') {
+            stopPolling();
+            await consumeAndLoadImage(session.sessionId);
+          } else if (statusData.status === 'expired') {
+            stopPolling();
+          }
+        } catch {
+          // Ignore poll errors
+        }
+      }, QR_SESSION_CONSTANTS.POLL_INTERVAL_MS);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create QR code');
+    } finally {
+      setQrLoading(false);
+    }
+  }, [stopPolling, consumeAndLoadImage]);
+
+  // Auto-create QR session on mount
+  useEffect(() => {
+    createQrSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
@@ -107,7 +248,6 @@ export function ImageScanUploader({
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) validateAndSetFile(file);
-      // Reset input so the same file can be re-selected
       e.target.value = '';
     },
     [validateAndSetFile]
@@ -120,8 +260,6 @@ export function ImageScanUploader({
     setError(null);
 
     try {
-      // imagePreview is already a data URL (data:<mime>;base64,<data>)
-      // Extract the base64 portion directly instead of re-reading the file
       const base64 = imagePreview!.split(',')[1];
 
       const res = await fetch('/api/ai/extract-problem', {
@@ -156,12 +294,17 @@ export function ImageScanUploader({
   }, [imageFile, imagePreview, onQuotaChange]);
 
   const reset = useCallback(() => {
+    stopPolling();
     setImageFile(null);
     setImagePreview(null);
     setExtractionResult(null);
     setError(null);
-    setState('dropzone');
-  }, []);
+    setQrSession(null);
+    setQrLoading(false);
+    setState('initial');
+    // Re-create a fresh QR session
+    setTimeout(() => createQrSession(), 0);
+  }, [stopPolling, createQrSession]);
 
   const quotaExhausted = quota !== null && quota.remaining <= 0;
 
@@ -195,52 +338,146 @@ export function ImageScanUploader({
     }
   };
 
-  // Dropzone state
-  if (state === 'dropzone') {
+  // ── Initial state: dropzone (left) + QR code (right) ──
+  if (state === 'initial') {
+    const isExpired = qrSession && qrSecondsLeft <= 0;
+    const minutes = Math.floor(qrSecondsLeft / 60);
+    const seconds = qrSecondsLeft % 60;
+
     return (
       <div className="space-y-3">
-        <div
-          onDrop={handleDrop}
-          onDragOver={e => {
-            e.preventDefault();
-            setIsDragOver(true);
-          }}
-          onDragLeave={() => setIsDragOver(false)}
-          onClick={() => fileInputRef.current?.click()}
-          className={`relative cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center transition-colors ${
-            isDragOver
-              ? 'border-amber-400 bg-amber-50/50 dark:border-amber-500 dark:bg-amber-950/20'
-              : 'border-gray-300/60 dark:border-gray-700/40 hover:border-amber-400/50 dark:hover:border-amber-500/50 hover:bg-amber-50/30 dark:hover:bg-amber-950/10'
-          }`}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-          <div className="flex flex-col items-center gap-3">
-            <div className="rounded-xl bg-amber-500/10 dark:bg-amber-500/20 p-3">
-              <Upload className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+        <div className="flex gap-3">
+          {/* Left: dropzone */}
+          <div
+            onDrop={handleDrop}
+            onDragOver={e => {
+              e.preventDefault();
+              setIsDragOver(true);
+            }}
+            onDragLeave={() => setIsDragOver(false)}
+            onClick={() => fileInputRef.current?.click()}
+            className={`relative flex min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed p-5 text-center transition-colors ${
+              isDragOver
+                ? 'border-amber-400 bg-amber-50/50 dark:border-amber-500 dark:bg-amber-950/20'
+                : 'border-gray-300/60 dark:border-gray-700/40 hover:border-amber-400/50 dark:hover:border-amber-500/50 hover:bg-amber-50/30 dark:hover:bg-amber-950/10'
+            }`}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            <div className="rounded-xl bg-amber-500/10 p-2.5 dark:bg-amber-500/20">
+              <Upload className="h-5 w-5 text-amber-600 dark:text-amber-400" />
             </div>
             <div>
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Drop an image here, paste from clipboard, or click to browse
+                Drop, paste, or browse
               </p>
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                JPEG, PNG, WebP, or GIF up to 5MB
+                JPEG, PNG, WebP, GIF &le; 5 MB
               </p>
-              {quotaIndicator && <div className="mt-1">{quotaIndicator}</div>}
             </div>
           </div>
+
+          {/* Divider */}
+          <div className="flex flex-col items-center justify-center gap-1.5">
+            <div className="h-full w-px bg-gray-200/60 dark:bg-gray-700/40" />
+            <span className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
+              or
+            </span>
+            <div className="h-full w-px bg-gray-200/60 dark:bg-gray-700/40" />
+          </div>
+
+          {/* Right: QR code + instructions */}
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-gray-200/40 bg-gradient-to-br from-gray-50 to-gray-100/50 p-4 dark:border-gray-700/30 dark:from-gray-800/40 dark:to-gray-700/20">
+            {/* QR code area */}
+            {qrLoading && !qrSession ? (
+              <div className="flex h-[120px] w-[120px] items-center justify-center">
+                <Spinner className="h-6 w-6 text-gray-400" />
+              </div>
+            ) : qrSession ? (
+              <div className="flex flex-col items-center gap-1.5">
+                <div className="rounded-lg bg-white p-1.5 shadow-sm">
+                  <QRCodeSVG
+                    value={qrSession.uploadUrl}
+                    size={108}
+                    level="M"
+                    includeMargin={false}
+                    className={isExpired ? 'opacity-30' : ''}
+                  />
+                </div>
+                {isExpired ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      stopPolling();
+                      setQrSession(null);
+                      createQrSession();
+                    }}
+                    className="flex items-center gap-1 text-xs font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
+                  >
+                    <RefreshCw className="h-3 w-3" />
+                    Refresh code
+                  </button>
+                ) : (
+                  <div className="flex items-center justify-center gap-1 text-[10px] text-gray-400 dark:text-gray-500">
+                    <Timer className="h-2.5 w-2.5" />
+                    {minutes}:{seconds.toString().padStart(2, '0')}
+                    <span className="ml-0.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-blue-500" />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex h-[120px] w-[120px] flex-col items-center justify-center gap-2">
+                <Smartphone className="h-5 w-5 text-gray-400" />
+                <button
+                  type="button"
+                  onClick={createQrSession}
+                  className="text-xs font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
+                >
+                  Generate QR
+                </button>
+              </div>
+            )}
+
+            {/* Instructions */}
+            <ol className="space-y-1 text-[11px] leading-relaxed text-gray-500 dark:text-gray-400">
+              <li className="flex gap-1.5">
+                <span className="font-semibold text-gray-400 dark:text-gray-500">
+                  1.
+                </span>
+                Scan the code with your phone camera
+              </li>
+              <li className="flex gap-1.5">
+                <span className="font-semibold text-gray-400 dark:text-gray-500">
+                  2.
+                </span>
+                Take a photo of the problem
+              </li>
+              <li className="flex gap-1.5">
+                <span className="font-semibold text-gray-400 dark:text-gray-500">
+                  3.
+                </span>
+                It appears here automatically
+              </li>
+            </ol>
+          </div>
         </div>
-        <div className="flex justify-end">
+
+        {/* Footer */}
+        <div className="flex items-center justify-between">
+          <div>{quotaIndicator}</div>
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            onClick={onCancel}
+            onClick={() => {
+              stopPolling();
+              onCancel();
+            }}
             className="text-muted-foreground"
           >
             Cancel
@@ -250,11 +487,11 @@ export function ImageScanUploader({
     );
   }
 
-  // Preview state
+  // ── Preview state ──
   if (state === 'preview') {
     return (
       <div className="space-y-3">
-        <div className="rounded-2xl border border-gray-200/40 dark:border-gray-700/30 bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-gray-800/40 dark:to-gray-700/20 p-4">
+        <div className="rounded-2xl border border-gray-200/40 bg-gradient-to-br from-gray-50 to-gray-100/50 p-4 dark:border-gray-700/30 dark:from-gray-800/40 dark:to-gray-700/20">
           <div className="flex items-start gap-4">
             {imagePreview && (
               <Image
@@ -262,13 +499,13 @@ export function ImageScanUploader({
                 alt="Preview"
                 width={32}
                 height={32}
-                className="h-32 w-32 rounded-xl object-cover border border-gray-200/40 dark:border-gray-700/30"
+                className="h-32 w-32 rounded-xl border border-gray-200/40 object-cover dark:border-gray-700/30"
               />
             )}
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <ImageIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 shrink-0" />
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
+                <ImageIcon className="h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" />
+                <p className="truncate text-sm font-medium text-gray-700 dark:text-gray-300">
                   {imageFile?.name}
                 </p>
               </div>
@@ -294,7 +531,7 @@ export function ImageScanUploader({
               disabled={isExtracting}
               className="text-muted-foreground"
             >
-              <X className="h-4 w-4 mr-1" />
+              <X className="mr-1 h-4 w-4" />
               Remove
             </Button>
             <Button
@@ -312,7 +549,7 @@ export function ImageScanUploader({
                 'Daily limit reached'
               ) : (
                 <>
-                  <Sparkles className="h-4 w-4 mr-1" />
+                  <Sparkles className="mr-1 h-4 w-4" />
                   Extract
                 </>
               )}
@@ -323,15 +560,15 @@ export function ImageScanUploader({
     );
   }
 
-  // Result state
+  // ── Result state ──
   if (state === 'result' && extractionResult) {
     const { confidence } = extractionResult;
     const warnings = confidence.warnings || [];
 
     return (
       <div className="space-y-3">
-        <div className="rounded-2xl border border-emerald-200/40 dark:border-emerald-800/30 bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/40 dark:to-emerald-900/20 p-4">
-          <div className="flex items-center gap-2 mb-3">
+        <div className="rounded-2xl border border-emerald-200/40 bg-gradient-to-br from-emerald-50 to-emerald-100/50 p-4 dark:border-emerald-800/30 dark:from-emerald-950/40 dark:to-emerald-900/20">
+          <div className="mb-3 flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
             <span className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
               Problem extracted
@@ -339,26 +576,26 @@ export function ImageScanUploader({
           </div>
 
           {/* Confidence badges */}
-          <div className="flex flex-wrap gap-2 mb-3">
+          <div className="mb-3 flex flex-wrap gap-2">
             <span
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border ${confidenceColor(confidence.problem_type_confidence)}`}
+              className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${confidenceColor(confidence.problem_type_confidence)}`}
             >
               Type: {confidence.problem_type_confidence}
             </span>
             <span
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border ${confidenceColor(confidence.content_quality)}`}
+              className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${confidenceColor(confidence.content_quality)}`}
             >
               Quality: {confidence.content_quality.replace('_', ' ')}
             </span>
             {confidence.has_math && (
-              <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border bg-blue-100/80 text-blue-800 border-blue-200/50 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800/40">
+              <span className="inline-flex items-center rounded-full border border-blue-200/50 bg-blue-100/80 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:border-blue-800/40 dark:bg-blue-900/30 dark:text-blue-300">
                 Contains equations
               </span>
             )}
           </div>
 
           {/* Preview of extracted content */}
-          <div className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+          <div className="mb-2 text-sm text-gray-700 dark:text-gray-300">
             <span className="font-medium">Title:</span> {extractionResult.title}
           </div>
           <div className="text-sm text-gray-700 dark:text-gray-300">
@@ -380,7 +617,7 @@ export function ImageScanUploader({
                   key={i}
                   className="flex items-start gap-1.5 text-xs text-amber-700 dark:text-amber-400"
                 >
-                  <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                   <span>{warning}</span>
                 </div>
               ))}
@@ -403,7 +640,7 @@ export function ImageScanUploader({
             size="sm"
             onClick={() => onExtracted(extractionResult)}
           >
-            <CheckCircle2 className="h-4 w-4 mr-1" />
+            <CheckCircle2 className="mr-1 h-4 w-4" />
             Use this extraction
           </Button>
         </div>

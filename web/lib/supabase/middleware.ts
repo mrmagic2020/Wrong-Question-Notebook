@@ -141,7 +141,9 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith('/problem-sets/') &&
     !request.nextUrl.pathname.startsWith('/api/problem-sets/') &&
     !request.nextUrl.pathname.startsWith('/api/files/') &&
-    !request.nextUrl.pathname.startsWith('/api/problems/')
+    !request.nextUrl.pathname.startsWith('/api/problems/') &&
+    !request.nextUrl.pathname.startsWith('/upload/') &&
+    !request.nextUrl.pathname.startsWith('/api/qr-upload/')
   ) {
     const loginUrl = new URL(ROUTES.AUTH.LOGIN, request.url);
     loginUrl.searchParams.set(

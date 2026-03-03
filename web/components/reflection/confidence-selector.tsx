@@ -20,7 +20,11 @@ export default function ConfidenceSelector({
       >
         Confidence
       </label>
-      <div className="flex gap-1.5" role="group" aria-labelledby="confidence-label">
+      <div
+        className="flex gap-1.5"
+        role="group"
+        aria-labelledby="confidence-label"
+      >
         {[1, 2, 3, 4, 5].map(level => (
           <button
             key={level}
