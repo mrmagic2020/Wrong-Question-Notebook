@@ -28,7 +28,8 @@ interface MobileUploaderProps {
 /** Extract the cropped region from an <img> element and return it as a Blob. */
 function getCroppedBlob(
   image: HTMLImageElement,
-  pixelCrop: PixelCrop
+  pixelCrop: PixelCrop,
+  mimeType: string
 ): Promise<Blob> {
   const scaleX = image.naturalWidth / image.width;
   const scaleY = image.naturalHeight / image.height;
@@ -37,7 +38,10 @@ function getCroppedBlob(
   canvas.width = Math.round(pixelCrop.width * scaleX);
   canvas.height = Math.round(pixelCrop.height * scaleY);
 
-  const ctx = canvas.getContext('2d')!;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    return Promise.reject(new Error('Failed to crop image'));
+  }
   ctx.drawImage(
     image,
     Math.round(pixelCrop.x * scaleX),
@@ -54,7 +58,7 @@ function getCroppedBlob(
     canvas.toBlob(
       (blob) =>
         blob ? resolve(blob) : reject(new Error('Failed to crop image')),
-      'image/jpeg',
+      mimeType,
       0.92
     );
   });
@@ -138,7 +142,11 @@ export function MobileUploader({ sessionId, token }: MobileUploaderProps) {
         let uploadBlob: Blob = file;
 
         if (!skipCrop && completedCrop && imgRef.current) {
-          uploadBlob = await getCroppedBlob(imgRef.current, completedCrop);
+          uploadBlob = await getCroppedBlob(
+            imgRef.current,
+            completedCrop,
+            file.type
+          );
         }
 
         const formData = new FormData();
