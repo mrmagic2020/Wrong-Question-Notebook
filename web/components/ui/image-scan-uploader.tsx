@@ -17,6 +17,8 @@ import {
   Timer,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { createClient } from '@/lib/supabase/client';
 import { AI_CONSTANTS, QR_SESSION_CONSTANTS } from '@/lib/constants';
@@ -31,8 +33,17 @@ export interface ExtractionQuota {
   remaining: number;
 }
 
+export interface ImageAttachment {
+  file: File;
+  saveAsProblemAsset: boolean;
+  saveAsSolutionAsset: boolean;
+}
+
 interface ImageScanUploaderProps {
-  onExtracted: (data: ExtractedProblemData) => void;
+  onExtracted: (
+    data: ExtractedProblemData,
+    imageAttachment?: ImageAttachment
+  ) => void;
   onCancel: () => void;
   quota: ExtractionQuota | null;
   onQuotaChange: (quota: ExtractionQuota) => void;
@@ -57,6 +68,8 @@ export function ImageScanUploader({
     useState<ExtractedProblemData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [saveAsProblemAsset, setSaveAsProblemAsset] = useState(false);
+  const [saveAsSolutionAsset, setSaveAsSolutionAsset] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // QR state
@@ -349,6 +362,8 @@ export function ImageScanUploader({
     setError(null);
     setQrSession(null);
     setQrLoading(false);
+    setSaveAsProblemAsset(false);
+    setSaveAsSolutionAsset(false);
     setState('initial');
     setTimeout(() => createQrSession(), 0);
   }, [stopListening, createQrSession]);
@@ -567,6 +582,39 @@ export function ImageScanUploader({
             </div>
           </div>
         </div>
+        <div className="flex items-center gap-4 rounded-xl border border-amber-200/40 bg-amber-50/30 px-3 py-2 dark:border-amber-800/30 dark:bg-amber-950/20">
+          <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+            Save image as:
+          </span>
+          <div className="flex items-center gap-1.5">
+            <Switch
+              id="save-problem-asset"
+              checked={saveAsProblemAsset}
+              onCheckedChange={setSaveAsProblemAsset}
+              className="h-4 w-8 [&>span]:h-3.5 [&>span]:w-3.5 data-[state=checked]:[&>span]:translate-x-3.5"
+            />
+            <Label
+              htmlFor="save-problem-asset"
+              className="cursor-pointer text-xs text-gray-600 dark:text-gray-400"
+            >
+              Problem asset
+            </Label>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Switch
+              id="save-solution-asset"
+              checked={saveAsSolutionAsset}
+              onCheckedChange={setSaveAsSolutionAsset}
+              className="h-4 w-8 [&>span]:h-3.5 [&>span]:w-3.5 data-[state=checked]:[&>span]:translate-x-3.5"
+            />
+            <Label
+              htmlFor="save-solution-asset"
+              className="cursor-pointer text-xs text-gray-600 dark:text-gray-400"
+            >
+              Solution asset
+            </Label>
+          </div>
+        </div>
         <div className="flex items-center justify-between">
           <div>{quotaIndicator}</div>
           <div className="flex items-center gap-2">
@@ -685,7 +733,17 @@ export function ImageScanUploader({
           <Button
             type="button"
             size="sm"
-            onClick={() => onExtracted(extractionResult)}
+            onClick={() => {
+              const attachment =
+                saveAsProblemAsset || saveAsSolutionAsset
+                  ? {
+                      file: imageFile!,
+                      saveAsProblemAsset,
+                      saveAsSolutionAsset,
+                    }
+                  : undefined;
+              onExtracted(extractionResult, attachment);
+            }}
           >
             <CheckCircle2 className="mr-1 h-4 w-4" />
             Use this extraction
