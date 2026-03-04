@@ -134,7 +134,7 @@ export function MobileUploader({ sessionId, token }: MobileUploaderProps) {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept={QR_SESSION_CONSTANTS.ALLOWED_MIME_TYPES.join(',')}
               capture="environment"
               onChange={handleFileChange}
               className="hidden"
