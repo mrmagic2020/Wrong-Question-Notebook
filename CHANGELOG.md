@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning].
 
 ### Added
 
+- **Client-Side Image Compression for Extraction**
+  - Large images (base64 > 4.3 MB) are automatically compressed before sending to the extraction API
+  - Prevents Vercel's 4.5 MB serverless payload limit from rejecting uploads
+  - Downscales to max 1500px on the longest side and re-encodes as JPEG at 0.8 quality
+  - Small images skip compression entirely — no change in behavior
+
 - **QR Code Phone-to-Desktop Upload**
   - Scan a QR code on desktop to open a lightweight mobile capture page
   - Sessions expire after 5 minutes
