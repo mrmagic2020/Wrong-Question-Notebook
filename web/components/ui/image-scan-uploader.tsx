@@ -67,6 +67,7 @@ export function ImageScanUploader({
   const [qrSecondsLeft, setQrSecondsLeft] = useState(0);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const stopListening = useCallback(() => {
     if (channelRef.current) {
@@ -77,6 +78,10 @@ export function ImageScanUploader({
     if (countdownRef.current) {
       clearInterval(countdownRef.current);
       countdownRef.current = null;
+    }
+    if (fallbackRef.current) {
+      clearTimeout(fallbackRef.current);
+      fallbackRef.current = null;
     }
   }, []);
 
@@ -135,6 +140,7 @@ export function ImageScanUploader({
         supabase.removeChannel(channelRef.current);
       }
       if (countdownRef.current) clearInterval(countdownRef.current);
+      if (fallbackRef.current) clearTimeout(fallbackRef.current);
     };
   }, []);
 
@@ -242,7 +248,7 @@ export function ImageScanUploader({
           if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
             console.warn('Realtime subscription failed:', err);
             // One-shot fallback: single status check after delay
-            setTimeout(async () => {
+            fallbackRef.current = setTimeout(async () => {
               try {
                 const res = await fetch(
                   `/api/qr-sessions/${session.sessionId}/status`
