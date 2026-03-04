@@ -68,6 +68,7 @@ export function ImageScanUploader({
   const channelRef = useRef<RealtimeChannel | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const creatingRef = useRef(false);
 
   const stopListening = useCallback(() => {
     if (channelRef.current) {
@@ -182,6 +183,8 @@ export function ImageScanUploader({
 
   // Start QR session + Realtime subscription
   const createQrSession = useCallback(async () => {
+    if (creatingRef.current) return;
+    creatingRef.current = true;
     setQrLoading(true);
     try {
       const res = await fetch('/api/qr-sessions', { method: 'POST' });
@@ -270,8 +273,14 @@ export function ImageScanUploader({
       toast.error(err.message || 'Failed to create QR code');
     } finally {
       setQrLoading(false);
+      creatingRef.current = false;
     }
   }, [stopListening, consumeAndLoadImage]);
+
+  // Auto-create QR session on mount
+  useEffect(() => {
+    createQrSession();
+  }, [createQrSession]);
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -341,7 +350,8 @@ export function ImageScanUploader({
     setQrSession(null);
     setQrLoading(false);
     setState('initial');
-  }, [stopListening]);
+    setTimeout(() => createQrSession(), 0);
+  }, [stopListening, createQrSession]);
 
   const quotaExhausted = quota !== null && quota.remaining <= 0;
 
