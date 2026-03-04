@@ -4,7 +4,7 @@ import { withSecurity } from '@/lib/security-middleware';
 import { createServiceClient } from '@/lib/supabase-utils';
 import { createApiErrorResponse } from '@/lib/supabase-utils';
 import { QR_SESSION_CONSTANTS, FILE_CONSTANTS } from '@/lib/constants';
-import { isValidUuid } from '@/lib/common-utils';
+import { createApiSuccessResponse, isValidUuid } from '@/lib/common-utils';
 
 function verifyToken(rawToken: string, storedHash: string): boolean {
   const computedHash = crypto
@@ -187,7 +187,9 @@ async function handlePhoneUpload(
       );
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json(
+      createApiSuccessResponse({ message: 'File uploaded successfully' })
+    );
   } catch (error) {
     console.error('QR phone upload error:', error);
     return NextResponse.json(
