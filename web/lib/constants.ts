@@ -323,6 +323,9 @@ export const AI_CONSTANTS = {
       'image/gif',
     ] as readonly string[],
     RATE_LIMIT: { windowMs: 60 * 1000, maxRequests: 100 },
+    COMPRESS_THRESHOLD: 4.3 * 1024 * 1024, // compress if base64 length exceeds this (leaves headroom below 4.5 MB Vercel limit)
+    COMPRESS_MAX_DIMENSION: 1500, // max px on longest side
+    COMPRESS_QUALITY: 0.8, // JPEG quality when compressing
   },
 } as const;
 

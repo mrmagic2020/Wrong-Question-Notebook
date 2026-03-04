@@ -53,6 +53,42 @@ type UploaderState = 'initial' | 'preview' | 'result';
 
 const ALLOWED_MIME_TYPES = AI_CONSTANTS.EXTRACTION.ALLOWED_MIME_TYPES;
 const MAX_SIZE = AI_CONSTANTS.EXTRACTION.MAX_IMAGE_SIZE;
+const COMPRESS_THRESHOLD = AI_CONSTANTS.EXTRACTION.COMPRESS_THRESHOLD;
+const COMPRESS_MAX_DIMENSION = AI_CONSTANTS.EXTRACTION.COMPRESS_MAX_DIMENSION;
+const COMPRESS_QUALITY = AI_CONSTANTS.EXTRACTION.COMPRESS_QUALITY;
+
+function compressImage(
+  file: File
+): Promise<{ base64: string; mimeType: string }> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > COMPRESS_MAX_DIMENSION || height > COMPRESS_MAX_DIMENSION) {
+        const scale =
+          COMPRESS_MAX_DIMENSION / Math.max(width, height);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Failed to get canvas context'));
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', COMPRESS_QUALITY);
+      const base64 = dataUrl.split(',')[1];
+      resolve({ base64, mimeType: 'image/jpeg' });
+    };
+    img.onerror = () => reject(new Error('Failed to load image for compression'));
+    img.src = URL.createObjectURL(file);
+  });
+}
 
 export function ImageScanUploader({
   onExtracted,
@@ -321,14 +357,21 @@ export function ImageScanUploader({
     setError(null);
 
     try {
-      const base64 = imagePreview!.split(',')[1];
+      let base64 = imagePreview!.split(',')[1];
+      let mimeType = imageFile.type;
+
+      if (base64.length > COMPRESS_THRESHOLD) {
+        const compressed = await compressImage(imageFile);
+        base64 = compressed.base64;
+        mimeType = compressed.mimeType;
+      }
 
       const res = await fetch('/api/ai/extract-problem', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           image: base64,
-          mimeType: imageFile.type,
+          mimeType,
         }),
       });
 
