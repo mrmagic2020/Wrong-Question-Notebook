@@ -544,9 +544,6 @@ export const ATTEMPT_CONSTANTS = {
 } as const;
 
 // =====================================================
-// Cookie Consent Constants
-// =====================================================
-// =====================================================
 // QR Upload Session Constants
 // =====================================================
 export const QR_SESSION_CONSTANTS = {
