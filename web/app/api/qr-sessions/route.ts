@@ -6,7 +6,7 @@ import { createServiceClient } from '@/lib/supabase-utils';
 import {
   createApiErrorResponse,
   createApiSuccessResponse,
-} from '@/lib/supabase-utils';
+} from '@/lib/common-utils';
 import { QR_SESSION_CONSTANTS, FILE_CONSTANTS } from '@/lib/constants';
 import type { QRSessionCreateResponse } from '@/lib/types';
 

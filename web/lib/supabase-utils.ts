@@ -221,38 +221,6 @@ export function isValidResourceId(resourceId: string): boolean {
 }
 
 // =====================================================
-// Error Response Helpers
-// =====================================================
-
-/**
- * Create standardized error response for API endpoints
- */
-export function createApiErrorResponse(
-  message: string,
-  status: number = 500,
-  details?: any
-) {
-  return {
-    error: message,
-    status,
-    ...(details && { details }),
-    timestamp: new Date().toISOString(),
-  };
-}
-
-/**
- * Create standardized success response for API endpoints
- */
-export function createApiSuccessResponse<T>(data: T, message?: string) {
-  return {
-    data,
-    success: true,
-    ...(message && { message }),
-    timestamp: new Date().toISOString(),
-  };
-}
-
-// =====================================================
 // Transaction Helpers
 // =====================================================
 

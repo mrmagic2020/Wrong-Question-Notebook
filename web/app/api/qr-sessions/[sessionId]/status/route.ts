@@ -4,8 +4,8 @@ import { withSecurity } from '@/lib/security-middleware';
 import {
   createApiErrorResponse,
   createApiSuccessResponse,
-} from '@/lib/supabase-utils';
-import { isValidUuid } from '@/lib/common-utils';
+  isValidUuid,
+} from '@/lib/common-utils';
 import { QR_SESSION_CONSTANTS } from '@/lib/constants';
 import type { QRSessionStatusResponse } from '@/lib/types';
 

@@ -2,9 +2,12 @@ import crypto from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { withSecurity } from '@/lib/security-middleware';
 import { createServiceClient } from '@/lib/supabase-utils';
-import { createApiErrorResponse } from '@/lib/supabase-utils';
+import {
+  createApiErrorResponse,
+  createApiSuccessResponse,
+  isValidUuid,
+} from '@/lib/common-utils';
 import { QR_SESSION_CONSTANTS, FILE_CONSTANTS } from '@/lib/constants';
-import { createApiSuccessResponse, isValidUuid } from '@/lib/common-utils';
 
 function verifyToken(rawToken: string, storedHash: string): boolean {
   const computedHash = crypto
