@@ -6,6 +6,7 @@ import {
   Camera,
   CheckCircle2,
   AlertTriangle,
+  ImagePlus,
   Send,
   RotateCcw,
   NotebookPen,
@@ -28,6 +29,7 @@ export function MobileUploader({ sessionId, token }: MobileUploaderProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const libraryInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -129,13 +131,20 @@ export function MobileUploader({ sessionId, token }: MobileUploaderProps) {
             </p>
           </div>
 
-          {/* Capture button */}
-          <div>
+          {/* Capture buttons */}
+          <div className="space-y-3">
             <input
               ref={fileInputRef}
               type="file"
               accept={QR_SESSION_CONSTANTS.ALLOWED_MIME_TYPES.join(',')}
               capture="environment"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <input
+              ref={libraryInputRef}
+              type="file"
+              accept={QR_SESSION_CONSTANTS.ALLOWED_MIME_TYPES.join(',')}
               onChange={handleFileChange}
               className="hidden"
             />
@@ -147,6 +156,16 @@ export function MobileUploader({ sessionId, token }: MobileUploaderProps) {
             >
               <Camera className="mr-2 h-5 w-5" />
               Take Photo
+            </Button>
+            <Button
+              type="button"
+              size="lg"
+              variant="outline"
+              className="w-full rounded-xl px-7 py-6 text-base font-medium"
+              onClick={() => libraryInputRef.current?.click()}
+            >
+              <ImagePlus className="mr-2 h-5 w-5" />
+              Choose from Library
             </Button>
           </div>
 
