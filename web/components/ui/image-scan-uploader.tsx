@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import { QRCodeSVG } from 'qrcode.react';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import {
   Upload,
   X,
@@ -17,11 +18,11 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
+import { createClient } from '@/lib/supabase/client';
 import { AI_CONSTANTS, QR_SESSION_CONSTANTS } from '@/lib/constants';
 import type {
   ExtractedProblemData,
   QRSessionCreateResponse,
-  QRSessionStatusResponse,
 } from '@/lib/types';
 
 export interface ExtractionQuota {
@@ -64,13 +65,14 @@ export function ImageScanUploader({
   );
   const [qrLoading, setQrLoading] = useState(false);
   const [qrSecondsLeft, setQrSecondsLeft] = useState(0);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const channelRef = useRef<RealtimeChannel | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const stopPolling = useCallback(() => {
-    if (pollRef.current) {
-      clearInterval(pollRef.current);
-      pollRef.current = null;
+  const stopListening = useCallback(() => {
+    if (channelRef.current) {
+      const supabase = createClient();
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
     }
     if (countdownRef.current) {
       clearInterval(countdownRef.current);
@@ -89,7 +91,7 @@ export function ImageScanUploader({
         return;
       }
 
-      stopPolling();
+      stopListening();
       setImageFile(file);
       setError(null);
 
@@ -100,7 +102,7 @@ export function ImageScanUploader({
       };
       reader.readAsDataURL(file);
     },
-    [stopPolling]
+    [stopListening]
   );
 
   // Clipboard paste handler — active in initial state
@@ -128,7 +130,10 @@ export function ImageScanUploader({
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
+      if (channelRef.current) {
+        const supabase = createClient();
+        supabase.removeChannel(channelRef.current);
+      }
       if (countdownRef.current) clearInterval(countdownRef.current);
     };
   }, []);
@@ -169,7 +174,7 @@ export function ImageScanUploader({
     [validateAndSetFile]
   );
 
-  // Start QR session + polling
+  // Start QR session + Realtime subscription
   const createQrSession = useCallback(async () => {
     setQrLoading(true);
     try {
@@ -196,43 +201,71 @@ export function ImageScanUploader({
         );
         setQrSecondsLeft(remaining);
         if (remaining <= 0) {
-          stopPolling();
+          stopListening();
         }
       }, 1000);
 
-      // Start polling
-      pollRef.current = setInterval(async () => {
-        try {
-          const pollRes = await fetch(
-            `/api/qr-sessions/${session.sessionId}/status`
-          );
-          const pollJson = await pollRes.json();
-          if (!pollRes.ok) return;
+      // Ensure the Realtime connection has the user's JWT.
+      // supabase-js only forwards TOKEN_REFRESHED and SIGNED_IN to
+      // Realtime, but on page load the auth module fires
+      // INITIAL_SESSION which is ignored — so we set it explicitly.
+      const supabase = createClient();
+      const {
+        data: { session: authSession },
+      } = await supabase.auth.getSession();
+      if (authSession?.access_token) {
+        supabase.realtime.setAuth(authSession.access_token);
+      }
 
-          const statusData: QRSessionStatusResponse = pollJson.data;
-
-          if (statusData.status === 'uploaded') {
-            stopPolling();
-            await consumeAndLoadImage(session.sessionId);
-          } else if (statusData.status === 'expired') {
-            stopPolling();
+      // Subscribe to Realtime changes on this session row
+      const channel = supabase
+        .channel(`qr-session-${session.sessionId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'qr_upload_sessions',
+            filter: `id=eq.${session.sessionId}`,
+          },
+          payload => {
+            const newStatus = (payload.new as { status: string }).status;
+            if (newStatus === 'uploaded') {
+              stopListening();
+              consumeAndLoadImage(session.sessionId);
+            } else if (newStatus === 'expired') {
+              stopListening();
+            }
           }
-        } catch {
-          // Ignore poll errors
-        }
-      }, QR_SESSION_CONSTANTS.POLL_INTERVAL_MS);
+        )
+        .subscribe((status, err) => {
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            console.warn('Realtime subscription failed:', err);
+            // One-shot fallback: single status check after delay
+            setTimeout(async () => {
+              try {
+                const res = await fetch(
+                  `/api/qr-sessions/${session.sessionId}/status`
+                );
+                const json = await res.json();
+                if (res.ok && json.data?.status === 'uploaded') {
+                  stopListening();
+                  await consumeAndLoadImage(session.sessionId);
+                }
+              } catch {
+                // Silent fail on fallback
+              }
+            }, QR_SESSION_CONSTANTS.REALTIME_FALLBACK_DELAY_MS);
+          }
+        });
+
+      channelRef.current = channel;
     } catch (err: any) {
       toast.error(err.message || 'Failed to create QR code');
     } finally {
       setQrLoading(false);
     }
-  }, [stopPolling, consumeAndLoadImage]);
-
-  // Auto-create QR session on mount
-  useEffect(() => {
-    createQrSession();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [stopListening, consumeAndLoadImage]);
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -294,7 +327,7 @@ export function ImageScanUploader({
   }, [imageFile, imagePreview, onQuotaChange]);
 
   const reset = useCallback(() => {
-    stopPolling();
+    stopListening();
     setImageFile(null);
     setImagePreview(null);
     setExtractionResult(null);
@@ -302,9 +335,7 @@ export function ImageScanUploader({
     setQrSession(null);
     setQrLoading(false);
     setState('initial');
-    // Re-create a fresh QR session
-    setTimeout(() => createQrSession(), 0);
-  }, [stopPolling, createQrSession]);
+  }, [stopListening]);
 
   const quotaExhausted = quota !== null && quota.remaining <= 0;
 
@@ -413,7 +444,7 @@ export function ImageScanUploader({
                   <button
                     type="button"
                     onClick={() => {
-                      stopPolling();
+                      stopListening();
                       setQrSession(null);
                       createQrSession();
                     }}
@@ -475,7 +506,7 @@ export function ImageScanUploader({
             variant="ghost"
             size="sm"
             onClick={() => {
-              stopPolling();
+              stopListening();
               onCancel();
             }}
             className="text-muted-foreground"
