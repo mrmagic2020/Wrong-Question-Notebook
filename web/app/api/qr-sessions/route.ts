@@ -66,12 +66,17 @@ async function createSession(req: Request) {
       .digest('hex');
 
     // Insert session
+    const expiresAt = new Date(
+      Date.now() + QR_SESSION_CONSTANTS.SESSION_EXPIRY_MINUTES * 60 * 1000
+    ).toISOString();
+
     const { data: session, error } = await supabase
       .from('qr_upload_sessions')
       .insert({
         user_id: user.id,
         token_hash: tokenHash,
         status: 'pending',
+        expires_at: expiresAt,
       })
       .select('id, expires_at')
       .single();
