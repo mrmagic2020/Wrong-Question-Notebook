@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning].
 
 ### Added
 
+- **QR Code Phone-to-Desktop Upload**
+  - Scan a QR code on desktop to open a lightweight mobile capture page
+  - Sessions expire after 5 minutes
+  - Supabase Realtime detects uploaded images instantly and feeds them into the AI extraction flow
+  - QR code generation is on-demand instead of auto-creating on mount
+
 - **Attempt History & Self-Reflection**
   - Post-submission reflection dialog for auto-marked problems (confidence, cause category, notes)
   - Only the first submission per session is recorded as an attempt; resubmissions are mark-only
