@@ -10,7 +10,7 @@ import { QR_SESSION_CONSTANTS } from '@/lib/constants';
 import type { QRSessionStatusResponse } from '@/lib/types';
 
 async function getStatus(
-  req: Request,
+  _req: Request,
   { params }: { params: Promise<{ sessionId: string }> }
 ) {
   const { user, supabase } = await requireUser();

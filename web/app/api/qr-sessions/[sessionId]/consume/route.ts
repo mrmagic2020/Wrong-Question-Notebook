@@ -11,7 +11,7 @@ import { QR_SESSION_CONSTANTS } from '@/lib/constants';
 import type { QRSessionConsumeResponse } from '@/lib/types';
 
 async function consumeSession(
-  req: Request,
+  _req: Request,
   { params }: { params: Promise<{ sessionId: string }> }
 ) {
   const { user } = await requireUser();
