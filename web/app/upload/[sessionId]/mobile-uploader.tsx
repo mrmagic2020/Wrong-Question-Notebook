@@ -1,11 +1,13 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
-import Image from 'next/image';
+import ReactCrop, { type Crop, type PixelCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 import {
   Camera,
   CheckCircle2,
   AlertTriangle,
+  CropIcon,
   ImagePlus,
   Send,
   RotateCcw,
@@ -16,11 +18,46 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { QR_SESSION_CONSTANTS } from '@/lib/constants';
 
-type UploadState = 'capture' | 'preview' | 'uploading' | 'success' | 'error';
+type UploadState = 'capture' | 'crop' | 'uploading' | 'success' | 'error';
 
 interface MobileUploaderProps {
   sessionId: string;
   token: string;
+}
+
+/** Extract the cropped region from an <img> element and return it as a Blob. */
+function getCroppedBlob(
+  image: HTMLImageElement,
+  pixelCrop: PixelCrop
+): Promise<Blob> {
+  const scaleX = image.naturalWidth / image.width;
+  const scaleY = image.naturalHeight / image.height;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(pixelCrop.width * scaleX);
+  canvas.height = Math.round(pixelCrop.height * scaleY);
+
+  const ctx = canvas.getContext('2d')!;
+  ctx.drawImage(
+    image,
+    Math.round(pixelCrop.x * scaleX),
+    Math.round(pixelCrop.y * scaleY),
+    canvas.width,
+    canvas.height,
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) =>
+        blob ? resolve(blob) : reject(new Error('Failed to crop image')),
+      'image/jpeg',
+      0.92
+    );
+  });
 }
 
 export function MobileUploader({ sessionId, token }: MobileUploaderProps) {
@@ -30,6 +67,11 @@ export function MobileUploader({ sessionId, token }: MobileUploaderProps) {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const libraryInputRef = useRef<HTMLInputElement>(null);
+
+  // Crop state
+  const [crop, setCrop] = useState<Crop>();
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
+  const imgRef = useRef<HTMLImageElement>(null);
 
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,9 +98,18 @@ export function MobileUploader({ sessionId, token }: MobileUploaderProps) {
 
       setFile(selected);
       const reader = new FileReader();
-      reader.onload = ev => {
+      reader.onload = (ev) => {
         setPreview(ev.target?.result as string);
-        setState('preview');
+        const fullCrop: Crop = {
+          unit: '%',
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+        };
+        setCrop(fullCrop);
+        setCompletedCrop(undefined);
+        setState('crop');
       };
       reader.readAsDataURL(selected);
 
@@ -72,46 +123,58 @@ export function MobileUploader({ sessionId, token }: MobileUploaderProps) {
     setFile(null);
     setPreview(null);
     setErrorMessage('');
+    setCrop(undefined);
+    setCompletedCrop(undefined);
     setState('capture');
   }, []);
 
-  const handleUpload = useCallback(async () => {
-    if (!file) return;
+  const handleUpload = useCallback(
+    async (skipCrop: boolean) => {
+      if (!file || !preview) return;
 
-    setState('uploading');
+      setState('uploading');
 
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
+      try {
+        let uploadBlob: Blob = file;
 
-      const res = await fetch(
-        `/api/qr-upload/${sessionId}?token=${encodeURIComponent(token)}`,
-        { method: 'POST', body: formData }
-      );
+        if (!skipCrop && completedCrop && imgRef.current) {
+          uploadBlob = await getCroppedBlob(imgRef.current, completedCrop);
+        }
 
-      if (res.ok) {
-        setState('success');
-        return;
+        const formData = new FormData();
+        formData.append('file', uploadBlob, file.name);
+
+        const res = await fetch(
+          `/api/qr-upload/${sessionId}?token=${encodeURIComponent(token)}`,
+          { method: 'POST', body: formData }
+        );
+
+        if (res.ok) {
+          setState('success');
+          return;
+        }
+
+        const json = await res.json().catch(() => null);
+        const message =
+          json?.error || 'Something went wrong. Please try again.';
+
+        if (res.status === 410) {
+          setErrorMessage(QR_SESSION_CONSTANTS.ERRORS.SESSION_EXPIRED);
+        } else if (res.status === 409) {
+          setErrorMessage(QR_SESSION_CONSTANTS.ERRORS.SESSION_ALREADY_USED);
+        } else if (res.status === 403) {
+          setErrorMessage(QR_SESSION_CONSTANTS.ERRORS.INVALID_TOKEN);
+        } else {
+          setErrorMessage(message);
+        }
+        setState('error');
+      } catch {
+        setErrorMessage('Network error. Check your connection and try again.');
+        setState('error');
       }
-
-      const json = await res.json().catch(() => null);
-      const message = json?.error || 'Something went wrong. Please try again.';
-
-      if (res.status === 410) {
-        setErrorMessage(QR_SESSION_CONSTANTS.ERRORS.SESSION_EXPIRED);
-      } else if (res.status === 409) {
-        setErrorMessage(QR_SESSION_CONSTANTS.ERRORS.SESSION_ALREADY_USED);
-      } else if (res.status === 403) {
-        setErrorMessage(QR_SESSION_CONSTANTS.ERRORS.INVALID_TOKEN);
-      } else {
-        setErrorMessage(message);
-      }
-      setState('error');
-    } catch {
-      setErrorMessage('Network error. Check your connection and try again.');
-      setState('error');
-    }
-  }, [file, sessionId, token]);
+    },
+    [file, preview, sessionId, token, completedCrop]
+  );
 
   // -- Capture state --
   if (state === 'capture') {
@@ -179,28 +242,47 @@ export function MobileUploader({ sessionId, token }: MobileUploaderProps) {
     );
   }
 
-  // -- Preview state --
-  if (state === 'preview' && preview) {
+  // -- Crop state --
+  if (state === 'crop' && preview) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center px-6 py-10">
-        <div className="w-full max-w-sm space-y-6">
-          {/* Photo preview */}
-          <div className="overflow-hidden rounded-2xl border border-gray-200/40 dark:border-gray-700/30">
-            <Image
-              src={preview}
-              alt="Captured photo"
-              width={400}
-              height={300}
-              className="h-auto w-full object-contain"
-            />
+      <div className="flex min-h-dvh flex-col bg-gray-50 dark:bg-gray-900">
+        {/* Header */}
+        <div className="px-6 pb-2 pt-6">
+          <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+            <CropIcon className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            Drag edges to crop your photo
           </div>
+        </div>
 
-          {/* File info */}
-          <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-            {file ? `${file.name} (${(file.size / 1024).toFixed(0)} KB)` : ''}
-          </p>
+        {/* Crop area */}
+        <div className="flex flex-1 items-center justify-center overflow-auto px-4 py-4">
+          <ReactCrop
+            crop={crop}
+            onChange={(c) => setCrop(c)}
+            onComplete={(c) => setCompletedCrop(c)}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              ref={imgRef}
+              src={preview}
+              alt="Photo to crop"
+              className="max-h-[60dvh] w-auto rounded-lg"
+              onLoad={(e) => {
+                const img = e.currentTarget;
+                setCompletedCrop({
+                  unit: 'px',
+                  x: 0,
+                  y: 0,
+                  width: img.width,
+                  height: img.height,
+                });
+              }}
+            />
+          </ReactCrop>
+        </div>
 
-          {/* Actions */}
+        {/* Bottom controls */}
+        <div className="space-y-3 px-6 pb-8 pt-4">
           <div className="flex gap-3">
             <Button
               type="button"
@@ -214,12 +296,21 @@ export function MobileUploader({ sessionId, token }: MobileUploaderProps) {
             <Button
               type="button"
               className="flex-1 rounded-xl bg-amber-600 py-5 text-white shadow-md hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600"
-              onClick={handleUpload}
+              disabled={!completedCrop?.width || !completedCrop?.height}
+              onClick={() => handleUpload(false)}
             >
               <Send className="mr-2 h-4 w-4" />
-              Send to Desktop
+              Crop & Send
             </Button>
           </div>
+
+          <button
+            type="button"
+            className="w-full text-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            onClick={() => handleUpload(true)}
+          >
+            Skip cropping &amp; send original
+          </button>
         </div>
       </div>
     );
