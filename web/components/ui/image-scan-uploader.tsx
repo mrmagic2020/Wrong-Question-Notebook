@@ -113,6 +113,16 @@ export function ImageScanUploader({
   const [saveAsSolutionAsset, setSaveAsSolutionAsset] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Desktop detection — QR upload only makes sense on desktop
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    setIsDesktop(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
   // QR state
   const [qrSession, setQrSession] = useState<QRSessionCreateResponse | null>(
     null
@@ -331,10 +341,10 @@ export function ImageScanUploader({
     }
   }, [stopListening, consumeAndLoadImage]);
 
-  // Auto-create QR session on mount
+  // Auto-create QR session on mount (desktop only)
   useEffect(() => {
-    createQrSession();
-  }, [createQrSession]);
+    if (isDesktop) createQrSession();
+  }, [isDesktop, createQrSession]);
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -413,8 +423,8 @@ export function ImageScanUploader({
     setSaveAsProblemAsset(false);
     setSaveAsSolutionAsset(false);
     setState('initial');
-    setTimeout(() => createQrSession(), 0);
-  }, [stopListening, createQrSession]);
+    if (isDesktop) setTimeout(() => createQrSession(), 0);
+  }, [stopListening, createQrSession, isDesktop]);
 
   const quotaExhausted = quota !== null && quota.remaining <= 0;
 
@@ -492,89 +502,92 @@ export function ImageScanUploader({
             </div>
           </div>
 
-          {/* Divider */}
-          <div className="flex flex-col items-center justify-center gap-1.5">
-            <div className="h-full w-px bg-gray-200/60 dark:bg-gray-700/40" />
-            <span className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
-              or
-            </span>
-            <div className="h-full w-px bg-gray-200/60 dark:bg-gray-700/40" />
-          </div>
-
-          {/* Right: QR code + instructions */}
-          <div className="flex flex-col items-center gap-3 rounded-2xl border border-gray-200/40 bg-gradient-to-br from-gray-50 to-gray-100/50 p-4 dark:border-gray-700/30 dark:from-gray-800/40 dark:to-gray-700/20">
-            {/* QR code area */}
-            {qrLoading && !qrSession ? (
-              <div className="flex h-[120px] w-[120px] items-center justify-center">
-                <Spinner className="h-6 w-6 text-gray-400" />
+          {/* Divider + QR code (desktop only) */}
+          {isDesktop && (
+            <>
+              <div className="flex flex-col items-center justify-center gap-1.5">
+                <div className="h-full w-px bg-gray-200/60 dark:bg-gray-700/40" />
+                <span className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                  or
+                </span>
+                <div className="h-full w-px bg-gray-200/60 dark:bg-gray-700/40" />
               </div>
-            ) : qrSession ? (
-              <div className="flex flex-col items-center gap-1.5">
-                <div className="rounded-lg bg-white p-1.5 shadow-sm">
-                  <QRCodeSVG
-                    value={qrSession.uploadUrl}
-                    size={108}
-                    level="M"
-                    includeMargin={false}
-                    className={isExpired ? 'opacity-30' : ''}
-                  />
-                </div>
-                {isExpired ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      stopListening();
-                      setQrSession(null);
-                      createQrSession();
-                    }}
-                    className="flex items-center gap-1 text-xs font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
-                  >
-                    <RefreshCw className="h-3 w-3" />
-                    Refresh code
-                  </button>
+
+              <div className="flex flex-col items-center gap-3 rounded-2xl border border-gray-200/40 bg-gradient-to-br from-gray-50 to-gray-100/50 p-4 dark:border-gray-700/30 dark:from-gray-800/40 dark:to-gray-700/20">
+                {/* QR code area */}
+                {qrLoading && !qrSession ? (
+                  <div className="flex h-[120px] w-[120px] items-center justify-center">
+                    <Spinner className="h-6 w-6 text-gray-400" />
+                  </div>
+                ) : qrSession ? (
+                  <div className="flex flex-col items-center gap-1.5">
+                    <div className="rounded-lg bg-white p-1.5 shadow-sm">
+                      <QRCodeSVG
+                        value={qrSession.uploadUrl}
+                        size={108}
+                        level="M"
+                        includeMargin={false}
+                        className={isExpired ? 'opacity-30' : ''}
+                      />
+                    </div>
+                    {isExpired ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          stopListening();
+                          setQrSession(null);
+                          createQrSession();
+                        }}
+                        className="flex items-center gap-1 text-xs font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
+                      >
+                        <RefreshCw className="h-3 w-3" />
+                        Refresh code
+                      </button>
+                    ) : (
+                      <div className="flex items-center justify-center gap-1 text-[10px] text-gray-400 dark:text-gray-500">
+                        <Timer className="h-2.5 w-2.5" />
+                        {minutes}:{seconds.toString().padStart(2, '0')}
+                        <span className="ml-0.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-blue-500" />
+                      </div>
+                    )}
+                  </div>
                 ) : (
-                  <div className="flex items-center justify-center gap-1 text-[10px] text-gray-400 dark:text-gray-500">
-                    <Timer className="h-2.5 w-2.5" />
-                    {minutes}:{seconds.toString().padStart(2, '0')}
-                    <span className="ml-0.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-blue-500" />
+                  <div className="flex h-[120px] w-[120px] flex-col items-center justify-center gap-2">
+                    <Smartphone className="h-5 w-5 text-gray-400" />
+                    <button
+                      type="button"
+                      onClick={createQrSession}
+                      className="text-xs font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
+                    >
+                      Generate QR
+                    </button>
                   </div>
                 )}
-              </div>
-            ) : (
-              <div className="flex h-[120px] w-[120px] flex-col items-center justify-center gap-2">
-                <Smartphone className="h-5 w-5 text-gray-400" />
-                <button
-                  type="button"
-                  onClick={createQrSession}
-                  className="text-xs font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
-                >
-                  Generate QR
-                </button>
-              </div>
-            )}
 
-            {/* Instructions */}
-            <ol className="space-y-1 text-[11px] leading-relaxed text-gray-500 dark:text-gray-400">
-              <li className="flex gap-1.5">
-                <span className="font-semibold text-gray-400 dark:text-gray-500">
-                  1.
-                </span>
-                Scan the code with your phone camera
-              </li>
-              <li className="flex gap-1.5">
-                <span className="font-semibold text-gray-400 dark:text-gray-500">
-                  2.
-                </span>
-                Take a photo of the problem
-              </li>
-              <li className="flex gap-1.5">
-                <span className="font-semibold text-gray-400 dark:text-gray-500">
-                  3.
-                </span>
-                It appears here automatically
-              </li>
-            </ol>
-          </div>
+                {/* Instructions */}
+                <ol className="space-y-1 text-[11px] leading-relaxed text-gray-500 dark:text-gray-400">
+                  <li className="flex gap-1.5">
+                    <span className="font-semibold text-gray-400 dark:text-gray-500">
+                      1.
+                    </span>
+                    Scan the code with your phone camera
+                  </li>
+                  <li className="flex gap-1.5">
+                    <span className="font-semibold text-gray-400 dark:text-gray-500">
+                      2.
+                    </span>
+                    Take a photo of the problem
+                  </li>
+                  <li className="flex gap-1.5">
+                    <span className="font-semibold text-gray-400 dark:text-gray-500">
+                      3.
+                    </span>
+                    It appears here automatically
+                  </li>
+                </ol>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Footer */}
