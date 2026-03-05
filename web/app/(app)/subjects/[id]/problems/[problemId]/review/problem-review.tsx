@@ -361,6 +361,7 @@ export default function ProblemReview({
                   }
                   hideChoiceIds={
                     submittedAnswer === null &&
+                    !showSolution &&
                     problem.answer_config?.type === 'mcq' &&
                     (problem.answer_config as MCQAnswerConfig)
                       .randomize_choices !== false
