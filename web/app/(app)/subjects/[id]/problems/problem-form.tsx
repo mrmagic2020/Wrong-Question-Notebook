@@ -53,8 +53,10 @@ import {
 import {
   ImageScanUploader,
   type ExtractionQuota,
+  type ImageAttachment,
 } from '@/components/ui/image-scan-uploader';
 import { convertMathTextToTipTapHtml } from '@/lib/math-to-tiptap';
+import { uploadFiles } from '@/lib/storage/client';
 import { PenLine, Plus, ScanLine } from 'lucide-react';
 
 export default function ProblemForm({
@@ -212,26 +214,44 @@ export default function ProblemForm({
       .catch(() => {});
   }, [isEditMode]);
 
-  const handleExtractionComplete = useCallback((data: ExtractedProblemData) => {
-    setTitle(data.title);
-    setProblemType(data.problem_type);
-    const html = convertMathTextToTipTapHtml(data.content);
-    // Update editor imperatively — onChange callback will sync form state
-    contentEditorRef.current?.setContent(html);
-    // Also update form state directly in case editor isn't mounted yet
-    setContent(html);
-    if (
-      data.problem_type === 'mcq' &&
-      data.mcq_choices &&
-      data.mcq_choices.length > 0
-    ) {
-      setUseEnhancedMcq(true);
-      setMcqChoices(data.mcq_choices);
-      setMcqCorrectChoiceId('');
-    }
-    setShowImageScan(false);
-    setIsExpanded(true);
-  }, []);
+  const [pendingImageAttachment, setPendingImageAttachment] = useState<{
+    file: File;
+    roles: ('problem' | 'solution')[];
+  } | null>(null);
+
+  const handleExtractionComplete = useCallback(
+    (data: ExtractedProblemData, imageAttachment?: ImageAttachment) => {
+      setTitle(data.title);
+      setProblemType(data.problem_type);
+      const html = convertMathTextToTipTapHtml(data.content);
+      // Update editor imperatively — onChange callback will sync form state
+      contentEditorRef.current?.setContent(html);
+      // Also update form state directly in case editor isn't mounted yet
+      setContent(html);
+      if (
+        data.problem_type === 'mcq' &&
+        data.mcq_choices &&
+        data.mcq_choices.length > 0
+      ) {
+        setUseEnhancedMcq(true);
+        setMcqChoices(data.mcq_choices);
+        setMcqCorrectChoiceId('');
+      }
+
+      if (imageAttachment) {
+        const roles: ('problem' | 'solution')[] = [];
+        if (imageAttachment.saveAsProblemAsset) roles.push('problem');
+        if (imageAttachment.saveAsSolutionAsset) roles.push('solution');
+        if (roles.length > 0) {
+          setPendingImageAttachment({ file: imageAttachment.file, roles });
+        }
+      }
+
+      setShowImageScan(false);
+      setIsExpanded(true);
+    },
+    []
+  );
 
   const [title, setTitle] = useState(problem?.title || '');
   const [titleFocus, setTitleFocus] = useState(false);
@@ -611,6 +631,35 @@ export default function ProblemForm({
       setProblemUuid(globalThis.crypto?.randomUUID?.() ?? `rnd-${Date.now()}`);
     }
   }, [isEditMode, isExpanded, problemUuid]);
+
+  // Upload pending image attachment once problemUuid is available
+  useEffect(() => {
+    if (!problemUuid || !pendingImageAttachment) return;
+
+    const { file, roles } = pendingImageAttachment;
+    setPendingImageAttachment(null);
+
+    (async () => {
+      for (const role of roles) {
+        try {
+          const paths = await uploadFiles([file], role, problemUuid);
+          const newAsset = {
+            path: paths[0],
+            name: file.name.replace(/\s+/g, '_'),
+          };
+          if (role === 'problem') {
+            setProblemAssets(prev => [...prev, newAsset]);
+          } else {
+            setSolutionAssets(prev => [...prev, newAsset]);
+          }
+        } catch (err: any) {
+          toast.error(
+            `Failed to save image as ${role} asset: ${err.message || 'Unknown error'}`
+          );
+        }
+      }
+    })();
+  }, [problemUuid, pendingImageAttachment]);
 
   // Cleanup function for unsaved problem assets (can be called explicitly or via effect)
   const cleanupUnsavedProblem = useCallback(

@@ -17,6 +17,8 @@ import {
   Timer,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { createClient } from '@/lib/supabase/client';
 import { AI_CONSTANTS, QR_SESSION_CONSTANTS } from '@/lib/constants';
@@ -31,8 +33,17 @@ export interface ExtractionQuota {
   remaining: number;
 }
 
+export interface ImageAttachment {
+  file: File;
+  saveAsProblemAsset: boolean;
+  saveAsSolutionAsset: boolean;
+}
+
 interface ImageScanUploaderProps {
-  onExtracted: (data: ExtractedProblemData) => void;
+  onExtracted: (
+    data: ExtractedProblemData,
+    imageAttachment?: ImageAttachment
+  ) => void;
   onCancel: () => void;
   quota: ExtractionQuota | null;
   onQuotaChange: (quota: ExtractionQuota) => void;
@@ -42,6 +53,47 @@ type UploaderState = 'initial' | 'preview' | 'result';
 
 const ALLOWED_MIME_TYPES = AI_CONSTANTS.EXTRACTION.ALLOWED_MIME_TYPES;
 const MAX_SIZE = AI_CONSTANTS.EXTRACTION.MAX_IMAGE_SIZE;
+const COMPRESS_THRESHOLD = AI_CONSTANTS.EXTRACTION.COMPRESS_THRESHOLD;
+const COMPRESS_MAX_DIMENSION = AI_CONSTANTS.EXTRACTION.COMPRESS_MAX_DIMENSION;
+const COMPRESS_QUALITY = AI_CONSTANTS.EXTRACTION.COMPRESS_QUALITY;
+
+function compressImage(
+  file: File
+): Promise<{ base64: string; mimeType: string }> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      let { width, height } = img;
+      if (width > COMPRESS_MAX_DIMENSION || height > COMPRESS_MAX_DIMENSION) {
+        const scale =
+          COMPRESS_MAX_DIMENSION / Math.max(width, height);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Failed to get canvas context'));
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', COMPRESS_QUALITY);
+      const base64 = dataUrl.split(',')[1];
+      resolve({ base64, mimeType: 'image/jpeg' });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Failed to load image for compression'));
+    };
+    img.src = objectUrl;
+  });
+}
 
 export function ImageScanUploader({
   onExtracted,
@@ -57,7 +109,19 @@ export function ImageScanUploader({
     useState<ExtractedProblemData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [saveAsProblemAsset, setSaveAsProblemAsset] = useState(false);
+  const [saveAsSolutionAsset, setSaveAsSolutionAsset] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Desktop detection — QR upload only makes sense on desktop
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    setIsDesktop(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   // QR state
   const [qrSession, setQrSession] = useState<QRSessionCreateResponse | null>(
@@ -277,10 +341,10 @@ export function ImageScanUploader({
     }
   }, [stopListening, consumeAndLoadImage]);
 
-  // Auto-create QR session on mount
+  // Auto-create QR session on mount (desktop only)
   useEffect(() => {
-    createQrSession();
-  }, [createQrSession]);
+    if (isDesktop) createQrSession();
+  }, [isDesktop, createQrSession]);
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -308,14 +372,21 @@ export function ImageScanUploader({
     setError(null);
 
     try {
-      const base64 = imagePreview!.split(',')[1];
+      let base64 = imagePreview!.split(',')[1];
+      let mimeType = imageFile.type;
+
+      if (base64.length > COMPRESS_THRESHOLD) {
+        const compressed = await compressImage(imageFile);
+        base64 = compressed.base64;
+        mimeType = compressed.mimeType;
+      }
 
       const res = await fetch('/api/ai/extract-problem', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           image: base64,
-          mimeType: imageFile.type,
+          mimeType,
         }),
       });
 
@@ -349,9 +420,11 @@ export function ImageScanUploader({
     setError(null);
     setQrSession(null);
     setQrLoading(false);
+    setSaveAsProblemAsset(false);
+    setSaveAsSolutionAsset(false);
     setState('initial');
-    setTimeout(() => createQrSession(), 0);
-  }, [stopListening, createQrSession]);
+    if (isDesktop) setTimeout(() => createQrSession(), 0);
+  }, [stopListening, createQrSession, isDesktop]);
 
   const quotaExhausted = quota !== null && quota.remaining <= 0;
 
@@ -429,89 +502,92 @@ export function ImageScanUploader({
             </div>
           </div>
 
-          {/* Divider */}
-          <div className="flex flex-col items-center justify-center gap-1.5">
-            <div className="h-full w-px bg-gray-200/60 dark:bg-gray-700/40" />
-            <span className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
-              or
-            </span>
-            <div className="h-full w-px bg-gray-200/60 dark:bg-gray-700/40" />
-          </div>
-
-          {/* Right: QR code + instructions */}
-          <div className="flex flex-col items-center gap-3 rounded-2xl border border-gray-200/40 bg-gradient-to-br from-gray-50 to-gray-100/50 p-4 dark:border-gray-700/30 dark:from-gray-800/40 dark:to-gray-700/20">
-            {/* QR code area */}
-            {qrLoading && !qrSession ? (
-              <div className="flex h-[120px] w-[120px] items-center justify-center">
-                <Spinner className="h-6 w-6 text-gray-400" />
+          {/* Divider + QR code (desktop only) */}
+          {isDesktop && (
+            <>
+              <div className="flex flex-col items-center justify-center gap-1.5">
+                <div className="h-full w-px bg-gray-200/60 dark:bg-gray-700/40" />
+                <span className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                  or
+                </span>
+                <div className="h-full w-px bg-gray-200/60 dark:bg-gray-700/40" />
               </div>
-            ) : qrSession ? (
-              <div className="flex flex-col items-center gap-1.5">
-                <div className="rounded-lg bg-white p-1.5 shadow-sm">
-                  <QRCodeSVG
-                    value={qrSession.uploadUrl}
-                    size={108}
-                    level="M"
-                    includeMargin={false}
-                    className={isExpired ? 'opacity-30' : ''}
-                  />
-                </div>
-                {isExpired ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      stopListening();
-                      setQrSession(null);
-                      createQrSession();
-                    }}
-                    className="flex items-center gap-1 text-xs font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
-                  >
-                    <RefreshCw className="h-3 w-3" />
-                    Refresh code
-                  </button>
+
+              <div className="flex flex-col items-center gap-3 rounded-2xl border border-gray-200/40 bg-gradient-to-br from-gray-50 to-gray-100/50 p-4 dark:border-gray-700/30 dark:from-gray-800/40 dark:to-gray-700/20">
+                {/* QR code area */}
+                {qrLoading && !qrSession ? (
+                  <div className="flex h-[120px] w-[120px] items-center justify-center">
+                    <Spinner className="h-6 w-6 text-gray-400" />
+                  </div>
+                ) : qrSession ? (
+                  <div className="flex flex-col items-center gap-1.5">
+                    <div className="rounded-lg bg-white p-1.5 shadow-sm">
+                      <QRCodeSVG
+                        value={qrSession.uploadUrl}
+                        size={108}
+                        level="M"
+                        includeMargin={false}
+                        className={isExpired ? 'opacity-30' : ''}
+                      />
+                    </div>
+                    {isExpired ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          stopListening();
+                          setQrSession(null);
+                          createQrSession();
+                        }}
+                        className="flex items-center gap-1 text-xs font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
+                      >
+                        <RefreshCw className="h-3 w-3" />
+                        Refresh code
+                      </button>
+                    ) : (
+                      <div className="flex items-center justify-center gap-1 text-[10px] text-gray-400 dark:text-gray-500">
+                        <Timer className="h-2.5 w-2.5" />
+                        {minutes}:{seconds.toString().padStart(2, '0')}
+                        <span className="ml-0.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-blue-500" />
+                      </div>
+                    )}
+                  </div>
                 ) : (
-                  <div className="flex items-center justify-center gap-1 text-[10px] text-gray-400 dark:text-gray-500">
-                    <Timer className="h-2.5 w-2.5" />
-                    {minutes}:{seconds.toString().padStart(2, '0')}
-                    <span className="ml-0.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-blue-500" />
+                  <div className="flex h-[120px] w-[120px] flex-col items-center justify-center gap-2">
+                    <Smartphone className="h-5 w-5 text-gray-400" />
+                    <button
+                      type="button"
+                      onClick={createQrSession}
+                      className="text-xs font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
+                    >
+                      Generate QR
+                    </button>
                   </div>
                 )}
-              </div>
-            ) : (
-              <div className="flex h-[120px] w-[120px] flex-col items-center justify-center gap-2">
-                <Smartphone className="h-5 w-5 text-gray-400" />
-                <button
-                  type="button"
-                  onClick={createQrSession}
-                  className="text-xs font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
-                >
-                  Generate QR
-                </button>
-              </div>
-            )}
 
-            {/* Instructions */}
-            <ol className="space-y-1 text-[11px] leading-relaxed text-gray-500 dark:text-gray-400">
-              <li className="flex gap-1.5">
-                <span className="font-semibold text-gray-400 dark:text-gray-500">
-                  1.
-                </span>
-                Scan the code with your phone camera
-              </li>
-              <li className="flex gap-1.5">
-                <span className="font-semibold text-gray-400 dark:text-gray-500">
-                  2.
-                </span>
-                Take a photo of the problem
-              </li>
-              <li className="flex gap-1.5">
-                <span className="font-semibold text-gray-400 dark:text-gray-500">
-                  3.
-                </span>
-                It appears here automatically
-              </li>
-            </ol>
-          </div>
+                {/* Instructions */}
+                <ol className="space-y-1 text-[11px] leading-relaxed text-gray-500 dark:text-gray-400">
+                  <li className="flex gap-1.5">
+                    <span className="font-semibold text-gray-400 dark:text-gray-500">
+                      1.
+                    </span>
+                    Scan the code with your phone camera
+                  </li>
+                  <li className="flex gap-1.5">
+                    <span className="font-semibold text-gray-400 dark:text-gray-500">
+                      2.
+                    </span>
+                    Take a photo of the problem
+                  </li>
+                  <li className="flex gap-1.5">
+                    <span className="font-semibold text-gray-400 dark:text-gray-500">
+                      3.
+                    </span>
+                    It appears here automatically
+                  </li>
+                </ol>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Footer */}
@@ -565,6 +641,39 @@ export function ImageScanUploader({
                 </p>
               )}
             </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-4 rounded-xl border border-amber-200/40 bg-amber-50/30 px-3 py-2 dark:border-amber-800/30 dark:bg-amber-950/20">
+          <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+            Save image as:
+          </span>
+          <div className="flex items-center gap-1.5">
+            <Switch
+              id="save-problem-asset"
+              checked={saveAsProblemAsset}
+              onCheckedChange={setSaveAsProblemAsset}
+              className="h-4 w-8 [&>span]:h-3.5 [&>span]:w-3.5 data-[state=checked]:[&>span]:translate-x-3.5"
+            />
+            <Label
+              htmlFor="save-problem-asset"
+              className="cursor-pointer text-xs text-gray-600 dark:text-gray-400"
+            >
+              Problem asset
+            </Label>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Switch
+              id="save-solution-asset"
+              checked={saveAsSolutionAsset}
+              onCheckedChange={setSaveAsSolutionAsset}
+              className="h-4 w-8 [&>span]:h-3.5 [&>span]:w-3.5 data-[state=checked]:[&>span]:translate-x-3.5"
+            />
+            <Label
+              htmlFor="save-solution-asset"
+              className="cursor-pointer text-xs text-gray-600 dark:text-gray-400"
+            >
+              Solution asset
+            </Label>
           </div>
         </div>
         <div className="flex items-center justify-between">
@@ -685,7 +794,17 @@ export function ImageScanUploader({
           <Button
             type="button"
             size="sm"
-            onClick={() => onExtracted(extractionResult)}
+            onClick={() => {
+              const attachment =
+                saveAsProblemAsset || saveAsSolutionAsset
+                  ? {
+                      file: imageFile!,
+                      saveAsProblemAsset,
+                      saveAsSolutionAsset,
+                    }
+                  : undefined;
+              onExtracted(extractionResult, attachment);
+            }}
           >
             <CheckCircle2 className="mr-1 h-4 w-4" />
             Use this extraction
