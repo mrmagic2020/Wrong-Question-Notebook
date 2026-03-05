@@ -324,6 +324,13 @@ export default function ProblemForm({
     }
     return '';
   });
+  const [mcqRandomizeChoices, setMcqRandomizeChoices] = useState(() => {
+    const config = problem?.answer_config;
+    if (config && config.type === 'mcq') {
+      return (config as MCQAnswerConfig).randomize_choices ?? true;
+    }
+    return true;
+  });
   const [shortAnswerConfig, setShortAnswerConfig] =
     useState<ShortAnswerConfigValue>(() => {
       const config = problem?.answer_config;
@@ -431,6 +438,7 @@ export default function ProblemForm({
         type: 'mcq',
         choices: mcqChoices,
         correct_choice_id: mcqCorrectChoiceId,
+        randomize_choices: mcqRandomizeChoices,
       };
     }
     if (problemType === 'short' && useEnhancedShort) {
@@ -463,6 +471,7 @@ export default function ProblemForm({
     useEnhancedShort,
     mcqChoices,
     mcqCorrectChoiceId,
+    mcqRandomizeChoices,
     shortAnswerConfig,
   ]);
 
@@ -598,6 +607,7 @@ export default function ProblemForm({
           }))
         );
         setMcqCorrectChoiceId('');
+        setMcqRandomizeChoices(true);
         setShortAnswerConfig({
           mode: 'text',
           acceptable_answers: [],
@@ -973,6 +983,26 @@ export default function ProblemForm({
                     </Label>
                   </div>
                 </div>
+
+                {useEnhancedMcq && (
+                  <div className="form-row">
+                    <span className="form-label" />
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        id="randomize-choices-switch"
+                        checked={mcqRandomizeChoices}
+                        onCheckedChange={setMcqRandomizeChoices}
+                        disabled={isSubmitting}
+                      />
+                      <Label
+                        htmlFor="randomize-choices-switch"
+                        className="text-sm cursor-pointer"
+                      >
+                        Randomize choices during review
+                      </Label>
+                    </div>
+                  </div>
+                )}
 
                 {useEnhancedMcq ? (
                   <MCQChoiceEditor
