@@ -56,8 +56,21 @@ function getCroppedBlob(
 
   return new Promise((resolve, reject) => {
     canvas.toBlob(
-      (blob) =>
-        blob ? resolve(blob) : reject(new Error('Failed to crop image')),
+      (blob) => {
+        if (blob) {
+          resolve(blob);
+          return;
+        }
+        // Original mime type unsupported for encoding (e.g. GIF, WebP on
+        // some browsers) — fall back to PNG which is universally supported.
+        canvas.toBlob(
+          (fallback) =>
+            fallback
+              ? resolve(fallback)
+              : reject(new Error('Failed to crop image')),
+          'image/png'
+        );
+      },
       mimeType,
       0.92
     );

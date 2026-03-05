@@ -62,7 +62,9 @@ function compressImage(
 ): Promise<{ base64: string; mimeType: string }> {
   return new Promise((resolve, reject) => {
     const img = new window.Image();
+    const objectUrl = URL.createObjectURL(file);
     img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
       let { width, height } = img;
       if (width > COMPRESS_MAX_DIMENSION || height > COMPRESS_MAX_DIMENSION) {
         const scale =
@@ -85,8 +87,11 @@ function compressImage(
       const base64 = dataUrl.split(',')[1];
       resolve({ base64, mimeType: 'image/jpeg' });
     };
-    img.onerror = () => reject(new Error('Failed to load image for compression'));
-    img.src = URL.createObjectURL(file);
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Failed to load image for compression'));
+    };
+    img.src = objectUrl;
   });
 }
 
