@@ -5,13 +5,14 @@ import { useRouter } from 'next/navigation';
 import { DataTable } from './data-table';
 import { columns } from './columns';
 import CompactSearchFilter from './compact-search-filter';
-import ProblemForm from './problem-form';
 import { ProblemStatus, ProblemType } from '@/lib/schemas';
 import { toast } from 'sonner';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import ProblemSetCreationDialog from '@/components/problem-set-creation-dialog';
 import AddToSetDialog from '@/components/add-to-set-dialog';
 import { SearchFilters, Problem, SimpleTag, Tag } from '@/lib/types';
+import { useIsMobile } from '@/lib/hooks/useMediaQuery';
+import ProblemCardList from './problem-card-list';
 
 export default function EnhancedProblemsTable({
   initialProblems,
@@ -19,7 +20,8 @@ export default function EnhancedProblemsTable({
   subjectId,
   availableTags,
   onProblemDeleted = null,
-  onProblemUpdated = null,
+  onEditProblem,
+  onFiltersActiveChange,
   problemSetProblemIds = [],
   isAddToSetMode = false,
   targetProblemSetId = null,
@@ -29,13 +31,14 @@ export default function EnhancedProblemsTable({
   subjectId: string;
   availableTags: SimpleTag[];
   onProblemDeleted?: ((problemId: string) => void) | null;
-  onProblemUpdated?: ((updatedProblem: Problem) => void) | null;
+  onEditProblem?: (problem: Problem) => void;
+  onFiltersActiveChange?: (active: boolean) => void;
   problemSetProblemIds?: string[];
   isAddToSetMode?: boolean;
   targetProblemSetId?: string | null;
 }) {
   const router = useRouter();
-  const [editingProblem, setEditingProblem] = useState<Problem | null>(null);
+  const isMobile = useIsMobile();
   const [problems, setProblems] = useState<Problem[]>(initialProblems);
   const [tagsByProblem, setTagsByProblem] = useState(initialTagsByProblem);
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +60,9 @@ export default function EnhancedProblemsTable({
 
   // Reset selection state
   const [resetSelection, setResetSelection] = useState(false);
+
+  // Mobile select mode
+  const [isSelectMode, setIsSelectMode] = useState(false);
 
   // Confirmation dialog state
   const [deleteDialog, setDeleteDialog] = useState<{
@@ -132,40 +138,41 @@ export default function EnhancedProblemsTable({
     }
   }, [initialTagsByProblem, isFiltered]);
 
-  const handleEdit = async (problem: Problem) => {
-    try {
-      const response = await fetch(`/api/problems/${problem.id}`);
-      const data = await response.json();
-      if (data.data) {
-        setEditingProblem(data.data);
-      } else {
-        setEditingProblem(problem);
-      }
-    } catch (error) {
-      console.error('Failed to fetch problem details:', error);
-      setEditingProblem(problem);
-    }
-  };
+  // Track filter state changes for parent
+  const hasActiveFilters =
+    searchText.trim() !== '' ||
+    problemTypes.length > 0 ||
+    tagIds.length > 0 ||
+    statuses.length > 0;
 
-  const handleCancelEdit = () => {
-    setEditingProblem(null);
-  };
+  useEffect(() => {
+    onFiltersActiveChange?.(hasActiveFilters);
+  }, [hasActiveFilters, onFiltersActiveChange]);
+
+  const handleEdit = useCallback(
+    (problem: Problem) => {
+      if (onEditProblem) {
+        onEditProblem(problem);
+      }
+    },
+    [onEditProblem]
+  );
 
   const handleSearch = async (filters: SearchFilters) => {
     setError(null);
     setIsSearching(true);
 
     // Check if we have any active filters
-    const hasActiveFilters =
+    const filtersActive =
       filters.searchText.trim() !== '' ||
       filters.problemTypes.length > 0 ||
       filters.tagIds.length > 0 ||
       filters.statuses.length > 0;
 
-    setIsFiltered(hasActiveFilters);
+    setIsFiltered(filtersActive);
 
     // If no active filters, reset to show all problems from initial state
-    if (!hasActiveFilters) {
+    if (!filtersActive) {
       setProblems(initialProblems);
       setTagsByProblem(initialTagsByProblem);
       setIsSearching(false);
@@ -219,14 +226,6 @@ export default function EnhancedProblemsTable({
     }
   };
 
-  const handleProblemCreated = (newProblem: any) => {
-    setProblems(prev => [newProblem, ...prev]);
-    setTagsByProblem(prev => ({
-      ...prev,
-      [newProblem.id]: newProblem.tags || [],
-    }));
-  };
-
   const handleDeleteClick = (problemId: string, problemTitle: string) => {
     setDeleteDialog({
       open: true,
@@ -278,20 +277,6 @@ export default function EnhancedProblemsTable({
     }
   };
 
-  const handleProblemUpdated = (updatedProblem: any) => {
-    setProblems(prev =>
-      prev.map(p => (p.id === updatedProblem.id ? updatedProblem : p))
-    );
-    setTagsByProblem(prev => ({
-      ...prev,
-      [updatedProblem.id]: updatedProblem.tags || [],
-    }));
-
-    if (onProblemUpdated) {
-      onProblemUpdated(updatedProblem);
-    }
-  };
-
   const handleBulkDeleteClick = (problemIds: string[]) => {
     setBulkDeleteDialog({
       open: true,
@@ -302,7 +287,6 @@ export default function EnhancedProblemsTable({
 
   const handleCreateSetClick = async (problemIds: string[]) => {
     if (isAddToSetMode && targetProblemSetId) {
-      // In add-to-set mode, directly add problems to the target set
       try {
         const response = await fetch(
           `/api/problem-sets/${targetProblemSetId}/problems`,
@@ -321,7 +305,6 @@ export default function EnhancedProblemsTable({
             const error = await response.json();
             errorMessage = error.message || errorMessage;
           } catch {
-            // If response is not JSON, use the status text
             errorMessage = response.statusText || errorMessage;
           }
           throw new Error(errorMessage);
@@ -329,11 +312,9 @@ export default function EnhancedProblemsTable({
 
         toast.success(`Added ${problemIds.length} problem(s) to the set`);
 
-        // Clear selection
         setSelectedProblems([]);
         setResetSelection(true);
 
-        // Redirect back to problem set page after a short delay
         setTimeout(() => {
           router.push(`/problem-sets/${targetProblemSetId}`);
         }, 1000);
@@ -346,7 +327,6 @@ export default function EnhancedProblemsTable({
         );
       }
     } else {
-      // Normal create set mode
       setCreateSetDialog({
         open: true,
         problemIds,
@@ -365,7 +345,6 @@ export default function EnhancedProblemsTable({
     const { problemIds } = bulkDeleteDialog;
 
     try {
-      // Use Promise.all for concurrent deletion instead of sequential
       const deletePromises = problemIds.map(problemId =>
         fetch(`/api/problems/${problemId}`, {
           method: 'DELETE',
@@ -379,7 +358,6 @@ export default function EnhancedProblemsTable({
 
       await Promise.all(deletePromises);
 
-      // Update local state
       setProblems(prev => prev.filter(p => !problemIds.includes(p.id)));
       setTagsByProblem(prev => {
         const newTagsByProblem = { ...prev };
@@ -387,7 +365,6 @@ export default function EnhancedProblemsTable({
         return newTagsByProblem;
       });
 
-      // Notify parent component
       problemIds.forEach(id => {
         if (onProblemDeleted) {
           onProblemDeleted(id);
@@ -395,7 +372,7 @@ export default function EnhancedProblemsTable({
       });
 
       setSelectedProblems([]);
-      setResetSelection(true); // Trigger table selection reset
+      setResetSelection(true);
       toast.success(
         `Successfully deleted ${problemIds.length} problem${problemIds.length !== 1 ? 's' : ''}`
       );
@@ -408,12 +385,11 @@ export default function EnhancedProblemsTable({
     }
   };
 
-  const handleSelectionChange = useCallback((selectedProblems: Problem[]) => {
-    setSelectedProblems(selectedProblems);
+  const handleSelectionChange = useCallback((selected: Problem[]) => {
+    setSelectedProblems(selected);
   }, []);
 
   const handleRowClick = useCallback((problem: Problem) => {
-    // Navigate to the review page
     window.location.href = `/subjects/${problem.subject_id}/problems/${problem.id}/review`;
   }, []);
 
@@ -424,7 +400,6 @@ export default function EnhancedProblemsTable({
     }
   }, [resetSelection]);
 
-  // Memoize the column visibility change callback to prevent infinite re-renders
   const handleColumnVisibilityChange = useCallback(() => {
     setColumnVisibilityKey(prev => prev + 1);
   }, []);
@@ -435,7 +410,6 @@ export default function EnhancedProblemsTable({
       <CompactSearchFilter
         onSearch={handleSearch}
         availableTags={availableTags}
-        subjectId={subjectId}
         searchText={searchText}
         onSearchTextChange={setSearchText}
         problemTypes={problemTypes}
@@ -452,6 +426,8 @@ export default function EnhancedProblemsTable({
         onCreateSet={handleCreateSetClick}
         isSearching={isSearching}
         isAddToSetMode={isAddToSetMode}
+        isSelectMode={isSelectMode}
+        onSelectModeChange={setIsSelectMode}
       />
 
       {/* Error Display */}
@@ -461,36 +437,39 @@ export default function EnhancedProblemsTable({
         </div>
       )}
 
-      {/* Edit form (when editing) */}
-      {editingProblem && (
-        <div className="rounded-lg border bg-card p-4">
-          <ProblemForm
-            subjectId={subjectId}
-            availableTags={availableTags}
-            problem={editingProblem}
-            onCancel={handleCancelEdit}
-            onProblemCreated={handleProblemCreated}
-            onProblemUpdated={handleProblemUpdated}
-          />
-        </div>
+      {/* Mobile card list or Desktop data table */}
+      {isMobile ? (
+        <ProblemCardList
+          problems={tableProblems}
+          isSelectMode={isSelectMode}
+          selectedIds={selectedProblems.map(p => p.id)}
+          onSelectionChange={ids => {
+            const selected = tableProblems.filter(p => ids.includes(p.id));
+            setSelectedProblems(selected);
+          }}
+          onRowClick={handleRowClick}
+          onEdit={onEditProblem ? handleEdit : undefined}
+          onDelete={handleDeleteClick}
+          onAddToSet={handleAddToSetClick}
+          isAddToSetMode={isAddToSetMode}
+        />
+      ) : (
+        <DataTable
+          columns={columns}
+          data={tableProblems}
+          onEdit={onEditProblem ? handleEdit : undefined}
+          onDelete={handleDeleteClick}
+          onAddToSet={handleAddToSetClick}
+          onRowClick={handleRowClick}
+          availableTags={availableTags}
+          onTableReady={setTableInstance}
+          onSelectionChange={handleSelectionChange}
+          resetSelection={resetSelection}
+          onColumnVisibilityChange={handleColumnVisibilityChange}
+          columnVisibilityStorageKey={`problems-table-column-visibility-${subjectId}`}
+          isAddToSetMode={isAddToSetMode}
+        />
       )}
-
-      {/* Data Table */}
-      <DataTable
-        columns={columns}
-        data={tableProblems}
-        onEdit={handleEdit}
-        onDelete={handleDeleteClick}
-        onAddToSet={handleAddToSetClick}
-        onRowClick={handleRowClick}
-        availableTags={availableTags}
-        onTableReady={setTableInstance}
-        onSelectionChange={handleSelectionChange}
-        resetSelection={resetSelection}
-        onColumnVisibilityChange={handleColumnVisibilityChange}
-        columnVisibilityStorageKey={`problems-table-column-visibility-${subjectId}`}
-        isAddToSetMode={isAddToSetMode}
-      />
 
       {/* Individual Delete Confirmation Dialog */}
       <ConfirmationDialog
@@ -523,7 +502,6 @@ export default function EnhancedProblemsTable({
         subjectId={subjectId}
         selectedProblemIds={createSetDialog.problemIds}
         onSuccess={() => {
-          // Clear selection after successful creation
           setSelectedProblems([]);
           setResetSelection(true);
         }}
@@ -536,9 +514,7 @@ export default function EnhancedProblemsTable({
           onOpenChange={open => setAddToSetDialog(prev => ({ ...prev, open }))}
           problemId={addToSetDialog.problem.id}
           subjectId={subjectId}
-          onSuccess={() => {
-            // Optionally refresh data
-          }}
+          onSuccess={() => {}}
         />
       )}
     </div>

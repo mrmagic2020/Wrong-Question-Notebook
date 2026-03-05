@@ -23,6 +23,20 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import { Problem, TableMeta } from '@/lib/types';
 
+// Helper function to get status-colored left border for rows/cards
+export function getStatusBorderColor(status: ProblemStatus): string {
+  switch (status) {
+    case 'wrong':
+      return 'border-l-red-400 dark:border-l-red-500';
+    case 'needs_review':
+      return 'border-l-amber-400 dark:border-l-amber-500';
+    case 'mastered':
+      return 'border-l-green-400 dark:border-l-green-500';
+    default:
+      return '';
+  }
+}
+
 // Helper function to get status badge styling with custom colors
 export const getStatusBadgeStyle = (status: ProblemStatus): string => {
   switch (status) {

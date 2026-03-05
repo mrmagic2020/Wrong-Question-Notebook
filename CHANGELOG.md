@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning].
 
 ### Added
 
+- **Subject Problems Page UX Improvements**
+  - Stats strip showing total problems, proportional status bar (wrong/review/mastered), and mastery percentage
+  - Empty state with illustration and CTA buttons when no problems exist
+  - Floating action button (split pill: Write / Scan) at bottom of viewport for quick problem creation
+  - Form opens inline at top of page with slide-in animation, replacing the always-visible card form
+  - Confirmation dialog when switching from create to edit mode with unsaved data
+  - Table row left-border color accents by status (red/amber/green) and reduced opacity for mastered rows
+  - Mobile card list view (below 768px) with status-colored borders, overflow menus, and "Show more" pagination
+  - Mobile-responsive search/filter toolbar with popover filters and select mode toggle
+  - `useMediaQuery` and `useIsMobile` hooks for responsive layout switching
+
+### Changed
+
+- **Subject Problems Page Layout**
+  - Removed the always-visible "Add a problem" card; creation now triggered via FAB or empty state CTAs
+  - Edit form state lifted from `EnhancedProblemsTable` to `ProblemsPageClient` for unified form management
+  - Responsive page header: title and back link stack vertically on mobile
+  - Back link shows "Back" on mobile, "Back to Shelf" on desktop
+
 - **MCQ Choice Randomization During Review**
   - Per-problem "Randomize choices during review" toggle in the MCQ choice editor (on by default)
   - When enabled, review UI shuffles the display order of MCQ choices using Fisher-Yates shuffle

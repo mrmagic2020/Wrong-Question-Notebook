@@ -23,6 +23,8 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Problem, DataTableProps } from '@/lib/types';
+import { ProblemStatus } from '@/lib/schemas';
+import { getStatusBorderColor } from './columns';
 
 export function DataTable<TData, TValue>({
   columns,
@@ -152,8 +154,10 @@ export function DataTable<TData, TValue>({
                     key={row.id}
                     data-state={row.getIsSelected() && 'selected'}
                     className={`
+                      border-l-[3px] ${getStatusBorderColor(problem.status as ProblemStatus)}
                       ${onRowClick && !isAddToSetMode ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}
                       ${isInSet && isAddToSetMode ? 'opacity-50 bg-muted/30' : ''}
+                      ${problem.status === 'mastered' && !isAddToSetMode ? 'opacity-80' : ''}
                     `}
                     onClick={() => {
                       if (onRowClick && !isAddToSetMode) {

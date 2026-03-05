@@ -149,7 +149,10 @@ export default async function SubjectProblemsPage({
             Start logging problems in this notebook!
           </p>
         </div>
-        <BackLink href={ROUTES.SUBJECTS}>Back to Shelf</BackLink>
+        <BackLink href={ROUTES.SUBJECTS}>
+          <span className="hidden md:inline">Back to Shelf</span>
+          <span className="md:hidden">Back</span>
+        </BackLink>
       </div>
 
       {/* Problems page with create form and search */}

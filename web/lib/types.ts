@@ -444,6 +444,8 @@ export type ProblemFormProps = {
   onCancel?: (() => void) | null;
   onProblemCreated?: ((newProblem: Problem) => void) | null;
   onProblemUpdated?: ((updatedProblem: Problem) => void) | null;
+  alwaysExpanded?: boolean;
+  initialShowImageScan?: boolean;
 };
 
 export type SubjectFormProps = {

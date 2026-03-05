@@ -11,6 +11,8 @@ import {
   Clock,
   XCircle,
   Plus,
+  SlidersHorizontal,
+  CheckSquare,
 } from 'lucide-react';
 import { ProblemType, PROBLEM_TYPE_VALUES, ProblemStatus } from '@/lib/schemas';
 import {
@@ -25,13 +27,17 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { DataTableFacetedFilter } from '@/components/ui/data-table-faceted-filter';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { useCallback, useEffect, useRef } from 'react';
 import { SearchFilters, SimpleTag } from '@/lib/types';
 
 interface CompactSearchFilterProps {
   onSearch: (filters: SearchFilters) => void;
   availableTags: SimpleTag[];
-  subjectId: string;
   searchText: string;
   onSearchTextChange: (text: string) => void;
   problemTypes: ProblemType[];
@@ -49,6 +55,9 @@ interface CompactSearchFilterProps {
   onCreateSet?: (problemIds: string[]) => void;
   isSearching?: boolean;
   isAddToSetMode?: boolean;
+  // Mobile select mode
+  isSelectMode?: boolean;
+  onSelectModeChange?: (mode: boolean) => void;
 }
 
 export default function CompactSearchFilter({
@@ -70,6 +79,8 @@ export default function CompactSearchFilter({
   onCreateSet,
   isSearching = false,
   isAddToSetMode = false,
+  isSelectMode = false,
+  onSelectModeChange,
 }: CompactSearchFilterProps) {
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -94,7 +105,7 @@ export default function CompactSearchFilter({
     }
     debounceTimeoutRef.current = setTimeout(() => {
       handleSearch();
-    }, 300); // 300ms debounce
+    }, 300);
   }, [handleSearch]);
 
   // Cleanup timeout on unmount
@@ -111,11 +122,9 @@ export default function CompactSearchFilter({
     onProblemTypesChange([]);
     onTagIdsChange([]);
     onStatusesChange([]);
-    // Clear any pending debounced search
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
     }
-    // Immediately trigger search to clear filters
     onSearch({
       searchText: '',
       problemTypes: [],
@@ -129,6 +138,11 @@ export default function CompactSearchFilter({
     problemTypes.length > 0 ||
     tagIds.length > 0 ||
     statuses.length > 0;
+
+  const activeFilterCount =
+    (problemTypes.length > 0 ? 1 : 0) +
+    (tagIds.length > 0 ? 1 : 0) +
+    (statuses.length > 0 ? 1 : 0);
 
   // Create options for faceted filters
   const problemTypeOptions = PROBLEM_TYPE_VALUES.map(type => ({
@@ -164,12 +178,59 @@ export default function CompactSearchFilter({
   const selectedTagIds = new Set(tagIds);
   const selectedStatuses = new Set(statuses);
 
+  const filterElements = (
+    <>
+      <DataTableFacetedFilter
+        title="Type"
+        options={problemTypeOptions}
+        selectedValues={selectedProblemTypes}
+        onSelectedValuesChange={values => {
+          const newTypes = Array.from(values) as ProblemType[];
+          onProblemTypesChange(newTypes);
+          onSearch({ searchText, problemTypes: newTypes, tagIds, statuses });
+        }}
+      />
+      <DataTableFacetedFilter
+        title="Tags"
+        options={tagOptions}
+        selectedValues={selectedTagIds}
+        onSelectedValuesChange={values => {
+          const newTagIds = Array.from(values);
+          onTagIdsChange(newTagIds);
+          onSearch({
+            searchText,
+            problemTypes,
+            tagIds: newTagIds,
+            statuses,
+          });
+        }}
+      />
+      <DataTableFacetedFilter
+        title="Status"
+        options={statusOptions}
+        selectedValues={selectedStatuses}
+        onSelectedValuesChange={values => {
+          const newStatuses = Array.from(values) as ProblemStatus[];
+          onStatusesChange(newStatuses);
+          onSearch({
+            searchText,
+            problemTypes,
+            tagIds,
+            statuses: newStatuses,
+          });
+        }}
+      />
+    </>
+  );
+
   return (
     <div className="space-y-3">
-      {/* Main Search Bar */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <div className="relative w-80">
+      {/* Main layout */}
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        {/* Search + filters */}
+        <div className="flex items-center gap-2 flex-1">
+          {/* Search input */}
+          <div className="relative w-full md:w-80">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search problems..."
@@ -178,7 +239,6 @@ export default function CompactSearchFilter({
                 const newValue = e.target.value;
                 onSearchTextChange(newValue);
 
-                // If search box is cleared, trigger immediate search
                 if (newValue === '') {
                   if (debounceTimeoutRef.current) {
                     clearTimeout(debounceTimeoutRef.current);
@@ -190,7 +250,6 @@ export default function CompactSearchFilter({
                     statuses,
                   });
                 } else {
-                  // Debounced search as user types
                   debouncedSearch();
                 }
               }}
@@ -204,60 +263,50 @@ export default function CompactSearchFilter({
             )}
           </div>
 
-          {/* Filter Dropdowns */}
-          <DataTableFacetedFilter
-            title="Type"
-            options={problemTypeOptions}
-            selectedValues={selectedProblemTypes}
-            onSelectedValuesChange={values => {
-              const newTypes = Array.from(values) as ProblemType[];
-              onProblemTypesChange(newTypes);
-              onSearch({
-                searchText,
-                problemTypes: newTypes,
-                tagIds,
-                statuses,
-              });
-            }}
-          />
+          {/* Desktop filter dropdowns */}
+          <div className="hidden md:flex items-center gap-2">
+            {filterElements}
+          </div>
 
-          <DataTableFacetedFilter
-            title="Tags"
-            options={tagOptions}
-            selectedValues={selectedTagIds}
-            onSelectedValuesChange={values => {
-              const newTagIds = Array.from(values);
-              onTagIdsChange(newTagIds);
-              onSearch({
-                searchText,
-                problemTypes: problemTypes,
-                tagIds: newTagIds,
-                statuses,
-              });
-            }}
-          />
+          {/* Mobile filters popover */}
+          <div className="md:hidden">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="relative">
+                  <SlidersHorizontal className="h-4 w-4" />
+                  <span className="sr-only md:not-sr-only ml-1">Filters</span>
+                  {activeFilterCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center font-medium">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-72 p-3 space-y-3" align="end">
+                {filterElements}
+              </PopoverContent>
+            </Popover>
+          </div>
 
-          <DataTableFacetedFilter
-            title="Status"
-            options={statusOptions}
-            selectedValues={selectedStatuses}
-            onSelectedValuesChange={values => {
-              const newStatuses = Array.from(values) as ProblemStatus[];
-              onStatusesChange(newStatuses);
-              onSearch({
-                searchText,
-                problemTypes: problemTypes,
-                tagIds,
-                statuses: newStatuses,
-              });
-            }}
-          />
+          {/* Mobile select mode toggle */}
+          {onSelectModeChange && (
+            <div className="md:hidden">
+              <Button
+                variant={isSelectMode ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => onSelectModeChange(!isSelectMode)}
+              >
+                <CheckSquare className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </div>
 
-        <div className="flex items-center space-x-2">
+        {/* Right side: bulk actions, clear, view */}
+        <div className="flex items-center gap-2 flex-shrink-0">
           {/* Bulk Actions */}
           {selectedProblemIds.length > 0 && (
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">
                 {selectedProblemIds.length} selected
               </span>
@@ -289,39 +338,43 @@ export default function CompactSearchFilter({
             </Button>
           )}
 
-          {/* View Options */}
+          {/* View Options — hidden on mobile */}
           {table && (
-            <DropdownMenu modal={false}>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline">
-                  <Settings className="mr-2 h-4 w-4" />
-                  View
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[200px]">
-                <div className="p-2">
-                  <div className="text-sm font-medium mb-2">Toggle columns</div>
-                  {table
-                    .getAllColumns()
-                    .filter((column: any) => column.getCanHide())
-                    .map((column: any) => {
-                      return (
-                        <DropdownMenuCheckboxItem
-                          key={`${column.id}-${columnVisibilityKey}`}
-                          className="capitalize"
-                          checked={column.getIsVisible()}
-                          onCheckedChange={value =>
-                            column.toggleVisibility(!!value)
-                          }
-                        >
-                          {getColumnDisplayName(column.id)}
-                        </DropdownMenuCheckboxItem>
-                      );
-                    })}
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="hidden md:block">
+              <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    <Settings className="mr-2 h-4 w-4" />
+                    View
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[200px]">
+                  <div className="p-2">
+                    <div className="text-sm font-medium mb-2">
+                      Toggle columns
+                    </div>
+                    {table
+                      .getAllColumns()
+                      .filter((column: any) => column.getCanHide())
+                      .map((column: any) => {
+                        return (
+                          <DropdownMenuCheckboxItem
+                            key={`${column.id}-${columnVisibilityKey}`}
+                            className="capitalize"
+                            checked={column.getIsVisible()}
+                            onCheckedChange={value =>
+                              column.toggleVisibility(!!value)
+                            }
+                          >
+                            {getColumnDisplayName(column.id)}
+                          </DropdownMenuCheckboxItem>
+                        );
+                      })}
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           )}
         </div>
       </div>

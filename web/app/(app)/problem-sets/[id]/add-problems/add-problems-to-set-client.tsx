@@ -37,7 +37,6 @@ export default function AddProblemsToSetClient({
         subjectId={problemSet.subject_id}
         availableTags={availableTags}
         onProblemDeleted={null} // Disable deletion
-        onProblemUpdated={null} // Disable editing
         problemSetProblemIds={problemSetProblemIds} // Pass existing problem IDs
         isAddToSetMode={true} // Flag to indicate this is add-to-set mode
         targetProblemSetId={problemSet.id} // Pass the target problem set ID

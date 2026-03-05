@@ -656,6 +656,16 @@ html body[data-scroll-locked] {
     animation: onboardingSlideUp 0.4s ease-out both;
   }
 
+  /* Form slot expand animation */
+  .form-slot-enter {
+    animation: formSlotEnter 0.3s ease-out both;
+  }
+
+  /* FAB scale-in animation */
+  .fab-enter {
+    animation: fabEnter 0.3s ease-out both;
+  }
+
   /* Animation classes */
   .auth-fade-in {
     animation: authFadeIn 0.6s ease-out 0.2s both;
@@ -667,6 +677,29 @@ html body[data-scroll-locked] {
 
   .auth-icon-entrance {
     animation: authIconEntrance 0.7s ease-out 0.1s both;
+  }
+}
+
+/* Form slot + FAB Animation Keyframes */
+@keyframes formSlotEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fabEnter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 0) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
   }
 }
 
@@ -723,6 +756,13 @@ html body[data-scroll-locked] {
 
 /* Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
+  .form-slot-enter,
+  .fab-enter {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
   .auth-fade-in,
   .auth-slide-up,
   .auth-icon-entrance {

@@ -66,6 +66,8 @@ export default function ProblemForm({
   onCancel = null,
   onProblemCreated = null,
   onProblemUpdated = null,
+  alwaysExpanded = false,
+  initialShowImageScan = false,
 }: ProblemFormProps) {
   const router = useRouter();
   const isEditMode = !!problem;
@@ -198,8 +200,10 @@ export default function ProblemForm({
   );
 
   // Form expansion state (only for create mode)
-  const [isExpanded, setIsExpanded] = useState(isEditMode);
-  const [showImageScan, setShowImageScan] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(isEditMode || alwaysExpanded);
+  const [showImageScan, setShowImageScan] = useState(
+    initialShowImageScan ?? false
+  );
 
   // Extraction quota state — fetched once, updated from extraction responses
   const [extractionQuota, setExtractionQuota] =
@@ -702,7 +706,7 @@ export default function ProblemForm({
 
   // Track whether the form has unsaved data
   const hasUnsavedData = useMemo(() => {
-    if (!isExpanded && !isEditMode) return false;
+    if (!isExpanded && !isEditMode && !alwaysExpanded) return false;
     return (
       title.trim().length > 0 ||
       content.length > 0 ||
@@ -714,6 +718,7 @@ export default function ProblemForm({
   }, [
     isExpanded,
     isEditMode,
+    alwaysExpanded,
     title,
     content,
     problemAssets,
@@ -740,7 +745,7 @@ export default function ProblemForm({
   }, [problemUuid, cleanupUnsavedProblem]);
 
   // If not expanded (create mode only), show the two entry buttons + optional scanner
-  if (!isExpanded && !isEditMode) {
+  if (!isExpanded && !isEditMode && !alwaysExpanded) {
     return (
       <div className="space-y-3">
         {!showImageScan && (
@@ -779,11 +784,27 @@ export default function ProblemForm({
     );
   }
 
+  // When alwaysExpanded + initialShowImageScan, show scanner instead of form
+  if (alwaysExpanded && !isEditMode && showImageScan) {
+    return (
+      <div className="space-y-3">
+        <ImageScanUploader
+          onExtracted={handleExtractionComplete}
+          onCancel={() => onCancel?.()}
+          quota={extractionQuota}
+          onQuotaChange={setExtractionQuota}
+        />
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={onSubmit} className="form-container">
-      {isEditMode && (
-        <div className="flex items-center justify-between border-b border-border pb-2">
-          <h3 className="heading-xs">Edit Problem</h3>
+      {(isEditMode || (alwaysExpanded && !isEditMode)) && (
+        <div className="flex items-center justify-between">
+          <h3 className="heading-xs">
+            {isEditMode ? 'Edit Problem' : 'Add a Problem'}
+          </h3>
           <Button
             type="button"
             variant="ghost"
@@ -1220,6 +1241,7 @@ export default function ProblemForm({
         </Button>
         {!isEditMode && (
           <Button
+            type="button"
             variant="outline"
             onClick={async () => {
               // Clean up unsaved assets before resetting UUID
@@ -1227,7 +1249,11 @@ export default function ProblemForm({
                 await cleanupUnsavedProblem(problemUuid);
               }
               setProblemUuid(null); // Reset UUID so a new one is generated next time
-              setIsExpanded(false);
+              if (alwaysExpanded && onCancel) {
+                onCancel();
+              } else {
+                setIsExpanded(false);
+              }
             }}
             disabled={isSubmitting}
           >
