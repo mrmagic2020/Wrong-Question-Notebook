@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import MathText from '@/components/ui/math-text';
@@ -13,6 +14,7 @@ export default function AnswerInput({
   onChange,
   onSubmit,
   disabled = false,
+  hideChoiceIds = false,
 }: AnswerInputProps) {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey && onSubmit && !disabled) {
@@ -21,12 +23,27 @@ export default function AnswerInput({
     }
   };
 
+  // Stable shuffled choices — computed once per mount via useState initializer.
+  // Component is keyed by problem ID, so each problem visit gets a fresh shuffle.
+  const [shuffledChoices] = useState(() => {
+    if (answerConfig?.type === 'mcq') {
+      const config = answerConfig as MCQAnswerConfig;
+      if (config.randomize_choices === false) return config.choices;
+      const choices = [...config.choices];
+      for (let i = choices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [choices[i], choices[j]] = [choices[j], choices[i]];
+      }
+      return choices;
+    }
+    return [];
+  });
+
   // Enhanced MCQ: radio buttons with choice text
   if (problemType === 'mcq' && answerConfig && answerConfig.type === 'mcq') {
-    const config = answerConfig as MCQAnswerConfig;
     return (
       <div className="space-y-2">
-        {config.choices.map(choice => {
+        {shuffledChoices.map(choice => {
           const isSelected = value === choice.id;
           return (
             <label
@@ -47,13 +64,23 @@ export default function AnswerInput({
                 className="sr-only"
               />
               <span
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold ${
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors ${
                   isSelected
                     ? 'border-amber-500 bg-amber-500 text-white dark:border-amber-400 dark:bg-amber-400 dark:text-gray-900'
                     : 'border-gray-300 text-gray-400 dark:border-gray-600 dark:text-gray-500'
                 }`}
               >
-                {choice.id}
+                {hideChoiceIds ? (
+                  <span
+                    className={`block h-6 w-6 rounded-full transition-colors ${
+                      isSelected
+                        ? 'bg-white dark:bg-gray-900'
+                        : 'bg-gray-300 dark:bg-gray-600'
+                    }`}
+                  />
+                ) : (
+                  choice.id
+                )}
               </span>
               {choice.text && (
                 <span className="text-sm text-foreground">

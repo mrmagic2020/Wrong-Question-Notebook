@@ -359,6 +359,12 @@ export default function ProblemReview({
                       submittedAnswer !== null &&
                       isCorrect === true)
                   }
+                  hideChoiceIds={
+                    submittedAnswer === null &&
+                    problem.answer_config?.type === 'mcq' &&
+                    (problem.answer_config as MCQAnswerConfig)
+                      .randomize_choices !== false
+                  }
                 />
 
                 <div className="mt-4 flex gap-3">

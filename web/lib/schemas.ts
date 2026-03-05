@@ -61,6 +61,7 @@ const MCQAnswerConfigSchema = z
       .min(ANSWER_CONFIG_CONSTANTS.MCQ.MIN_CHOICES)
       .max(ANSWER_CONFIG_CONSTANTS.MCQ.MAX_CHOICES),
     correct_choice_id: z.string().min(1),
+    randomize_choices: z.boolean().optional().default(true),
   })
   .refine(data => data.choices.some(c => c.id === data.correct_choice_id), {
     message: 'correct_choice_id must match one of the choice IDs',

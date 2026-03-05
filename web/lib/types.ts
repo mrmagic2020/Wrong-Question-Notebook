@@ -150,6 +150,7 @@ export interface MCQAnswerConfig {
   type: 'mcq';
   choices: MCQChoice[];
   correct_choice_id: string;
+  randomize_choices?: boolean;
 }
 
 export interface ShortAnswerTextConfig {
@@ -348,6 +349,7 @@ export interface AnswerInputProps {
   onChange: (value: any) => void;
   onSubmit?: () => void;
   disabled?: boolean;
+  hideChoiceIds?: boolean;
 }
 
 export interface StatusSelectorProps {

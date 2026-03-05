@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning].
 
 ### Added
 
+- **MCQ Choice Randomization During Review**
+  - Per-problem "Randomize choices during review" toggle in the MCQ choice editor (on by default)
+  - When enabled, review UI shuffles the display order of MCQ choices using Fisher-Yates shuffle
+  - Choice IDs (A, B, C, D) are hidden during the first attempt and revealed after submission, preventing positional memorization while keeping attempt history meaningful
+  - Backward-compatible: existing problems without the field default to randomization on
+
 - **Client-Side Image Compression for Extraction**
   - Large images (base64 > 4.3 MB) are automatically compressed before sending to the extraction API
   - Prevents Vercel's 4.5 MB serverless payload limit from rejecting uploads
