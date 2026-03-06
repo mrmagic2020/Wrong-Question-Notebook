@@ -23,9 +23,18 @@ export default function AnswerInput({
     }
   };
 
+  // Derive stable primitives from answerConfig so the effect re-runs only
+  // when choices content or the randomize setting actually change — not on
+  // every render due to new object references from JSON parsing.
+  const choicesJson =
+    answerConfig?.type === 'mcq'
+      ? JSON.stringify((answerConfig as MCQAnswerConfig).choices)
+      : null;
+  const shouldRandomize =
+    answerConfig?.type === 'mcq' &&
+    (answerConfig as MCQAnswerConfig).randomize_choices !== false;
+
   // Initialize with original order to avoid SSR/client hydration mismatch.
-  // Math.random() in useState produces different values on server vs client,
-  // causing React to render IDs from one shuffle and texts from another.
   // Component is keyed by problem ID, so each problem gets a fresh mount.
   const [shuffledChoices, setShuffledChoices] = useState<MCQChoice[]>(() => {
     if (answerConfig?.type === 'mcq') {
@@ -38,18 +47,21 @@ export default function AnswerInput({
   // useLayoutEffect doesn't run during SSR, so server and client initial
   // renders match (original order). The shuffle applies before the browser
   // paints, so users never see the unshuffled order.
+  // Deps use stable primitives so this also handles answerConfig changes
+  // from router.refresh() / revalidation without remount.
   useLayoutEffect(() => {
-    if (answerConfig?.type !== 'mcq') return;
-    const config = answerConfig as MCQAnswerConfig;
-    if (config.randomize_choices === false) return;
-    const choices = [...config.choices];
+    if (!choicesJson) return;
+    const choices: MCQChoice[] = JSON.parse(choicesJson);
+    if (!shouldRandomize) {
+      setShuffledChoices(choices);
+      return;
+    }
     for (let i = choices.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [choices[i], choices[j]] = [choices[j], choices[i]];
     }
     setShuffledChoices(choices);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [choicesJson, shouldRandomize]);
 
   // Enhanced MCQ: radio buttons with choice text
   if (problemType === 'mcq' && answerConfig && answerConfig.type === 'mcq') {
