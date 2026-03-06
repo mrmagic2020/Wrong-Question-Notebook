@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { BackLink } from '@/components/back-link';
@@ -111,8 +111,13 @@ export default function ProblemReview({
   const [logAttemptDialogOpen, setLogAttemptDialogOpen] = useState(false);
   const [timelineRefreshKey, setTimelineRefreshKey] = useState(0);
 
+  // Tracks the current problem so in-flight requests from a previous
+  // problem are discarded when the response arrives.
+  const activeProblemIdRef = useRef(problem.id);
+
   // Reset review state and scroll to top when problem changes
   useEffect(() => {
+    activeProblemIdRef.current = problem.id;
     setUserAnswer('');
     setSubmittedAnswer(null);
     setIsCorrect(null);
@@ -143,12 +148,13 @@ export default function ProblemReview({
   const handleAnswerSubmit = async () => {
     if (!problem.auto_mark) return;
 
+    const submittingProblemId = problem.id;
     const isFirstAttempt = !hasRecordedAttempt;
     setIsSubmitting(true);
     setError(null);
 
     try {
-      const response = await fetch(`/api/problems/${problem.id}/attempt`, {
+      const response = await fetch(`/api/problems/${submittingProblemId}/attempt`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -160,6 +166,9 @@ export default function ProblemReview({
       });
 
       const result = await response.json();
+
+      // Discard stale response if user navigated to a different problem
+      if (activeProblemIdRef.current !== submittingProblemId) return;
 
       if (!response.ok) {
         throw new Error(result.error || 'Failed to submit answer');
@@ -176,9 +185,12 @@ export default function ProblemReview({
         setTimelineRefreshKey(k => k + 1);
       }
     } catch (err: any) {
+      if (activeProblemIdRef.current !== submittingProblemId) return;
       setError(err.message);
     } finally {
-      setIsSubmitting(false);
+      if (activeProblemIdRef.current === submittingProblemId) {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -188,6 +200,7 @@ export default function ProblemReview({
       return;
     }
 
+    const updatingProblemId = problem.id;
     setSelectedStatus(newStatus);
 
     // Always update last_reviewed_date when user selects a status
@@ -201,13 +214,15 @@ export default function ProblemReview({
     }
 
     try {
-      const response = await fetch(`/api/problems/${problem.id}/status`, {
+      const response = await fetch(`/api/problems/${updatingProblemId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(updateData),
       });
+
+      if (activeProblemIdRef.current !== updatingProblemId) return;
 
       if (!response.ok) {
         let errorMessage = 'Failed to update status';
@@ -227,6 +242,7 @@ export default function ProblemReview({
       // Refresh the page to get updated data
       router.refresh();
     } catch (err: any) {
+      if (activeProblemIdRef.current !== updatingProblemId) return;
       setError(err.message);
       // Reset selection on error
       setSelectedStatus(null);
