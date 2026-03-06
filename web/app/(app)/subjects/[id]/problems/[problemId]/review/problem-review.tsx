@@ -129,6 +129,8 @@ export default function ProblemReview({
     setLastAttemptId(null);
     setLastAttemptCorrect(null);
     setLastReflection({ confidence: null, cause: null, notes: null });
+    setReflectionDialogOpen(false);
+    setLogAttemptDialogOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [problem.id]);
 
