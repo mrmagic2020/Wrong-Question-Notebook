@@ -24,7 +24,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Problem, DataTableProps } from '@/lib/types';
 import { ProblemStatus } from '@/lib/schemas';
-import { getStatusBorderColor } from './columns';
+import { getStatusBorderColor } from '@/lib/common-utils';
 
 export function DataTable<TData, TValue>({
   columns,

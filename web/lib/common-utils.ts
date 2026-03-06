@@ -121,6 +121,32 @@ export function getProblemStatusDisplayName(status: string): string {
   return displayNames[status] || status;
 }
 
+export function getStatusBorderColor(status: string): string {
+  switch (status) {
+    case 'wrong':
+      return 'border-l-red-400 dark:border-l-red-500';
+    case 'needs_review':
+      return 'border-l-amber-400 dark:border-l-amber-500';
+    case 'mastered':
+      return 'border-l-green-400 dark:border-l-green-500';
+    default:
+      return '';
+  }
+}
+
+export function getStatusBadgeStyle(status: string): string {
+  switch (status) {
+    case 'wrong':
+      return 'bg-red-100 text-red-800 border-red-200 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
+    case 'needs_review':
+      return 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
+    case 'mastered':
+      return 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
+    default:
+      return '';
+  }
+}
+
 // =====================================================
 // Error Handling Utilities
 // =====================================================

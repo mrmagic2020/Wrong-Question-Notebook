@@ -17,39 +17,12 @@ import { ProblemType, ProblemStatus } from '@/lib/schemas';
 import {
   getProblemTypeDisplayName,
   getProblemStatusDisplayName,
+  getStatusBadgeStyle,
   formatDisplayDate,
 } from '@/lib/common-utils';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { Problem, TableMeta } from '@/lib/types';
-
-// Helper function to get status-colored left border for rows/cards
-export function getStatusBorderColor(status: ProblemStatus): string {
-  switch (status) {
-    case 'wrong':
-      return 'border-l-red-400 dark:border-l-red-500';
-    case 'needs_review':
-      return 'border-l-amber-400 dark:border-l-amber-500';
-    case 'mastered':
-      return 'border-l-green-400 dark:border-l-green-500';
-    default:
-      return '';
-  }
-}
-
-// Helper function to get status badge styling with custom colors
-export const getStatusBadgeStyle = (status: ProblemStatus): string => {
-  switch (status) {
-    case 'wrong':
-      return 'bg-red-100 text-red-800 border-red-200 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
-    case 'needs_review':
-      return 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
-    case 'mastered':
-      return 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
-    default:
-      return '';
-  }
-};
 
 // Tag capsules component
 function TagCapsules({ tags }: { tags: { id: string; name: string }[] }) {
