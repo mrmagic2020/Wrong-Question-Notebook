@@ -680,7 +680,9 @@ html body[data-scroll-locked] {
   }
 }
 
-/* Form slot + FAB Animation Keyframes */
+/* Form slot + FAB Animation Keyframes
+   Note: fabEnter uses translate(-50%, 0) to match the FAB's
+   `left-1/2 -translate-x-1/2` positioning. Keep these in sync. */
 @keyframes formSlotEnter {
   from {
     opacity: 0;
