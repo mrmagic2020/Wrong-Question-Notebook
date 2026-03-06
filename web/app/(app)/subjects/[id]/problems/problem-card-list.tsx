@@ -14,17 +14,20 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Problem } from '@/lib/types';
+import { cn } from '@/lib/utils';
 import { ProblemStatus } from '@/lib/schemas';
 import {
   getProblemTypeDisplayName,
   getProblemStatusDisplayName,
   formatDisplayDate,
+  getStatusBadgeStyle,
+  getStatusBorderColor,
 } from '@/lib/common-utils';
-import { getStatusBadgeStyle, getStatusBorderColor } from './columns';
+import { PROBLEM_CONSTANTS } from '@/lib/constants';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = PROBLEM_CONSTANTS.MOBILE_CARD_LIST_PAGE_SIZE;
 
 interface ProblemCardListProps {
   problems: Problem[];
@@ -49,7 +52,7 @@ export default function ProblemCardList({
   onAddToSet,
   isAddToSetMode = false,
 }: ProblemCardListProps) {
-  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const [visibleCount, setVisibleCount] = useState<number>(ITEMS_PER_PAGE);
 
   const visibleProblems = problems.slice(0, visibleCount);
   const hasMore = visibleCount < problems.length;
@@ -71,12 +74,12 @@ export default function ProblemCardList({
         return (
           <div
             key={problem.id}
-            className={`
-              rounded-xl border p-4 border-l-[4px] ${getStatusBorderColor(problem.status as ProblemStatus)}
-              ${isMastered && !isAddToSetMode ? 'opacity-80' : ''}
-              ${!isSelectMode ? 'cursor-pointer active:bg-muted/50' : ''}
-              transition-colors
-            `}
+            className={cn(
+              'rounded-xl border p-4 border-l-[4px] transition-colors',
+              getStatusBorderColor(problem.status as ProblemStatus),
+              isMastered && !isAddToSetMode && 'opacity-80',
+              !isSelectMode && 'cursor-pointer active:bg-muted/50'
+            )}
             onClick={() => {
               if (isSelectMode) {
                 toggleSelect(problem.id);

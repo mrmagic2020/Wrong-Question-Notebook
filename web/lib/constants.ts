@@ -269,6 +269,7 @@ export const PROBLEM_CONSTANTS = {
     NEEDS_REVIEW: 'needs_review',
     MASTERED: 'mastered',
   },
+  MOBILE_CARD_LIST_PAGE_SIZE: 10,
 } as const;
 
 // =====================================================
