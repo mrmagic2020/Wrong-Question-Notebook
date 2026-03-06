@@ -43,10 +43,11 @@ export default function AnswerInput({
     return [];
   });
 
-  // Shuffle on client only (before paint) to prevent hydration mismatch.
+  // Shuffle on client only to prevent hydration mismatch.
   // useLayoutEffect doesn't run during SSR, so server and client initial
-  // renders match (original order). The shuffle applies before the browser
-  // paints, so users never see the unshuffled order.
+  // renders match (original order). Once JS hydrates, the shuffle applies
+  // before the next paint — but on slow connections the server-rendered
+  // (unshuffled) HTML may be briefly visible before hydration.
   // Deps use stable primitives so this also handles answerConfig changes
   // from router.refresh() / revalidation without remount.
   useLayoutEffect(() => {
