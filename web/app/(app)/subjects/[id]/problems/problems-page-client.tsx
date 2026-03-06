@@ -9,6 +9,7 @@ import ProblemFab from './problem-fab';
 import { ProblemsPageClientProps, Problem } from '@/lib/types';
 import { useOnboarding } from '@/components/onboarding/onboarding-provider';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import { toast } from 'sonner';
 
 type FormMode = 'closed' | 'create-manual' | 'create-scan' | 'edit';
 
@@ -47,9 +48,15 @@ export default function ProblemsPageClient({
   const fetchAndOpenEdit = useCallback(async (problem: Problem) => {
     try {
       const response = await fetch(`/api/problems/${problem.id}`);
+      if (!response.ok) {
+        throw new Error('Failed to load problem details');
+      }
       const data = await response.json();
       setEditingProblem(data.data || problem);
-    } catch {
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : 'Failed to load problem details'
+      );
       setEditingProblem(problem);
     }
     setFormMode('edit');
