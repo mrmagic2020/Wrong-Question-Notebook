@@ -156,16 +156,19 @@ export default function ProblemReview({
     setError(null);
 
     try {
-      const response = await fetch(`/api/problems/${submittingProblemId}/attempt`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          submitted_answer: userAnswer,
-          record: isFirstAttempt,
-        }),
-      });
+      const response = await fetch(
+        `/api/problems/${submittingProblemId}/attempt`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            submitted_answer: userAnswer,
+            record: isFirstAttempt,
+          }),
+        }
+      );
 
       const result = await response.json();
 
@@ -216,13 +219,16 @@ export default function ProblemReview({
     }
 
     try {
-      const response = await fetch(`/api/problems/${updatingProblemId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updateData),
-      });
+      const response = await fetch(
+        `/api/problems/${updatingProblemId}/status`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updateData),
+        }
+      );
 
       if (activeProblemIdRef.current !== updatingProblemId) return;
 
