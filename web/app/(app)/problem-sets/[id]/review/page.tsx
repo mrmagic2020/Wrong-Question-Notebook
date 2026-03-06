@@ -236,6 +236,7 @@ export default async function ProblemSetReviewPage({
 
   return (
     <ProblemReview
+      key={currentProblem.id}
       problem={currentProblem}
       subject={{ id: problemSet.subject_id, name: problemSet.subject_name }}
       allProblems={problems}

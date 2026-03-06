@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useLayoutEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import MathText from '@/components/ui/math-text';
 import { AnswerInputProps } from '@/lib/types';
-import type { MCQAnswerConfig } from '@/lib/types';
+import type { MCQAnswerConfig, MCQChoice } from '@/lib/types';
 
 export default function AnswerInput({
   problemType,
@@ -23,21 +23,33 @@ export default function AnswerInput({
     }
   };
 
-  // Stable shuffled choices — computed once per mount via useState initializer.
-  // Component is keyed by problem ID, so each problem visit gets a fresh shuffle.
-  const [shuffledChoices] = useState(() => {
+  // Initialize with original order to avoid SSR/client hydration mismatch.
+  // Math.random() in useState produces different values on server vs client,
+  // causing React to render IDs from one shuffle and texts from another.
+  // Component is keyed by problem ID, so each problem gets a fresh mount.
+  const [shuffledChoices, setShuffledChoices] = useState<MCQChoice[]>(() => {
     if (answerConfig?.type === 'mcq') {
-      const config = answerConfig as MCQAnswerConfig;
-      if (config.randomize_choices === false) return config.choices;
-      const choices = [...config.choices];
-      for (let i = choices.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [choices[i], choices[j]] = [choices[j], choices[i]];
-      }
-      return choices;
+      return (answerConfig as MCQAnswerConfig).choices;
     }
     return [];
   });
+
+  // Shuffle on client only (before paint) to prevent hydration mismatch.
+  // useLayoutEffect doesn't run during SSR, so server and client initial
+  // renders match (original order). The shuffle applies before the browser
+  // paints, so users never see the unshuffled order.
+  useLayoutEffect(() => {
+    if (answerConfig?.type !== 'mcq') return;
+    const config = answerConfig as MCQAnswerConfig;
+    if (config.randomize_choices === false) return;
+    const choices = [...config.choices];
+    for (let i = choices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [choices[i], choices[j]] = [choices[j], choices[i]];
+    }
+    setShuffledChoices(choices);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Enhanced MCQ: radio buttons with choice text
   if (problemType === 'mcq' && answerConfig && answerConfig.type === 'mcq') {

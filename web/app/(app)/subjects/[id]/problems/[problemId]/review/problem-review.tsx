@@ -111,8 +111,19 @@ export default function ProblemReview({
   const [logAttemptDialogOpen, setLogAttemptDialogOpen] = useState(false);
   const [timelineRefreshKey, setTimelineRefreshKey] = useState(0);
 
-  // Scroll to top when problem changes
+  // Reset review state and scroll to top when problem changes
   useEffect(() => {
+    setUserAnswer('');
+    setSubmittedAnswer(null);
+    setIsCorrect(null);
+    setShowSolution(false);
+    setIsSubmitting(false);
+    setError(null);
+    setSelectedStatus(null);
+    setHasRecordedAttempt(false);
+    setLastAttemptId(null);
+    setLastAttemptCorrect(null);
+    setLastReflection({ confidence: null, cause: null, notes: null });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [problem.id]);
 
@@ -347,6 +358,7 @@ export default function ProblemReview({
 
               <div className="pl-10">
                 <AnswerInput
+                  key={problem.id}
                   problemType={problem.problem_type}
                   correctAnswer={problem.correct_answer}
                   answerConfig={problem.answer_config}
