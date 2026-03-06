@@ -389,9 +389,14 @@ export default function EnhancedProblemsTable({
     setSelectedProblems(selected);
   }, []);
 
-  const handleRowClick = useCallback((problem: Problem) => {
-    window.location.href = `/subjects/${problem.subject_id}/problems/${problem.id}/review`;
-  }, []);
+  const handleRowClick = useCallback(
+    (problem: Problem) => {
+      router.push(
+        `/subjects/${problem.subject_id}/problems/${problem.id}/review`
+      );
+    },
+    [router]
+  );
 
   // Reset the resetSelection flag after it's been triggered
   useEffect(() => {
