@@ -94,6 +94,63 @@ function compressImage(
   });
 }
 
+function ImageAssetToggles({
+  idPrefix,
+  saveAsProblemAsset,
+  onProblemAssetChange,
+  saveAsSolutionAsset,
+  onSolutionAssetChange,
+  hint,
+}: {
+  idPrefix: string;
+  saveAsProblemAsset: boolean;
+  onProblemAssetChange: (v: boolean) => void;
+  saveAsSolutionAsset: boolean;
+  onSolutionAssetChange: (v: boolean) => void;
+  hint?: string;
+}) {
+  return (
+    <div className="flex items-center gap-4 rounded-xl border border-amber-200/40 bg-amber-50/30 px-3 py-2 dark:border-amber-800/30 dark:bg-amber-950/20">
+      <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+        Save image as:
+      </span>
+      <div className="flex items-center gap-1.5">
+        <Switch
+          id={`${idPrefix}-problem-asset`}
+          checked={saveAsProblemAsset}
+          onCheckedChange={onProblemAssetChange}
+          className="h-4 w-8 [&>span]:h-3.5 [&>span]:w-3.5 data-[state=checked]:[&>span]:translate-x-3.5"
+        />
+        <Label
+          htmlFor={`${idPrefix}-problem-asset`}
+          className="cursor-pointer text-xs text-gray-600 dark:text-gray-400"
+        >
+          Problem asset
+        </Label>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <Switch
+          id={`${idPrefix}-solution-asset`}
+          checked={saveAsSolutionAsset}
+          onCheckedChange={onSolutionAssetChange}
+          className="h-4 w-8 [&>span]:h-3.5 [&>span]:w-3.5 data-[state=checked]:[&>span]:translate-x-3.5"
+        />
+        <Label
+          htmlFor={`${idPrefix}-solution-asset`}
+          className="cursor-pointer text-xs text-gray-600 dark:text-gray-400"
+        >
+          Solution asset
+        </Label>
+      </div>
+      {hint && (
+        <span className="ml-auto text-[11px] text-blue-600 dark:text-blue-400">
+          {hint}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export function ImageScanUploader({
   onExtracted,
   onCancel,
@@ -645,39 +702,13 @@ export function ImageScanUploader({
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-4 rounded-xl border border-amber-200/40 bg-amber-50/30 px-3 py-2 dark:border-amber-800/30 dark:bg-amber-950/20">
-          <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-            Save image as:
-          </span>
-          <div className="flex items-center gap-1.5">
-            <Switch
-              id="save-problem-asset"
-              checked={saveAsProblemAsset}
-              onCheckedChange={setSaveAsProblemAsset}
-              className="h-4 w-8 [&>span]:h-3.5 [&>span]:w-3.5 data-[state=checked]:[&>span]:translate-x-3.5"
-            />
-            <Label
-              htmlFor="save-problem-asset"
-              className="cursor-pointer text-xs text-gray-600 dark:text-gray-400"
-            >
-              Problem asset
-            </Label>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Switch
-              id="save-solution-asset"
-              checked={saveAsSolutionAsset}
-              onCheckedChange={setSaveAsSolutionAsset}
-              className="h-4 w-8 [&>span]:h-3.5 [&>span]:w-3.5 data-[state=checked]:[&>span]:translate-x-3.5"
-            />
-            <Label
-              htmlFor="save-solution-asset"
-              className="cursor-pointer text-xs text-gray-600 dark:text-gray-400"
-            >
-              Solution asset
-            </Label>
-          </div>
-        </div>
+        <ImageAssetToggles
+          idPrefix="preview"
+          saveAsProblemAsset={saveAsProblemAsset}
+          onProblemAssetChange={setSaveAsProblemAsset}
+          saveAsSolutionAsset={saveAsSolutionAsset}
+          onSolutionAssetChange={setSaveAsSolutionAsset}
+        />
         <div className="flex items-center justify-between">
           <div>{quotaIndicator}</div>
           <div className="flex items-center gap-2">
@@ -767,17 +798,6 @@ export function ImageScanUploader({
               ` (${extractionResult.mcq_choices.length} choices)`}
           </div>
 
-          {/* Image asset suggestion */}
-          {extractionResult.suggest_image_asset && (
-            <div className="mt-3 flex items-start gap-1.5 text-xs text-blue-700 dark:text-blue-400">
-              <ImageIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-              <span>
-                This problem contains visual content &mdash; image will be saved
-                as a problem asset.
-              </span>
-            </div>
-          )}
-
           {/* Warnings */}
           {warnings.length > 0 && (
             <div className="mt-3 space-y-1">
@@ -793,6 +813,19 @@ export function ImageScanUploader({
             </div>
           )}
         </div>
+
+        <ImageAssetToggles
+          idPrefix="result"
+          saveAsProblemAsset={saveAsProblemAsset}
+          onProblemAssetChange={setSaveAsProblemAsset}
+          saveAsSolutionAsset={saveAsSolutionAsset}
+          onSolutionAssetChange={setSaveAsSolutionAsset}
+          hint={
+            extractionResult.suggest_image_asset
+              ? 'Visual content detected'
+              : undefined
+          }
+        />
 
         <div className="flex items-center justify-end gap-2">
           <Button
