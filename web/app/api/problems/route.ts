@@ -14,6 +14,7 @@ import {
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
 import { revalidateProblemComprehensive } from '@/lib/cache-invalidation';
+import { createServiceClient } from '@/lib/supabase-utils';
 
 // Cache configuration for this route
 export const revalidate = 300; // 5 minutes
@@ -276,6 +277,22 @@ async function createProblem(req: Request) {
       .eq('user_id', user.id);
 
     const tags = tagLinks?.map((link: any) => link.tags).filter(Boolean) || [];
+
+    // Insert initial review schedule row
+    try {
+      const serviceClient = createServiceClient();
+      await serviceClient.from('review_schedule').upsert(
+        {
+          user_id: user.id,
+          problem_id: created.id,
+          next_review_at: new Date().toISOString(),
+          interval_days: 1,
+        },
+        { onConflict: 'user_id,problem_id' }
+      );
+    } catch (e) {
+      console.error('Failed to create review schedule:', e);
+    }
 
     // Invalidate cache after successful creation
     await revalidateProblemComprehensive(

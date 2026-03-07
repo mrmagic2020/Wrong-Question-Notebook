@@ -181,6 +181,20 @@ export type AnswerConfig =
 export interface SubjectWithMetadata extends Subject {
   problem_count?: number;
   last_activity?: string;
+  due_count?: number;
+}
+
+export interface ReviewSchedule {
+  id: string;
+  user_id: string;
+  problem_id: string;
+  next_review_at: string;
+  interval_days: number;
+  ease_factor: number;
+  repetition_number: number;
+  last_reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ProblemWithTags extends Problem {

@@ -10,6 +10,8 @@ import {
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
 import { revalidateProblemAndSubject } from '@/lib/cache-invalidation';
+import { updateReviewSchedule } from '@/lib/spaced-repetition';
+import { createServiceClient } from '@/lib/supabase-utils';
 
 async function getAttempts(req: Request) {
   const { user, supabase } = await requireUser();
@@ -135,6 +137,22 @@ async function createAttempt(req: Request) {
       parsed.data.problem_id,
       problem.subject_id
     );
+
+    // Update spaced repetition schedule
+    try {
+      if (data.is_correct !== null) {
+        const serviceClient = createServiceClient();
+        await updateReviewSchedule(
+          serviceClient,
+          user.id,
+          parsed.data.problem_id,
+          data.is_correct,
+          data.confidence
+        );
+      }
+    } catch (e) {
+      console.error('Failed to update review schedule:', e);
+    }
 
     return NextResponse.json(createApiSuccessResponse(data), { status: 201 });
   } catch (error) {

@@ -23,6 +23,9 @@ export const CACHE_DURATIONS = {
 
   // Statistics dashboard - 5 minutes
   STATISTICS: 5 * 60, // 5 minutes
+
+  // Review schedule - 5 minutes
+  REVIEW_SCHEDULE: 5 * 60, // 5 minutes
 } as const;
 
 // Cache tags for organized invalidation
@@ -37,6 +40,8 @@ export const CACHE_TAGS = {
   ADMIN_USERS: 'admin-users',
   ADMIN_ACTIVITY: 'admin-activity',
 
+  REVIEW_SCHEDULE: 'review-schedule',
+
   // User-specific tags (will be combined with user ID)
   USER_SUBJECTS: 'user-subjects',
   USER_PROBLEMS: 'user-problems',
@@ -44,6 +49,7 @@ export const CACHE_TAGS = {
   USER_REVIEW_SESSIONS: 'user-review-sessions',
   USER_TAGS: 'user-tags',
   USER_STATISTICS: 'user-statistics',
+  USER_REVIEW_SCHEDULE: 'user-review-schedule',
 } as const;
 
 // Helper function to create user-specific cache tags

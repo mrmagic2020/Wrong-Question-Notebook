@@ -574,6 +574,21 @@ export const QR_SESSION_CONSTANTS = {
 // =====================================================
 // Cookie Consent Constants
 // =====================================================
+// =====================================================
+// Spaced Repetition Constants
+// =====================================================
+export const SPACED_REPETITION_CONSTANTS = {
+  DEFAULT_EASE_FACTOR: 2.5,
+  MIN_EASE_FACTOR: 1.3,
+  DEFAULT_INTERVAL: 1,
+  DEFAULT_CONFIDENCE: 3,
+  INITIAL_INTERVALS: [1, 3],
+  MAX_SESSION_SIZE: 50,
+  DEFAULT_SESSION_SIZE: 20,
+  SESSION_PRESETS: [5, 10, 20],
+  POSTPONE_DAYS: 1,
+} as const;
+
 export const COOKIE_CONSENT_CONSTANTS = {
   COOKIE_NAME: 'wqn-cookie-consent',
   CONSENT_VERSION: 1, // bump to force re-consent if categories change
