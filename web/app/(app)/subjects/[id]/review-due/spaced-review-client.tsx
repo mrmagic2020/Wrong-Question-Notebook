@@ -3,8 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { BackLink } from '@/components/back-link';
-import { Clock, Eye, LogOut, Loader2, Play } from 'lucide-react';
+import { Clock, LogOut, Loader2, Play } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProblemStatus } from '@/lib/schemas';
 import ProblemReview, {
@@ -14,12 +13,10 @@ import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Problem } from '@/lib/types';
 import { formatDuration } from '@/lib/common-utils';
 
-interface SessionReviewClientProps {
-  problemSetId: string;
-  sessionId: string;
+interface SpacedReviewClientProps {
   subjectId: string;
   subjectName: string;
-  isReadOnly: boolean;
+  sessionId: string;
 }
 
 interface SessionData {
@@ -38,19 +35,17 @@ interface SessionData {
   results: any[];
 }
 
-export default function SessionReviewClient({
-  problemSetId,
-  sessionId,
+export default function SpacedReviewClient({
   subjectId,
   subjectName,
-  isReadOnly,
-}: SessionReviewClientProps) {
+  sessionId,
+}: SpacedReviewClientProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
-  // Track whether the user has saved the form for the current problem
+  // Track whether the current problem's form has been saved
   const [formSavedForCurrent, setFormSavedForCurrent] = useState(false);
   // Cache attempt state per problem so navigating back restores it
   const [attemptCache, setAttemptCache] = useState<
@@ -72,17 +67,17 @@ export default function SessionReviewClient({
       setCurrentIndex(data.data.session.session_state.current_index || 0);
     } catch {
       toast.error('Failed to load review session');
-      router.push(`/problem-sets/${problemSetId}`);
+      router.push(`/subjects/${subjectId}/problems`);
     } finally {
       setLoading(false);
     }
-  }, [sessionId, problemSetId, router]);
+  }, [sessionId, subjectId, router]);
 
   useEffect(() => {
     fetchSession();
   }, [fetchSession]);
 
-  // Initialize timer from session state once loaded
+  // Initialize timer from session state
   useEffect(() => {
     if (sessionData && !timerInitializedRef.current) {
       timerInitializedRef.current = true;
@@ -93,7 +88,7 @@ export default function SessionReviewClient({
     }
   }, [sessionData]);
 
-  // Timer interval: tick every second when not paused
+  // Timer interval
   useEffect(() => {
     if (!loading && sessionData && !isPaused) {
       timerRef.current = setInterval(() => {
@@ -114,8 +109,6 @@ export default function SessionReviewClient({
     const problemIds = sessionData.session.session_state.problem_ids;
     const currentProblemId = problemIds[currentIndex];
     const { completed_problem_ids } = sessionData.session.session_state;
-
-    // If the problem was already completed, consider it as "form saved"
     setFormSavedForCurrent(completed_problem_ids.includes(currentProblemId));
   }, [currentIndex, sessionData]);
 
@@ -138,8 +131,6 @@ export default function SessionReviewClient({
         }),
       });
 
-      // Update local state — mirror server logic:
-      // only track completion when wasCorrect is a boolean (actual answer)
       if (sessionData) {
         const newState = { ...sessionData.session.session_state };
         newState.current_index = nextIndex;
@@ -177,18 +168,17 @@ export default function SessionReviewClient({
     }
   };
 
+  // Called when the assessment form is saved
   const handleFormSaved = async (_status: ProblemStatus) => {
     if (!sessionData) return;
     const problemIds = sessionData.session.session_state.problem_ids;
     const currentProblemId = problemIds[currentIndex];
     const { completed_problem_ids } = sessionData.session.session_state;
 
-    // Only record progress if not already completed
     if (!completed_problem_ids.includes(currentProblemId)) {
-      const wasCorrect = _status === 'mastered' ? true : false;
+      const wasCorrect = _status === 'mastered';
       await updateProgress(currentProblemId, false, wasCorrect, currentIndex);
     }
-
     setFormSavedForCurrent(true);
   };
 
@@ -214,8 +204,7 @@ export default function SessionReviewClient({
     if (currentIndex >= problemIds.length - 1) {
       handleCompleteSession();
     } else {
-      const nextIdx = currentIndex + 1;
-      setCurrentIndex(nextIdx);
+      setCurrentIndex(currentIndex + 1);
     }
   };
 
@@ -232,7 +221,7 @@ export default function SessionReviewClient({
       });
       if (!res.ok) throw new Error('Failed to complete session');
       router.push(
-        `/problem-sets/${problemSetId}/summary?sessionId=${sessionId}`
+        `/subjects/${subjectId}/review-due/summary?sessionId=${sessionId}`
       );
     } catch {
       toast.error('Failed to complete session');
@@ -259,7 +248,7 @@ export default function SessionReviewClient({
         // Best effort
       }
     }
-    router.push(`/problem-sets/${problemSetId}`);
+    router.push(`/subjects/${subjectId}/problems`);
   };
 
   if (loading || !sessionData) {
@@ -286,9 +275,12 @@ export default function SessionReviewClient({
         <p className="text-muted-foreground mb-4">
           The current problem could not be loaded.
         </p>
-        <BackLink onClick={() => router.push(`/problem-sets/${problemSetId}`)}>
-          Back to Problem Set
-        </BackLink>
+        <Button
+          variant="outline"
+          onClick={() => router.push(`/subjects/${subjectId}/problems`)}
+        >
+          Back to Problems
+        </Button>
       </div>
     );
   }
@@ -307,8 +299,7 @@ export default function SessionReviewClient({
 
   const isLastProblem = currentIndex >= problemIds.length - 1;
 
-  // Check if we're at the foremost (furthest reached) problem
-  // We're at the foremost if the next problem hasn't been completed yet
+  // Check if at the foremost problem
   const nextProblemId =
     currentIndex < problemIds.length - 1 ? problemIds[currentIndex + 1] : null;
   const isForemost =
@@ -317,14 +308,7 @@ export default function SessionReviewClient({
   return (
     <>
       <div className="section-container">
-        {/* Read-only indicator for shared sessions */}
-        {isReadOnly && (
-          <div className="mb-4 flex items-center gap-2 rounded-xl border border-amber-200/50 dark:border-amber-800/40 bg-amber-50/80 dark:bg-amber-900/20 px-4 py-2.5 text-sm font-medium text-amber-800 dark:text-amber-300">
-            <Eye className="h-4 w-4 shrink-0" />
-            <span>Practice Mode — Progress not tracked</span>
-          </div>
-        )}
-        {/* Problem Review with integrated session nav in sidebar */}
+        {/* Problem Review with integrated session nav */}
         <ProblemReview
           key={currentProblem.id}
           problem={currentProblem}
@@ -332,9 +316,6 @@ export default function SessionReviewClient({
           allProblems={sessionData.problems}
           prevProblem={prevProblem || null}
           nextProblem={nextProblem || null}
-          isProblemSetMode={true}
-          problemSetId={problemSetId}
-          isReadOnly={isReadOnly}
           hideNavigation={true}
           onFormSaved={handleFormSaved}
           showExitButton={true}
@@ -374,7 +355,7 @@ export default function SessionReviewClient({
         />
       </div>
 
-      {/* Pause Overlay - outside section-container to cover entire viewport */}
+      {/* Pause Overlay */}
       {isPaused && (
         <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-background/60">
           <div className="flex flex-col items-center gap-6 p-8 rounded-2xl bg-card border border-border shadow-lg max-w-sm w-full mx-4">

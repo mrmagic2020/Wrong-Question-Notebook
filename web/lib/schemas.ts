@@ -162,6 +162,7 @@ export const CreateAttemptDto = z.object({
     .string()
     .max(ATTEMPT_CONSTANTS.MAX_REFLECTION_NOTES_LENGTH)
     .optional(),
+  selected_status: ProblemStatus.optional(),
 });
 
 export const UpdateAttemptDto = z.object({
@@ -171,6 +172,15 @@ export const UpdateAttemptDto = z.object({
     .string()
     .max(ATTEMPT_CONSTANTS.MAX_REFLECTION_NOTES_LENGTH)
     .nullable()
+    .optional(),
+  selected_status: ProblemStatus.nullable().optional(),
+  submitted_answer: z
+    .union([
+      z.string().max(ATTEMPT_CONSTANTS.MAX_RESPONSE_LENGTH),
+      z.number(),
+      z.boolean(),
+      z.record(z.string(), z.unknown()),
+    ])
     .optional(),
 });
 

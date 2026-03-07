@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/accordion';
 import { Pencil, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import ReflectionDialog from './reflection-dialog';
+import AttemptEditDialog from './attempt-edit-dialog';
 
 interface AttemptTimelineEntryProps {
   attempt: Attempt;
@@ -48,12 +48,47 @@ function getCauseLabel(
   return found?.label || cause;
 }
 
+function getStatusBadge(status: string | null) {
+  switch (status) {
+    case 'wrong':
+      return {
+        label: 'Wrong',
+        className:
+          'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+        dotColor: 'bg-red-500',
+      };
+    case 'needs_review':
+      return {
+        label: 'Needs Review',
+        className:
+          'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+        dotColor: 'bg-yellow-500',
+      };
+    case 'mastered':
+      return {
+        label: 'Mastered',
+        className:
+          'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+        dotColor: 'bg-green-500',
+      };
+    default:
+      return {
+        label: 'Ungraded',
+        className:
+          'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
+        dotColor: 'bg-gray-400',
+      };
+  }
+}
+
 export default function AttemptTimelineEntry({
   attempt,
   isLast,
   onUpdated,
 }: AttemptTimelineEntryProps) {
   const [editOpen, setEditOpen] = useState(false);
+
+  const badge = getStatusBadge(attempt.selected_status);
 
   return (
     <>
@@ -63,11 +98,7 @@ export default function AttemptTimelineEntry({
           <div
             className={cn(
               'w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0',
-              attempt.is_correct === true
-                ? 'bg-green-500'
-                : attempt.is_correct === false
-                  ? 'bg-red-500'
-                  : 'bg-gray-400'
+              badge.dotColor
             )}
           />
           {!isLast && (
@@ -81,48 +112,20 @@ export default function AttemptTimelineEntry({
             <AccordionItem value={attempt.id} className="border-none">
               <AccordionTrigger className="py-0 hover:no-underline">
                 <div className="flex items-center gap-2 text-left">
-                  {/* Result badge */}
+                  {/* Status badge */}
                   <span
                     className={cn(
                       'text-xs font-medium px-1.5 py-0.5 rounded',
-                      attempt.is_correct === true
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                        : attempt.is_correct === false
-                          ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                          : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                      badge.className
                     )}
                   >
-                    {attempt.is_correct === true
-                      ? 'Correct'
-                      : attempt.is_correct === false
-                        ? 'Incorrect'
-                        : 'Ungraded'}
+                    {badge.label}
                   </span>
 
                   {/* Self-assessed indicator */}
                   {attempt.is_self_assessed && (
                     <span title="Self-assessed">
                       <User className="w-3 h-3 text-violet-500" />
-                    </span>
-                  )}
-
-                  {/* Confidence dots */}
-                  {attempt.confidence && (
-                    <span
-                      className="flex gap-0.5"
-                      title={`Confidence: ${attempt.confidence}/5`}
-                    >
-                      {[1, 2, 3, 4, 5].map(i => (
-                        <span
-                          key={i}
-                          className={cn(
-                            'w-1.5 h-1.5 rounded-full',
-                            i <= attempt.confidence!
-                              ? 'bg-violet-500'
-                              : 'bg-gray-200 dark:bg-gray-700'
-                          )}
-                        />
-                      ))}
                     </span>
                   )}
 
@@ -180,7 +183,7 @@ export default function AttemptTimelineEntry({
                     }}
                   >
                     <Pencil className="w-3 h-3" />
-                    Edit reflection
+                    Edit
                   </Button>
                 </div>
               </AccordionContent>
@@ -189,23 +192,11 @@ export default function AttemptTimelineEntry({
         </div>
       </div>
 
-      {/* Edit reflection dialog */}
-      <ReflectionDialog
+      {/* Edit dialog */}
+      <AttemptEditDialog
         open={editOpen}
         onOpenChange={setEditOpen}
-        attemptId={attempt.id}
-        isCorrect={attempt.is_correct}
-        initialConfidence={attempt.confidence}
-        initialCause={attempt.cause}
-        initialNotes={attempt.reflection_notes}
-        submittedAnswer={
-          attempt.submitted_answer != null &&
-          attempt.submitted_answer !== 'Self-assessed'
-            ? typeof attempt.submitted_answer === 'string'
-              ? attempt.submitted_answer
-              : JSON.stringify(attempt.submitted_answer)
-            : undefined
-        }
+        attempt={attempt}
         onSaved={onUpdated}
       />
     </>

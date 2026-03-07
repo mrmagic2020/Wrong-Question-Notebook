@@ -20,6 +20,7 @@ import {
   Tags,
   Trash2,
 } from 'lucide-react';
+import { ReviewDueButton } from './review-due-button';
 
 interface NotebookCardProps {
   subject: SubjectWithMetadata;
@@ -27,6 +28,7 @@ interface NotebookCardProps {
   onEdit: () => void;
   onManageTags: () => void;
   onDelete: () => void;
+  onReviewDue?: () => void;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -57,6 +59,7 @@ export function NotebookCard({
   onEdit,
   onManageTags,
   onDelete,
+  onReviewDue,
   className,
   style,
 }: NotebookCardProps) {
@@ -73,6 +76,7 @@ export function NotebookCard({
     ];
 
   const problemCount = subject.problem_count ?? 0;
+  const dueCount = subject.due_count ?? 0;
   const lastActivity = subject.last_activity;
   const createdAt = subject.created_at;
 
@@ -148,11 +152,20 @@ export function NotebookCard({
       </CardHeader>
 
       <CardContent className="space-y-3 text-sm">
-        <div className="flex items-center gap-2">
-          <FileText className={cn('w-4 h-4', colorClasses.iconColor)} />
-          <span className="text-gray-600 dark:text-gray-400">
-            {problemCount} {problemCount === 1 ? 'problem' : 'problems'}
-          </span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FileText className={cn('w-4 h-4', colorClasses.iconColor)} />
+            <span className="text-gray-600 dark:text-gray-400">
+              {problemCount} {problemCount === 1 ? 'problem' : 'problems'}
+            </span>
+          </div>
+          {dueCount > 0 && onReviewDue && (
+            <ReviewDueButton
+              dueCount={dueCount}
+              color={safeColor}
+              onClick={() => onReviewDue()}
+            />
+          )}
         </div>
 
         {formattedCreatedAt && (

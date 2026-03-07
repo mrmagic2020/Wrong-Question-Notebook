@@ -10,6 +10,7 @@ import {
 import { ERROR_MESSAGES } from '@/lib/constants';
 import { calculateSessionStats } from '@/lib/review-utils';
 import { createServiceClient } from '@/lib/supabase-utils';
+import { revalidateUserReviewSchedule } from '@/lib/cache-invalidation';
 
 async function completeSession(
   req: Request,
@@ -69,6 +70,15 @@ async function completeSession(
     }
 
     const summary = calculateSessionStats(session, currentStatuses);
+
+    // Invalidate SR cache if this was a spaced repetition session
+    if (session.session_type === 'spaced_repetition') {
+      try {
+        await revalidateUserReviewSchedule(user.id);
+      } catch {
+        // Best effort
+      }
+    }
 
     return NextResponse.json(
       createApiSuccessResponse({

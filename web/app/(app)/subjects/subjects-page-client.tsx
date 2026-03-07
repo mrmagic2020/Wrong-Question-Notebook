@@ -15,6 +15,7 @@ import { SubjectWithMetadata } from '@/lib/types';
 import { useOnboarding } from '@/components/onboarding/onboarding-provider';
 import { Search, BookMarked } from 'lucide-react';
 import { toast } from 'sonner';
+import { ReviewDuePickerDialog } from '@/components/subjects/review-due-picker-dialog';
 
 export default function SubjectsPageClient({
   initialSubjects,
@@ -29,6 +30,8 @@ export default function SubjectsPageClient({
   const [managingTagsSubject, setManagingTagsSubject] =
     useState<SubjectWithMetadata | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [reviewDueSubject, setReviewDueSubject] =
+    useState<SubjectWithMetadata | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { refreshChecklistStatus } = useOnboarding();
   const { showConfirmation, ConfirmationDialogComponent } =
@@ -168,6 +171,7 @@ export default function SubjectsPageClient({
                   onEdit={() => setEditingSubject(subject)}
                   onManageTags={() => setManagingTagsSubject(subject)}
                   onDelete={() => handleSubjectDeleted(subject)}
+                  onReviewDue={() => setReviewDueSubject(subject)}
                   className="notebook-card-enter"
                   style={{ animationDelay: `${index * 0.08}s` }}
                 />
@@ -226,6 +230,16 @@ export default function SubjectsPageClient({
           onOpenChange={open => !open && setManagingTagsSubject(null)}
           subjectId={managingTagsSubject.id}
           subjectName={managingTagsSubject.name}
+        />
+      )}
+
+      {reviewDueSubject && (
+        <ReviewDuePickerDialog
+          open={!!reviewDueSubject}
+          onOpenChange={open => !open && setReviewDueSubject(null)}
+          subjectId={reviewDueSubject.id}
+          subjectName={reviewDueSubject.name}
+          dueCount={reviewDueSubject.due_count ?? 0}
         />
       )}
 

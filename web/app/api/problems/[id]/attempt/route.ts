@@ -9,6 +9,7 @@ import { ERROR_MESSAGES } from '@/lib/constants';
 import { revalidateProblemAndSubject } from '@/lib/cache-invalidation';
 import { markAnswer } from '@/lib/answer-marking';
 import { createServiceClient } from '@/lib/supabase-utils';
+import { updateReviewSchedule } from '@/lib/spaced-repetition';
 
 export async function POST(
   req: Request,
@@ -109,6 +110,22 @@ export async function POST(
 
         // Invalidate cache after successful attempt creation
         await revalidateProblemAndSubject(problemId, problem.subject_id);
+
+        // Update spaced repetition schedule
+        try {
+          if (isCorrect !== null) {
+            const defaultStatus = isCorrect ? 'mastered' : 'wrong';
+            const serviceClient = createServiceClient();
+            await updateReviewSchedule(
+              serviceClient,
+              user.id,
+              problemId,
+              defaultStatus
+            );
+          }
+        } catch (e) {
+          console.error('Failed to update review schedule:', e);
+        }
 
         return NextResponse.json(
           createApiSuccessResponse({
