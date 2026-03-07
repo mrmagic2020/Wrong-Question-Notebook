@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -147,18 +147,21 @@ export default function AttemptStatusForm({
     return autoMarkCorrect ? 'mastered' : 'wrong';
   };
 
-  // Apply default selection when form becomes active
-  if (
-    !isPreAttempt &&
-    !isSaved &&
-    selectedStatus === null &&
-    !initialSavedState
-  ) {
-    const defaultStatus = getDefaultStatus();
-    if (defaultStatus) {
-      setSelectedStatus(defaultStatus);
+  // Apply default selection when form becomes active (e.g. after answer submission)
+  useEffect(() => {
+    if (
+      !isPreAttempt &&
+      !isSaved &&
+      selectedStatus === null &&
+      !initialSavedState
+    ) {
+      const defaultStatus = getDefaultStatus();
+      if (defaultStatus) {
+        setSelectedStatus(defaultStatus);
+      }
     }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPreAttempt, autoMark, autoMarkCorrect, hasSubmitted]);
 
   // Derive correctness for cause selector: use the auto-mark result when
   // available, otherwise fall back to status-based derivation
