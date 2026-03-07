@@ -559,7 +559,6 @@ export const QR_SESSION_CONSTANTS = {
   MAX_FILE_SIZE: FILE_CONSTANTS.MAX_FILE_SIZE.IMAGE,
   RATE_LIMITS: {
     SESSION_CREATION: { windowMs: 15 * 60 * 1000, maxRequests: 50 },
-    PHONE_UPLOAD: { windowMs: 5 * 60 * 1000, maxRequests: 5 },
   },
   ERRORS: {
     SESSION_EXPIRED: 'QR code expired. Generate a new one on your computer.',

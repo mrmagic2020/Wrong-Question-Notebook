@@ -203,7 +203,5 @@ async function handlePhoneUpload(
 }
 
 export const POST = withSecurity(handlePhoneUpload, {
-  rateLimitType: 'custom',
-  customRateLimit: QR_SESSION_CONSTANTS.RATE_LIMITS.PHONE_UPLOAD,
-  rateLimitKey: 'ip',
+  enableRateLimit: false,
 });
