@@ -8,7 +8,60 @@ import {
   isValidUuid,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES, SPACED_REPETITION_CONSTANTS } from '@/lib/constants';
-import { createServiceClient } from '@/lib/supabase-utils';
+
+async function checkActiveSession(req: Request) {
+  const { user, supabase } = await requireUser();
+  if (!user) return unauthorised();
+
+  const { searchParams } = new URL(req.url);
+  const subjectId = searchParams.get('subject_id');
+
+  if (!subjectId || !isValidUuid(subjectId)) {
+    return NextResponse.json(
+      createApiErrorResponse('Invalid subject ID', 400),
+      { status: 400 }
+    );
+  }
+
+  try {
+    const { data: existingSession } = await supabase
+      .from('review_session_state')
+      .select('id, session_state')
+      .eq('user_id', user.id)
+      .eq('session_type', 'spaced_repetition')
+      .eq('subject_id', subjectId)
+      .eq('is_active', true)
+      .single();
+
+    if (existingSession) {
+      const state = existingSession.session_state as {
+        problem_ids: string[];
+        completed_problem_ids: string[];
+        skipped_problem_ids: string[];
+      };
+      return NextResponse.json(
+        createApiSuccessResponse({
+          exists: true,
+          sessionId: existingSession.id,
+          progress: {
+            total: state.problem_ids.length,
+            completed: state.completed_problem_ids.length,
+            skipped: state.skipped_problem_ids.length,
+          },
+        })
+      );
+    }
+
+    return NextResponse.json(
+      createApiSuccessResponse({ exists: false })
+    );
+  } catch (error) {
+    const { message, status } = handleAsyncError(error);
+    return NextResponse.json(createApiErrorResponse(message, status), {
+      status,
+    });
+  }
+}
 
 async function startSpacedSession(req: Request) {
   const { user, supabase } = await requireUser();
@@ -59,7 +112,6 @@ async function startSpacedSession(req: Request) {
     }
 
     // Query due problems via RPC
-    const serviceClient = createServiceClient();
     const { data: dueProblems, error: rpcError } = await supabase.rpc(
       'get_due_problems_for_subject',
       { p_subject_id: subject_id, p_limit: effectiveSize }
@@ -84,19 +136,6 @@ async function startSpacedSession(req: Request) {
     }
 
     const selectedIds = dueProblems.map((p: any) => p.id);
-
-    // Postpone remaining due problems (those NOT selected for this session)
-    const postponeDate = new Date();
-    postponeDate.setDate(
-      postponeDate.getDate() + SPACED_REPETITION_CONSTANTS.POSTPONE_DAYS
-    );
-
-    await serviceClient
-      .from('review_schedule')
-      .update({ next_review_at: postponeDate.toISOString() })
-      .eq('user_id', user.id)
-      .lte('next_review_at', new Date().toISOString())
-      .not('problem_id', 'in', `(${selectedIds.join(',')})`);
 
     // Build initial statuses
     const initialStatuses: Record<string, string> = {};
@@ -150,6 +189,10 @@ async function startSpacedSession(req: Request) {
     });
   }
 }
+
+export const GET = withSecurity(checkActiveSession, {
+  rateLimitType: 'api',
+});
 
 export const POST = withSecurity(startSpacedSession, {
   rateLimitType: 'api',

@@ -78,7 +78,7 @@ export const RATE_LIMIT_CONSTANTS = {
     },
     problemCreation: {
       windowMs: 60 * 60 * 1000, // 1 hour
-      maxRequests: 50, // 50 problems per hour
+      maxRequests: 300, // 300 problems per hour
     },
   },
 
@@ -586,7 +586,6 @@ export const SPACED_REPETITION_CONSTANTS = {
   MAX_SESSION_SIZE: 50,
   DEFAULT_SESSION_SIZE: 20,
   SESSION_PRESETS: [5, 10, 20],
-  POSTPONE_DAYS: 1,
 } as const;
 
 export const COOKIE_CONSENT_CONSTANTS = {

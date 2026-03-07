@@ -50,6 +50,12 @@ interface SessionNavProps {
   onPause?: () => void;
 }
 
+export interface AttemptState {
+  submittedAnswer: any;
+  isCorrect: boolean | null;
+  attemptId: string | null;
+}
+
 interface ProblemReviewProps {
   problem: Problem;
   subject: Subject;
@@ -68,6 +74,10 @@ interface ProblemReviewProps {
   onExitSession?: () => void;
   /** Optional session navigation props (for review sessions) */
   sessionNav?: SessionNavProps;
+  /** Restored attempt state when navigating back to a previously attempted problem */
+  initialAttemptState?: AttemptState;
+  /** Called when an attempt is recorded, so the parent can cache it */
+  onAttemptRecorded?: (problemId: string, state: AttemptState) => void;
 }
 
 export default function ProblemReview({
@@ -84,6 +94,8 @@ export default function ProblemReview({
   showExitButton = false,
   onExitSession,
   sessionNav,
+  initialAttemptState,
+  onAttemptRecorded,
 }: ProblemReviewProps) {
   const router = useRouter();
   const { refreshChecklistStatus } = useOnboarding();
@@ -115,19 +127,27 @@ export default function ProblemReview({
   // problem are discarded when the response arrives.
   const activeProblemIdRef = useRef(problem.id);
 
-  // Reset review state and scroll to top when problem changes
+  // Capture initialAttemptState in a ref so the effect below doesn't
+  // re-run when the object reference changes between renders.
+  const initialAttemptRef = useRef(initialAttemptState);
+  initialAttemptRef.current = initialAttemptState;
+
+  // Reset review state and scroll to top when problem changes.
+  // If initialAttemptState is provided (navigating back to a previously
+  // attempted problem), restore from it instead of blanking.
   useEffect(() => {
     activeProblemIdRef.current = problem.id;
-    setUserAnswer('');
-    setSubmittedAnswer(null);
-    setIsCorrect(null);
+    const cached = initialAttemptRef.current;
+    setUserAnswer(cached?.submittedAnswer ?? '');
+    setSubmittedAnswer(cached?.submittedAnswer ?? null);
+    setIsCorrect(cached?.isCorrect ?? null);
     setShowSolution(false);
     setIsSubmitting(false);
     setError(null);
     setSelectedStatus(null);
-    setHasRecordedAttempt(false);
-    setLastAttemptId(null);
-    setLastAttemptCorrect(null);
+    setHasRecordedAttempt(!!cached?.attemptId);
+    setLastAttemptId(cached?.attemptId ?? null);
+    setLastAttemptCorrect(cached?.isCorrect ?? null);
     setLastReflection({ confidence: null, cause: null, notes: null });
     setReflectionDialogOpen(false);
     setLogAttemptDialogOpen(false);
@@ -188,6 +208,13 @@ export default function ProblemReview({
         setLastAttemptCorrect(result.data.is_correct);
         setHasRecordedAttempt(true);
         setTimelineRefreshKey(k => k + 1);
+
+        // Notify parent so it can cache the attempt state
+        onAttemptRecorded?.(submittingProblemId, {
+          submittedAnswer: userAnswer,
+          isCorrect: result.data.is_correct,
+          attemptId: result.data.data.id,
+        });
       }
     } catch (err: any) {
       if (activeProblemIdRef.current !== submittingProblemId) return;

@@ -7,6 +7,8 @@ import {
   handleAsyncError,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
+import { updateReviewSchedule } from '@/lib/spaced-repetition';
+import { createServiceClient } from '@/lib/supabase-utils';
 
 export async function PATCH(
   req: Request,
@@ -67,6 +69,22 @@ export async function PATCH(
         createApiErrorResponse(ERROR_MESSAGES.NOT_FOUND, 404),
         { status: 404 }
       );
+    }
+
+    // Recalculate review schedule when confidence is updated
+    if (parsed.data.confidence != null && data.is_correct !== null) {
+      try {
+        const serviceClient = createServiceClient();
+        await updateReviewSchedule(
+          serviceClient,
+          user.id,
+          data.problem_id,
+          data.is_correct,
+          data.confidence
+        );
+      } catch (e) {
+        console.error('Failed to update review schedule:', e);
+      }
     }
 
     return NextResponse.json(createApiSuccessResponse(data));

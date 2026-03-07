@@ -7,7 +7,9 @@ import { BackLink } from '@/components/back-link';
 import { Clock, Eye, LogOut, Loader2, Play } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProblemStatus } from '@/lib/schemas';
-import ProblemReview from '@/app/(app)/subjects/[id]/problems/[problemId]/review/problem-review';
+import ProblemReview, {
+  AttemptState,
+} from '@/app/(app)/subjects/[id]/problems/[problemId]/review/problem-review';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Problem } from '@/lib/types';
 import { formatDuration } from '@/lib/common-utils';
@@ -51,6 +53,10 @@ export default function SessionReviewClient({
   // Track whether the user has selected a status for the current problem
   const [statusSelectedForCurrent, setStatusSelectedForCurrent] =
     useState(false);
+  // Cache attempt state per problem so navigating back restores it
+  const [attemptCache, setAttemptCache] = useState<
+    Record<string, AttemptState>
+  >({});
 
   // Timer state
   const [elapsedMs, setElapsedMs] = useState(0);
@@ -336,6 +342,10 @@ export default function SessionReviewClient({
           onStatusSelected={handleStatusSelected}
           showExitButton={true}
           onExitSession={() => setExitDialogOpen(true)}
+          initialAttemptState={attemptCache[currentProblem.id]}
+          onAttemptRecorded={(problemId, state) =>
+            setAttemptCache(prev => ({ ...prev, [problemId]: state }))
+          }
           sessionNav={{
             currentIndex,
             totalProblems: problemIds.length,
