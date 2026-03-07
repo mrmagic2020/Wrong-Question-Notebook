@@ -109,6 +109,11 @@ export function calculateNextReview(input: ReviewInput): ReviewScheduleUpdate {
  * Reads the current review schedule for a problem, applies SM-2, and upserts.
  * Uses the three-tier selectedStatus to derive the SM-2 quality score.
  * Uses service client for reliability (bypasses RLS).
+ *
+ * Same-day guard: if the problem was already reviewed today, only refreshes
+ * next_review_at without advancing SM-2 state (repetition_number, ease_factor,
+ * interval_days). This prevents double-advancement when a user edits their
+ * assessment or reviews the same problem multiple times in one day.
  */
 export async function updateReviewSchedule(
   supabase: SupabaseClient,
@@ -118,8 +123,6 @@ export async function updateReviewSchedule(
 ): Promise<void> {
   const { DEFAULT_EASE_FACTOR, DEFAULT_INTERVAL } = SPACED_REPETITION_CONSTANTS;
 
-  const quality = mapStatusToQuality(selectedStatus);
-
   // Read current schedule
   const { data: existing } = await supabase
     .from('review_schedule')
@@ -128,33 +131,72 @@ export async function updateReviewSchedule(
     .eq('problem_id', problemId)
     .single();
 
-  const currentRep = existing?.repetition_number ?? 0;
-  const currentEF = existing?.ease_factor ?? DEFAULT_EASE_FACTOR;
-  const currentInterval = existing?.interval_days ?? DEFAULT_INTERVAL;
+  const now = new Date();
+  const nowISO = now.toISOString();
 
-  const result = calculateNextReview({
-    repetitionNumber: currentRep,
-    easeFactor: currentEF,
-    intervalDays: currentInterval,
-    quality,
-  });
+  // Check if already reviewed today — if so, only refresh next_review_at
+  // without advancing SM-2 state (repetition_number, ease_factor, interval_days)
+  const isReviewedToday =
+    existing?.last_reviewed_at &&
+    new Date(existing.last_reviewed_at).toDateString() === now.toDateString();
 
-  const now = new Date().toISOString();
-  const { error: upsertError } = await supabase.from('review_schedule').upsert(
-    {
-      user_id: userId,
-      problem_id: problemId,
+  let scheduleUpdate: {
+    next_review_at: string;
+    interval_days: number;
+    ease_factor: number;
+    repetition_number: number;
+  };
+
+  if (isReviewedToday) {
+    // Same-day review: preserve SM-2 state, only refresh next_review_at
+    const nextReviewAt = new Date();
+    nextReviewAt.setDate(
+      nextReviewAt.getDate() + (existing.interval_days ?? DEFAULT_INTERVAL)
+    );
+    scheduleUpdate = {
+      next_review_at: nextReviewAt.toISOString(),
+      interval_days: existing.interval_days,
+      ease_factor: existing.ease_factor,
+      repetition_number: existing.repetition_number,
+    };
+  } else {
+    // First review of the day: full SM-2 advancement
+    const quality = mapStatusToQuality(selectedStatus);
+    const currentRep = existing?.repetition_number ?? 0;
+    const currentEF = existing?.ease_factor ?? DEFAULT_EASE_FACTOR;
+    const currentInterval = existing?.interval_days ?? DEFAULT_INTERVAL;
+
+    const result = calculateNextReview({
+      repetitionNumber: currentRep,
+      easeFactor: currentEF,
+      intervalDays: currentInterval,
+      quality,
+    });
+
+    scheduleUpdate = {
       next_review_at: result.nextReviewAt.toISOString(),
       interval_days: result.intervalDays,
       ease_factor: result.easeFactor,
       repetition_number: result.repetitionNumber,
-      last_reviewed_at: now,
-      updated_at: now,
-    },
-    { onConflict: 'user_id,problem_id' }
-  );
+    };
+  }
+
+  const { error: upsertError } = await supabase
+    .from('review_schedule')
+    .upsert(
+      {
+        user_id: userId,
+        problem_id: problemId,
+        ...scheduleUpdate,
+        last_reviewed_at: nowISO,
+        updated_at: nowISO,
+      },
+      { onConflict: 'user_id,problem_id' }
+    );
 
   if (upsertError) {
-    throw new Error(`Failed to upsert review schedule: ${upsertError.message}`);
+    throw new Error(
+      `Failed to upsert review schedule: ${upsertError.message}`
+    );
   }
 }
