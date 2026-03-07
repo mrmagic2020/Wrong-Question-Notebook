@@ -402,6 +402,9 @@ export function ImageScanUploader({
         onQuotaChange(json.data.quota);
       }
       setExtractionResult(json.data);
+      if (json.data.suggest_image_asset) {
+        setSaveAsProblemAsset(true);
+      }
       setState('result');
     } catch (err: any) {
       setError(err.message || 'Something went wrong');
@@ -763,6 +766,17 @@ export function ImageScanUploader({
             {extractionResult.mcq_choices &&
               ` (${extractionResult.mcq_choices.length} choices)`}
           </div>
+
+          {/* Image asset suggestion */}
+          {extractionResult.suggest_image_asset && (
+            <div className="mt-3 flex items-start gap-1.5 text-xs text-blue-700 dark:text-blue-400">
+              <ImageIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <span>
+                This problem contains visual content &mdash; image will be saved
+                as a problem asset.
+              </span>
+            </div>
+          )}
 
           {/* Warnings */}
           {warnings.length > 0 && (

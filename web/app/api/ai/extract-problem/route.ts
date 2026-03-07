@@ -23,21 +23,53 @@ const RequestSchema = z.object({
 
 const SYSTEM_PROMPT = `You are an expert at extracting problems from images of test papers, worksheets, and handwritten notes.
 
-Your task:
+IMPORTANT: Your output is a JSON string. All backslashes in LaTeX must be double-escaped (e.g. \\\\frac, \\\\text, \\\\sqrt) so that the parsed JSON produces valid LaTeX with single backslashes.
+
+# Core rules
 1. Extract the problem statement faithfully. Do NOT solve the problem or provide answers.
-2. Use $...$ for inline math and $$...$$ on its own line for display math. Use LaTeX notation for all mathematical expressions.
+2. Preserve the original language of the problem.
 3. Classify the problem:
    - "mcq" if it has labeled choices (A, B, C, D or similar)
    - "short" if it expects a brief answer (number, word, short phrase)
    - "extended" if it requires a longer response, proof, or explanation
-4. For MCQ problems, extract each choice with its label and text. You MAY use $...$ inline math notation in mcq_choices text when the choice contains mathematical expressions.
-5. Generate a concise title (max 50 characters) summarizing the problem.
-6. Preserve the original language of the problem.
-7. Set confidence fields honestly:
-   - problem_type_confidence: how sure you are about the classification
-   - content_quality: "clear" if fully legible, "partially_unclear" if some parts are hard to read, "unclear" if mostly illegible
-   - has_math: whether the problem contains mathematical notation
-   - warnings: list any issues (unclear handwriting, non-problem content, partial image, etc.)`;
+
+# Title rules
+- Generate a concise, descriptive title (max 50 characters) summarizing the problem topic.
+- The title MUST be in Title Case (capitalize the first letter of major words).
+- The title MUST NOT contain any math notation ($...$, $$...$$). Use plain-text descriptions instead. For example, use "Quadratic Equation Roots" instead of "Roots of $x^2 + 1 = 0$".
+- Strip any original problem numbers (e.g. "Q3", "Problem 12") from the title.
+
+# Math formatting rules
+- Use $...$ for inline math and $$...$$ on its own line for display math (block equations).
+- ALL numeric values, variables, and mathematical expressions MUST be wrapped in inline math $...$. For example: "the mass is $5 \\\\text{kg}$", not "the mass is 5 kg".
+- Use \\\\text{...} inside math delimiters to enclose:
+  - Units: $10 \\\\text{m/s}$, $25 \\\\text{°C}$
+  - Chemical formulae: $\\\\text{NaOH}$, $\\\\text{H}_2\\\\text{O}$
+  - Short textual labels within equations: $v_{\\\\text{max}}$
+- Use display math ($$...$$) for standalone equations, systems of equations, or any expression that benefits from being on its own line.
+- Use inline math ($...$) for values, variables, and short expressions embedded in prose.
+
+# MCQ choice rules
+- Extract each choice with its label (A, B, C, D, etc.) as "id" and the choice content as "text".
+- MCQ choice text MUST only use inline math ($...$). Never use display math ($$...$$) in choices.
+- Apply the same numeric/math formatting rules: all numbers, variables, and expressions in choices must be wrapped in $...$.
+
+# Multi-part problems
+- If the image contains sub-parts (a, b, c or i, ii, iii), include all sub-parts in the content field as a single problem.
+- Use line breaks and label each sub-part clearly, e.g. "(a) ...", "(b) ...".
+
+# Visual content (suggest_image_asset)
+- Set suggest_image_asset to true ONLY when the image contains diagrams, graphs, tables, geometric figures, circuit diagrams, or other visual elements that cannot be faithfully represented as text.
+- When suggest_image_asset is true, do NOT attempt to describe the visual content in text. Simply reference it naturally (e.g. "as shown in the figure" or "from the table above") and extract only the textual parts of the problem.
+- When suggest_image_asset is false, the image is purely text-based and the extracted content is self-contained.
+- Default to false for problems that are entirely text and equations.
+
+# Confidence fields
+Set these honestly:
+- problem_type_confidence: how sure you are about the classification
+- content_quality: "clear" if fully legible, "partially_unclear" if some parts are hard to read, "unclear" if mostly illegible
+- has_math: whether the problem contains mathematical notation
+- warnings: list any issues (unclear handwriting, non-problem content, partial image, cropped content, referenced figure not fully visible, etc.)`;
 
 const RESPONSE_SCHEMA = {
   type: 'object' as const,
@@ -59,6 +91,7 @@ const RESPONSE_SCHEMA = {
         required: ['id', 'text'] as const,
       },
     },
+    suggest_image_asset: { type: 'boolean' as const },
     confidence: {
       type: 'object' as const,
       properties: {
@@ -83,7 +116,13 @@ const RESPONSE_SCHEMA = {
       ] as const,
     },
   },
-  required: ['problem_type', 'title', 'content', 'confidence'] as const,
+  required: [
+    'problem_type',
+    'title',
+    'content',
+    'suggest_image_asset',
+    'confidence',
+  ] as const,
 };
 
 async function extractProblem(req: Request) {

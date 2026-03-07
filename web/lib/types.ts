@@ -227,6 +227,7 @@ export interface ExtractedProblemData {
   title: string;
   content: string; // raw text with $...$ and $$...$$ math delimiters
   mcq_choices?: { id: string; text: string }[];
+  suggest_image_asset: boolean;
   confidence: ExtractionConfidence;
 }
 
