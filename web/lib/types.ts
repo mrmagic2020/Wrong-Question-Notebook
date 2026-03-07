@@ -85,7 +85,9 @@ export interface ProblemSet {
 export interface ReviewSessionState {
   id: string;
   user_id: string;
-  problem_set_id: string;
+  problem_set_id: string | null;
+  session_type?: 'normal' | 'spaced_repetition';
+  subject_id?: string | null;
   started_at: string;
   last_activity_at: string;
   is_active: boolean;
