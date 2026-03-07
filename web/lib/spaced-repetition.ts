@@ -139,17 +139,26 @@ export async function updateReviewSchedule(
     quality,
   });
 
-  await supabase.from('review_schedule').upsert(
-    {
-      user_id: userId,
-      problem_id: problemId,
-      next_review_at: result.nextReviewAt.toISOString(),
-      interval_days: result.intervalDays,
-      ease_factor: result.easeFactor,
-      repetition_number: result.repetitionNumber,
-      last_reviewed_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: 'user_id,problem_id' }
-  );
+  const now = new Date().toISOString();
+  const { error: upsertError } = await supabase
+    .from('review_schedule')
+    .upsert(
+      {
+        user_id: userId,
+        problem_id: problemId,
+        next_review_at: result.nextReviewAt.toISOString(),
+        interval_days: result.intervalDays,
+        ease_factor: result.easeFactor,
+        repetition_number: result.repetitionNumber,
+        last_reviewed_at: now,
+        updated_at: now,
+      },
+      { onConflict: 'user_id,problem_id' }
+    );
+
+  if (upsertError) {
+    throw new Error(
+      `Failed to upsert review schedule: ${upsertError.message}`
+    );
+  }
 }
