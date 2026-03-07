@@ -50,9 +50,8 @@ export default function SessionReviewClient({
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
-  // Track whether the user has selected a status for the current problem
-  const [statusSelectedForCurrent, setStatusSelectedForCurrent] =
-    useState(false);
+  // Track whether the user has saved the form for the current problem
+  const [formSavedForCurrent, setFormSavedForCurrent] = useState(false);
   // Cache attempt state per problem so navigating back restores it
   const [attemptCache, setAttemptCache] = useState<
     Record<string, AttemptState>
@@ -109,17 +108,15 @@ export default function SessionReviewClient({
     };
   }, [loading, sessionData, isPaused]);
 
-  // Reset status selection tracking when navigating to a new problem
+  // Reset form saved tracking when navigating to a new problem
   useEffect(() => {
     if (!sessionData) return;
     const problemIds = sessionData.session.session_state.problem_ids;
     const currentProblemId = problemIds[currentIndex];
     const { completed_problem_ids } = sessionData.session.session_state;
 
-    // If the problem was already completed, consider it as "status selected"
-    setStatusSelectedForCurrent(
-      completed_problem_ids.includes(currentProblemId)
-    );
+    // If the problem was already completed, consider it as "form saved"
+    setFormSavedForCurrent(completed_problem_ids.includes(currentProblemId));
   }, [currentIndex, sessionData]);
 
   const updateProgress = async (
@@ -180,7 +177,7 @@ export default function SessionReviewClient({
     }
   };
 
-  const handleStatusSelected = async (_status: ProblemStatus) => {
+  const handleFormSaved = async (_status: ProblemStatus) => {
     if (!sessionData) return;
     const problemIds = sessionData.session.session_state.problem_ids;
     const currentProblemId = problemIds[currentIndex];
@@ -192,7 +189,7 @@ export default function SessionReviewClient({
       await updateProgress(currentProblemId, false, wasCorrect, currentIndex);
     }
 
-    setStatusSelectedForCurrent(true);
+    setFormSavedForCurrent(true);
   };
 
   const handleSkip = async () => {
@@ -339,7 +336,7 @@ export default function SessionReviewClient({
           problemSetId={problemSetId}
           isReadOnly={isReadOnly}
           hideNavigation={true}
-          onStatusSelected={handleStatusSelected}
+          onFormSaved={handleFormSaved}
           showExitButton={true}
           onExitSession={() => setExitDialogOpen(true)}
           initialAttemptState={attemptCache[currentProblem.id]}
@@ -356,7 +353,7 @@ export default function SessionReviewClient({
             onSkip: handleSkip,
             hasPrevious: currentIndex > 0,
             hasNext: currentIndex < problemIds.length - 1,
-            nextEnabled: statusSelectedForCurrent,
+            nextEnabled: formSavedForCurrent,
             isLastProblem,
             onFinish: handleCompleteSession,
             isForemost,

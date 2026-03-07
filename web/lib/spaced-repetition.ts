@@ -31,35 +31,23 @@ export interface ReviewScheduleUpdate {
 // =====================================================
 
 /**
- * Maps confidence (1-5) + correctness to SM-2 quality (0-5).
+ * Maps a three-tier problem status to an SM-2 quality score (0-5).
  *
- * Correct answers:
- *   confidence 1 → quality 3 (barely correct)
- *   confidence 2 → quality 3
- *   confidence 3 → quality 4
- *   confidence 4 → quality 4
- *   confidence 5 → quality 5 (perfect)
- *
- * Incorrect answers:
- *   confidence 1 → quality 2 (expected miss)
- *   confidence 2 → quality 2
- *   confidence 3 → quality 1
- *   confidence 4 → quality 1
- *   confidence 5 → quality 0 (hypercorrection: was certain but wrong)
+ *   wrong        → quality 1  (incorrect, reset interval)
+ *   needs_review  → quality 3  (correct but shaky, advance slowly)
+ *   mastered      → quality 5  (perfect, advance fastest)
  */
-export function mapConfidenceToQuality(
-  confidence: number,
-  isCorrect: boolean
+export function mapStatusToQuality(
+  selectedStatus: 'wrong' | 'needs_review' | 'mastered'
 ): number {
-  if (isCorrect) {
-    if (confidence <= 2) return 3;
-    if (confidence <= 4) return 4;
-    return 5;
+  switch (selectedStatus) {
+    case 'wrong':
+      return 1;
+    case 'needs_review':
+      return 3;
+    case 'mastered':
+      return 5;
   }
-  // Incorrect
-  if (confidence <= 2) return 2;
-  if (confidence <= 4) return 1;
-  return 0; // Hypercorrection effect
 }
 
 // =====================================================
@@ -119,23 +107,18 @@ export function calculateNextReview(input: ReviewInput): ReviewScheduleUpdate {
 
 /**
  * Reads the current review schedule for a problem, applies SM-2, and upserts.
- * Returns early if isCorrect is null (no marking info).
+ * Uses the three-tier selectedStatus to derive the SM-2 quality score.
  * Uses service client for reliability (bypasses RLS).
  */
 export async function updateReviewSchedule(
   supabase: SupabaseClient,
   userId: string,
   problemId: string,
-  isCorrect: boolean | null,
-  confidence?: number | null
+  selectedStatus: 'wrong' | 'needs_review' | 'mastered'
 ): Promise<void> {
-  if (isCorrect === null || isCorrect === undefined) return;
+  const { DEFAULT_EASE_FACTOR, DEFAULT_INTERVAL } = SPACED_REPETITION_CONSTANTS;
 
-  const { DEFAULT_EASE_FACTOR, DEFAULT_INTERVAL, DEFAULT_CONFIDENCE } =
-    SPACED_REPETITION_CONSTANTS;
-
-  const effectiveConfidence = confidence ?? DEFAULT_CONFIDENCE;
-  const quality = mapConfidenceToQuality(effectiveConfidence, isCorrect);
+  const quality = mapStatusToQuality(selectedStatus);
 
   // Read current schedule
   const { data: existing } = await supabase

@@ -9,16 +9,14 @@ import { RichTextDisplay } from '@/components/ui/rich-text-display';
 import MathText from '@/components/ui/math-text';
 import AnswerInput from './answer-input';
 import SolutionReveal from './solution-reveal';
-import StatusSelector from './status-selector';
+import AttemptStatusForm from '@/components/review/attempt-status-form';
 import ReviewSessionNav from '@/components/review/review-session-nav';
-import ReflectionDialog from '@/components/reflection/reflection-dialog';
 import AttemptTimeline from '@/components/reflection/attempt-timeline';
 import { Problem, Subject, MCQAnswerConfig } from '@/lib/types';
 import { useOnboarding } from '@/components/onboarding/onboarding-provider';
 import {
   BookOpen,
   PencilLine,
-  ClipboardCheck,
   Tag,
   ChevronLeft,
   ChevronRight,
@@ -54,6 +52,8 @@ export interface AttemptState {
   submittedAnswer: any;
   isCorrect: boolean | null;
   attemptId: string | null;
+  selectedStatus?: ProblemStatus | null;
+  formSaved?: boolean;
 }
 
 interface ProblemReviewProps {
@@ -67,8 +67,8 @@ interface ProblemReviewProps {
   isReadOnly?: boolean;
   /** Hide the built-in bottom navigation (session mode uses its own nav) */
   hideNavigation?: boolean;
-  /** Called when the user selects a problem status */
-  onStatusSelected?: (status: ProblemStatus) => void;
+  /** Called when the user saves the assessment form */
+  onFormSaved?: (status: ProblemStatus) => void;
   /** Optional exit session button (for review sessions) */
   showExitButton?: boolean;
   onExitSession?: () => void;
@@ -90,7 +90,7 @@ export default function ProblemReview({
   problemSetId,
   isReadOnly = false,
   hideNavigation = false,
-  onStatusSelected,
+  onFormSaved,
   showExitButton = false,
   onExitSession,
   sessionNav,
@@ -105,22 +105,12 @@ export default function ProblemReview({
   const [showSolution, setShowSolution] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<ProblemStatus | null>(
-    null
-  );
   const [tagsExpanded, setTagsExpanded] = useState(false);
-  const [reflectionDialogOpen, setReflectionDialogOpen] = useState(false);
   const [lastAttemptId, setLastAttemptId] = useState<string | null>(null);
   const [lastAttemptCorrect, setLastAttemptCorrect] = useState<boolean | null>(
     null
   );
   const [hasRecordedAttempt, setHasRecordedAttempt] = useState(false);
-  const [lastReflection, setLastReflection] = useState<{
-    confidence: number | null;
-    cause: string | null;
-    notes: string | null;
-  }>({ confidence: null, cause: null, notes: null });
-  const [logAttemptDialogOpen, setLogAttemptDialogOpen] = useState(false);
   const [timelineRefreshKey, setTimelineRefreshKey] = useState(0);
 
   // Tracks the current problem so in-flight requests from a previous
@@ -144,13 +134,9 @@ export default function ProblemReview({
     setShowSolution(false);
     setIsSubmitting(false);
     setError(null);
-    setSelectedStatus(null);
     setHasRecordedAttempt(!!cached?.attemptId);
     setLastAttemptId(cached?.attemptId ?? null);
     setLastAttemptCorrect(cached?.isCorrect ?? null);
-    setLastReflection({ confidence: null, cause: null, notes: null });
-    setReflectionDialogOpen(false);
-    setLogAttemptDialogOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [problem.id]);
 
@@ -226,62 +212,20 @@ export default function ProblemReview({
     }
   };
 
-  const handleStatusUpdate = async (newStatus: ProblemStatus) => {
-    if (!problem?.id) {
-      setError('Invalid problem');
-      return;
-    }
+  const handleFormSaved = (status: ProblemStatus, attemptId: string) => {
+    setTimelineRefreshKey(k => k + 1);
+    onFormSaved?.(status);
+    refreshChecklistStatus();
+    router.refresh();
 
-    const updatingProblemId = problem.id;
-    setSelectedStatus(newStatus);
-
-    // Always update last_reviewed_date when user selects a status
-    // Only update status if it's different from current
-    const updateData: any = {
-      last_reviewed_date: new Date().toISOString(),
-    };
-
-    if (newStatus !== problem.status) {
-      updateData.status = newStatus;
-    }
-
-    try {
-      const response = await fetch(
-        `/api/problems/${updatingProblemId}/status`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(updateData),
-        }
-      );
-
-      if (activeProblemIdRef.current !== updatingProblemId) return;
-
-      if (!response.ok) {
-        let errorMessage = 'Failed to update status';
-        try {
-          const error = await response.json();
-          errorMessage = error.message || errorMessage;
-        } catch {
-          errorMessage = response.statusText || errorMessage;
-        }
-        throw new Error(errorMessage);
-      }
-
-      // Notify parent about status selection (for session progress tracking)
-      onStatusSelected?.(newStatus);
-      refreshChecklistStatus();
-
-      // Refresh the page to get updated data
-      router.refresh();
-    } catch (err: any) {
-      if (activeProblemIdRef.current !== updatingProblemId) return;
-      setError(err.message);
-      // Reset selection on error
-      setSelectedStatus(null);
-    }
+    // Update attempt cache with form saved state
+    onAttemptRecorded?.(problem.id, {
+      submittedAnswer: submittedAnswer,
+      isCorrect: lastAttemptCorrect,
+      attemptId: attemptId,
+      selectedStatus: status,
+      formSaved: true,
+    });
   };
 
   const navigateToProblem = (problemId: string) => {
@@ -293,6 +237,18 @@ export default function ProblemReview({
       router.push(`/subjects/${subject.id}/problems/${problemId}/review`);
     }
   };
+
+  // Build initialSavedState for AttemptStatusForm from cached state
+  const formInitialSavedState =
+    initialAttemptState?.formSaved && initialAttemptState?.selectedStatus
+      ? {
+          selectedStatus: initialAttemptState.selectedStatus,
+          attemptId: initialAttemptState.attemptId!,
+          cause: null,
+          reflectionNotes: null,
+          submittedResponse: null,
+        }
+      : null;
 
   return (
     <div className="space-y-4">
@@ -449,18 +405,6 @@ export default function ProblemReview({
                     </Button>
                   )}
 
-                  {problem.auto_mark &&
-                    submittedAnswer !== null &&
-                    lastAttemptId && (
-                      <Button
-                        variant="outline"
-                        onClick={() => setReflectionDialogOpen(true)}
-                      >
-                        <ClipboardCheck className="w-4 h-4 mr-1.5" />
-                        Reflect
-                      </Button>
-                    )}
-
                   {!problem.auto_mark &&
                     userAnswer &&
                     problem.correct_answer && (
@@ -471,16 +415,6 @@ export default function ProblemReview({
                         View Solution
                       </Button>
                     )}
-
-                  {!problem.auto_mark && (
-                    <Button
-                      variant="outline"
-                      onClick={() => setLogAttemptDialogOpen(true)}
-                    >
-                      <ClipboardCheck className="w-4 h-4 mr-1.5" />
-                      Log Attempt
-                    </Button>
-                  )}
                 </div>
 
                 {/* Answer Feedback */}
@@ -566,14 +500,19 @@ export default function ProblemReview({
 
         {/* RIGHT COLUMN - Sticky Sidebar */}
         <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
-          {/* Status Selector (AMBER gradient) */}
+          {/* Assessment Form (AMBER gradient) */}
           {!isReadOnly && (
             <div className="review-section-amber">
-              <StatusSelector
+              <AttemptStatusForm
+                problemId={problem.id}
                 currentStatus={problem.status}
-                selectedStatus={selectedStatus}
-                onStatusChange={handleStatusUpdate}
-                compact={true}
+                autoMark={problem.auto_mark}
+                attemptId={lastAttemptId}
+                autoMarkCorrect={lastAttemptCorrect}
+                hasSubmitted={submittedAnswer !== null}
+                onSaved={handleFormSaved}
+                initialSavedState={formInitialSavedState}
+                disabled={isReadOnly}
               />
             </div>
           )}
@@ -631,30 +570,6 @@ export default function ProblemReview({
           />
         </div>
       </div>
-
-      {/* Auto-mark reflection dialog (PATCHes existing attempt) */}
-      <ReflectionDialog
-        open={reflectionDialogOpen}
-        onOpenChange={setReflectionDialogOpen}
-        attemptId={lastAttemptId || undefined}
-        isCorrect={lastAttemptCorrect}
-        initialConfidence={lastReflection.confidence}
-        initialCause={lastReflection.cause}
-        initialNotes={lastReflection.notes}
-        onSaved={data => {
-          if (data) setLastReflection(data);
-          setTimelineRefreshKey(k => k + 1);
-        }}
-      />
-
-      {/* Manual attempt log dialog (POSTs new attempt) */}
-      <ReflectionDialog
-        open={logAttemptDialogOpen}
-        onOpenChange={setLogAttemptDialogOpen}
-        isNewAttempt
-        problemId={problem.id}
-        onSaved={() => setTimelineRefreshKey(k => k + 1)}
-      />
     </div>
   );
 }

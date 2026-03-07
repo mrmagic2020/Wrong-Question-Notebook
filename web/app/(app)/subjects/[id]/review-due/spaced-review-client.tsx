@@ -10,7 +10,6 @@ import ProblemReview, {
   AttemptState,
 } from '@/app/(app)/subjects/[id]/problems/[problemId]/review/problem-review';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
-import SRCorrectnessPrompt from '@/components/review/sr-correctness-prompt';
 import { Problem } from '@/lib/types';
 import { formatDuration } from '@/lib/common-utils';
 
@@ -46,8 +45,8 @@ export default function SpacedReviewClient({
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
-  // Track whether the current problem has been assessed (auto-mark or SR prompt)
-  const [assessedForCurrent, setAssessedForCurrent] = useState(false);
+  // Track whether the current problem's form has been saved
+  const [formSavedForCurrent, setFormSavedForCurrent] = useState(false);
   // Cache attempt state per problem so navigating back restores it
   const [attemptCache, setAttemptCache] = useState<
     Record<string, AttemptState>
@@ -104,13 +103,13 @@ export default function SpacedReviewClient({
     };
   }, [loading, sessionData, isPaused]);
 
-  // Reset assessment tracking when navigating to a new problem
+  // Reset form saved tracking when navigating to a new problem
   useEffect(() => {
     if (!sessionData) return;
     const problemIds = sessionData.session.session_state.problem_ids;
     const currentProblemId = problemIds[currentIndex];
     const { completed_problem_ids } = sessionData.session.session_state;
-    setAssessedForCurrent(completed_problem_ids.includes(currentProblemId));
+    setFormSavedForCurrent(completed_problem_ids.includes(currentProblemId));
   }, [currentIndex, sessionData]);
 
   const updateProgress = async (
@@ -169,21 +168,8 @@ export default function SpacedReviewClient({
     }
   };
 
-  // Called when SR correctness prompt is confirmed (non-auto-mark problems)
-  const handleSRAssessed = async (isCorrect: boolean) => {
-    if (!sessionData) return;
-    const problemIds = sessionData.session.session_state.problem_ids;
-    const currentProblemId = problemIds[currentIndex];
-    const { completed_problem_ids } = sessionData.session.session_state;
-
-    if (!completed_problem_ids.includes(currentProblemId)) {
-      await updateProgress(currentProblemId, false, isCorrect, currentIndex);
-    }
-    setAssessedForCurrent(true);
-  };
-
-  // Called when the user selects a status (for auto-mark problems, status triggers completion)
-  const handleStatusSelected = async (_status: ProblemStatus) => {
+  // Called when the assessment form is saved
+  const handleFormSaved = async (_status: ProblemStatus) => {
     if (!sessionData) return;
     const problemIds = sessionData.session.session_state.problem_ids;
     const currentProblemId = problemIds[currentIndex];
@@ -193,7 +179,7 @@ export default function SpacedReviewClient({
       const wasCorrect = _status === 'mastered';
       await updateProgress(currentProblemId, false, wasCorrect, currentIndex);
     }
-    setAssessedForCurrent(true);
+    setFormSavedForCurrent(true);
   };
 
   const handleSkip = async () => {
@@ -312,7 +298,6 @@ export default function SpacedReviewClient({
     sessionData.session.session_state;
 
   const isLastProblem = currentIndex >= problemIds.length - 1;
-  const isAutoMark = currentProblem.auto_mark;
 
   // Check if at the foremost problem
   const nextProblemId =
@@ -332,7 +317,7 @@ export default function SpacedReviewClient({
           prevProblem={prevProblem || null}
           nextProblem={nextProblem || null}
           hideNavigation={true}
-          onStatusSelected={handleStatusSelected}
+          onFormSaved={handleFormSaved}
           showExitButton={true}
           onExitSession={() => setExitDialogOpen(true)}
           initialAttemptState={attemptCache[currentProblem.id]}
@@ -349,7 +334,7 @@ export default function SpacedReviewClient({
             onSkip: handleSkip,
             hasPrevious: currentIndex > 0,
             hasNext: currentIndex < problemIds.length - 1,
-            nextEnabled: assessedForCurrent,
+            nextEnabled: formSavedForCurrent,
             isLastProblem,
             onFinish: handleCompleteSession,
             isForemost,
@@ -357,16 +342,6 @@ export default function SpacedReviewClient({
             onPause: () => setIsPaused(true),
           }}
         />
-
-        {/* SR Correctness Prompt for non-auto-mark problems */}
-        {!isAutoMark && !assessedForCurrent && (
-          <div className="mt-4 max-w-2xl">
-            <SRCorrectnessPrompt
-              problemId={currentProblem.id}
-              onCompleted={isCorrect => handleSRAssessed(isCorrect)}
-            />
-          </div>
-        )}
 
         {/* Exit Confirmation Dialog */}
         <ConfirmationDialog

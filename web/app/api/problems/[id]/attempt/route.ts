@@ -114,12 +114,13 @@ export async function POST(
         // Update spaced repetition schedule
         try {
           if (isCorrect !== null) {
+            const defaultStatus = isCorrect ? 'mastered' : 'wrong';
             const serviceClient = createServiceClient();
             await updateReviewSchedule(
               serviceClient,
               user.id,
               problemId,
-              isCorrect
+              defaultStatus
             );
           }
         } catch (e) {

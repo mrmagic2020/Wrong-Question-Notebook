@@ -9,6 +9,7 @@ import {
 import { ERROR_MESSAGES } from '@/lib/constants';
 import { updateReviewSchedule } from '@/lib/spaced-repetition';
 import { createServiceClient } from '@/lib/supabase-utils';
+import { revalidateProblemAndSubject } from '@/lib/cache-invalidation';
 
 export async function PATCH(
   req: Request,
@@ -71,19 +72,41 @@ export async function PATCH(
       );
     }
 
-    // Recalculate review schedule when confidence is updated
-    if (parsed.data.confidence != null && data.is_correct !== null) {
-      try {
-        const serviceClient = createServiceClient();
-        await updateReviewSchedule(
-          serviceClient,
-          user.id,
-          data.problem_id,
-          data.is_correct,
-          data.confidence
-        );
-      } catch (e) {
-        console.error('Failed to update review schedule:', e);
+    // Sync problem status and recalculate review schedule when selected_status is updated
+    if (parsed.data.selected_status !== undefined) {
+      // Get problem for subject_id (needed for cache invalidation)
+      const { data: problem } = await supabase
+        .from('problems')
+        .select('subject_id')
+        .eq('id', data.problem_id)
+        .single();
+
+      if (parsed.data.selected_status) {
+        await supabase
+          .from('problems')
+          .update({
+            status: parsed.data.selected_status,
+            last_reviewed_date: new Date().toISOString(),
+          })
+          .eq('id', data.problem_id)
+          .eq('user_id', user.id);
+
+        try {
+          const serviceClient = createServiceClient();
+          await updateReviewSchedule(
+            serviceClient,
+            user.id,
+            data.problem_id,
+            parsed.data.selected_status
+          );
+        } catch (e) {
+          console.error('Failed to update review schedule:', e);
+        }
+      }
+
+      // Invalidate caches
+      if (problem) {
+        await revalidateProblemAndSubject(data.problem_id, problem.subject_id);
       }
     }
 

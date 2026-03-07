@@ -133,6 +133,7 @@ export interface Attempt {
   is_self_assessed: boolean;
   confidence: number | null;
   reflection_notes: string | null;
+  selected_status: ProblemStatus | null;
   created_at: string;
   updated_at: string;
 }
@@ -365,13 +366,6 @@ export interface AnswerInputProps {
   onSubmit?: () => void;
   disabled?: boolean;
   hideChoiceIds?: boolean;
-}
-
-export interface StatusSelectorProps {
-  currentStatus: ProblemStatus;
-  selectedStatus: ProblemStatus | null;
-  onStatusChange: (status: ProblemStatus) => void;
-  compact?: boolean;
 }
 
 // =====================================================

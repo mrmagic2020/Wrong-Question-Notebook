@@ -1,48 +1,17 @@
 import { describe, it, expect } from 'vitest';
-import {
-  mapConfidenceToQuality,
-  calculateNextReview,
-} from '../spaced-repetition';
+import { mapStatusToQuality, calculateNextReview } from '../spaced-repetition';
 
-describe('mapConfidenceToQuality', () => {
-  it('maps correct + confidence 1 → quality 3', () => {
-    expect(mapConfidenceToQuality(1, true)).toBe(3);
+describe('mapStatusToQuality', () => {
+  it('maps wrong → quality 1', () => {
+    expect(mapStatusToQuality('wrong')).toBe(1);
   });
 
-  it('maps correct + confidence 2 → quality 3', () => {
-    expect(mapConfidenceToQuality(2, true)).toBe(3);
+  it('maps needs_review → quality 3', () => {
+    expect(mapStatusToQuality('needs_review')).toBe(3);
   });
 
-  it('maps correct + confidence 3 → quality 4', () => {
-    expect(mapConfidenceToQuality(3, true)).toBe(4);
-  });
-
-  it('maps correct + confidence 4 → quality 4', () => {
-    expect(mapConfidenceToQuality(4, true)).toBe(4);
-  });
-
-  it('maps correct + confidence 5 → quality 5 (perfect)', () => {
-    expect(mapConfidenceToQuality(5, true)).toBe(5);
-  });
-
-  it('maps incorrect + confidence 1 → quality 2', () => {
-    expect(mapConfidenceToQuality(1, false)).toBe(2);
-  });
-
-  it('maps incorrect + confidence 2 → quality 2', () => {
-    expect(mapConfidenceToQuality(2, false)).toBe(2);
-  });
-
-  it('maps incorrect + confidence 3 → quality 1', () => {
-    expect(mapConfidenceToQuality(3, false)).toBe(1);
-  });
-
-  it('maps incorrect + confidence 4 → quality 1', () => {
-    expect(mapConfidenceToQuality(4, false)).toBe(1);
-  });
-
-  it('maps incorrect + confidence 5 → quality 0 (hypercorrection)', () => {
-    expect(mapConfidenceToQuality(5, false)).toBe(0);
+  it('maps mastered → quality 5', () => {
+    expect(mapStatusToQuality('mastered')).toBe(5);
   });
 });
 

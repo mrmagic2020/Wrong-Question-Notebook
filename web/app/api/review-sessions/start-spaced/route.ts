@@ -52,9 +52,7 @@ async function checkActiveSession(req: Request) {
       );
     }
 
-    return NextResponse.json(
-      createApiSuccessResponse({ exists: false })
-    );
+    return NextResponse.json(createApiSuccessResponse({ exists: false }));
   } catch (error) {
     const { message, status } = handleAsyncError(error);
     return NextResponse.json(createApiErrorResponse(message, status), {
