@@ -1,6 +1,6 @@
 import { requireUser } from '@/lib/supabase/requireUser';
 import { createClient } from '@/lib/supabase/server';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import SRSummaryClient from './sr-summary-client';
 
 export function generateMetadata() {
@@ -19,16 +19,31 @@ export default async function SRSummaryPage({
   const { id: subjectId } = await params;
   const { sessionId } = await searchParams;
 
+  const { user } = await requireUser();
+  if (!user) {
+    redirect(
+      `/auth/login?redirect=/subjects/${subjectId}/review-due/summary${sessionId ? `?sessionId=${sessionId}` : ''}`
+    );
+  }
+
   if (!sessionId) {
     notFound();
   }
 
-  const { user } = await requireUser();
-  if (!user) {
+  const supabase = await createClient();
+
+  // Validate session belongs to user
+  const { data: session } = await supabase
+    .from('review_session_state')
+    .select('id, subject_id, session_type')
+    .eq('id', sessionId)
+    .eq('user_id', user.id)
+    .eq('session_type', 'spaced_repetition')
+    .single();
+
+  if (!session || session.subject_id !== subjectId) {
     notFound();
   }
-
-  const supabase = await createClient();
 
   // Get subject name
   const { data: subject } = await supabase
