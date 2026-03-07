@@ -20,6 +20,7 @@ import {
   Pencil,
   Loader2,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const statusOptions = [
   {
@@ -221,7 +222,7 @@ export default function AttemptStatusForm({
       setIsEditing(false);
       onSaved(selectedStatus, resultAttemptId);
     } catch {
-      // Silently fail — user can retry
+      toast.error('Failed to save assessment. Please try again.');
     } finally {
       setIsSaving(false);
     }

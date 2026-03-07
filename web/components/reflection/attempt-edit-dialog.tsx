@@ -17,6 +17,7 @@ import { ATTEMPT_CONSTANTS } from '@/lib/constants';
 import { Attempt } from '@/lib/types';
 import { ProblemStatus } from '@/lib/schemas';
 import { XCircle, AlertCircle, CheckCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 const statusOptions = [
   {
@@ -96,7 +97,7 @@ export default function AttemptEditDialog({
       onSaved();
       onOpenChange(false);
     } catch {
-      // Silently fail — user can retry
+      toast.error('Failed to save changes. Please try again.');
     } finally {
       setIsSaving(false);
     }
