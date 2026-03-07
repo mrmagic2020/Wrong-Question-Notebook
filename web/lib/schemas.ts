@@ -371,6 +371,11 @@ export const SessionConfigSchema = z.object({
   auto_advance: z.boolean().default(false),
 });
 
+export const StartSpacedSessionDto = z.object({
+  subject_id: z.uuid(),
+  session_size: z.number().int().min(1).max(100).optional(),
+});
+
 export const CreateProblemSetDto = z.object({
   subject_id: z.uuid(),
   name: z

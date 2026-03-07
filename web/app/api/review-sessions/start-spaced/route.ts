@@ -8,6 +8,7 @@ import {
   isValidUuid,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES, SPACED_REPETITION_CONSTANTS } from '@/lib/constants';
+import { StartSpacedSessionDto } from '@/lib/schemas';
 
 async function checkActiveSession(req: Request) {
   const { user, supabase } = await requireUser();
@@ -75,17 +76,18 @@ async function startSpacedSession(req: Request) {
     );
   }
 
-  const { subject_id, session_size } = body;
-
-  if (!subject_id || !isValidUuid(subject_id)) {
+  const parsed = StartSpacedSessionDto.safeParse(body);
+  if (!parsed.success) {
     return NextResponse.json(
-      createApiErrorResponse('Invalid subject ID', 400),
+      createApiErrorResponse('Invalid request body', 400, parsed.error.flatten()),
       { status: 400 }
     );
   }
 
+  const { subject_id, session_size } = parsed.data;
+
   const effectiveSize = Math.min(
-    session_size || SPACED_REPETITION_CONSTANTS.DEFAULT_SESSION_SIZE,
+    session_size ?? SPACED_REPETITION_CONSTANTS.DEFAULT_SESSION_SIZE,
     SPACED_REPETITION_CONSTANTS.MAX_SESSION_SIZE
   );
 
