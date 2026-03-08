@@ -189,6 +189,18 @@ export async function getProblemSetWithFullData(
       (share: any) => share.shared_with_email
     ) || [];
 
+  // Fetch owner profile for non-owners
+  let ownerProfile = null;
+  if (!isOwner) {
+    const profileClient = createServiceClient();
+    const { data: profile } = await profileClient
+      .from('user_profiles')
+      .select('username, first_name, last_name, avatar_url, bio, gender')
+      .eq('id', ownerUserId)
+      .single();
+    ownerProfile = profile || null;
+  }
+
   return {
     ...problemSet,
     subject_name: problemSet.subjects?.name || 'Unknown',
@@ -196,6 +208,7 @@ export async function getProblemSetWithFullData(
     problem_count: problems.length,
     shared_with_emails,
     isOwner,
+    ownerProfile,
   };
 }
 

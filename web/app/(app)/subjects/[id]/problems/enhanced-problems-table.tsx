@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { DataTable } from './data-table';
+import { DataTable } from '@/components/problems/data-table';
 import { columns } from './columns';
-import CompactSearchFilter from './compact-search-filter';
+import CompactSearchFilter from '@/components/problems/compact-search-filter';
 import { ProblemStatus, ProblemType } from '@/lib/schemas';
 import { toast } from 'sonner';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
@@ -12,7 +12,7 @@ import ProblemSetCreationDialog from '@/components/problem-set-creation-dialog';
 import AddToSetDialog from '@/components/add-to-set-dialog';
 import { SearchFilters, Problem, SimpleTag, Tag } from '@/lib/types';
 import { useIsMobile } from '@/lib/hooks/useMediaQuery';
-import ProblemCardList from './problem-card-list';
+import ProblemCardList from '@/components/problems/problem-card-list';
 
 export default function EnhancedProblemsTable({
   initialProblems,

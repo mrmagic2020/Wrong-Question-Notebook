@@ -80,6 +80,16 @@ export interface ProblemSet {
   is_smart: boolean;
   filter_config?: FilterConfig | null;
   session_config?: SessionConfig | null;
+  allow_copying: boolean;
+}
+
+export interface OwnerProfile {
+  username: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  gender: string | null;
 }
 
 export interface ReviewSessionState {
@@ -332,6 +342,7 @@ export interface DataTableProps<TData, TValue> {
   onColumnVisibilityChange?: () => void;
   columnVisibilityStorageKey?: string;
   isAddToSetMode?: boolean;
+  hideStatusStrip?: boolean;
   meta?: TableMeta;
 }
 
@@ -383,6 +394,7 @@ export interface ProblemSetEditDialogProps {
     description: string | null;
     sharing_level: ProblemSetSharingLevel;
     shared_with_emails?: string[];
+    allow_copying?: boolean;
   };
   onSuccess?: () => void;
 }
@@ -425,6 +437,7 @@ export interface ProblemSetPageClientProps {
     problems: ProblemInSet[];
   };
   isAuthenticated?: boolean;
+  ownerProfile?: OwnerProfile | null;
 }
 
 // =====================================================

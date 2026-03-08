@@ -404,6 +404,7 @@ export const CreateProblemSetDto = z.object({
   is_smart: z.boolean().default(false),
   filter_config: FilterConfigSchema.nullable().optional(),
   session_config: SessionConfigSchema.nullable().optional(),
+  allow_copying: z.boolean().default(true),
 });
 
 export const UpdateProblemSetDto = CreateProblemSetDto.partial().omit({

@@ -174,7 +174,7 @@ export default function ProblemReview({
           },
           body: JSON.stringify({
             submitted_answer: userAnswer,
-            record: isFirstAttempt,
+            record: isFirstAttempt && !isReadOnly,
           }),
         }
       );
@@ -578,10 +578,12 @@ export default function ProblemReview({
           )}
 
           {/* Attempt History Timeline (VIOLET gradient) */}
-          <AttemptTimeline
-            problemId={problem.id}
-            refreshKey={timelineRefreshKey}
-          />
+          {!isReadOnly && (
+            <AttemptTimeline
+              problemId={problem.id}
+              refreshKey={timelineRefreshKey}
+            />
+          )}
         </div>
       </div>
     </div>

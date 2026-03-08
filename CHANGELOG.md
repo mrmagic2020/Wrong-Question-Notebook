@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning].
 
 ### Added
 
+- **Problem Set Page Overhaul**
+  - Full-featured data table with search, filtering (type/tags/status), sorting, and pagination replaces the primitive problem list
+  - Mobile card list view with responsive filter toolbar for problem sets
+  - Smart filter criteria display with structured layout, colored status badges, and icons
+  - Owner profile card with hover popover (avatar, display name, bio, gender) for shared problem sets
+  - "Copy to My Library" deep-copy feature: duplicate problems + set into user's account with subject picker and optional tag copying
+  - `allow_copying` toggle per problem set (default: true) in creation and edit dialogs
+  - Owner-only progress stats (total/wrong/needs review/mastered); non-owners see simple problem count
+  - Viewer-only review sessions: ungated navigation, no assessment form, clean session completion
+
+### Fixed
+
+- **Review Session Bug for Non-Owner Users**
+  - Fixed Next button permanently disabled in read-only review sessions (form saved callback never fired)
+  - Read-only sessions now skip API calls for progress tracking and session completion
+  - Session completes cleanly by redirecting back to problem set page
+
+- Fixed DataTable ignoring the `meta` prop, which prevented "Remove from set" action from working in problem set tables
+
 - **Timezone-Aware Day Boundaries**
   - All day-boundary features (streaks, heatmap, weekly progress, quotas, SM-2 same-day guard) now respect the user's configured timezone instead of UTC
   - Auto-detection of browser timezone on every authenticated page load, synced to profile when changed

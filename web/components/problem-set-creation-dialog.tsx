@@ -26,6 +26,7 @@ import { toast } from 'sonner';
 import { ProblemSetSharingLevel } from '@/lib/schemas';
 import { RichTextEditor } from '@/components/editor';
 import { VALIDATION_CONSTANTS } from '@/lib/constants';
+import { Switch } from '@/components/ui/switch';
 
 interface ProblemSetCreationDialogProps {
   open: boolean;
@@ -50,6 +51,7 @@ export default function ProblemSetCreationDialog({
     sharing_level: ProblemSetSharingLevel.enum
       .private as ProblemSetSharingLevel,
     shared_with_emails: [] as string[],
+    allow_copying: true,
   });
   const [emailInput, setEmailInput] = useState('');
 
@@ -84,6 +86,7 @@ export default function ProblemSetCreationDialog({
             ? formData.shared_with_emails
             : undefined,
         problem_ids: selectedProblemIds,
+        allow_copying: formData.allow_copying,
       };
 
       const response = await fetch('/api/problem-sets', {
@@ -114,6 +117,7 @@ export default function ProblemSetCreationDialog({
         description: '',
         sharing_level: ProblemSetSharingLevel.enum.private,
         shared_with_emails: [],
+        allow_copying: true,
       });
       setEmailInput('');
 
@@ -279,6 +283,21 @@ export default function ProblemSetCreationDialog({
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {formData.sharing_level !== ProblemSetSharingLevel.enum.private && (
+            <div className="flex items-center justify-between">
+              <Label htmlFor="allow-copying" className="text-sm">
+                Allow others to copy this set
+              </Label>
+              <Switch
+                id="allow-copying"
+                checked={formData.allow_copying}
+                onCheckedChange={checked =>
+                  setFormData(prev => ({ ...prev, allow_copying: checked }))
+                }
+              />
             </div>
           )}
 

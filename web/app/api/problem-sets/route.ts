@@ -113,6 +113,7 @@ async function createProblemSet(req: Request) {
     is_smart,
     filter_config,
     session_config,
+    allow_copying,
     ...problemSetData
   } = parsed.data;
 
@@ -154,6 +155,7 @@ async function createProblemSet(req: Request) {
         is_smart: is_smart || false,
         filter_config: is_smart ? filter_config : null,
         session_config: session_config || null,
+        allow_copying: allow_copying ?? true,
       })
       .select()
       .single();
