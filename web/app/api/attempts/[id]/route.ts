@@ -72,7 +72,9 @@ export async function PATCH(
       );
     }
 
-    // Sync problem status and recalculate review schedule when selected_status is updated
+    // Sync problem status and recalculate review schedule when selected_status
+    // is updated — but only if this is the latest attempt for the problem.
+    // Editing a historical attempt should not overwrite the current status.
     if (parsed.data.selected_status !== undefined) {
       // Get problem for subject_id (needed for cache invalidation)
       const { data: problem } = await supabase
@@ -81,7 +83,19 @@ export async function PATCH(
         .eq('id', data.problem_id)
         .single();
 
-      if (parsed.data.selected_status) {
+      // Check if this attempt is the most recent for the problem
+      const { data: latestAttempt } = await supabase
+        .from('attempts')
+        .select('id')
+        .eq('problem_id', data.problem_id)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      const isLatestAttempt = latestAttempt?.id === attemptId;
+
+      if (parsed.data.selected_status && isLatestAttempt) {
         await supabase
           .from('problems')
           .update({
