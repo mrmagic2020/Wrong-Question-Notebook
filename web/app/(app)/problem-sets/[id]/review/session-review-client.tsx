@@ -117,13 +117,20 @@ export default function SessionReviewClient({
   // Reset form saved tracking when navigating to a new problem
   useEffect(() => {
     if (!sessionData) return;
+
+    // Read-only users always have next enabled (no form to save)
+    if (isReadOnly) {
+      setFormSavedForCurrent(true);
+      return;
+    }
+
     const problemIds = sessionData.session.session_state.problem_ids;
     const currentProblemId = problemIds[currentIndex];
     const { completed_problem_ids } = sessionData.session.session_state;
 
     // If the problem was already completed, consider it as "form saved"
     setFormSavedForCurrent(completed_problem_ids.includes(currentProblemId));
-  }, [currentIndex, sessionData]);
+  }, [currentIndex, sessionData, isReadOnly]);
 
   const updateProgress = async (
     problemId: string,
@@ -205,7 +212,9 @@ export default function SessionReviewClient({
     const currentProblemId = problemIds[currentIndex];
     const nextIdx = Math.min(currentIndex + 1, problemIds.length - 1);
 
-    await updateProgress(currentProblemId, true, null, nextIdx);
+    if (!isReadOnly) {
+      await updateProgress(currentProblemId, true, null, nextIdx);
+    }
 
     if (currentIndex >= problemIds.length - 1) {
       handleCompleteSession();
@@ -233,6 +242,11 @@ export default function SessionReviewClient({
   };
 
   const handleCompleteSession = async () => {
+    if (isReadOnly) {
+      router.push(`/problem-sets/${problemSetId}`);
+      return;
+    }
+
     try {
       const res = await fetch(`/api/review-sessions/${sessionId}/complete`, {
         method: 'POST',

@@ -26,6 +26,7 @@ import { X, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProblemSetSharingLevel } from '@/lib/schemas';
 import { ProblemSetEditDialogProps } from '@/lib/types';
+import { Switch } from '@/components/ui/switch';
 
 export default function ProblemSetEditDialog({
   open,
@@ -40,6 +41,7 @@ export default function ProblemSetEditDialog({
     sharing_level: ProblemSetSharingLevel.enum
       .private as ProblemSetSharingLevel,
     shared_with_emails: [] as string[],
+    allow_copying: true,
   });
   const [emailInput, setEmailInput] = useState('');
 
@@ -51,6 +53,7 @@ export default function ProblemSetEditDialog({
         description: problemSet.description || '',
         sharing_level: problemSet.sharing_level,
         shared_with_emails: problemSet.shared_with_emails || [],
+        allow_copying: problemSet.allow_copying ?? true,
       });
     }
   }, [problemSet]);
@@ -79,6 +82,7 @@ export default function ProblemSetEditDialog({
           formData.shared_with_emails.length > 0
             ? formData.shared_with_emails
             : undefined,
+        allow_copying: formData.allow_copying,
       };
 
       const response = await fetch(`/api/problem-sets/${problemSet.id}`, {
@@ -265,6 +269,21 @@ export default function ProblemSetEditDialog({
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {formData.sharing_level !== ProblemSetSharingLevel.enum.private && (
+            <div className="flex items-center justify-between">
+              <Label htmlFor="allow-copying" className="text-sm">
+                Allow others to copy this set
+              </Label>
+              <Switch
+                id="allow-copying"
+                checked={formData.allow_copying}
+                onCheckedChange={checked =>
+                  setFormData(prev => ({ ...prev, allow_copying: checked }))
+                }
+              />
             </div>
           )}
 

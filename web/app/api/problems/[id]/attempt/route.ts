@@ -32,11 +32,12 @@ export async function POST(
   }
 
   try {
-    // Use service client for anonymous users to bypass RLS
-    const queryClient = user ? supabase : createServiceClient();
+    // Use service client to fetch the problem so non-owner viewers
+    // (accessing via shared problem sets) can also auto-mark answers
+    const serviceClient = createServiceClient();
 
     // Get the problem to check if auto-marking is enabled
-    const { data: problem, error: problemError } = await queryClient
+    const { data: problem, error: problemError } = await serviceClient
       .from('problems')
       .select('*')
       .eq('id', problemId)

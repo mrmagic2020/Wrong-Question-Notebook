@@ -100,6 +100,7 @@ export default async function ProblemSetPage({
     <ProblemSetPageClient
       initialProblemSet={problemSet}
       isAuthenticated={!!user}
+      ownerProfile={problemSet.ownerProfile ?? null}
     />
   );
 }

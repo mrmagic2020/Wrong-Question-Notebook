@@ -1,34 +1,23 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { RichTextDisplay } from '@/components/ui/rich-text-display';
-import { Input } from '@/components/ui/input';
 import { BackLink } from '@/components/back-link';
 import {
   Play,
   Plus,
-  Trash2,
-  Search,
   Settings,
   Users,
   Globe,
-  XCircle,
-  Clock,
-  CheckCircle,
   Sparkles,
   LogIn,
+  Copy,
 } from 'lucide-react';
-import { toast } from 'sonner';
-import { ProblemStatus, ProblemSetSharingLevel } from '@/lib/schemas';
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
-import {
-  getProblemTypeDisplayName,
-  getProblemStatusDisplayName,
-} from '@/lib/common-utils';
+import { ProblemSetSharingLevel } from '@/lib/schemas';
 import {
   ProblemInSet,
   ProblemSetWithDetails,
@@ -37,12 +26,18 @@ import {
 } from '@/lib/types';
 import ResumeSessionDialog from '@/components/review/resume-session-dialog';
 import EditSmartSetDialog from '@/components/review/edit-smart-set-dialog';
+import SmartFilterCriteriaDisplay from '@/components/review/smart-filter-display';
+import ProblemSetProblemsTable from './problem-set-problems-table';
+import ProblemSetEditDialog from '@/app/(app)/problem-sets/problem-set-edit-dialog';
+import CopyProblemSetDialog from '@/components/copy-problem-set-dialog';
+import { UserProfileCard } from '@/components/user-profile-card';
 import { FilterConfig, SessionConfig } from '@/lib/types';
 import { useReviewSession } from '@/lib/hooks/useReviewSession';
 
 export default function ProblemSetPageClient({
   initialProblemSet,
   isAuthenticated = true,
+  ownerProfile,
 }: ProblemSetPageClientProps) {
   const router = useRouter();
   const [problemSet, setProblemSet] = useState<
@@ -55,18 +50,9 @@ export default function ProblemSetPageClient({
     mastered_count: 0,
   });
   const [progressLoading, setProgressLoading] = useState(true);
-  const [searchText, setSearchText] = useState('');
-  const [selectedProblems, setSelectedProblems] = useState<string[]>([]);
-  const [deleteDialog, setDeleteDialog] = useState<{
-    open: boolean;
-    problemIds: string[];
-    count: number;
-  }>({
-    open: false,
-    problemIds: [],
-    count: 0,
-  });
   const [editSmartDialog, setEditSmartDialog] = useState(false);
+  const [editDialog, setEditDialog] = useState(false);
+  const [copyDialog, setCopyDialog] = useState(false);
   const {
     sessionLoading,
     resumeDialog,
@@ -75,6 +61,17 @@ export default function ProblemSetPageClient({
     startNewSession,
     setResumeDialogOpen,
   } = useReviewSession();
+
+  // Build tag_id → tag_name map from loaded problems
+  const tagNames = useMemo(() => {
+    const map: Record<string, string> = {};
+    problemSet.problems.forEach(p => {
+      p.tags?.forEach(tag => {
+        if (!map[tag.id]) map[tag.id] = tag.name;
+      });
+    });
+    return map;
+  }, [problemSet.problems]);
 
   const fetchProgress = useCallback(async () => {
     try {
@@ -88,12 +85,15 @@ export default function ProblemSetPageClient({
     } catch (error) {
       console.error('Error fetching progress:', error);
     }
-    // Return null instead of progress to avoid dependency loop
     return null;
   }, [problemSet.id]);
 
-  // Load progress data on component mount
+  // Load progress data on mount (owner only)
   useEffect(() => {
+    if (!problemSet.isOwner) {
+      setProgressLoading(false);
+      return;
+    }
     const loadInitialProgress = async () => {
       try {
         const progressData = await fetchProgress();
@@ -108,87 +108,10 @@ export default function ProblemSetPageClient({
     };
 
     loadInitialProgress();
-  }, [fetchProgress]);
-
-  // Filter problems based on search text
-  const filteredProblems = problemSet.problems.filter(
-    problem =>
-      problem.title.toLowerCase().includes(searchText.toLowerCase()) ||
-      problem.content?.toLowerCase().includes(searchText.toLowerCase()) ||
-      problem.tags.some(tag =>
-        tag.name.toLowerCase().includes(searchText.toLowerCase())
-      )
-  );
+  }, [fetchProgress, problemSet.isOwner]);
 
   const handleAddProblems = () => {
     router.push(`/problem-sets/${problemSet.id}/add-problems`);
-  };
-
-  const handleRemoveProblems = (problemIds: string[]) => {
-    setDeleteDialog({
-      open: true,
-      problemIds,
-      count: problemIds.length,
-    });
-  };
-
-  const handleConfirmRemove = async () => {
-    const { problemIds } = deleteDialog;
-
-    if (!problemIds.length) {
-      toast.error('No problems selected for removal');
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `/api/problem-sets/${problemSet.id}/problems`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ problem_ids: problemIds }),
-        }
-      );
-
-      if (!response.ok) {
-        let errorMessage = 'Failed to remove problems from set';
-        try {
-          const error = await response.json();
-          errorMessage = error.message || errorMessage;
-        } catch {
-          // If response is not JSON, use the status text
-          errorMessage = response.statusText || errorMessage;
-        }
-        throw new Error(errorMessage);
-      }
-
-      // Update local state
-      setProblemSet(prev => ({
-        ...prev,
-        problems: prev.problems.filter(p => !problemIds.includes(p.id)),
-        problem_count: prev.problem_count - problemIds.length,
-      }));
-
-      // Update progress
-      setProgressLoading(true);
-      const updatedProgress = await fetchProgress();
-      if (updatedProgress) {
-        setProgress(updatedProgress);
-      }
-      setProgressLoading(false);
-
-      setSelectedProblems([]);
-      toast.success(
-        `Removed ${problemIds.length} problem${problemIds.length !== 1 ? 's' : ''} from set`
-      );
-    } catch (error) {
-      console.error('Error removing problems:', error);
-      toast.error('Failed to remove problems from set');
-    } finally {
-      setDeleteDialog({ open: false, problemIds: [], count: 0 });
-    }
   };
 
   const getSharingIcon = (sharingLevel: ProblemSetSharingLevel) => {
@@ -230,42 +153,30 @@ export default function ProblemSetPageClient({
     }
   };
 
-  const getStatusIcon = (status: ProblemStatus) => {
-    switch (status) {
-      case ProblemStatus.enum.wrong:
-        return <XCircle className="h-4 w-4 text-destructive" />;
-      case ProblemStatus.enum.needs_review:
-        return <Clock className="h-4 w-4 text-yellow-500" />;
-      case ProblemStatus.enum.mastered:
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      default:
-        return <Clock className="h-4 w-4 text-yellow-500" />;
-    }
-  };
-
   const handleEditSmartSetSuccess = () => {
-    // Reload the page to get updated data
     router.refresh();
     window.location.reload();
   };
 
-  const handleProblemClick = (problemId: string) => {
-    router.push(`/problem-sets/${problemSet.id}/review?problemId=${problemId}`);
+  const handleEditSuccess = () => {
+    router.refresh();
+    window.location.reload();
   };
 
-  const handleSelectProblem = (problemId: string) => {
-    setSelectedProblems(prev =>
-      prev.includes(problemId)
-        ? prev.filter(id => id !== problemId)
-        : [...prev, problemId]
-    );
-  };
+  const handleProblemsRemoved = (problemIds: string[]) => {
+    setProblemSet(prev => ({
+      ...prev,
+      problems: prev.problems.filter(p => !problemIds.includes(p.id)),
+      problem_count: prev.problem_count - problemIds.length,
+    }));
 
-  const handleSelectAll = () => {
-    if (selectedProblems.length === filteredProblems.length) {
-      setSelectedProblems([]);
-    } else {
-      setSelectedProblems(filteredProblems.map(p => p.id));
+    // Refresh progress
+    if (problemSet.isOwner) {
+      setProgressLoading(true);
+      fetchProgress().then(data => {
+        if (data) setProgress(data);
+        setProgressLoading(false);
+      });
     }
   };
 
@@ -277,14 +188,30 @@ export default function ProblemSetPageClient({
           <BackLink onClick={() => router.push('/problem-sets')}>Back</BackLink>
           <div>
             <h1 className="page-title">{problemSet.name}</h1>
-            <p
-              className="page-description cursor-pointer hover:underline"
-              onClick={() =>
-                router.push(`/subjects/${problemSet.subject_id}/problems`)
-              }
-            >
-              {problemSet.subject_name}
-            </p>
+            {problemSet.isOwner ? (
+              <p
+                className="page-description cursor-pointer hover:underline"
+                onClick={() =>
+                  router.push(`/subjects/${problemSet.subject_id}/problems`)
+                }
+              >
+                {problemSet.subject_name}
+              </p>
+            ) : (
+              <div className="mt-1.5 flex items-center gap-2 text-sm text-muted-foreground">
+                <span>
+                  {problemSet.problem_count} problem
+                  {problemSet.problem_count !== 1 ? 's' : ''}
+                </span>
+                {ownerProfile && (
+                  <>
+                    <span className="text-muted-foreground/40">|</span>
+                    <span>Shared by</span>
+                    <UserProfileCard profile={ownerProfile} />
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
         <div className="flex items-center space-x-2">
@@ -303,12 +230,27 @@ export default function ProblemSetPageClient({
               {getSharingLabel(problemSet.sharing_level)}
             </span>
           </Badge>
-          {problemSet.is_smart && problemSet.isOwner && (
-            <Button variant="outline" onClick={() => setEditSmartDialog(true)}>
+          {problemSet.isOwner && (
+            <Button variant="outline" onClick={() => setEditDialog(true)}>
               <Settings className="h-4 w-4 mr-2" />
-              Edit Settings
+              Edit
             </Button>
           )}
+          {problemSet.is_smart && problemSet.isOwner && (
+            <Button variant="outline" onClick={() => setEditSmartDialog(true)}>
+              <Sparkles className="h-4 w-4 mr-2" />
+              Filters
+            </Button>
+          )}
+          {/* Copy to My Library (non-owners, when allowed) */}
+          {isAuthenticated &&
+            !problemSet.isOwner &&
+            problemSet.allow_copying && (
+              <Button variant="outline" onClick={() => setCopyDialog(true)}>
+                <Copy className="h-4 w-4 mr-2" />
+                Copy to My Library
+              </Button>
+            )}
           {isAuthenticated ? (
             <Button
               onClick={() => startReview(problemSet.id)}
@@ -341,147 +283,65 @@ export default function ProblemSetPageClient({
         </Card>
       )}
 
-      {/* Progress Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card className="card-section">
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold">
-              {progressLoading ? '...' : progress.total_problems}
-            </div>
-            <p className="text-xs text-muted-foreground">Total Problems</p>
-          </CardContent>
-        </Card>
-        <Card className="card-section">
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-destructive">
-              {progressLoading ? '...' : progress.wrong_count}
-            </div>
-            <p className="text-xs text-muted-foreground">Wrong</p>
-          </CardContent>
-        </Card>
-        <Card className="card-section">
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-yellow-600">
-              {progressLoading ? '...' : progress.needs_review_count}
-            </div>
-            <p className="text-xs text-muted-foreground">Needs Review</p>
-          </CardContent>
-        </Card>
-        <Card className="card-section">
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-green-600">
-              {progressLoading ? '...' : progress.mastered_count}
-            </div>
-            <p className="text-xs text-muted-foreground">Mastered</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Smart set filter info */}
-      {problemSet.is_smart && problemSet.filter_config && (
-        <div className="rounded-lg border border-amber-200/40 dark:border-amber-800/30 bg-amber-50/50 dark:bg-amber-950/20 p-4 mb-6">
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-            <span className="text-sm font-medium text-amber-800 dark:text-amber-300">
-              Smart Filter Criteria
-            </span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {problemSet.filter_config.statuses?.length > 0 && (
-              <Badge variant="secondary" className="text-xs">
-                Status:{' '}
-                {problemSet.filter_config.statuses
-                  .map((s: string) =>
-                    s === 'needs_review'
-                      ? 'Needs Review'
-                      : s.charAt(0).toUpperCase() + s.slice(1)
-                  )
-                  .join(', ')}
-              </Badge>
-            )}
-            {problemSet.filter_config.problem_types?.length > 0 && (
-              <Badge variant="secondary" className="text-xs">
-                Type:{' '}
-                {problemSet.filter_config.problem_types
-                  .map((t: string) =>
-                    t === 'mcq'
-                      ? 'MCQ'
-                      : t === 'short'
-                        ? 'Short Answer'
-                        : 'Extended'
-                  )
-                  .join(', ')}
-              </Badge>
-            )}
-            {problemSet.filter_config.days_since_review != null && (
-              <Badge variant="secondary" className="text-xs">
-                Not reviewed in {problemSet.filter_config.days_since_review}{' '}
-                days
-              </Badge>
-            )}
-            {problemSet.filter_config.include_never_reviewed && (
-              <Badge variant="secondary" className="text-xs">
-                Includes never-reviewed
-              </Badge>
-            )}
-            {!problemSet.filter_config.statuses?.length &&
-              !problemSet.filter_config.problem_types?.length &&
-              problemSet.filter_config.days_since_review == null && (
-                <span className="text-xs text-muted-foreground">
-                  All problems in subject
-                </span>
-              )}
-          </div>
+      {/* Progress Stats (owner only) */}
+      {problemSet.isOwner && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <Card className="card-section">
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold">
+                {progressLoading ? '...' : progress.total_problems}
+              </div>
+              <p className="text-xs text-muted-foreground">Total Problems</p>
+            </CardContent>
+          </Card>
+          <Card className="card-section">
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-destructive">
+                {progressLoading ? '...' : progress.wrong_count}
+              </div>
+              <p className="text-xs text-muted-foreground">Wrong</p>
+            </CardContent>
+          </Card>
+          <Card className="card-section">
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-yellow-600">
+                {progressLoading ? '...' : progress.needs_review_count}
+              </div>
+              <p className="text-xs text-muted-foreground">Needs Review</p>
+            </CardContent>
+          </Card>
+          <Card className="card-section">
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-green-600">
+                {progressLoading ? '...' : progress.mastered_count}
+              </div>
+              <p className="text-xs text-muted-foreground">Mastered</p>
+            </CardContent>
+          </Card>
         </div>
       )}
 
-      {/* Actions and Search */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-2">
-          {problemSet.isOwner && !problemSet.is_smart && (
-            <Button onClick={handleAddProblems} variant="outline">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Problems
-            </Button>
-          )}
-          {problemSet.isOwner &&
-            !problemSet.is_smart &&
-            selectedProblems.length > 0 && (
-              <Button
-                onClick={() => handleRemoveProblems(selectedProblems)}
-                variant="outline"
-                className="text-destructive hover:bg-destructive/10"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Remove Selected ({selectedProblems.length})
-              </Button>
-            )}
-        </div>
+      {/* Smart filter criteria */}
+      {problemSet.is_smart && problemSet.filter_config && (
+        <SmartFilterCriteriaDisplay
+          filterConfig={problemSet.filter_config as FilterConfig}
+          hideStatus={!problemSet.isOwner}
+          tagNames={tagNames}
+        />
+      )}
 
-        <div className="flex items-center space-x-2">
-          {problemSet.isOwner &&
-            !problemSet.is_smart &&
-            filteredProblems.length > 0 && (
-              <Button variant="outline" size="sm" onClick={handleSelectAll}>
-                {selectedProblems.length === filteredProblems.length
-                  ? 'Deselect All'
-                  : 'Select All'}
-              </Button>
-            )}
-          <div className="relative w-80">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search problems..."
-              value={searchText}
-              onChange={e => setSearchText(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+      {/* Add Problems button (owner, non-smart) */}
+      {problemSet.isOwner && !problemSet.is_smart && (
+        <div className="flex items-center mb-4">
+          <Button onClick={handleAddProblems} variant="outline">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Problems
+          </Button>
         </div>
-      </div>
+      )}
 
-      {/* Problems List */}
-      {filteredProblems.length === 0 ? (
+      {/* Problems Table */}
+      {problemSet.problems.length === 0 ? (
         <Card>
           <CardContent className="pt-6">
             <div className="text-center py-12">
@@ -489,16 +349,16 @@ export default function ProblemSetPageClient({
                 <Plus className="h-12 w-12 text-muted-foreground" />
               </div>
               <h3 className="text-lg font-semibold mb-2">
-                {searchText ? 'No problems found' : 'No problems in this set'}
+                No problems in this set
               </h3>
               <p className="text-muted-foreground mb-6">
-                {searchText
-                  ? `No problems match "${searchText}"`
-                  : problemSet.is_smart
-                    ? 'No problems match the current filter criteria. Try editing the smart set settings.'
-                    : 'Add problems to this set to get started with reviews.'}
+                {problemSet.is_smart
+                  ? 'No problems match the current filter criteria. Try editing the smart set settings.'
+                  : problemSet.isOwner
+                    ? 'Add problems to this set to get started with reviews.'
+                    : 'This problem set is empty.'}
               </p>
-              {!searchText && problemSet.isOwner && !problemSet.is_smart && (
+              {problemSet.isOwner && !problemSet.is_smart && (
                 <Button onClick={handleAddProblems}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Problems
@@ -508,83 +368,14 @@ export default function ProblemSetPageClient({
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-2">
-          {filteredProblems.map(problem => (
-            <Card
-              key={problem.id}
-              className={`cursor-pointer hover:shadow-md transition-shadow ${
-                selectedProblems.includes(problem.id)
-                  ? 'ring-2 ring-primary'
-                  : ''
-              }`}
-              onClick={() => handleProblemClick(problem.id)}
-            >
-              <CardContent className="pt-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2 mb-2">
-                      {problemSet.isOwner && !problemSet.is_smart && (
-                        <input
-                          type="checkbox"
-                          checked={selectedProblems.includes(problem.id)}
-                          onChange={e => {
-                            e.stopPropagation();
-                            handleSelectProblem(problem.id);
-                          }}
-                          onClick={e => e.stopPropagation()}
-                          className="rounded"
-                        />
-                      )}
-                      <h3 className="font-semibold truncate">
-                        {problem.title}
-                      </h3>
-                      <Badge variant="outline">
-                        {getProblemTypeDisplayName(problem.problem_type)}
-                      </Badge>
-                      <div className="flex items-center space-x-1">
-                        {getStatusIcon(problem.status)}
-                        <span className="text-sm text-muted-foreground">
-                          {getProblemStatusDisplayName(problem.status)}
-                        </span>
-                      </div>
-                    </div>
-                    {problem.content && (
-                      <div className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                        <RichTextDisplay content={problem.content} />
-                      </div>
-                    )}
-                    {problem.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {problem.tags.map(tag => (
-                          <Badge
-                            key={tag.id}
-                            variant="secondary"
-                            className="text-xs"
-                          >
-                            {tag.name}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <ProblemSetProblemsTable
+          problems={problemSet.problems}
+          problemSetId={problemSet.id}
+          isOwner={!!problemSet.isOwner}
+          isSmart={problemSet.is_smart}
+          onProblemsRemoved={handleProblemsRemoved}
+        />
       )}
-
-      {/* Remove Confirmation Dialog */}
-      <ConfirmationDialog
-        isOpen={deleteDialog.open}
-        onCancel={() => setDeleteDialog(prev => ({ ...prev, open: false }))}
-        onConfirm={handleConfirmRemove}
-        title="Remove Problems from Set"
-        message={`Are you sure you want to remove ${deleteDialog.count} problem${deleteDialog.count !== 1 ? 's' : ''} from this problem set?`}
-        confirmText="Remove"
-        cancelText="Cancel"
-        variant="destructive"
-      />
 
       {/* Resume Session Dialog */}
       {resumeDialog.session && (
@@ -614,6 +405,31 @@ export default function ProblemSetPageClient({
             sessionConfig={problemSet.session_config as SessionConfig}
           />
         )}
+
+      {/* Edit Problem Set Dialog */}
+      <ProblemSetEditDialog
+        open={editDialog}
+        onOpenChange={setEditDialog}
+        problemSet={{
+          id: problemSet.id,
+          name: problemSet.name,
+          description: problemSet.description,
+          sharing_level: problemSet.sharing_level,
+          shared_with_emails: problemSet.shared_with_emails,
+          allow_copying: problemSet.allow_copying,
+        }}
+        onSuccess={handleEditSuccess}
+      />
+
+      {/* Copy Problem Set Dialog */}
+      <CopyProblemSetDialog
+        open={copyDialog}
+        onOpenChange={setCopyDialog}
+        problemSetId={problemSet.id}
+        problemSetName={problemSet.name}
+        problemCount={problemSet.problem_count}
+        isSmart={problemSet.is_smart}
+      />
     </div>
   );
 }
