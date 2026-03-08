@@ -39,13 +39,12 @@ and this project adheres to [Semantic Versioning].
 
 - **Spaced Repetition System (SM-2)**
   - SM-2 algorithm implementation for intelligent review scheduling (`web/lib/spaced-repetition.ts`)
-  - Review schedule automatically updates after each attempt (correct/incorrect + confidence)
+  - Review schedule automatically updates after each attempt using SM-2 quality derived from `selected_status`
   - New problems get a review schedule on creation; existing problems seeded based on status
   - "Due" badge on notebook cards showing how many problems need review per subject
   - Session size picker dialog (5, 10, 20, or All) before starting a spaced review
   - Full spaced review session flow: review problems, self-assess non-auto-mark problems, complete summary
-  - SR correctness prompt with confidence selector for non-auto-mark problems
-  - Remaining due problems postponed by 1 day when starting a session
+  - SR status prompt for non-auto-mark problems using the unified attempt status form
   - Database RPCs for efficient due count queries (`get_due_problems_count`, `get_due_problems_for_subject`)
   - Extended `get_subjects_with_metadata` RPC with `due_count` field
   - Review schedule cache invalidation on session completion
