@@ -40,6 +40,7 @@ export function DataTable<TData, TValue>({
   columnVisibilityStorageKey = 'problems-table-column-visibility',
   isAddToSetMode = false,
   hideStatusStrip = false,
+  meta: externalMeta,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -66,6 +67,7 @@ export function DataTable<TData, TValue>({
       onDelete,
       onAddToSet,
       isAddToSetMode,
+      ...externalMeta,
     },
     state: {
       sorting,
