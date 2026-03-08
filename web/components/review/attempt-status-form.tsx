@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -113,9 +113,6 @@ export default function AttemptStatusForm({
       : null
   );
   const [isEditing, setIsEditing] = useState(false);
-  const savedAttemptIdRef = useRef<string | null>(
-    initialSavedState?.attemptId ?? null
-  );
 
   const NOTES_MAX = ATTEMPT_CONSTANTS.MAX_REFLECTION_NOTES_LENGTH;
   const RESPONSE_MAX = ATTEMPT_CONSTANTS.MAX_RESPONSE_LENGTH;
@@ -186,9 +183,9 @@ export default function AttemptStatusForm({
     try {
       let resultAttemptId: string;
 
-      if (attemptId || savedAttemptIdRef.current) {
+      if (attemptId || savedState?.attemptId) {
         // PATCH existing attempt
-        const patchId = savedAttemptIdRef.current || attemptId!;
+        const patchId = savedState?.attemptId || attemptId!;
         const patchBody: Record<string, unknown> = {
           selected_status: selectedStatus,
           cause: cause || null,
@@ -225,7 +222,6 @@ export default function AttemptStatusForm({
         resultAttemptId = result.data.id;
       }
 
-      savedAttemptIdRef.current = resultAttemptId;
       setSavedState({ selectedStatus, attemptId: resultAttemptId });
       setIsEditing(false);
       onSaved(selectedStatus, resultAttemptId, {
