@@ -34,7 +34,7 @@ import {
   AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
 import type { UserProfileType } from '@/lib/schemas';
-import { Loader2, Camera, X, Check, Globe } from 'lucide-react';
+import { Loader2, Camera, X, Check } from 'lucide-react';
 import { FILE_CONSTANTS } from '@/lib/constants';
 
 interface ProfileSheetProps {
@@ -58,8 +58,6 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
     initialProfile?.date_of_birth ?? ''
   );
   const [gender, setGender] = useState(initialProfile?.gender ?? '');
-  const [timezone, setTimezone] = useState(initialProfile?.timezone ?? 'UTC');
-  const [timezoneSearch, setTimezoneSearch] = useState('');
 
   const detectedTimezone =
     typeof window !== 'undefined'
@@ -74,7 +72,6 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
     bio: initialProfile?.bio ?? '',
     dateOfBirth: initialProfile?.date_of_birth ?? '',
     gender: initialProfile?.gender ?? '',
-    timezone: initialProfile?.timezone ?? 'UTC',
   });
 
   const isDirty =
@@ -83,8 +80,7 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
     lastName !== savedSnapshotRef.current.lastName ||
     bio !== savedSnapshotRef.current.bio ||
     dateOfBirth !== savedSnapshotRef.current.dateOfBirth ||
-    gender !== savedSnapshotRef.current.gender ||
-    timezone !== savedSnapshotRef.current.timezone;
+    gender !== savedSnapshotRef.current.gender;
 
   // Avatar state
   const [avatarUrl, setAvatarUrl] = useState<string | null>(
@@ -124,8 +120,6 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
     setBio(s.bio);
     setDateOfBirth(s.dateOfBirth);
     setGender(s.gender);
-    setTimezone(s.timezone);
-    setTimezoneSearch('');
     setSaveError(null);
     setUsernameError(null);
     setFieldErrors({});
@@ -256,7 +250,7 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
           bio,
           date_of_birth: dateOfBirth,
           gender,
-          timezone,
+          timezone: detectedTimezone,
         }),
       });
       const json = await res.json();
@@ -279,7 +273,6 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
           bio,
           dateOfBirth,
           gender,
-          timezone,
         };
         setSaved(true);
         if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
@@ -382,8 +375,15 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
 
             {/* Email (read-only) */}
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Email</Label>
-              <p className="text-sm text-muted-foreground truncate">{email}</p>
+              <Label htmlFor="sheet-email" className="text-xs">
+                Email
+              </Label>
+              <Input
+                id="sheet-email"
+                value={email}
+                disabled
+                className="text-sm"
+              />
             </div>
 
             {/* Username */}
@@ -521,68 +521,17 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
               </Select>
             </div>
 
-            {/* Timezone */}
+            {/* Timezone (auto-detected) */}
             <div className="space-y-1">
               <Label htmlFor="sheet-timezone" className="text-xs">
                 Timezone
               </Label>
-              <div className="relative">
-                <Globe className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-                <Input
-                  id="sheet-timezone"
-                  value={timezoneSearch || timezone}
-                  onChange={e => setTimezoneSearch(e.target.value)}
-                  onFocus={() => setTimezoneSearch('')}
-                  onBlur={() => {
-                    // Delay to allow click on dropdown items
-                    setTimeout(() => setTimezoneSearch(''), 150);
-                  }}
-                  placeholder="Search timezones..."
-                  className="text-sm pl-8"
-                />
-              </div>
-              {timezoneSearch && (
-                <div className="max-h-40 overflow-y-auto rounded-md border bg-popover p-1 text-sm shadow-md">
-                  {(() => {
-                    const allTimezones = Intl.supportedValuesOf('timeZone');
-                    const query = timezoneSearch.toLowerCase();
-                    const filtered = allTimezones.filter(tz =>
-                      tz.toLowerCase().includes(query)
-                    );
-                    const results = filtered.slice(0, 20);
-                    if (results.length === 0) {
-                      return (
-                        <p className="px-2 py-1.5 text-muted-foreground">
-                          No timezones found
-                        </p>
-                      );
-                    }
-                    return results.map(tz => (
-                      <button
-                        key={tz}
-                        type="button"
-                        className="w-full text-left px-2 py-1.5 rounded-sm hover:bg-accent text-sm"
-                        onMouseDown={e => {
-                          e.preventDefault();
-                          setTimezone(tz);
-                          setTimezoneSearch('');
-                        }}
-                      >
-                        {tz}
-                      </button>
-                    ));
-                  })()}
-                </div>
-              )}
-              {detectedTimezone !== timezone && (
-                <button
-                  type="button"
-                  className="text-xs text-amber-600 dark:text-amber-400 hover:underline"
-                  onClick={() => setTimezone(detectedTimezone)}
-                >
-                  Use detected: {detectedTimezone}
-                </button>
-              )}
+              <Input
+                id="sheet-timezone"
+                value={detectedTimezone}
+                disabled
+                className="text-sm"
+              />
             </div>
 
             {saveError && (
