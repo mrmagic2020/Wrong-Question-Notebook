@@ -79,6 +79,7 @@ export function ReviewDuePickerDialog({
     checkActive();
   }, [open, subjectId]);
 
+  const maxSize = SPACED_REPETITION_CONSTANTS.MAX_SESSION_SIZE;
   const presets = SPACED_REPETITION_CONSTANTS.SESSION_PRESETS.filter(
     p => p <= dueCount
   );
@@ -92,7 +93,7 @@ export function ReviewDuePickerDialog({
   };
 
   const handleStart = async () => {
-    const size = selectedSize ?? dueCount;
+    const size = Math.min(selectedSize ?? dueCount, maxSize);
     setStarting(true);
     try {
       const res = await fetch('/api/review-sessions/start-spaced', {
@@ -202,7 +203,10 @@ export function ReviewDuePickerDialog({
                   Starting...
                 </>
               ) : (
-                <>Start Review ({selectedSize ?? dueCount})</>
+                <>
+                  Start Review (
+                  {Math.min(selectedSize ?? dueCount, maxSize)})
+                </>
               )}
             </Button>
           </div>

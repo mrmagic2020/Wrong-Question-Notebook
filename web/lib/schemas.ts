@@ -8,6 +8,7 @@ import {
   GENDER_OPTIONS,
   SUBJECT_CONSTANTS,
   ATTEMPT_CONSTANTS,
+  SPACED_REPETITION_CONSTANTS,
 } from './constants';
 import { sanitizeHtmlContent } from './html-sanitizer';
 
@@ -399,7 +400,12 @@ export const SessionConfigSchema = z.object({
 
 export const StartSpacedSessionDto = z.object({
   subject_id: z.uuid(),
-  session_size: z.number().int().min(1).max(100).optional(),
+  session_size: z
+    .number()
+    .int()
+    .min(1)
+    .max(SPACED_REPETITION_CONSTANTS.MAX_SESSION_SIZE)
+    .optional(),
 });
 
 export const CreateProblemSetDto = z.object({
