@@ -54,6 +54,9 @@ export interface AttemptState {
   attemptId: string | null;
   selectedStatus?: ProblemStatus | null;
   formSaved?: boolean;
+  cause?: string | null;
+  reflectionNotes?: string | null;
+  submittedResponse?: string | null;
 }
 
 interface ProblemReviewProps {
@@ -212,7 +215,11 @@ export default function ProblemReview({
     }
   };
 
-  const handleFormSaved = (status: ProblemStatus, attemptId: string) => {
+  const handleFormSaved = (
+    status: ProblemStatus,
+    attemptId: string,
+    details?: { cause?: string | null; reflectionNotes?: string | null; submittedResponse?: string | null }
+  ) => {
     setTimelineRefreshKey(k => k + 1);
     onFormSaved?.(status);
     refreshChecklistStatus();
@@ -225,6 +232,9 @@ export default function ProblemReview({
       attemptId: attemptId,
       selectedStatus: status,
       formSaved: true,
+      cause: details?.cause ?? null,
+      reflectionNotes: details?.reflectionNotes ?? null,
+      submittedResponse: details?.submittedResponse ?? null,
     });
   };
 
@@ -244,9 +254,9 @@ export default function ProblemReview({
       ? {
           selectedStatus: initialAttemptState.selectedStatus,
           attemptId: initialAttemptState.attemptId!,
-          cause: null,
-          reflectionNotes: null,
-          submittedResponse: null,
+          cause: initialAttemptState.cause ?? null,
+          reflectionNotes: initialAttemptState.reflectionNotes ?? null,
+          submittedResponse: initialAttemptState.submittedResponse ?? null,
         }
       : null;
 

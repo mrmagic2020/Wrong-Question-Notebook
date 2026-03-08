@@ -59,7 +59,15 @@ interface AttemptStatusFormProps {
   attemptId?: string | null;
   autoMarkCorrect?: boolean | null;
   hasSubmitted?: boolean;
-  onSaved: (status: ProblemStatus, attemptId: string) => void;
+  onSaved: (
+    status: ProblemStatus,
+    attemptId: string,
+    details?: {
+      cause?: string | null;
+      reflectionNotes?: string | null;
+      submittedResponse?: string | null;
+    }
+  ) => void;
   initialSavedState?: {
     selectedStatus: ProblemStatus;
     attemptId: string;
@@ -220,7 +228,11 @@ export default function AttemptStatusForm({
       savedAttemptIdRef.current = resultAttemptId;
       setSavedState({ selectedStatus, attemptId: resultAttemptId });
       setIsEditing(false);
-      onSaved(selectedStatus, resultAttemptId);
+      onSaved(selectedStatus, resultAttemptId, {
+        cause: cause || null,
+        reflectionNotes: notes || null,
+        submittedResponse: response || null,
+      });
     } catch {
       toast.error('Failed to save assessment. Please try again.');
     } finally {
