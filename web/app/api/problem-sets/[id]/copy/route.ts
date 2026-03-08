@@ -243,32 +243,38 @@ async function copyProblemSet(
       }
     }
 
-    // Insert copied problems
-    const problemInserts = sourceProblems.map((p: any) => ({
-      user_id: user.id,
-      subject_id: target_subject_id,
-      title: p.title,
-      content: p.content,
-      problem_type: p.problem_type,
-      correct_answer: p.correct_answer,
-      answer_config: p.answer_config,
-      auto_mark: p.auto_mark || false,
-      status: 'needs_review',
-      solution_text: p.solution_text,
-      assets: p.assets || [],
-      solution_assets: p.solution_assets || [],
-    }));
+    // Insert copied problems individually to maintain a reliable
+    // source-to-copy mapping (bulk INSERT RETURNING order is not
+    // guaranteed by the SQL spec).
+    const copiedProblems: { sourceIndex: number; id: string }[] = [];
+    for (let i = 0; i < sourceProblems.length; i++) {
+      const p = sourceProblems[i];
+      const { data, error } = await supabase
+        .from('problems')
+        .insert({
+          user_id: user.id,
+          subject_id: target_subject_id,
+          title: p.title,
+          content: p.content,
+          problem_type: p.problem_type,
+          correct_answer: p.correct_answer,
+          answer_config: p.answer_config,
+          auto_mark: p.auto_mark || false,
+          status: 'needs_review',
+          solution_text: p.solution_text,
+          assets: p.assets || [],
+          solution_assets: p.solution_assets || [],
+        })
+        .select('id')
+        .single();
 
-    const { data: copiedProblems, error: insertError } = await supabase
-      .from('problems')
-      .insert(problemInserts)
-      .select('id');
-
-    if (insertError || !copiedProblems) {
-      return NextResponse.json(
-        createApiErrorResponse('Failed to copy problems', 500),
-        { status: 500 }
-      );
+      if (error || !data) {
+        return NextResponse.json(
+          createApiErrorResponse('Failed to copy problems', 500),
+          { status: 500 }
+        );
+      }
+      copiedProblems.push({ sourceIndex: i, id: data.id });
     }
 
     // Attach tags to copied problems
@@ -278,9 +284,8 @@ async function copyProblemSet(
         tag_id: string;
         user_id: string;
       }[] = [];
-      sourceProblems.forEach((sourceProblem: any, index: number) => {
-        const newProblemId = copiedProblems[index]?.id;
-        if (!newProblemId) return;
+      copiedProblems.forEach(({ sourceIndex, id: newProblemId }) => {
+        const sourceProblem = sourceProblems[sourceIndex];
         (sourceProblem.tags || []).forEach((tag: any) => {
           const newTagId = tagMapping[tag.id];
           if (newTagId) {
