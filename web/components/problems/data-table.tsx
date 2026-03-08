@@ -149,8 +149,6 @@ export function DataTable<TData, TValue>({
               table.getRowModel().rows.map(row => {
                 const problem = row.original as Problem;
                 const isInSet = problem.isInSet || false;
-                const isAddToSetMode =
-                  (table.options.meta as any)?.isAddToSetMode || false;
 
                 return (
                   <TableRow
