@@ -25,14 +25,25 @@ async function checkActiveSession(req: Request) {
   }
 
   try {
-    const { data: existingSession } = await supabase
+    const { data: existingSession, error: sessionError } = await supabase
       .from('review_session_state')
       .select('id, session_state')
       .eq('user_id', user.id)
       .eq('session_type', 'spaced_repetition')
       .eq('subject_id', subjectId)
       .eq('is_active', true)
-      .single();
+      .maybeSingle();
+
+    if (sessionError) {
+      return NextResponse.json(
+        createApiErrorResponse(
+          ERROR_MESSAGES.DATABASE_ERROR,
+          500,
+          sessionError.message
+        ),
+        { status: 500 }
+      );
+    }
 
     if (existingSession) {
       const state = existingSession.session_state as {
@@ -93,14 +104,25 @@ async function startSpacedSession(req: Request) {
 
   try {
     // Check for existing active SR session for this subject
-    const { data: existingSession } = await supabase
+    const { data: existingSession, error: lookupError } = await supabase
       .from('review_session_state')
       .select('id')
       .eq('user_id', user.id)
       .eq('session_type', 'spaced_repetition')
       .eq('subject_id', subject_id)
       .eq('is_active', true)
-      .single();
+      .maybeSingle();
+
+    if (lookupError) {
+      return NextResponse.json(
+        createApiErrorResponse(
+          ERROR_MESSAGES.DATABASE_ERROR,
+          500,
+          lookupError.message
+        ),
+        { status: 500 }
+      );
+    }
 
     if (existingSession) {
       return NextResponse.json(
