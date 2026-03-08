@@ -59,6 +59,7 @@ export default function SessionReviewClient({
 
   // Timer state
   const [elapsedMs, setElapsedMs] = useState(0);
+  const elapsedMsRef = useRef(0);
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerInitializedRef = useRef(false);
@@ -89,6 +90,7 @@ export default function SessionReviewClient({
       const saved = sessionData.session.session_state.elapsed_ms;
       if (typeof saved === 'number' && saved > 0) {
         setElapsedMs(saved);
+        elapsedMsRef.current = saved;
       }
     }
   }, [sessionData]);
@@ -97,7 +99,11 @@ export default function SessionReviewClient({
   useEffect(() => {
     if (!loading && sessionData && !isPaused) {
       timerRef.current = setInterval(() => {
-        setElapsedMs(prev => prev + 1000);
+        setElapsedMs(prev => {
+          const next = prev + 1000;
+          elapsedMsRef.current = next;
+          return next;
+        });
       }, 1000);
     }
     return () => {
@@ -134,14 +140,15 @@ export default function SessionReviewClient({
           wasSkipped,
           wasCorrect,
           currentIndex: nextIndex,
-          elapsed_ms: elapsedMs,
+          elapsed_ms: elapsedMsRef.current,
         }),
       });
 
       // Update local state — mirror server logic:
       // only track completion when wasCorrect is a boolean (actual answer)
-      if (sessionData) {
-        const newState = { ...sessionData.session.session_state };
+      setSessionData(prev => {
+        if (!prev) return prev;
+        const newState = { ...prev.session.session_state };
         newState.current_index = nextIndex;
         const isAnswer = !wasSkipped && typeof wasCorrect === 'boolean';
 
@@ -164,14 +171,14 @@ export default function SessionReviewClient({
           );
         }
 
-        setSessionData({
-          ...sessionData,
+        return {
+          ...prev,
           session: {
-            ...sessionData.session,
+            ...prev.session,
             session_state: newState,
           },
-        });
-      }
+        };
+      });
     } catch {
       console.error('Failed to update progress');
     }
@@ -252,7 +259,7 @@ export default function SessionReviewClient({
             wasSkipped: false,
             wasCorrect: null,
             currentIndex,
-            elapsed_ms: elapsedMs,
+            elapsed_ms: elapsedMsRef.current,
           }),
         });
       } catch {
