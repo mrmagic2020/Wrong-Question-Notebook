@@ -185,7 +185,7 @@ export default function SessionReviewClient({
 
     // Only record progress if not already completed
     if (!completed_problem_ids.includes(currentProblemId)) {
-      const wasCorrect = _status === 'mastered' ? true : false;
+      const wasCorrect = _status === 'mastered';
       await updateProgress(currentProblemId, false, wasCorrect, currentIndex);
     }
 
