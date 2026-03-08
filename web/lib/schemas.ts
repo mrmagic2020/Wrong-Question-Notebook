@@ -11,6 +11,7 @@ import {
   SPACED_REPETITION_CONSTANTS,
 } from './constants';
 import { sanitizeHtmlContent } from './html-sanitizer';
+import { isValidTimezone } from './timezone-utils';
 
 // Database enum values - these should match the PostgreSQL enum type
 export const PROBLEM_TYPE_VALUES = [
@@ -222,17 +223,7 @@ export const UserProfile = z.object({
   region: z.string().nullable(),
   timezone: z
     .string()
-    .refine(
-      tz => {
-        try {
-          Intl.DateTimeFormat(undefined, { timeZone: tz });
-          return true;
-        } catch {
-          return false;
-        }
-      },
-      { message: 'Invalid IANA timezone' }
-    )
+    .refine(isValidTimezone, { message: 'Invalid IANA timezone' })
     .default('UTC'),
   avatar_url: z.url().nullable(),
   bio: z.string().nullable(),
@@ -309,17 +300,7 @@ export const CreateUserProfileDto = z.object({
     .optional(),
   timezone: z
     .string()
-    .refine(
-      tz => {
-        try {
-          Intl.DateTimeFormat(undefined, { timeZone: tz });
-          return true;
-        } catch {
-          return false;
-        }
-      },
-      { message: 'Invalid IANA timezone' }
-    )
+    .refine(isValidTimezone, { message: 'Invalid IANA timezone' })
     .optional(),
   avatar_url: z.url().optional(),
   bio: z.string().max(VALIDATION_CONSTANTS.STRING_LIMITS.BIO_MAX).optional(),
