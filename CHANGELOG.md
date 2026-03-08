@@ -9,6 +9,48 @@ and this project adheres to [Semantic Versioning].
 
 ### Added
 
+- **Timezone-Aware Day Boundaries**
+  - All day-boundary features (streaks, heatmap, weekly progress, quotas, SM-2 same-day guard) now respect the user's configured timezone instead of UTC
+  - Auto-detection of browser timezone on every authenticated page load, synced to profile when changed
+
+### Changed
+
+- **Unified Status Selection & Attempt Logging**
+  - Merged StatusSelector and ReflectionDialog into a single embedded `AttemptStatusForm` in the review sidebar — every status assessment now creates an attempt record
+  - Replaced `is_correct` + `confidence` SR input with three-tier `selected_status` (`wrong`/`needs_review`/`mastered`) mapped directly to SM-2 quality scores (1/3/5)
+  - Auto-mark problems pre-select status based on correctness and constrain available options (wrong→Wrong/Needs Review, correct→Needs Review/Mastered)
+  - Added `selected_status` column to `attempts` table with backfill migration
+  - API routes (`POST /api/attempts`, `PATCH /api/attempts/[id]`) now sync `problems.status` and recalculate review schedule when `selected_status` is provided
+  - Timeline entries now show status badges (Wrong/Needs Review/Mastered) instead of Correct/Incorrect; removed confidence dots
+  - Session clients (problem-set and spaced review) gate "Next" on form save instead of separate status selection
+  - Form state persists across session navigation via `AttemptState` cache with `selectedStatus` and `formSaved` fields
+
+### Removed
+
+- `StatusSelector` component (replaced by `AttemptStatusForm`)
+- `ReflectionDialog` component (replaced by `AttemptStatusForm` + `AttemptEditDialog`)
+- `ConfidenceSelector` component (confidence removed from UI)
+- `SRCorrectnessPrompt` component (replaced by `AttemptStatusForm`)
+- `StatusSelectorProps` interface from types
+- `mapConfidenceToQuality()` function (replaced by `mapStatusToQuality()`)
+- `DEFAULT_CONFIDENCE` constant (no longer needed)
+
+### Added
+
+- **Spaced Repetition System (SM-2)**
+  - SM-2 algorithm implementation for intelligent review scheduling (`web/lib/spaced-repetition.ts`)
+  - Review schedule automatically updates after each attempt (correct/incorrect + confidence)
+  - New problems get a review schedule on creation; existing problems seeded based on status
+  - "Due" badge on notebook cards showing how many problems need review per subject
+  - Session size picker dialog (5, 10, 20, or All) before starting a spaced review
+  - Full spaced review session flow: review problems, self-assess non-auto-mark problems, complete summary
+  - SR correctness prompt with confidence selector for non-auto-mark problems
+  - Remaining due problems postponed by 1 day when starting a session
+  - Database RPCs for efficient due count queries (`get_due_problems_count`, `get_due_problems_for_subject`)
+  - Extended `get_subjects_with_metadata` RPC with `due_count` field
+  - Review schedule cache invalidation on session completion
+  - Comprehensive Vitest unit tests for SM-2 algorithm (24 test cases)
+
 - **Subject Problems Page UX Improvements**
   - Stats strip showing total problems, proportional status bar (wrong/review/mastered), and mastery percentage
   - Empty state with illustration and CTA buttons when no problems exist
