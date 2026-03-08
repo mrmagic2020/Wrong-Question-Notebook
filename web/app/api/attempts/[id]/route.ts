@@ -80,22 +80,24 @@ export async function PATCH(
     // is updated — but only if this is the latest attempt for the problem.
     // Editing a historical attempt should not overwrite the current status.
     if (parsed.data.selected_status !== undefined) {
-      // Get problem for subject_id (needed for cache invalidation)
-      const { data: problem } = await supabase
-        .from('problems')
-        .select('subject_id')
-        .eq('id', data.problem_id)
-        .single();
-
-      // Check if this attempt is the most recent for the problem
-      const { data: latestAttempt } = await supabase
-        .from('attempts')
-        .select('id')
-        .eq('problem_id', data.problem_id)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+      // Fetch problem, latest attempt, and timezone in parallel
+      const [{ data: problem }, { data: latestAttempt }, userTimezone] =
+        await Promise.all([
+          supabase
+            .from('problems')
+            .select('subject_id')
+            .eq('id', data.problem_id)
+            .single(),
+          supabase
+            .from('attempts')
+            .select('id')
+            .eq('problem_id', data.problem_id)
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single(),
+          getUserTimezone(user.id),
+        ]);
 
       const isLatestAttempt = latestAttempt?.id === attemptId;
 
@@ -111,7 +113,6 @@ export async function PATCH(
 
         try {
           const serviceClient = createServiceClient();
-          const userTimezone = await getUserTimezone(user.id);
           await updateReviewSchedule(
             serviceClient,
             user.id,
