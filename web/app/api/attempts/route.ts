@@ -138,7 +138,7 @@ async function createAttempt(req: Request) {
 
     // Sync problem status when selected_status is provided
     if (parsed.data.selected_status) {
-      await supabase
+      const { error: statusError } = await supabase
         .from('problems')
         .update({
           status: parsed.data.selected_status,
@@ -146,6 +146,10 @@ async function createAttempt(req: Request) {
         })
         .eq('id', parsed.data.problem_id)
         .eq('user_id', user.id);
+
+      if (statusError) {
+        console.error('Failed to sync problem status:', statusError.message);
+      }
     }
 
     // Invalidate cache after successful attempt creation
