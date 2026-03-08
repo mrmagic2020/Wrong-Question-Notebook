@@ -243,38 +243,55 @@ async function copyProblemSet(
       }
     }
 
-    // Insert copied problems individually to maintain a reliable
-    // source-to-copy mapping (bulk INSERT RETURNING order is not
-    // guaranteed by the SQL spec).
-    const copiedProblems: { sourceIndex: number; id: string }[] = [];
-    for (let i = 0; i < sourceProblems.length; i++) {
-      const p = sourceProblems[i];
-      const { data, error } = await supabase
-        .from('problems')
-        .insert({
-          user_id: user.id,
-          subject_id: target_subject_id,
-          title: p.title,
-          content: p.content,
-          problem_type: p.problem_type,
-          correct_answer: p.correct_answer,
-          answer_config: p.answer_config,
-          auto_mark: p.auto_mark || false,
-          status: 'needs_review',
-          solution_text: p.solution_text,
-          assets: p.assets || [],
-          solution_assets: p.solution_assets || [],
-        })
-        .select('id')
-        .single();
+    // Bulk insert copied problems
+    const problemInserts = sourceProblems.map((p: any) => ({
+      user_id: user.id,
+      subject_id: target_subject_id,
+      title: p.title,
+      content: p.content,
+      problem_type: p.problem_type,
+      correct_answer: p.correct_answer,
+      answer_config: p.answer_config,
+      auto_mark: p.auto_mark || false,
+      status: 'needs_review',
+      solution_text: p.solution_text,
+      assets: p.assets || [],
+      solution_assets: p.solution_assets || [],
+    }));
 
-      if (error || !data) {
-        return NextResponse.json(
-          createApiErrorResponse('Failed to copy problems', 500),
-          { status: 500 }
-        );
+    const { data: copiedProblems, error: insertError } = await supabase
+      .from('problems')
+      .insert(problemInserts)
+      .select('id, title, problem_type, content');
+
+    if (insertError || !copiedProblems) {
+      return NextResponse.json(
+        createApiErrorResponse('Failed to copy problems', 500),
+        { status: 500 }
+      );
+    }
+
+    // Build source-to-copy mapping using composite key matching
+    // rather than relying on INSERT RETURNING order.
+    const makeKey = (title: string, type: string, content: string | null) =>
+      `${title}\0${type}\0${content ?? ''}`;
+
+    const copiedByKey = new Map<string, string[]>();
+    for (const cp of copiedProblems) {
+      const key = makeKey(cp.title, cp.problem_type, cp.content);
+      const ids = copiedByKey.get(key);
+      if (ids) ids.push(cp.id);
+      else copiedByKey.set(key, [cp.id]);
+    }
+
+    const sourceToNewId = new Map<number, string>();
+    for (let i = 0; i < sourceProblems.length; i++) {
+      const src = sourceProblems[i];
+      const key = makeKey(src.title, src.problem_type, src.content);
+      const ids = copiedByKey.get(key);
+      if (ids && ids.length > 0) {
+        sourceToNewId.set(i, ids.shift()!);
       }
-      copiedProblems.push({ sourceIndex: i, id: data.id });
     }
 
     // Attach tags to copied problems
@@ -284,7 +301,7 @@ async function copyProblemSet(
         tag_id: string;
         user_id: string;
       }[] = [];
-      copiedProblems.forEach(({ sourceIndex, id: newProblemId }) => {
+      for (const [sourceIndex, newProblemId] of sourceToNewId) {
         const sourceProblem = sourceProblems[sourceIndex];
         (sourceProblem.tags || []).forEach((tag: any) => {
           const newTagId = tagMapping[tag.id];
@@ -296,7 +313,7 @@ async function copyProblemSet(
             });
           }
         });
-      });
+      }
 
       if (tagInserts.length > 0) {
         const { error: tagLinkError } = await supabase
