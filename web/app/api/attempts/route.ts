@@ -160,27 +160,19 @@ async function createAttempt(req: Request) {
 
     // Update spaced repetition schedule
     try {
-      if (parsed.data.selected_status) {
+      const srStatus = parsed.data.selected_status
+        ?? (data.is_correct !== null
+          ? (data.is_correct ? 'mastered' : 'wrong')
+          : null);
+
+      if (srStatus) {
         const serviceClient = createServiceClient();
         const userTimezone = await getUserTimezone(user.id);
         await updateReviewSchedule(
           serviceClient,
           user.id,
           parsed.data.problem_id,
-          parsed.data.selected_status,
-          userTimezone
-        );
-        await revalidateUserReviewSchedule(user.id);
-      } else if (data.is_correct !== null) {
-        // Fallback for callers that don't provide selected_status
-        const defaultStatus = data.is_correct ? 'mastered' : 'wrong';
-        const serviceClient = createServiceClient();
-        const userTimezone = await getUserTimezone(user.id);
-        await updateReviewSchedule(
-          serviceClient,
-          user.id,
-          parsed.data.problem_id,
-          defaultStatus,
+          srStatus,
           userTimezone
         );
         await revalidateUserReviewSchedule(user.id);
