@@ -134,12 +134,18 @@ export async function updateReviewSchedule(
   const { DEFAULT_EASE_FACTOR, DEFAULT_INTERVAL } = SPACED_REPETITION_CONSTANTS;
 
   // Read current schedule
-  const { data: existing } = await supabase
+  const { data: existing, error: lookupError } = await supabase
     .from('review_schedule')
     .select('*')
     .eq('user_id', userId)
     .eq('problem_id', problemId)
-    .single();
+    .maybeSingle();
+
+  if (lookupError) {
+    throw new Error(
+      `Failed to read review schedule: ${lookupError.message}`
+    );
+  }
 
   const now = new Date();
   const nowISO = now.toISOString();
