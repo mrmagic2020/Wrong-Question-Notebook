@@ -1,4 +1,5 @@
 import { ActivityDay } from './types';
+import { toDateInTimezone, DEFAULT_TIMEZONE } from './timezone-utils';
 
 export interface HeatmapCell {
   date: string;
@@ -16,7 +17,8 @@ export interface HeatmapWeek {
  */
 export function buildHeatmapGrid(
   activityData: ActivityDay[],
-  weeks: number = 26
+  weeks: number = 26,
+  timezone: string = DEFAULT_TIMEZONE
 ): HeatmapWeek[] {
   const countMap = new Map<string, number>();
   for (const day of activityData) {
@@ -26,15 +28,20 @@ export function buildHeatmapGrid(
   // Find the max count for intensity scaling
   const maxCount = Math.max(1, ...activityData.map(d => d.activity_count));
 
-  const today = new Date();
-  const todayDay = today.getDay(); // 0=Sun
+  const now = new Date();
+  const todayStr = toDateInTimezone(now, timezone);
+
+  // Parse as UTC noon to avoid local-timezone day shifts
+  const todayDate = new Date(todayStr + 'T12:00:00Z');
+  const todayDay = todayDate.getUTCDay(); // 0=Sun
+
   // End of the grid is end of this week (Saturday)
-  const endDate = new Date(today);
-  endDate.setDate(today.getDate() + (6 - todayDay));
+  const endDate = new Date(todayDate);
+  endDate.setUTCDate(todayDate.getUTCDate() + (6 - todayDay));
 
   // Start is `weeks` weeks before the end
   const startDate = new Date(endDate);
-  startDate.setDate(endDate.getDate() - weeks * 7 + 1);
+  startDate.setUTCDate(endDate.getUTCDate() - weeks * 7 + 1);
 
   const grid: HeatmapWeek[] = [];
   const current = new Date(startDate);
@@ -44,13 +51,13 @@ export function buildHeatmapGrid(
     for (let d = 0; d < 7; d++) {
       const dateStr = current.toISOString().slice(0, 10);
       const count = countMap.get(dateStr) || 0;
-      const isFuture = current > today;
+      const isFuture = dateStr > todayStr;
       week.push({
         date: dateStr,
         count: isFuture ? -1 : count,
         intensity: isFuture ? -1 : getHeatmapIntensity(count, maxCount),
       });
-      current.setDate(current.getDate() + 1);
+      current.setUTCDate(current.getUTCDate() + 1);
     }
     grid.push({ cells: week });
   }

@@ -48,7 +48,7 @@ export function SignUpForm({
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data: signUpData, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -57,6 +57,19 @@ export function SignUpForm({
         },
       });
       if (error) throw error;
+
+      // Auto-detect and set timezone for new user
+      if (signUpData?.user) {
+        const detectedTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (detectedTz) {
+          fetch('/api/profile', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ timezone: detectedTz }),
+          }).catch(() => {});
+        }
+      }
+
       router.push(`/auth/sign-up-success?email=${encodeURIComponent(email)}`);
     } catch (error: unknown) {
       setError(

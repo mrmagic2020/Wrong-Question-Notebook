@@ -219,7 +219,20 @@ export const UserProfile = z.object({
   date_of_birth: z.string().date().nullable(),
   gender: Gender.nullable(),
   region: z.string().nullable(),
-  timezone: z.string().default('UTC'),
+  timezone: z
+    .string()
+    .refine(
+      tz => {
+        try {
+          Intl.DateTimeFormat(undefined, { timeZone: tz });
+          return true;
+        } catch {
+          return false;
+        }
+      },
+      { message: 'Invalid IANA timezone' }
+    )
+    .default('UTC'),
   avatar_url: z.url().nullable(),
   bio: z.string().nullable(),
   user_role: UserRole.default('user'),
@@ -293,7 +306,20 @@ export const CreateUserProfileDto = z.object({
     .string()
     .max(VALIDATION_CONSTANTS.STRING_LIMITS.REGION_MAX)
     .optional(),
-  timezone: z.string().optional(),
+  timezone: z
+    .string()
+    .refine(
+      tz => {
+        try {
+          Intl.DateTimeFormat(undefined, { timeZone: tz });
+          return true;
+        } catch {
+          return false;
+        }
+      },
+      { message: 'Invalid IANA timezone' }
+    )
+    .optional(),
   avatar_url: z.url().optional(),
   bio: z.string().max(VALIDATION_CONSTANTS.STRING_LIMITS.BIO_MAX).optional(),
 });

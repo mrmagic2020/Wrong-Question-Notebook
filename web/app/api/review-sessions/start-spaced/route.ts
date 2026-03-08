@@ -90,7 +90,11 @@ async function startSpacedSession(req: Request) {
   const parsed = StartSpacedSessionDto.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
-      createApiErrorResponse('Invalid request body', 400, parsed.error.flatten()),
+      createApiErrorResponse(
+        'Invalid request body',
+        400,
+        parsed.error.flatten()
+      ),
       { status: 400 }
     );
   }

@@ -9,6 +9,7 @@ import {
 
 interface ActivityHeatmapProps {
   data: ActivityDay[];
+  timezone?: string;
 }
 
 const DAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
@@ -31,10 +32,10 @@ const INTENSITY_COLORS_DARK = [
   'rgba(251, 191, 36, 0.9)', // 4 — intense
 ];
 
-export function ActivityHeatmap({ data }: ActivityHeatmapProps) {
+export function ActivityHeatmap({ data, timezone }: ActivityHeatmapProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDark, setIsDark] = useState(false);
-  const grid = buildHeatmapGrid(data, 26);
+  const grid = buildHeatmapGrid(data, 26, timezone);
   const monthLabels = getHeatmapMonthLabels(grid);
 
   useEffect(() => {

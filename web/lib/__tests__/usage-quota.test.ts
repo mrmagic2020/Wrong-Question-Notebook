@@ -56,6 +56,7 @@ describe('checkAndIncrementQuota', () => {
       p_user_id: 'user-1',
       p_resource_type: 'ai_extraction',
       p_default_limit: 10,
+      p_user_tz: 'UTC',
     });
   });
 

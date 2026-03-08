@@ -7,6 +7,11 @@
 
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SPACED_REPETITION_CONSTANTS } from './constants';
+import {
+  isSameDayInTimezone,
+  getLocalMidnightAfterDays,
+  DEFAULT_TIMEZONE,
+} from './timezone-utils';
 
 // =====================================================
 // Types
@@ -60,7 +65,10 @@ export function mapStatusToQuality(
  * Quality >= 3 (correct): advance repetition, compute new interval
  * Quality < 3 (incorrect): reset repetition to 0, interval to 1
  */
-export function calculateNextReview(input: ReviewInput): ReviewScheduleUpdate {
+export function calculateNextReview(
+  input: ReviewInput,
+  userTimezone: string = DEFAULT_TIMEZONE
+): ReviewScheduleUpdate {
   const { repetitionNumber, easeFactor, intervalDays, quality } = input;
   const { MIN_EASE_FACTOR, INITIAL_INTERVALS } = SPACED_REPETITION_CONSTANTS;
 
@@ -90,8 +98,9 @@ export function calculateNextReview(input: ReviewInput): ReviewScheduleUpdate {
     newEF = easeFactor; // Don't change EF on failure
   }
 
-  const nextReviewAt = new Date();
-  nextReviewAt.setDate(nextReviewAt.getDate() + newInterval);
+  // Due date is always the user's local midnight, so all problems due on a
+  // given day are available from the start of that day.
+  const nextReviewAt = getLocalMidnightAfterDays(newInterval, userTimezone);
 
   return {
     repetitionNumber: newRep,
@@ -119,7 +128,8 @@ export async function updateReviewSchedule(
   supabase: SupabaseClient,
   userId: string,
   problemId: string,
-  selectedStatus: 'wrong' | 'needs_review' | 'mastered'
+  selectedStatus: 'wrong' | 'needs_review' | 'mastered',
+  userTimezone: string = DEFAULT_TIMEZONE
 ): Promise<void> {
   const { DEFAULT_EASE_FACTOR, DEFAULT_INTERVAL } = SPACED_REPETITION_CONSTANTS;
 
@@ -134,11 +144,11 @@ export async function updateReviewSchedule(
   const now = new Date();
   const nowISO = now.toISOString();
 
-  // Check if already reviewed today — if so, only refresh next_review_at
-  // without advancing SM-2 state (repetition_number, ease_factor, interval_days)
+  // Check if already reviewed today (in user's timezone) — if so, only refresh
+  // next_review_at without advancing SM-2 state
   const isReviewedToday =
     existing?.last_reviewed_at &&
-    new Date(existing.last_reviewed_at).toDateString() === now.toDateString();
+    isSameDayInTimezone(new Date(existing.last_reviewed_at), now, userTimezone);
 
   let scheduleUpdate: {
     next_review_at: string;
@@ -149,9 +159,9 @@ export async function updateReviewSchedule(
 
   if (isReviewedToday) {
     // Same-day review: preserve SM-2 state, only refresh next_review_at
-    const nextReviewAt = new Date();
-    nextReviewAt.setDate(
-      nextReviewAt.getDate() + (existing.interval_days ?? DEFAULT_INTERVAL)
+    const nextReviewAt = getLocalMidnightAfterDays(
+      existing.interval_days ?? DEFAULT_INTERVAL,
+      userTimezone
     );
     scheduleUpdate = {
       next_review_at: nextReviewAt.toISOString(),
@@ -166,12 +176,15 @@ export async function updateReviewSchedule(
     const currentEF = existing?.ease_factor ?? DEFAULT_EASE_FACTOR;
     const currentInterval = existing?.interval_days ?? DEFAULT_INTERVAL;
 
-    const result = calculateNextReview({
-      repetitionNumber: currentRep,
-      easeFactor: currentEF,
-      intervalDays: currentInterval,
-      quality,
-    });
+    const result = calculateNextReview(
+      {
+        repetitionNumber: currentRep,
+        easeFactor: currentEF,
+        intervalDays: currentInterval,
+        quality,
+      },
+      userTimezone
+    );
 
     scheduleUpdate = {
       next_review_at: result.nextReviewAt.toISOString(),
@@ -181,22 +194,18 @@ export async function updateReviewSchedule(
     };
   }
 
-  const { error: upsertError } = await supabase
-    .from('review_schedule')
-    .upsert(
-      {
-        user_id: userId,
-        problem_id: problemId,
-        ...scheduleUpdate,
-        last_reviewed_at: nowISO,
-        updated_at: nowISO,
-      },
-      { onConflict: 'user_id,problem_id' }
-    );
+  const { error: upsertError } = await supabase.from('review_schedule').upsert(
+    {
+      user_id: userId,
+      problem_id: problemId,
+      ...scheduleUpdate,
+      last_reviewed_at: nowISO,
+      updated_at: nowISO,
+    },
+    { onConflict: 'user_id,problem_id' }
+  );
 
   if (upsertError) {
-    throw new Error(
-      `Failed to upsert review schedule: ${upsertError.message}`
-    );
+    throw new Error(`Failed to upsert review schedule: ${upsertError.message}`);
   }
 }

@@ -6,13 +6,15 @@ import {
   createApiSuccessResponse,
 } from '@/lib/common-utils';
 import { getQuotaUsage } from '@/lib/usage-quota';
+import { getUserTimezone } from '@/lib/timezone-utils';
 
 async function getQuota() {
   const { user } = await requireUser();
   if (!user) return unauthorised();
 
   try {
-    const quota = await getQuotaUsage(user.id);
+    const userTimezone = await getUserTimezone(user.id);
+    const quota = await getQuotaUsage(user.id, undefined, userTimezone);
 
     return NextResponse.json(
       createApiSuccessResponse({

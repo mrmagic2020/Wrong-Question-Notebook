@@ -107,7 +107,10 @@ export default function StatisticsPageClient({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Heatmap defines the row height */}
         <div className="lg:col-span-7">
-          <ActivityHeatmap data={data.activityHeatmap} />
+          <ActivityHeatmap
+            data={data.activityHeatmap}
+            timezone={data.timezone}
+          />
         </div>
         {/* Activity feed is positioned absolutely so it doesn't stretch the row */}
         <div className="lg:col-span-5 relative">

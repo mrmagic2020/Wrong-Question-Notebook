@@ -13,6 +13,7 @@ import {
   revalidateProblemAndSubject,
   revalidateUserReviewSchedule,
 } from '@/lib/cache-invalidation';
+import { getUserTimezone } from '@/lib/timezone-utils';
 
 export async function PATCH(
   req: Request,
@@ -110,11 +111,13 @@ export async function PATCH(
 
         try {
           const serviceClient = createServiceClient();
+          const userTimezone = await getUserTimezone(user.id);
           await updateReviewSchedule(
             serviceClient,
             user.id,
             data.problem_id,
-            parsed.data.selected_status
+            parsed.data.selected_status,
+            userTimezone
           );
           await revalidateUserReviewSchedule(user.id);
         } catch (e) {

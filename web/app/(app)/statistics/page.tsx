@@ -7,6 +7,7 @@ import {
   CACHE_TAGS,
   createUserCacheTag,
 } from '@/lib/cache-config';
+import { getUserTimezone } from '@/lib/timezone-utils';
 import type {
   StatisticsData,
   StatisticsOverview,
@@ -42,6 +43,7 @@ const emptyData: StatisticsData = {
   weeklyProgress: [],
   activityHeatmap: [],
   recentActivity: [],
+  timezone: 'UTC',
 };
 
 async function loadStatistics() {
@@ -53,8 +55,10 @@ async function loadStatistics() {
     return emptyData;
   }
 
+  const userTz = await getUserTimezone(userId);
+
   const cachedLoad = unstable_cache(
-    async (uid: string, client: any): Promise<StatisticsData> => {
+    async (uid: string, tz: string, client: any): Promise<StatisticsData> => {
       const [
         overviewRes,
         streaksRes,
@@ -65,11 +69,11 @@ async function loadStatistics() {
         recentRes,
       ] = await Promise.all([
         client.rpc('get_user_statistics', { p_user_id: uid }),
-        client.rpc('get_study_streaks', { p_user_id: uid }),
+        client.rpc('get_study_streaks', { p_user_id: uid, p_user_tz: tz }),
         client.rpc('get_session_statistics', { p_user_id: uid }),
         client.rpc('get_subject_breakdown', { p_user_id: uid }),
-        client.rpc('get_weekly_progress', { p_user_id: uid }),
-        client.rpc('get_activity_heatmap', { p_user_id: uid }),
+        client.rpc('get_weekly_progress', { p_user_id: uid, p_user_tz: tz }),
+        client.rpc('get_activity_heatmap', { p_user_id: uid, p_user_tz: tz }),
         client.rpc('get_recent_study_activity', { p_user_id: uid }),
       ]);
 
@@ -111,9 +115,10 @@ async function loadStatistics() {
         recentActivity: recentRes.error
           ? []
           : ((recentRes.data as RecentStudyActivity[]) ?? []),
+        timezone: tz,
       };
     },
-    [`statistics-${userId}`],
+    [`statistics-${userId}-${userTz}`],
     {
       tags: [
         CACHE_TAGS.USER_STATISTICS,
@@ -123,7 +128,7 @@ async function loadStatistics() {
     }
   );
 
-  return await cachedLoad(userId, supabase);
+  return await cachedLoad(userId, userTz, supabase);
 }
 
 export default async function StatisticsPage() {

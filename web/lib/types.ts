@@ -531,4 +531,5 @@ export interface StatisticsData {
   weeklyProgress: WeeklyProgressPoint[];
   activityHeatmap: ActivityDay[];
   recentActivity: RecentStudyActivity[];
+  timezone: string;
 }

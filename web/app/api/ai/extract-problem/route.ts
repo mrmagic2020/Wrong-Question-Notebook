@@ -10,6 +10,7 @@ import {
 } from '@/lib/common-utils';
 import { AI_CONSTANTS } from '@/lib/constants';
 import { checkAndIncrementQuota } from '@/lib/usage-quota';
+import { getUserTimezone } from '@/lib/timezone-utils';
 
 const RequestSchema = z.object({
   image: z.string().min(1),
@@ -167,7 +168,8 @@ async function extractProblem(req: Request) {
   }
 
   // Check daily quota only after all validation passes (RPC handles per-user overrides)
-  const quota = await checkAndIncrementQuota(user.id);
+  const userTimezone = await getUserTimezone(user.id);
+  const quota = await checkAndIncrementQuota(user.id, undefined, userTimezone);
 
   if (!quota.allowed) {
     return NextResponse.json(

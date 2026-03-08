@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { mapStatusToQuality, calculateNextReview } from '../spaced-repetition';
 
 describe('mapStatusToQuality', () => {
@@ -139,6 +139,50 @@ describe('calculateNextReview', () => {
       expect(result.nextReviewAt.getTime()).toBeGreaterThanOrEqual(
         before.getTime()
       );
+    });
+
+    it('sets nextReviewAt to local midnight in user timezone', () => {
+      vi.useFakeTimers();
+      // 2026-03-08 15:00 UTC
+      vi.setSystemTime(new Date('2026-03-08T15:00:00Z'));
+
+      const result = calculateNextReview(
+        {
+          repetitionNumber: 0,
+          easeFactor: 2.5,
+          intervalDays: 1,
+          quality: 4,
+        },
+        'America/New_York'
+      );
+
+      // interval=1 day, today in ET is Mar 8 (15:00 UTC = 11:00 EDT)
+      // DST spring forward is Mar 8, 2026, so Mar 9 is EDT (UTC-4)
+      // next review: Mar 9 00:00 EDT = Mar 9 04:00 UTC
+      expect(result.nextReviewAt.toISOString()).toBe(
+        '2026-03-09T04:00:00.000Z'
+      );
+
+      vi.useRealTimers();
+    });
+
+    it('sets nextReviewAt to UTC midnight when no timezone given', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-03-08T15:00:00Z'));
+
+      const result = calculateNextReview({
+        repetitionNumber: 0,
+        easeFactor: 2.5,
+        intervalDays: 1,
+        quality: 4,
+      });
+
+      // Default timezone is UTC, so midnight UTC on Mar 9
+      expect(result.nextReviewAt.toISOString()).toBe(
+        '2026-03-09T00:00:00.000Z'
+      );
+
+      vi.useRealTimers();
     });
 
     it('boundary: quality exactly 3 counts as correct', () => {

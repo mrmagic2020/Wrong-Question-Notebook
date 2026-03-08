@@ -1,5 +1,6 @@
 import { createServiceClient } from './supabase-utils';
 import { USAGE_QUOTA_CONSTANTS } from './constants';
+import { getTodayInTimezone, DEFAULT_TIMEZONE } from './timezone-utils';
 
 export interface QuotaCheckResult {
   allowed: boolean;
@@ -41,7 +42,8 @@ export async function getUserQuotaLimit(
  */
 export async function checkAndIncrementQuota(
   userId: string,
-  resourceType: string = USAGE_QUOTA_CONSTANTS.RESOURCE_TYPES.AI_EXTRACTION
+  resourceType: string = USAGE_QUOTA_CONSTANTS.RESOURCE_TYPES.AI_EXTRACTION,
+  userTimezone: string = DEFAULT_TIMEZONE
 ): Promise<QuotaCheckResult> {
   const supabase = createServiceClient();
 
@@ -49,6 +51,7 @@ export async function checkAndIncrementQuota(
     p_user_id: userId,
     p_resource_type: resourceType,
     p_default_limit: USAGE_QUOTA_CONSTANTS.DEFAULTS.AI_EXTRACTION_DAILY_LIMIT,
+    p_user_tz: userTimezone,
   });
 
   if (error) {
@@ -65,7 +68,8 @@ export async function checkAndIncrementQuota(
  */
 export async function getQuotaUsage(
   userId: string,
-  resourceType: string = USAGE_QUOTA_CONSTANTS.RESOURCE_TYPES.AI_EXTRACTION
+  resourceType: string = USAGE_QUOTA_CONSTANTS.RESOURCE_TYPES.AI_EXTRACTION,
+  userTimezone: string = DEFAULT_TIMEZONE
 ): Promise<QuotaCheckResult> {
   const supabase = createServiceClient();
 
@@ -75,7 +79,7 @@ export async function getQuotaUsage(
       .select('usage_count')
       .eq('user_id', userId)
       .eq('resource_type', resourceType)
-      .eq('period_start', new Date().toISOString().split('T')[0])
+      .eq('period_start', getTodayInTimezone(userTimezone))
       .maybeSingle(),
     getUserQuotaLimit(userId, resourceType),
   ]);

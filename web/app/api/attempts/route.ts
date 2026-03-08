@@ -15,6 +15,7 @@ import {
 } from '@/lib/cache-invalidation';
 import { updateReviewSchedule } from '@/lib/spaced-repetition';
 import { createServiceClient } from '@/lib/supabase-utils';
+import { getUserTimezone } from '@/lib/timezone-utils';
 
 async function getAttempts(req: Request) {
   const { user, supabase } = await requireUser();
@@ -157,22 +158,26 @@ async function createAttempt(req: Request) {
     try {
       if (parsed.data.selected_status) {
         const serviceClient = createServiceClient();
+        const userTimezone = await getUserTimezone(user.id);
         await updateReviewSchedule(
           serviceClient,
           user.id,
           parsed.data.problem_id,
-          parsed.data.selected_status
+          parsed.data.selected_status,
+          userTimezone
         );
         await revalidateUserReviewSchedule(user.id);
       } else if (data.is_correct !== null) {
         // Fallback for callers that don't provide selected_status
         const defaultStatus = data.is_correct ? 'mastered' : 'wrong';
         const serviceClient = createServiceClient();
+        const userTimezone = await getUserTimezone(user.id);
         await updateReviewSchedule(
           serviceClient,
           user.id,
           parsed.data.problem_id,
-          defaultStatus
+          defaultStatus,
+          userTimezone
         );
         await revalidateUserReviewSchedule(user.id);
       }
