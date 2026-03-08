@@ -1291,6 +1291,27 @@ html body[data-scroll-locked] {
   }
 }
 
+/* Review due button — SVG border trace on card hover */
+.review-due-btn {
+  position: relative;
+}
+
+.review-due-trace {
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+
+.group\/card:hover .review-due-trace {
+  opacity: 1;
+  animation: reviewBorderTrace 1s cubic-bezier(0, 0, 0.1, 1) forwards;
+}
+
+@keyframes reviewBorderTrace {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 /* Onboarding spotlight pulse */
 @keyframes onboardingPulse {
   0%,

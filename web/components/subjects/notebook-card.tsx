@@ -87,7 +87,7 @@ export function NotebookCard({
   return (
     <Card
       className={cn(
-        'cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-200',
+        'group/card cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-200',
         'rounded-2xl border bg-gradient-to-br',
         colorClasses.light,
         colorClasses.dark,
