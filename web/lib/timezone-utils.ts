@@ -89,17 +89,19 @@ export function toMidnightUTC(dateStr: string, tz: string): Date {
   // Iteratively find the UTC instant whose local representation is midnight
   let estimateMs = Date.UTC(y, m - 1, d, 0, 0, 0);
 
+  const fmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: safeTz,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+
   for (let i = 0; i < 3; i++) {
-    const parts = new Intl.DateTimeFormat('en-CA', {
-      timeZone: safeTz,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-    }).formatToParts(new Date(estimateMs));
+    const parts = fmt.formatToParts(new Date(estimateMs));
 
     const lY = parseInt(parts.find(p => p.type === 'year')!.value);
     const lM = parseInt(parts.find(p => p.type === 'month')!.value);
