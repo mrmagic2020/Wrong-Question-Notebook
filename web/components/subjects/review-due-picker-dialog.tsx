@@ -204,8 +204,7 @@ export function ReviewDuePickerDialog({
                 </>
               ) : (
                 <>
-                  Start Review (
-                  {Math.min(selectedSize ?? dueCount, maxSize)})
+                  Start Review ({Math.min(selectedSize ?? dueCount, maxSize)})
                 </>
               )}
             </Button>

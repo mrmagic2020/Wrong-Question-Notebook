@@ -160,9 +160,12 @@ async function createAttempt(req: Request) {
 
     // Update spaced repetition schedule
     try {
-      const srStatus = parsed.data.selected_status
-        ?? (data.is_correct !== null
-          ? (data.is_correct ? 'mastered' : 'wrong')
+      const srStatus =
+        parsed.data.selected_status ??
+        (data.is_correct !== null
+          ? data.is_correct
+            ? 'mastered'
+            : 'wrong'
           : null);
 
       if (srStatus) {

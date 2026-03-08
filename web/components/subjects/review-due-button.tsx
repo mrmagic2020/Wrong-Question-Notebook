@@ -17,9 +17,7 @@ export function ReviewDueButton({
   onClick,
 }: ReviewDueButtonProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const [svgDims, setSvgDims] = useState<{ w: number; h: number } | null>(
-    null
-  );
+  const [svgDims, setSvgDims] = useState<{ w: number; h: number } | null>(null);
 
   const safeColor =
     color && color in SUBJECT_CONSTANTS.COLOR_GRADIENTS

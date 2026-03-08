@@ -218,7 +218,11 @@ export default function ProblemReview({
   const handleFormSaved = (
     status: ProblemStatus,
     attemptId: string,
-    details?: { cause?: string | null; reflectionNotes?: string | null; submittedResponse?: string | null }
+    details?: {
+      cause?: string | null;
+      reflectionNotes?: string | null;
+      submittedResponse?: string | null;
+    }
   ) => {
     setTimelineRefreshKey(k => k + 1);
     onFormSaved?.(status);

@@ -142,9 +142,7 @@ export async function updateReviewSchedule(
     .maybeSingle();
 
   if (lookupError) {
-    throw new Error(
-      `Failed to read review schedule: ${lookupError.message}`
-    );
+    throw new Error(`Failed to read review schedule: ${lookupError.message}`);
   }
 
   const now = new Date();
