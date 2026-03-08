@@ -40,6 +40,7 @@ export const CACHE_TAGS = {
   ADMIN_USERS: 'admin-users',
   ADMIN_ACTIVITY: 'admin-activity',
 
+  STATISTICS: 'statistics',
   REVIEW_SCHEDULE: 'review-schedule',
 
   // User-specific tags (will be combined with user ID)

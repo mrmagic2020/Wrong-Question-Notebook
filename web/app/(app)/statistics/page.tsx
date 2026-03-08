@@ -121,7 +121,7 @@ async function loadStatistics() {
     [`statistics-${userId}-${userTz}`],
     {
       tags: [
-        CACHE_TAGS.USER_STATISTICS,
+        CACHE_TAGS.STATISTICS,
         createUserCacheTag(CACHE_TAGS.USER_STATISTICS, userId),
       ],
       revalidate: CACHE_DURATIONS.STATISTICS,

@@ -201,5 +201,5 @@ export async function revalidateUserReviewSchedule(
 export async function revalidateUserStatistics(userId: string): Promise<void> {
   const userStatsTag = createUserCacheTag(CACHE_TAGS.USER_STATISTICS, userId);
   await revalidateTag(userStatsTag, 'max');
-  await revalidateTag(CACHE_TAGS.USER_STATISTICS, 'max');
+  await revalidateTag(CACHE_TAGS.STATISTICS, 'max');
 }
