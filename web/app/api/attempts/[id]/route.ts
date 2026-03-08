@@ -9,7 +9,10 @@ import {
 import { ERROR_MESSAGES } from '@/lib/constants';
 import { updateReviewSchedule } from '@/lib/spaced-repetition';
 import { createServiceClient } from '@/lib/supabase-utils';
-import { revalidateProblemAndSubject } from '@/lib/cache-invalidation';
+import {
+  revalidateProblemAndSubject,
+  revalidateUserReviewSchedule,
+} from '@/lib/cache-invalidation';
 
 export async function PATCH(
   req: Request,
@@ -113,6 +116,7 @@ export async function PATCH(
             data.problem_id,
             parsed.data.selected_status
           );
+          await revalidateUserReviewSchedule(user.id);
         } catch (e) {
           console.error('Failed to update review schedule:', e);
         }

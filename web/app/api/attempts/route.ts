@@ -9,7 +9,10 @@ import {
   handleAsyncError,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
-import { revalidateProblemAndSubject } from '@/lib/cache-invalidation';
+import {
+  revalidateProblemAndSubject,
+  revalidateUserReviewSchedule,
+} from '@/lib/cache-invalidation';
 import { updateReviewSchedule } from '@/lib/spaced-repetition';
 import { createServiceClient } from '@/lib/supabase-utils';
 
@@ -160,6 +163,7 @@ async function createAttempt(req: Request) {
           parsed.data.problem_id,
           parsed.data.selected_status
         );
+        await revalidateUserReviewSchedule(user.id);
       } else if (data.is_correct !== null) {
         // Fallback for callers that don't provide selected_status
         const defaultStatus = data.is_correct ? 'mastered' : 'wrong';
@@ -170,6 +174,7 @@ async function createAttempt(req: Request) {
           parsed.data.problem_id,
           defaultStatus
         );
+        await revalidateUserReviewSchedule(user.id);
       }
     } catch (e) {
       console.error('Failed to update review schedule:', e);
