@@ -332,13 +332,40 @@ async function copyProblemSet(
     }
 
     // Link copied problems to the new set
-    const linkInserts = copiedProblems.map((p: any) => ({
+    const copiedProblemIds = copiedProblems.map(p => p.id);
+    const linkInserts = copiedProblemIds.map(id => ({
       problem_set_id: newProblemSet.id,
-      problem_id: p.id,
+      problem_id: id,
       user_id: user.id,
     }));
 
-    await supabase.from('problem_set_problems').insert(linkInserts);
+    const { error: linkError } = await supabase
+      .from('problem_set_problems')
+      .insert(linkInserts);
+
+    if (linkError) {
+      console.error('Failed to link problems to copied set:', linkError);
+      // Clean up: delete the empty set and orphaned copied problems
+      await supabase
+        .from('problem_sets')
+        .delete()
+        .eq('id', newProblemSet.id)
+        .eq('user_id', user.id);
+      await supabase
+        .from('problems')
+        .delete()
+        .in('id', copiedProblemIds)
+        .eq('user_id', user.id);
+
+      return NextResponse.json(
+        createApiErrorResponse(
+          'Failed to link problems to copied set',
+          500,
+          linkError.message
+        ),
+        { status: 500 }
+      );
+    }
 
     // Invalidate cache
     await revalidateUserProblemSets(user.id);
