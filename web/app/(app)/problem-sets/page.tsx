@@ -9,11 +9,19 @@ import {
   createUserCacheTag,
 } from '@/lib/cache-config';
 import {
+  ProblemSet,
   ProblemSetWithDetails,
   ProblemSetShare,
   FilterConfig,
 } from '@/lib/types';
 import { getFilteredProblemsCount } from '@/lib/review-utils';
+
+/** Shape returned by the joined Supabase select on problem_sets. */
+type ProblemSetRow = ProblemSet & {
+  subjects: { name: string } | null;
+  problem_set_problems: { count: number }[];
+  problem_set_shares: ProblemSetShare[];
+};
 
 export const metadata: Metadata = {
   title: 'All Problem Sets – Wrong Question Notebook',
@@ -51,20 +59,22 @@ async function loadProblemSets() {
         return { data: [] as ProblemSetWithDetails[] };
       }
 
+      const rows: ProblemSetRow[] = problemSets || [];
+
       // Batch-fetch counts for smart sets in parallel
-      const smartSets = (problemSets || []).filter(
-        (ps: any) => ps.is_smart && ps.filter_config
+      const smartSets = rows.filter(
+        (ps) => ps.is_smart && ps.filter_config
       );
       const smartCounts = await Promise.all(
-        smartSets.map((ps: any) => {
+        smartSets.map((ps) => {
           const filterConfig: FilterConfig = {
-            tag_ids: ps.filter_config.tag_ids ?? [],
-            statuses: ps.filter_config.statuses ?? [],
-            problem_types: ps.filter_config.problem_types ?? [],
+            tag_ids: ps.filter_config?.tag_ids ?? [],
+            statuses: ps.filter_config?.statuses ?? [],
+            problem_types: ps.filter_config?.problem_types ?? [],
             days_since_review:
-              ps.filter_config.days_since_review ?? null,
+              ps.filter_config?.days_since_review ?? null,
             include_never_reviewed:
-              ps.filter_config.include_never_reviewed ?? true,
+              ps.filter_config?.include_never_reviewed ?? true,
           };
           return getFilteredProblemsCount(
             supabaseClient,
@@ -75,24 +85,26 @@ async function loadProblemSets() {
         })
       );
       const smartCountMap = new Map(
-        smartSets.map((ps: any, i: number) => [ps.id, smartCounts[i]])
+        smartSets.map((ps, i) => [ps.id, smartCounts[i]])
       );
 
-      const problemSetsWithData = (problemSets || []).map((ps: any) => {
-        const shared_with_emails =
-          ps.problem_set_shares?.map(
-            (share: ProblemSetShare) => share.shared_with_email
-          ) || [];
+      const problemSetsWithData: ProblemSetWithDetails[] = rows.map(
+        (ps) => {
+          const shared_with_emails =
+            ps.problem_set_shares?.map(
+              (share) => share.shared_with_email
+            ) || [];
 
-        return {
-          ...ps,
-          problem_count: ps.is_smart
-            ? smartCountMap.get(ps.id) || 0
-            : ps.problem_set_problems?.[0]?.count || 0,
-          subject_name: ps.subjects?.name || 'Unknown',
-          shared_with_emails,
-        } as ProblemSetWithDetails;
-      });
+          return {
+            ...ps,
+            problem_count: ps.is_smart
+              ? smartCountMap.get(ps.id) || 0
+              : ps.problem_set_problems?.[0]?.count || 0,
+            subject_name: ps.subjects?.name || 'Unknown',
+            shared_with_emails,
+          };
+        }
+      );
 
       return { data: problemSetsWithData };
     },
