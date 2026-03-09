@@ -125,7 +125,13 @@ async function getProblems(req: Request) {
 
   // Apply text search
   if (searchText && searchText.trim()) {
-    const searchTerm = `%${searchText.trim()}%`;
+    // Wrap in double quotes so PostgREST treats the value literally —
+    // without this, commas/parens in the search text break .or() parsing.
+    const escaped = searchText
+      .trim()
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"');
+    const searchTerm = `"%${escaped}%"`;
     const searchConditions = [];
 
     if (searchTitle) {

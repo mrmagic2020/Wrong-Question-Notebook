@@ -33,6 +33,8 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { useCallback, useEffect, useRef } from 'react';
+import { useLatestRef } from '@/lib/hooks/use-latest-ref';
+import { Kbd } from '@/components/ui/kbd';
 import { SearchFilters, SimpleTag } from '@/lib/types';
 
 interface CompactSearchFilterProps {
@@ -86,38 +88,74 @@ export default function CompactSearchFilter({
   hideStatusFilter = false,
 }: CompactSearchFilterProps) {
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleSearch = useCallback(
-    (customFilters?: Partial<SearchFilters>) => {
-      const filters: SearchFilters = {
-        searchText: customFilters?.searchText ?? searchText,
-        problemTypes: (customFilters?.problemTypes ??
-          problemTypes) as ProblemType[],
-        tagIds: customFilters?.tagIds ?? tagIds,
-        statuses: customFilters?.statuses ?? statuses,
-      };
-      onSearch(filters);
+  // Keep refs to latest values so debounced callbacks never go stale
+  const searchTextRef = useLatestRef(searchText);
+  const filtersRef = useLatestRef({ problemTypes, tagIds, statuses });
+  const onSearchRef = useLatestRef(onSearch);
+
+  // Stable search trigger — always reads from refs
+  const triggerSearch = useCallback(
+    (overrides?: Partial<SearchFilters>) => {
+      const current = filtersRef.current;
+      onSearchRef.current({
+        searchText: overrides?.searchText ?? searchTextRef.current,
+        problemTypes: (overrides?.problemTypes ??
+          current.problemTypes) as ProblemType[],
+        tagIds: overrides?.tagIds ?? current.tagIds,
+        statuses: overrides?.statuses ?? current.statuses,
+      });
     },
-    [onSearch, searchText, problemTypes, tagIds, statuses]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
   );
 
-  // Debounced search for text input
-  const debouncedSearch = useCallback(() => {
+  const cancelDebounce = useCallback(() => {
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
+      debounceTimeoutRef.current = undefined;
     }
+  }, []);
+
+  // Stable debounced search — always fires with latest values
+  const debouncedSearch = useCallback(() => {
+    cancelDebounce();
     debounceTimeoutRef.current = setTimeout(() => {
-      handleSearch();
-    }, 300);
-  }, [handleSearch]);
+      triggerSearch();
+    }, 500);
+  }, [triggerSearch, cancelDebounce]);
 
   // Cleanup timeout on unmount
+  useEffect(() => cancelDebounce, [cancelDebounce]);
+
+  // Refocus search bar after search completes
+  const prevIsSearchingRef = useRef(isSearching);
   useEffect(() => {
-    return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
+    if (prevIsSearchingRef.current && !isSearching) {
+      inputRef.current?.focus();
+    }
+    prevIsSearchingRef.current = isSearching;
+  }, [isSearching]);
+
+  // "/" hotkey to focus search bar
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === '/' &&
+        !e.metaKey &&
+        !e.ctrlKey &&
+        !e.altKey &&
+        !(e.target instanceof HTMLInputElement) &&
+        !(e.target instanceof HTMLTextAreaElement) &&
+        !(e.target as HTMLElement)?.isContentEditable
+      ) {
+        e.preventDefault();
+        inputRef.current?.focus();
       }
     };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   const clearFilters = () => {
@@ -125,9 +163,7 @@ export default function CompactSearchFilter({
     onProblemTypesChange([]);
     onTagIdsChange([]);
     onStatusesChange([]);
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
+    cancelDebounce();
     onSearch({
       searchText: '',
       problemTypes: [],
@@ -190,7 +226,8 @@ export default function CompactSearchFilter({
         onSelectedValuesChange={values => {
           const newTypes = Array.from(values) as ProblemType[];
           onProblemTypesChange(newTypes);
-          onSearch({ searchText, problemTypes: newTypes, tagIds, statuses });
+          cancelDebounce();
+          triggerSearch({ problemTypes: newTypes });
         }}
       />
       <DataTableFacetedFilter
@@ -200,12 +237,8 @@ export default function CompactSearchFilter({
         onSelectedValuesChange={values => {
           const newTagIds = Array.from(values);
           onTagIdsChange(newTagIds);
-          onSearch({
-            searchText,
-            problemTypes,
-            tagIds: newTagIds,
-            statuses,
-          });
+          cancelDebounce();
+          triggerSearch({ tagIds: newTagIds });
         }}
       />
       {!hideStatusFilter && (
@@ -216,12 +249,8 @@ export default function CompactSearchFilter({
           onSelectedValuesChange={values => {
             const newStatuses = Array.from(values) as ProblemStatus[];
             onStatusesChange(newStatuses);
-            onSearch({
-              searchText,
-              problemTypes,
-              tagIds,
-              statuses: newStatuses,
-            });
+            cancelDebounce();
+            triggerSearch({ statuses: newStatuses });
           }}
         />
       )}
@@ -238,6 +267,7 @@ export default function CompactSearchFilter({
           <div className="relative w-full md:w-80">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
+              ref={inputRef}
               placeholder="Search problems..."
               value={searchText}
               onChange={e => {
@@ -245,26 +275,25 @@ export default function CompactSearchFilter({
                 onSearchTextChange(newValue);
 
                 if (newValue === '') {
-                  if (debounceTimeoutRef.current) {
-                    clearTimeout(debounceTimeoutRef.current);
-                  }
-                  handleSearch({
-                    searchText: '',
-                    problemTypes: problemTypes as ProblemType[],
-                    tagIds,
-                    statuses,
-                  });
+                  cancelDebounce();
+                  triggerSearch({ searchText: '' });
                 } else {
                   debouncedSearch();
                 }
               }}
-              className="pl-10"
+              className="pl-10 pr-10"
               disabled={isSearching}
             />
-            {isSearching && (
+            {isSearching ? (
               <div className="absolute right-3 top-2.5">
                 <div className="w-4 h-4 border border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
               </div>
+            ) : (
+              !searchText && (
+                <div className="absolute right-3 inset-y-0 my-auto hidden md:flex items-center">
+                  <Kbd>/</Kbd>
+                </div>
+              )
             )}
           </div>
 

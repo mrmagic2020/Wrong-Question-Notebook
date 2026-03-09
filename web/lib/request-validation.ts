@@ -195,12 +195,15 @@ const validationHelpers = {
   // Check if a value looks like an attempt to break out of context
   looksLikeInjection: (value: string): boolean => {
     // Check for common injection patterns
+    // Note: broad character classes like [;&|`$()] are intentionally omitted
+    // because they cause false positives on legitimate search queries
+    // (e.g. "f(x)", "$5", "a & b"). The specific commandInjection patterns
+    // already detect actual threats like "; rm", "| cat", etc.
     const injectionPatterns = [
       /['"]\s*(or|and)\s*['"]?\s*=\s*['"]?/i, // SQL injection
       /<script/i, // XSS
       /javascript:/i, // XSS
       /\.\.\//, // Path traversal
-      /[;&|`$()]/, // Command injection
     ];
     return injectionPatterns.some(pattern => pattern.test(value));
   },
@@ -293,6 +296,11 @@ function isMaliciousQueryValue(key: string, value: string): boolean {
   return false;
 }
 
+// Parameters that carry user-generated search content. These are used in
+// parameterized database queries (via PostgREST) and are inherently safe
+// from injection, so content-based pattern matching only causes false positives.
+const USER_CONTENT_PARAMS = new Set(['search_text']);
+
 // Helper function to parse and validate query parameters (blacklist approach)
 function validateQueryParameters(searchParams: URLSearchParams): {
   isValid: boolean;
@@ -303,6 +311,9 @@ function validateQueryParameters(searchParams: URLSearchParams): {
   for (const [key, value] of searchParams.entries()) {
     // Skip empty values
     if (!value) continue;
+
+    // Skip user-generated search content — validated at the application layer
+    if (USER_CONTENT_PARAMS.has(key)) continue;
 
     // Check if the parameter value is malicious
     if (isMaliciousQueryValue(key, value)) {
