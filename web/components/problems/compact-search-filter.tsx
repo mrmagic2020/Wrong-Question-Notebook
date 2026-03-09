@@ -129,11 +129,15 @@ export default function CompactSearchFilter({
   // Cleanup timeout on unmount
   useEffect(() => cancelDebounce, [cancelDebounce]);
 
-  // Refocus search bar after search completes
+  // Only refocus after search if the input was focused when the search started
+  const searchFromInputRef = useRef(false);
   const prevIsSearchingRef = useRef(isSearching);
   useEffect(() => {
     if (prevIsSearchingRef.current && !isSearching) {
-      inputRef.current?.focus();
+      if (searchFromInputRef.current) {
+        inputRef.current?.focus();
+      }
+      searchFromInputRef.current = false;
     }
     prevIsSearchingRef.current = isSearching;
   }, [isSearching]);
@@ -273,6 +277,7 @@ export default function CompactSearchFilter({
               onChange={e => {
                 const newValue = e.target.value;
                 onSearchTextChange(newValue);
+                searchFromInputRef.current = true;
 
                 if (newValue === '') {
                   cancelDebounce();
