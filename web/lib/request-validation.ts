@@ -296,9 +296,12 @@ function isMaliciousQueryValue(key: string, value: string): boolean {
   return false;
 }
 
-// Parameters that carry user-generated search content. These are used in
-// parameterized database queries (via PostgREST) and are inherently safe
-// from injection, so content-based pattern matching only causes false positives.
+// Parameters that carry user-generated search content. These are passed on to
+// parameterized database queries via PostgREST and are intended to be safe from
+// SQL injection when they are properly escaped/quoted for PostgREST filter syntax
+// and validated in the relevant API route / application layer. Because of this,
+// content-based pattern matching here is likely to produce false positives, so
+// these parameters are excluded from query-value inspection in this module.
 const USER_CONTENT_PARAMS = new Set(['search_text']);
 
 // Helper function to parse and validate query parameters (blacklist approach)
