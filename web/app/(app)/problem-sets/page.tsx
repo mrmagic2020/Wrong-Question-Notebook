@@ -10,7 +10,6 @@ import {
 } from '@/lib/cache-config';
 import {
   ProblemSetWithDetails,
-  ProblemSet,
   ProblemSetShare,
   FilterConfig,
 } from '@/lib/types';
@@ -32,18 +31,17 @@ async function loadProblemSets() {
 
   const cachedLoadProblemSets = unstable_cache(
     async (userId: string, supabaseClient: any) => {
-      // Get only problem sets owned by the current user
+      // Fetch problem sets with subject name and manual-set count in one query
       const { data: problemSets, error: problemSetsError } =
         await supabaseClient
           .from('problem_sets')
           .select(
             `
-          *,
-          problem_set_shares(
-            id,
-            shared_with_email
-          )
-        `
+            *,
+            subjects(name),
+            problem_set_problems(count),
+            problem_set_shares(id, shared_with_email)
+          `
           )
           .eq('user_id', userId)
           .order('created_at', { ascending: false });
@@ -53,56 +51,48 @@ async function loadProblemSets() {
         return { data: [] as ProblemSetWithDetails[] };
       }
 
-      // Get subject names and problem counts separately
-      const problemSetsWithData = await Promise.all(
-        (problemSets || []).map(async (problemSet: ProblemSet) => {
-          // Get subject name
-          const { data: subject } = await supabaseClient
-            .from('subjects')
-            .select('name')
-            .eq('id', problemSet.subject_id)
-            .single();
-
-          // Get problem count (smart sets use filter criteria, not junction table)
-          let problemCount: number | null = 0;
-          if (problemSet.is_smart && problemSet.filter_config) {
-            const filterConfig: FilterConfig = {
-              tag_ids: problemSet.filter_config.tag_ids ?? [],
-              statuses: problemSet.filter_config.statuses ?? [],
-              problem_types: problemSet.filter_config.problem_types ?? [],
-              days_since_review:
-                problemSet.filter_config.days_since_review ?? null,
-              include_never_reviewed:
-                problemSet.filter_config.include_never_reviewed ?? true,
-            };
-            problemCount = await getFilteredProblemsCount(
-              supabaseClient,
-              userId,
-              problemSet.subject_id,
-              filterConfig
-            );
-          } else {
-            const { count } = await supabaseClient
-              .from('problem_set_problems')
-              .select('*', { count: 'exact', head: true })
-              .eq('problem_set_id', problemSet.id);
-            problemCount = count;
-          }
-
-          // Transform shared emails
-          const shared_with_emails =
-            problemSet.problem_set_shares?.map(
-              (share: ProblemSetShare) => share.shared_with_email
-            ) || [];
-
-          return {
-            ...problemSet,
-            problem_count: problemCount || 0,
-            subject_name: subject?.name || 'Unknown',
-            shared_with_emails,
-          } as ProblemSetWithDetails;
+      // Batch-fetch counts for smart sets in parallel
+      const smartSets = (problemSets || []).filter(
+        (ps: any) => ps.is_smart && ps.filter_config
+      );
+      const smartCounts = await Promise.all(
+        smartSets.map((ps: any) => {
+          const filterConfig: FilterConfig = {
+            tag_ids: ps.filter_config.tag_ids ?? [],
+            statuses: ps.filter_config.statuses ?? [],
+            problem_types: ps.filter_config.problem_types ?? [],
+            days_since_review:
+              ps.filter_config.days_since_review ?? null,
+            include_never_reviewed:
+              ps.filter_config.include_never_reviewed ?? true,
+          };
+          return getFilteredProblemsCount(
+            supabaseClient,
+            userId,
+            ps.subject_id,
+            filterConfig
+          );
         })
       );
+      const smartCountMap = new Map(
+        smartSets.map((ps: any, i: number) => [ps.id, smartCounts[i]])
+      );
+
+      const problemSetsWithData = (problemSets || []).map((ps: any) => {
+        const shared_with_emails =
+          ps.problem_set_shares?.map(
+            (share: ProblemSetShare) => share.shared_with_email
+          ) || [];
+
+        return {
+          ...ps,
+          problem_count: ps.is_smart
+            ? smartCountMap.get(ps.id) || 0
+            : ps.problem_set_problems?.[0]?.count || 0,
+          subject_name: ps.subjects?.name || 'Unknown',
+          shared_with_emails,
+        } as ProblemSetWithDetails;
+      });
 
       return { data: problemSetsWithData };
     },
