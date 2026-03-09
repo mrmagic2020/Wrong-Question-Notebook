@@ -132,7 +132,7 @@ async function getProblems(req: Request) {
       .replace(/\\/g, '\\\\')
       .replace(/"/g, '\\"');
     const searchTerm = `"%${escaped}%"`;
-    const searchConditions = [];
+    const searchConditions: string[] = [];
 
     if (searchTitle) {
       searchConditions.push(`title.ilike.${searchTerm}`);
