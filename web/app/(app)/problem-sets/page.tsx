@@ -62,17 +62,14 @@ async function loadProblemSets() {
       const rows: ProblemSetRow[] = problemSets || [];
 
       // Batch-fetch counts for smart sets in parallel
-      const smartSets = rows.filter(
-        (ps) => ps.is_smart && ps.filter_config
-      );
+      const smartSets = rows.filter(ps => ps.is_smart && ps.filter_config);
       const smartCounts = await Promise.all(
-        smartSets.map((ps) => {
+        smartSets.map(ps => {
           const filterConfig: FilterConfig = {
             tag_ids: ps.filter_config?.tag_ids ?? [],
             statuses: ps.filter_config?.statuses ?? [],
             problem_types: ps.filter_config?.problem_types ?? [],
-            days_since_review:
-              ps.filter_config?.days_since_review ?? null,
+            days_since_review: ps.filter_config?.days_since_review ?? null,
             include_never_reviewed:
               ps.filter_config?.include_never_reviewed ?? true,
           };
@@ -88,23 +85,19 @@ async function loadProblemSets() {
         smartSets.map((ps, i) => [ps.id, smartCounts[i]])
       );
 
-      const problemSetsWithData: ProblemSetWithDetails[] = rows.map(
-        (ps) => {
-          const shared_with_emails =
-            ps.problem_set_shares?.map(
-              (share) => share.shared_with_email
-            ) || [];
+      const problemSetsWithData: ProblemSetWithDetails[] = rows.map(ps => {
+        const shared_with_emails =
+          ps.problem_set_shares?.map(share => share.shared_with_email) || [];
 
-          return {
-            ...ps,
-            problem_count: ps.is_smart
-              ? smartCountMap.get(ps.id) || 0
-              : ps.problem_set_problems?.[0]?.count || 0,
-            subject_name: ps.subjects?.name || 'Unknown',
-            shared_with_emails,
-          };
-        }
-      );
+        return {
+          ...ps,
+          problem_count: ps.is_smart
+            ? smartCountMap.get(ps.id) || 0
+            : ps.problem_set_problems?.[0]?.count || 0,
+          subject_name: ps.subjects?.name || 'Unknown',
+          shared_with_emails,
+        };
+      });
 
       return { data: problemSetsWithData };
     },

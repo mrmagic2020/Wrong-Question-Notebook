@@ -155,11 +155,7 @@ export default function SmartFilterCriteriaDisplay({
               {hasTags ? (
                 <div className="flex flex-wrap gap-1.5 min-w-0 flex-1">
                   {resolvedTags.map(name => (
-                    <Badge
-                      key={name}
-                      variant="secondary"
-                      className="text-xs"
-                    >
+                    <Badge key={name} variant="secondary" className="text-xs">
                       {name}
                     </Badge>
                   ))}
