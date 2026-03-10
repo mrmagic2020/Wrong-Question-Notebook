@@ -66,8 +66,7 @@ export default function ProblemSetProblemsTable({
     problemTitle: string;
   }>({ open: false, problemId: '', problemTitle: '' });
 
-  const showCopyAction =
-    !!allowCopying && !!isAuthenticated && !isOwner;
+  const showCopyAction = !!allowCopying && !!isAuthenticated && !isOwner;
 
   // Derive available tags from loaded problems
   const availableTags: SimpleTag[] = useMemo(() => {
@@ -209,7 +208,14 @@ export default function ProblemSetProblemsTable({
       allowCopying,
       isAuthenticated,
     }),
-    [handleRemoveFromSet, problemSetId, isOwner, isSmart, allowCopying, isAuthenticated]
+    [
+      handleRemoveFromSet,
+      problemSetId,
+      isOwner,
+      isSmart,
+      allowCopying,
+      isAuthenticated,
+    ]
   );
 
   return (
@@ -295,9 +301,7 @@ export default function ProblemSetProblemsTable({
       {showCopyAction && copyDialog.problemId && (
         <CopyProblemDialog
           open={copyDialog.open}
-          onOpenChange={open =>
-            setCopyDialog(prev => ({ ...prev, open }))
-          }
+          onOpenChange={open => setCopyDialog(prev => ({ ...prev, open }))}
           problemSetId={problemSetId}
           problemId={copyDialog.problemId}
           problemTitle={copyDialog.problemTitle}
