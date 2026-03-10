@@ -186,13 +186,19 @@ export async function isFilteredProblemMember(
 ): Promise<boolean> {
   // If tag filters are set, check the problem has at least one matching tag
   if (filterConfig.tag_ids.length > 0) {
-    const { data: tagLinks } = await supabase
+    const { data: tagLinks, error: tagError } = await supabase
       .from('problem_tag')
       .select('problem_id')
       .in('tag_id', filterConfig.tag_ids)
       .eq('problem_id', problemId)
       .eq('user_id', ownerUserId)
       .limit(1);
+
+    if (tagError) {
+      throw new Error(
+        `Failed to check problem tag membership: ${tagError.message}`
+      );
+    }
 
     if (!tagLinks || tagLinks.length === 0) return false;
   }
