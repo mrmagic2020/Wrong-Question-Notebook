@@ -16,12 +16,14 @@ import { Problem, Subject, MCQAnswerConfig } from '@/lib/types';
 import { useOnboarding } from '@/components/onboarding/onboarding-provider';
 import {
   BookOpen,
+  BookPlus,
   PencilLine,
   Tag,
   ChevronLeft,
   ChevronRight,
   LogOut,
 } from 'lucide-react';
+import CopyProblemDialog from '@/components/copy-problem-dialog';
 
 interface AllProblem {
   id: string;
@@ -81,6 +83,10 @@ interface ProblemReviewProps {
   initialAttemptState?: AttemptState;
   /** Called when an attempt is recorded, so the parent can cache it */
   onAttemptRecorded?: (problemId: string, state: AttemptState) => void;
+  /** Whether copying is allowed (for shared problem sets) */
+  allowCopying?: boolean;
+  /** Problem set ID for copy-problem API (when viewing a shared set) */
+  copyProblemSetId?: string;
 }
 
 export default function ProblemReview({
@@ -99,6 +105,8 @@ export default function ProblemReview({
   sessionNav,
   initialAttemptState,
   onAttemptRecorded,
+  allowCopying,
+  copyProblemSetId,
 }: ProblemReviewProps) {
   const router = useRouter();
   const { refreshChecklistStatus } = useOnboarding();
@@ -115,6 +123,7 @@ export default function ProblemReview({
   );
   const [hasRecordedAttempt, setHasRecordedAttempt] = useState(false);
   const [timelineRefreshKey, setTimelineRefreshKey] = useState(0);
+  const [copyDialogOpen, setCopyDialogOpen] = useState(false);
 
   // Tracks the current problem so in-flight requests from a previous
   // problem are discarded when the response arrives.
@@ -531,6 +540,20 @@ export default function ProblemReview({
             </div>
           )}
 
+          {/* Add to Notebook (shared problem set viewers) */}
+          {isReadOnly && allowCopying && copyProblemSetId && (
+            <div className="review-section-amber">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setCopyDialogOpen(true)}
+              >
+                <BookPlus className="h-4 w-4 mr-2" />
+                Add to Notebook
+              </Button>
+            </div>
+          )}
+
           {/* Session Navigation or Regular Navigation */}
           {sessionNav ? (
             /* Session Navigation with ROSE gradient styling */
@@ -586,6 +609,17 @@ export default function ProblemReview({
           )}
         </div>
       </div>
+
+      {/* Copy Problem Dialog */}
+      {isReadOnly && allowCopying && copyProblemSetId && (
+        <CopyProblemDialog
+          open={copyDialogOpen}
+          onOpenChange={setCopyDialogOpen}
+          problemSetId={copyProblemSetId}
+          problemId={problem.id}
+          problemTitle={problem.title}
+        />
+      )}
     </div>
   );
 }

@@ -374,6 +374,8 @@ export default function ProblemSetPageClient({
           isOwner={!!problemSet.isOwner}
           isSmart={problemSet.is_smart}
           onProblemsRemoved={handleProblemsRemoved}
+          allowCopying={problemSet.allow_copying}
+          isAuthenticated={isAuthenticated}
         />
       )}
 

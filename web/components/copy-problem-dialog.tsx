@@ -1,0 +1,267 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { BookPlus, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { Subject } from '@/lib/types';
+
+interface CopyProblemDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  problemSetId: string;
+  problemId: string;
+  problemTitle: string;
+}
+
+export default function CopyProblemDialog({
+  open,
+  onOpenChange,
+  problemSetId,
+  problemId,
+  problemTitle,
+}: CopyProblemDialogProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [loadingSubjects, setLoadingSubjects] = useState(false);
+  const [targetSubjectId, setTargetSubjectId] = useState<string>('');
+  const [createNewSubject, setCreateNewSubject] = useState(false);
+  const [newSubjectName, setNewSubjectName] = useState('');
+  const [copyTags, setCopyTags] = useState(true);
+
+  // Fetch user's subjects when dialog opens
+  useEffect(() => {
+    if (!open) return;
+
+    const fetchSubjects = async () => {
+      setLoadingSubjects(true);
+      try {
+        const res = await fetch('/api/subjects');
+        if (res.ok) {
+          const data = await res.json();
+          setSubjects(data.data || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch subjects:', error);
+      } finally {
+        setLoadingSubjects(false);
+      }
+    };
+
+    fetchSubjects();
+  }, [open]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    let subjectId = targetSubjectId;
+
+    // Create new subject if needed
+    if (createNewSubject) {
+      if (!newSubjectName.trim()) {
+        toast.error('Please enter a subject name');
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const res = await fetch('/api/subjects', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: newSubjectName.trim() }),
+        });
+
+        if (!res.ok) {
+          throw new Error('Failed to create subject');
+        }
+
+        const data = await res.json();
+        subjectId = data.data.id;
+      } catch {
+        toast.error('Failed to create subject');
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    if (!subjectId) {
+      toast.error('Please select a target subject');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const res = await fetch(
+        `/api/problem-sets/${problemSetId}/copy-problem`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            problem_id: problemId,
+            target_subject_id: subjectId,
+            copy_tags: copyTags,
+          }),
+        }
+      );
+
+      if (!res.ok) {
+        let errorMessage = 'Failed to add problem';
+        try {
+          const error = await res.json();
+          errorMessage = error.message || errorMessage;
+        } catch {
+          errorMessage = res.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
+
+      const data = await res.json();
+      const result = data.data;
+      const subjectName =
+        subjects.find(s => s.id === subjectId)?.name ||
+        newSubjectName.trim() ||
+        'notebook';
+
+      toast.success(
+        `Added to ${subjectName}${result.tag_count > 0 ? ` with ${result.tag_count} tags` : ''}`
+      );
+      onOpenChange(false);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to add problem'
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[480px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <BookPlus className="h-5 w-5" />
+            Add to Notebook
+          </DialogTitle>
+          <DialogDescription>
+            Copy this problem to one of your notebooks.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Source info */}
+          <div className="rounded-lg border p-3 bg-muted/30 space-y-1">
+            <p className="text-sm font-medium line-clamp-2">{problemTitle}</p>
+          </div>
+
+          {/* Subject picker */}
+          <div className="space-y-2">
+            <Label>Target Subject</Label>
+            {loadingSubjects ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading subjects...
+              </div>
+            ) : (
+              <Select
+                value={createNewSubject ? '__new__' : targetSubjectId}
+                onValueChange={value => {
+                  if (value === '__new__') {
+                    setCreateNewSubject(true);
+                    setTargetSubjectId('');
+                  } else {
+                    setCreateNewSubject(false);
+                    setTargetSubjectId(value);
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a subject" />
+                </SelectTrigger>
+                <SelectContent>
+                  {subjects.map(subject => (
+                    <SelectItem key={subject.id} value={subject.id}>
+                      {subject.name}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="__new__">+ Create new subject</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+
+            {createNewSubject && (
+              <Input
+                value={newSubjectName}
+                onChange={e => setNewSubjectName(e.target.value)}
+                placeholder="Enter subject name"
+                maxLength={50}
+                autoFocus
+              />
+            )}
+          </div>
+
+          {/* Tag toggle */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="copy-problem-tags" className="text-sm">
+                Copy tags to target subject
+              </Label>
+              <Switch
+                id="copy-problem-tags"
+                checked={copyTags}
+                onCheckedChange={setCopyTags}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {copyTags
+                ? "Tags that don't exist in the target subject will be created"
+                : 'Tags will be dropped from the copied problem'}
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                <>
+                  <BookPlus className="h-4 w-4 mr-2" />
+                  Add
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}

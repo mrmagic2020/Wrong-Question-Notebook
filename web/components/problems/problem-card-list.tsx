@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { MoreHorizontal } from 'lucide-react';
+import { BookPlus, MoreHorizontal } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -40,6 +40,7 @@ interface ProblemCardListProps {
   onAddToSet: (problem: Problem) => void;
   isAddToSetMode?: boolean;
   hideStatusStrip?: boolean;
+  onCopyToNotebook?: (problem: Problem) => void;
 }
 
 export default function ProblemCardList({
@@ -53,6 +54,7 @@ export default function ProblemCardList({
   onAddToSet,
   isAddToSetMode = false,
   hideStatusStrip = false,
+  onCopyToNotebook,
 }: ProblemCardListProps) {
   const [visibleCount, setVisibleCount] = useState<number>(ITEMS_PER_PAGE);
 
@@ -177,6 +179,17 @@ export default function ProblemCardList({
                             >
                               Review problem
                             </Link>
+                          </DropdownMenuItem>
+                        )}
+                        {!isAddToSetMode && onCopyToNotebook && (
+                          <DropdownMenuItem
+                            onClick={e => {
+                              e.stopPropagation();
+                              onCopyToNotebook(problem);
+                            }}
+                          >
+                            <BookPlus className="h-4 w-4 mr-2" />
+                            Add to Notebook
                           </DropdownMenuItem>
                         )}
                         {!isAddToSetMode && (

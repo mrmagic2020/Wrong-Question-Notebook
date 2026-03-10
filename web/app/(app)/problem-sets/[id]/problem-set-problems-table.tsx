@@ -9,6 +9,7 @@ import { useIsMobile } from '@/lib/hooks/useMediaQuery';
 import { ProblemInSet, Problem, SimpleTag, SearchFilters } from '@/lib/types';
 import { ProblemType, ProblemStatus } from '@/lib/schemas';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import CopyProblemDialog from '@/components/copy-problem-dialog';
 import { toast } from 'sonner';
 import {
   ownerColumns,
@@ -22,6 +23,8 @@ interface ProblemSetProblemsTableProps {
   isOwner: boolean;
   isSmart: boolean;
   onProblemsRemoved: (problemIds: string[]) => void;
+  allowCopying?: boolean;
+  isAuthenticated?: boolean;
 }
 
 export default function ProblemSetProblemsTable({
@@ -30,6 +33,8 @@ export default function ProblemSetProblemsTable({
   isOwner,
   isSmart,
   onProblemsRemoved,
+  allowCopying,
+  isAuthenticated,
 }: ProblemSetProblemsTableProps) {
   const router = useRouter();
   const isMobile = useIsMobile();
@@ -53,6 +58,16 @@ export default function ProblemSetProblemsTable({
     problemIds: string[];
     count: number;
   }>({ open: false, problemIds: [], count: 0 });
+
+  // Mobile copy-to-notebook dialog
+  const [copyDialog, setCopyDialog] = useState<{
+    open: boolean;
+    problemId: string;
+    problemTitle: string;
+  }>({ open: false, problemId: '', problemTitle: '' });
+
+  const showCopyAction =
+    !!allowCopying && !!isAuthenticated && !isOwner;
 
   // Derive available tags from loaded problems
   const availableTags: SimpleTag[] = useMemo(() => {
@@ -191,8 +206,10 @@ export default function ProblemSetProblemsTable({
       problemSetId,
       isOwner,
       isSmart,
+      allowCopying,
+      isAuthenticated,
     }),
-    [handleRemoveFromSet, problemSetId, isOwner, isSmart]
+    [handleRemoveFromSet, problemSetId, isOwner, isSmart, allowCopying, isAuthenticated]
   );
 
   return (
@@ -235,6 +252,16 @@ export default function ProblemSetProblemsTable({
               : () => {}
           }
           onAddToSet={() => {}}
+          onCopyToNotebook={
+            showCopyAction
+              ? (problem: Problem) =>
+                  setCopyDialog({
+                    open: true,
+                    problemId: problem.id,
+                    problemTitle: problem.title,
+                  })
+              : undefined
+          }
         />
       ) : (
         <DataTable
@@ -263,6 +290,19 @@ export default function ProblemSetProblemsTable({
         cancelText="Cancel"
         variant="destructive"
       />
+
+      {/* Mobile Copy to Notebook Dialog */}
+      {showCopyAction && copyDialog.problemId && (
+        <CopyProblemDialog
+          open={copyDialog.open}
+          onOpenChange={open =>
+            setCopyDialog(prev => ({ ...prev, open }))
+          }
+          problemSetId={problemSetId}
+          problemId={copyDialog.problemId}
+          problemTitle={copyDialog.problemTitle}
+        />
+      )}
     </div>
   );
 }

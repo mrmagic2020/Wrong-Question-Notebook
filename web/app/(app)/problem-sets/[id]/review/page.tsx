@@ -170,6 +170,7 @@ export default async function ProblemSetReviewPage({
         subjectId={problemSet.subject_id}
         subjectName={problemSet.subject_name}
         isReadOnly={!problemSet.isOwner}
+        allowCopying={!problemSet.isOwner && problemSet.allow_copying}
       />
     );
   }
@@ -245,6 +246,8 @@ export default async function ProblemSetReviewPage({
       isProblemSetMode={true}
       problemSetId={id}
       isReadOnly={!problemSet.isOwner}
+      allowCopying={!problemSet.isOwner && problemSet.allow_copying}
+      copyProblemSetId={id}
     />
   );
 }

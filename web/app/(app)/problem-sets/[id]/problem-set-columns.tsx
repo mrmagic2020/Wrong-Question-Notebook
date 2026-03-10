@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown, MoreHorizontal, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,12 +23,15 @@ import {
 } from '@/lib/common-utils';
 import { toast } from 'sonner';
 import { ProblemInSet } from '@/lib/types';
+import CopyProblemDialog from '@/components/copy-problem-dialog';
 
 export type ProblemSetTableMeta = {
   onRemoveFromSet?: (problemIds: string[]) => void;
   problemSetId: string;
   isOwner: boolean;
   isSmart: boolean;
+  allowCopying?: boolean;
+  isAuthenticated?: boolean;
 };
 
 // Tag capsules component
@@ -288,6 +292,69 @@ const ownerActionsColumn: ColumnDef<ProblemInSet> = {
   enableHiding: false,
 };
 
+// Extracted viewer actions cell component (needs useState for dialog)
+function ViewerActionsCell({
+  problem,
+  meta,
+}: {
+  problem: ProblemInSet;
+  meta: ProblemSetTableMeta;
+}) {
+  const [copyDialogOpen, setCopyDialogOpen] = useState(false);
+  const showCopyAction =
+    meta.allowCopying && meta.isAuthenticated && !meta.isOwner;
+
+  return (
+    <div className="px-2" onClick={e => e.stopPropagation()}>
+      <DropdownMenu modal={false}>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Open menu</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuItem
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(problem.id);
+                toast.success('Problem ID copied');
+              } catch {
+                toast.error('Failed to copy');
+              }
+            }}
+          >
+            Copy problem ID
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={() => {
+              window.location.href = `/problem-sets/${meta.problemSetId}/review?problemId=${problem.id}`;
+            }}
+          >
+            Review problem
+          </DropdownMenuItem>
+          {showCopyAction && (
+            <DropdownMenuItem onClick={() => setCopyDialogOpen(true)}>
+              Add to Notebook
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      {showCopyAction && (
+        <CopyProblemDialog
+          open={copyDialogOpen}
+          onOpenChange={setCopyDialogOpen}
+          problemSetId={meta.problemSetId}
+          problemId={problem.id}
+          problemTitle={problem.title}
+        />
+      )}
+    </div>
+  );
+}
+
 // Actions column for viewers
 const viewerActionsColumn: ColumnDef<ProblemInSet> = {
   id: 'actions',
@@ -295,48 +362,7 @@ const viewerActionsColumn: ColumnDef<ProblemInSet> = {
   cell: ({ row, table }) => {
     const problem = row.original;
     const meta = table.options.meta as ProblemSetTableMeta;
-
-    return (
-      <div className="px-2">
-        <DropdownMenu modal={false}>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="h-8 w-8 p-0"
-              onClick={e => e.stopPropagation()}
-            >
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={async e => {
-                e.stopPropagation();
-                try {
-                  await navigator.clipboard.writeText(problem.id);
-                  toast.success('Problem ID copied');
-                } catch {
-                  toast.error('Failed to copy');
-                }
-              }}
-            >
-              Copy problem ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={e => {
-                e.stopPropagation();
-                window.location.href = `/problem-sets/${meta.problemSetId}/review?problemId=${problem.id}`;
-              }}
-            >
-              Review problem
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    );
+    return <ViewerActionsCell problem={problem} meta={meta} />;
   },
   enableSorting: false,
   enableHiding: false,
