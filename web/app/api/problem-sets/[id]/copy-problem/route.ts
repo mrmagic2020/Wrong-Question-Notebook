@@ -8,6 +8,8 @@ import {
   isValidUuid,
 } from '@/lib/common-utils';
 import { checkProblemSetAccess } from '@/lib/problem-set-utils';
+import { getFilteredProblems } from '@/lib/review-utils';
+import { FilterConfig } from '@/lib/types';
 import { createServiceClient } from '@/lib/supabase-utils';
 import { revalidateUserSubjects } from '@/lib/cache-invalidation';
 import { z } from 'zod';
@@ -102,17 +104,27 @@ async function copyProblem(
     }
 
     // Verify the problem belongs to this set
-    if (sourceProblemSet.is_smart) {
-      // For smart sets, verify the problem belongs to the set's subject and owner
-      const { data: problemCheck } = await serviceClient
-        .from('problems')
-        .select('id')
-        .eq('id', problem_id)
-        .eq('subject_id', sourceProblemSet.subject_id)
-        .eq('user_id', sourceProblemSet.user_id)
-        .single();
+    if (sourceProblemSet.is_smart && sourceProblemSet.filter_config) {
+      // For smart sets, resolve the current matching problems via filter_config
+      const filterConfig: FilterConfig = {
+        tag_ids: sourceProblemSet.filter_config.tag_ids ?? [],
+        statuses: sourceProblemSet.filter_config.statuses ?? [],
+        problem_types: sourceProblemSet.filter_config.problem_types ?? [],
+        days_since_review:
+          sourceProblemSet.filter_config.days_since_review ?? null,
+        include_never_reviewed:
+          sourceProblemSet.filter_config.include_never_reviewed ?? true,
+      };
+      const smartProblems = await getFilteredProblems(
+        serviceClient,
+        sourceProblemSet.user_id,
+        sourceProblemSet.subject_id,
+        filterConfig,
+        sourceProblemSet.user_id
+      );
+      const smartProblemIds = new Set(smartProblems.map((p: any) => p.id));
 
-      if (!problemCheck) {
+      if (!smartProblemIds.has(problem_id)) {
         return NextResponse.json(
           createApiErrorResponse(
             'Problem does not belong to this problem set',
@@ -121,7 +133,7 @@ async function copyProblem(
           { status: 400 }
         );
       }
-    } else {
+    } else if (!sourceProblemSet.is_smart) {
       // For manual sets, check the junction table
       const { data: linkCheck } = await serviceClient
         .from('problem_set_problems')
