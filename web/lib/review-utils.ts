@@ -173,6 +173,75 @@ export async function getFilteredProblemsCount(
 }
 
 /**
+ * Check whether a specific problem matches a smart set's filter criteria.
+ * Much cheaper than getFilteredProblems — issues a HEAD count query
+ * restricted to a single problem ID instead of fetching all rows.
+ */
+export async function isFilteredProblemMember(
+  supabase: SupabaseClient,
+  problemId: string,
+  subjectId: string,
+  filterConfig: FilterConfig,
+  ownerUserId: string
+): Promise<boolean> {
+  // If tag filters are set, check the problem has at least one matching tag
+  if (filterConfig.tag_ids.length > 0) {
+    const { data: tagLinks, error: tagError } = await supabase
+      .from('problem_tag')
+      .select('problem_id')
+      .in('tag_id', filterConfig.tag_ids)
+      .eq('problem_id', problemId)
+      .eq('user_id', ownerUserId)
+      .limit(1);
+
+    if (tagError) {
+      throw new Error(
+        `Failed to check problem tag membership: ${tagError.message}`
+      );
+    }
+
+    if (!tagLinks || tagLinks.length === 0) return false;
+  }
+
+  let query = supabase
+    .from('problems')
+    .select('id', { count: 'exact', head: true })
+    .eq('id', problemId)
+    .eq('user_id', ownerUserId)
+    .eq('subject_id', subjectId);
+
+  if (filterConfig.statuses.length > 0) {
+    query = query.in('status', filterConfig.statuses);
+  }
+
+  if (filterConfig.problem_types.length > 0) {
+    query = query.in('problem_type', filterConfig.problem_types);
+  }
+
+  if (filterConfig.days_since_review != null) {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - filterConfig.days_since_review);
+    const cutoffIso = cutoffDate.toISOString();
+
+    if (filterConfig.include_never_reviewed) {
+      query = query.or(
+        `last_reviewed_date.lt.${cutoffIso},last_reviewed_date.is.null`
+      );
+    } else {
+      query = query.lt('last_reviewed_date', cutoffIso);
+    }
+  }
+
+  const { count, error } = await query;
+
+  if (error) {
+    throw new Error(`Failed to check problem membership: ${error.message}`);
+  }
+
+  return (count ?? 0) > 0;
+}
+
+/**
  * Apply session configuration to a problem list (randomize, limit).
  */
 export function applySessionConfig(

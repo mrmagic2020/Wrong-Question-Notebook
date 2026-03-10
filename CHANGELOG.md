@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning].
 
 ### Added
 
+- **Add to Notebook**: Copy individual problems from shared problem sets to your own notebooks
+  - Available in problem row actions and on the review page
+  - Select target subject and optionally copy tags
+
 - **Problem Set Page Overhaul**
   - Full-featured data table with search, filtering (type/tags/status), sorting, and pagination replaces the primitive problem list
   - Mobile card list view with responsive filter toolbar for problem sets

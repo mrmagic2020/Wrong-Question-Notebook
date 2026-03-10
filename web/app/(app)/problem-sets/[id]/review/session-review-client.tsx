@@ -20,6 +20,7 @@ interface SessionReviewClientProps {
   subjectId: string;
   subjectName: string;
   isReadOnly: boolean;
+  allowCopying?: boolean;
 }
 
 interface SessionData {
@@ -44,6 +45,7 @@ export default function SessionReviewClient({
   subjectId,
   subjectName,
   isReadOnly,
+  allowCopying,
 }: SessionReviewClientProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -364,6 +366,8 @@ export default function SessionReviewClient({
           onAttemptRecorded={(problemId, state) =>
             setAttemptCache(prev => ({ ...prev, [problemId]: state }))
           }
+          allowCopying={allowCopying}
+          copyProblemSetId={problemSetId}
           sessionNav={{
             currentIndex,
             totalProblems: problemIds.length,
