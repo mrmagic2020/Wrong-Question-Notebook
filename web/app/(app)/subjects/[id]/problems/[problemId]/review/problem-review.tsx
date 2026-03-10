@@ -554,7 +554,7 @@ export default function ProblemReview({
                     setCopyDialogOpen(true);
                   } else {
                     router.push(
-                      `/auth/sign-up?redirect=/problem-sets/${copyProblemSetId}/review?problemId=${problem.id}`
+                      `/auth/sign-up?redirect=${encodeURIComponent(`/problem-sets/${copyProblemSetId}/review?problemId=${problem.id}`)}`
                     );
                   }
                 }}
