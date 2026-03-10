@@ -8,7 +8,7 @@ import {
   isValidUuid,
 } from '@/lib/common-utils';
 import { checkProblemSetAccess } from '@/lib/problem-set-utils';
-import { getFilteredProblems } from '@/lib/review-utils';
+import { isFilteredProblemMember } from '@/lib/review-utils';
 import { FilterConfig } from '@/lib/types';
 import { createServiceClient } from '@/lib/supabase-utils';
 import {
@@ -111,7 +111,7 @@ async function copyProblem(
 
     // Verify the problem belongs to this set
     if (sourceProblemSet.is_smart && sourceProblemSet.filter_config) {
-      // For smart sets, resolve the current matching problems via filter_config
+      // For smart sets, check this specific problem matches the filter_config
       const filterConfig: FilterConfig = {
         tag_ids: sourceProblemSet.filter_config.tag_ids ?? [],
         statuses: sourceProblemSet.filter_config.statuses ?? [],
@@ -121,16 +121,15 @@ async function copyProblem(
         include_never_reviewed:
           sourceProblemSet.filter_config.include_never_reviewed ?? true,
       };
-      const smartProblems = await getFilteredProblems(
+      const isMember = await isFilteredProblemMember(
         serviceClient,
-        sourceProblemSet.user_id,
+        problem_id,
         sourceProblemSet.subject_id,
         filterConfig,
         sourceProblemSet.user_id
       );
-      const smartProblemIds = new Set(smartProblems.map((p: any) => p.id));
 
-      if (!smartProblemIds.has(problem_id)) {
+      if (!isMember) {
         return NextResponse.json(
           createApiErrorResponse(
             'Problem does not belong to this problem set',
