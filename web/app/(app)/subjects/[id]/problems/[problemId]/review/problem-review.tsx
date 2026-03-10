@@ -87,6 +87,8 @@ interface ProblemReviewProps {
   allowCopying?: boolean;
   /** Problem set ID for copy-problem API (when viewing a shared set) */
   copyProblemSetId?: string;
+  /** Whether the current viewer is authenticated */
+  isAuthenticated?: boolean;
 }
 
 export default function ProblemReview({
@@ -107,6 +109,7 @@ export default function ProblemReview({
   onAttemptRecorded,
   allowCopying,
   copyProblemSetId,
+  isAuthenticated = true,
 }: ProblemReviewProps) {
   const router = useRouter();
   const { refreshChecklistStatus } = useOnboarding();
@@ -546,10 +549,18 @@ export default function ProblemReview({
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={() => setCopyDialogOpen(true)}
+                onClick={() => {
+                  if (isAuthenticated) {
+                    setCopyDialogOpen(true);
+                  } else {
+                    router.push(
+                      `/auth/sign-up?redirect=/problem-sets/${copyProblemSetId}/review?problemId=${problem.id}`
+                    );
+                  }
+                }}
               >
                 <BookPlus className="h-4 w-4 mr-2" />
-                Add to Notebook
+                {isAuthenticated ? 'Add to Notebook' : 'Sign up to Save'}
               </Button>
             </div>
           )}

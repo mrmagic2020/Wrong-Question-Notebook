@@ -248,6 +248,7 @@ export default async function ProblemSetReviewPage({
       isReadOnly={!problemSet.isOwner}
       allowCopying={!problemSet.isOwner && problemSet.allow_copying}
       copyProblemSetId={id}
+      isAuthenticated={!!user}
     />
   );
 }
