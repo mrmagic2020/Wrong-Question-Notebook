@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/generate-digests",
+      "schedule": "0 19 * * *"
+    }
+  ]
+}

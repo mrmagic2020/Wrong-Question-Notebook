@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { ATTEMPT_CONSTANTS } from '@/lib/constants';
-import { Attempt } from '@/lib/types';
+import { ERROR_CATEGORY_LABELS, ERROR_CATEGORY_COLORS } from '@/lib/constants';
+import { Attempt, ErrorCategorisation } from '@/lib/types';
+import type { ErrorBroadCategory } from '@/lib/types';
 import {
   Accordion,
   AccordionItem,
@@ -13,6 +15,7 @@ import {
 import { Pencil, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AttemptEditDialog from './attempt-edit-dialog';
+import { ErrorCategoryEditor } from '@/components/insights/error-category-editor';
 
 interface AttemptTimelineEntryProps {
   attempt: Attempt;
@@ -87,8 +90,65 @@ export default function AttemptTimelineEntry({
   onUpdated,
 }: AttemptTimelineEntryProps) {
   const [editOpen, setEditOpen] = useState(false);
+  const [categorisation, setCategorisation] =
+    useState<ErrorCategorisation | null>(null);
+
+  const fetchCategorisation = useCallback(async () => {
+    try {
+      const res = await fetch(
+        `/api/ai/categorise-error?attempt_id=${encodeURIComponent(attempt.id)}`
+      );
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data) setCategorisation(json.data);
+      }
+    } catch {
+      // Silently fail — categorisation is optional
+    }
+  }, [attempt.id]);
+
+  useEffect(() => {
+    if (
+      attempt.selected_status === 'wrong' ||
+      attempt.selected_status === 'needs_review'
+    ) {
+      fetchCategorisation();
+    }
+  }, [attempt.selected_status, fetchCategorisation]);
+
+  const handleCategorisationSave = async (
+    id: string,
+    updates: { broad_category?: string; granular_tag?: string }
+  ) => {
+    const res = await fetch(`/api/ai/categorise-error/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.data) setCategorisation(json.data);
+    }
+  };
+
+  const handleCategorisationReset = async (id: string) => {
+    const res = await fetch(`/api/ai/categorise-error/${id}`, {
+      method: 'DELETE',
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.data) setCategorisation(json.data);
+    }
+  };
 
   const badge = getStatusBadge(attempt.selected_status);
+
+  const catColors = categorisation
+    ? ERROR_CATEGORY_COLORS[categorisation.broad_category]
+    : null;
+  const catLabel = categorisation
+    ? ERROR_CATEGORY_LABELS[categorisation.broad_category]
+    : null;
 
   return (
     <>
@@ -111,7 +171,7 @@ export default function AttemptTimelineEntry({
           <Accordion type="single" collapsible>
             <AccordionItem value={attempt.id} className="border-none">
               <AccordionTrigger className="py-0 hover:no-underline">
-                <div className="flex items-center gap-2 text-left">
+                <div className="flex items-center gap-2 text-left flex-wrap">
                   {/* Status badge */}
                   <span
                     className={cn(
@@ -129,6 +189,25 @@ export default function AttemptTimelineEntry({
                     </span>
                   )}
 
+                  {/* Error category badge — non-interactive label */}
+                  {catColors && catLabel && (
+                    <span
+                      className={cn(
+                        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium',
+                        catColors.bg,
+                        catColors.text
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          'h-1.5 w-1.5 rounded-full',
+                          catColors.dot
+                        )}
+                      />
+                      {catLabel}
+                    </span>
+                  )}
+
                   {/* Relative date */}
                   <span className="text-xs text-muted-foreground">
                     {formatRelativeDate(attempt.created_at)}
@@ -137,6 +216,25 @@ export default function AttemptTimelineEntry({
               </AccordionTrigger>
               <AccordionContent className="pt-2 pb-0">
                 <div className="space-y-2 text-sm">
+                  {/* AI diagnosis section */}
+                  {categorisation && (
+                    <div className="flex items-start gap-2 rounded-lg bg-gray-50 px-2.5 py-2 dark:bg-gray-800/40">
+                      <div className="min-w-0 flex-1 space-y-0.5">
+                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          AI Diagnosis
+                        </p>
+                        <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
+                          {categorisation.granular_tag}
+                        </p>
+                      </div>
+                      <ErrorCategoryEditor
+                        categorisation={categorisation}
+                        onSave={handleCategorisationSave}
+                        onReset={handleCategorisationReset}
+                      />
+                    </div>
+                  )}
+
                   {/* Submitted response */}
                   {attempt.submitted_answer != null &&
                     attempt.submitted_answer !== 'Self-assessed' && (

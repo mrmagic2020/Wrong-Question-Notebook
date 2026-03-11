@@ -423,6 +423,38 @@ export const RemoveProblemsFromSetDto = z.object({
 // QR Upload Session Schemas
 // =====================================================
 
+// =====================================================
+// Error Categorisation & Insights Schemas
+// =====================================================
+
+export const ErrorBroadCategorySchema = z.enum([
+  'conceptual_misunderstanding',
+  'procedural_error',
+  'knowledge_gap',
+  'misread_question',
+  'careless_mistake',
+  'time_pressure',
+  'incomplete_answer',
+]);
+
+export const AICategorisationResponseSchema = z.object({
+  broad_category: ErrorBroadCategorySchema,
+  granular_tag: z.string().min(1).max(200),
+  topic_label: z.string().min(1).max(200),
+  confidence: z.number().min(0).max(1),
+  reasoning: z.string().max(1000),
+});
+
+export const UpdateErrorCategorisationDto = z.object({
+  broad_category: ErrorBroadCategorySchema.optional(),
+  granular_tag: z.string().min(1).max(200).optional(),
+});
+
+export const StartInsightsReviewDto = z.object({
+  subject_id: z.uuid(),
+  problem_ids: z.array(z.uuid()).min(1).max(50),
+});
+
 export const QRSessionIdParam = z.uuid();
 
 export const QRUploadQueryParams = z.object({

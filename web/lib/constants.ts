@@ -587,6 +587,82 @@ export const SPACED_REPETITION_CONSTANTS = {
   SESSION_PRESETS: [5, 10, 20],
 } as const;
 
+// =====================================================
+// Insight & Error Categorisation Constants
+// =====================================================
+export const ERROR_CATEGORY_VALUES = [
+  'conceptual_misunderstanding',
+  'procedural_error',
+  'knowledge_gap',
+  'misread_question',
+  'careless_mistake',
+  'time_pressure',
+  'incomplete_answer',
+] as const;
+
+export type ErrorBroadCategory = (typeof ERROR_CATEGORY_VALUES)[number];
+
+export const ERROR_CATEGORY_LABELS: Record<ErrorBroadCategory, string> = {
+  conceptual_misunderstanding: 'Conceptual',
+  procedural_error: 'Procedural',
+  knowledge_gap: 'Knowledge Gap',
+  misread_question: 'Misread Question',
+  careless_mistake: 'Careless Mistake',
+  time_pressure: 'Time Pressure',
+  incomplete_answer: 'Incomplete',
+};
+
+export const ERROR_CATEGORY_COLORS: Record<
+  ErrorBroadCategory,
+  { bg: string; text: string; dot: string }
+> = {
+  conceptual_misunderstanding: {
+    bg: 'bg-red-100 dark:bg-red-900/30',
+    text: 'text-red-700 dark:text-red-400',
+    dot: 'bg-red-500',
+  },
+  procedural_error: {
+    bg: 'bg-orange-100 dark:bg-orange-900/30',
+    text: 'text-orange-700 dark:text-orange-400',
+    dot: 'bg-orange-500',
+  },
+  knowledge_gap: {
+    bg: 'bg-amber-100 dark:bg-amber-900/30',
+    text: 'text-amber-700 dark:text-amber-400',
+    dot: 'bg-amber-500',
+  },
+  misread_question: {
+    bg: 'bg-blue-100 dark:bg-blue-900/30',
+    text: 'text-blue-700 dark:text-blue-400',
+    dot: 'bg-blue-500',
+  },
+  careless_mistake: {
+    bg: 'bg-purple-100 dark:bg-purple-900/30',
+    text: 'text-purple-700 dark:text-purple-400',
+    dot: 'bg-purple-500',
+  },
+  time_pressure: {
+    bg: 'bg-rose-100 dark:bg-rose-900/30',
+    text: 'text-rose-700 dark:text-rose-400',
+    dot: 'bg-rose-500',
+  },
+  incomplete_answer: {
+    bg: 'bg-gray-100 dark:bg-gray-800',
+    text: 'text-gray-700 dark:text-gray-400',
+    dot: 'bg-gray-500',
+  },
+};
+
+export const INSIGHT_CONSTANTS = {
+  MAX_WEAK_SPOTS_OVERVIEW: 7,
+  MAX_WEAK_SPOTS_EXPANDED: 20,
+  MIN_PROBLEMS_FOR_INSIGHTS: 5,
+  BACKFILL_BATCH_SIZE: 20,
+  DIGEST_COOLDOWN_HOURS: 24,
+  MAX_DIGESTS_RETAINED: 30,
+  MAX_REVIEW_PROBLEMS: 50,
+} as const;
+
 export const COOKIE_CONSENT_CONSTANTS = {
   COOKIE_NAME: 'wqn-cookie-consent',
   CONSENT_VERSION: 1, // bump to force re-consent if categories change

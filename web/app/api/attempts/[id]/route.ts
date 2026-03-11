@@ -130,6 +130,39 @@ export async function PATCH(
       if (problem) {
         await revalidateProblemAndSubject(data.problem_id, problem.subject_id);
       }
+
+      // Fire-and-forget AI error categorisation for wrong/needs_review
+      if (
+        (parsed.data.selected_status === 'wrong' ||
+          parsed.data.selected_status === 'needs_review') &&
+        problem?.subject_id
+      ) {
+        try {
+          const host = req.headers.get('host') || 'localhost:3000';
+          const proto = req.headers.get('x-forwarded-proto') || 'http';
+          const origin = req.headers.get('origin') || `${proto}://${host}`;
+          const secret = process.env.CATEGORISATION_SECRET;
+          if (origin && secret) {
+            fetch(`${origin}/api/ai/categorise-error`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-categorisation-secret': secret,
+              },
+              body: JSON.stringify({
+                attempt_id: attemptId,
+                problem_id: data.problem_id,
+                subject_id: problem.subject_id,
+                user_id: user.id,
+              }),
+            }).catch(err =>
+              console.error('[categorise-trigger] fetch failed:', err)
+            );
+          }
+        } catch (e) {
+          console.error('[categorise-trigger] error:', e);
+        }
+      }
     }
 
     return NextResponse.json(createApiSuccessResponse(data));

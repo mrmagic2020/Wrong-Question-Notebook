@@ -309,6 +309,107 @@ export interface QRSessionConsumeResponse {
 }
 
 // =====================================================
+// Error Categorisation & Insights Types
+// =====================================================
+
+export type ErrorBroadCategory =
+  | 'conceptual_misunderstanding'
+  | 'procedural_error'
+  | 'knowledge_gap'
+  | 'misread_question'
+  | 'careless_mistake'
+  | 'time_pressure'
+  | 'incomplete_answer';
+
+export interface ErrorCategorisation {
+  id: string;
+  attempt_id: string;
+  problem_id: string;
+  subject_id: string;
+  user_id: string;
+  broad_category: ErrorBroadCategory;
+  granular_tag: string;
+  topic_label: string;
+  topic_label_normalised: string;
+  ai_confidence: number;
+  ai_reasoning: string | null;
+  is_user_override: boolean;
+  original_broad_category: ErrorBroadCategory | null;
+  original_granular_tag: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WeakSpot {
+  topic_label: string;
+  subject_id: string;
+  subject_name: string;
+  subject_color?: string;
+  problem_count: number;
+  trend_phrase: string;
+  dominant_error_type: string;
+  problem_ids: string[];
+}
+
+export interface TopicCluster {
+  label: string;
+  problem_count: number;
+  wrong_count: number;
+  needs_review_count: number;
+  mastered_count: number;
+  narrative: string;
+  problem_ids: string[];
+}
+
+export interface InsightDigest {
+  id: string;
+  user_id: string;
+  generated_at: string;
+  headline: string;
+  error_pattern_summary: string;
+  subject_health: Record<string, string>;
+  weak_spots: WeakSpot[];
+  topic_clusters: Record<string, TopicCluster[]>;
+  progress_narratives: Record<string, string>;
+  raw_aggregation_data?: Record<string, unknown>;
+}
+
+export interface ErrorAggregationRow {
+  categorisation_id: string;
+  attempt_id: string;
+  problem_id: string;
+  subject_id: string;
+  subject_name: string;
+  broad_category: ErrorBroadCategory;
+  granular_tag: string;
+  topic_label: string;
+  topic_label_normalised: string;
+  ai_confidence: number;
+  is_user_override: boolean;
+  problem_status: string;
+  problem_title: string;
+  attempt_created_at: string;
+  categorisation_created_at: string;
+}
+
+export interface UncategorisedAttempt {
+  attempt_id: string;
+  problem_id: string;
+  subject_id: string;
+  submitted_answer: unknown;
+  is_correct: boolean | null;
+  cause: string | null;
+  reflection_notes: string | null;
+  selected_status: string;
+  attempt_created_at: string;
+  problem_title: string;
+  problem_content: string | null;
+  problem_type: string;
+  correct_answer: string | null;
+  subject_name: string;
+}
+
+// =====================================================
 // Component Prop Types
 // =====================================================
 

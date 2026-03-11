@@ -203,3 +203,19 @@ export async function revalidateUserStatistics(userId: string): Promise<void> {
   await revalidateTag(userStatsTag, 'max');
   await revalidateTag(CACHE_TAGS.STATISTICS, 'max');
 }
+
+/**
+ * Revalidate user insights cache
+ */
+export async function revalidateUserInsights(userId: string): Promise<void> {
+  const userInsightsTag = createUserCacheTag(CACHE_TAGS.USER_INSIGHTS, userId);
+  await revalidateTag(userInsightsTag, 'max');
+  await revalidateTag(CACHE_TAGS.INSIGHTS, 'max');
+}
+
+/**
+ * Revalidate insights page path
+ */
+export async function revalidateInsightsPage(): Promise<void> {
+  await revalidatePath('/insights');
+}
