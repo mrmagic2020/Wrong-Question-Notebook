@@ -2,6 +2,7 @@
 // This file contains all application types to eliminate redundancy and improve type safety
 
 import { ProblemType, ProblemStatus, ProblemSetSharingLevel } from './schemas';
+import type { ErrorBroadCategory } from './constants';
 import { ColumnDef } from '@tanstack/react-table';
 
 // =====================================================
@@ -312,14 +313,9 @@ export interface QRSessionConsumeResponse {
 // Error Categorisation & Insights Types
 // =====================================================
 
-export type ErrorBroadCategory =
-  | 'conceptual_misunderstanding'
-  | 'procedural_error'
-  | 'knowledge_gap'
-  | 'misread_question'
-  | 'careless_mistake'
-  | 'time_pressure'
-  | 'incomplete_answer';
+// ErrorBroadCategory is the single source of truth in constants.ts (derived from ERROR_CATEGORY_VALUES).
+// Re-exported here so consumers can import from either location.
+export type { ErrorBroadCategory } from './constants';
 
 export interface ErrorCategorisation {
   id: string;
