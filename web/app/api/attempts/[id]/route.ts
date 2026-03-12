@@ -138,11 +138,9 @@ export async function PATCH(
         problem?.subject_id
       ) {
         try {
-          const host = req.headers.get('host') || 'localhost:3000';
-          const proto = req.headers.get('x-forwarded-proto') || 'http';
-          const origin = req.headers.get('origin') || `${proto}://${host}`;
+          const origin = new URL(req.url).origin;
           const secret = process.env.CATEGORISATION_SECRET;
-          if (origin && secret) {
+          if (secret) {
             fetch(`${origin}/api/ai/categorise-error`, {
               method: 'POST',
               headers: {
