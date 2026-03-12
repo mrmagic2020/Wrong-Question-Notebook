@@ -120,10 +120,7 @@ async function generateInsights(req: Request) {
 
     if (!digest) {
       // No data — delete placeholder
-      await supabase
-        .from('insight_digests')
-        .delete()
-        .eq('id', placeholder.id);
+      await supabase.from('insight_digests').delete().eq('id', placeholder.id);
 
       return NextResponse.json(
         createApiSuccessResponse(

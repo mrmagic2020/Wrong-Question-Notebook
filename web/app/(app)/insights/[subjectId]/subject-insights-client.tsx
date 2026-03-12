@@ -121,9 +121,7 @@ export default function SubjectInsightsClient({
             <span
               className={`flex h-10 w-10 items-center justify-center rounded-xl ${colorClasses.icon}`}
             >
-              <Lightbulb
-                className={`h-5 w-5 ${colorClasses.iconColor}`}
-              />
+              <Lightbulb className={`h-5 w-5 ${colorClasses.iconColor}`} />
             </span>
             {subject.name} Insights
           </h1>
@@ -231,7 +229,9 @@ export default function SubjectInsightsClient({
                           <h3 className="font-semibold text-gray-900 dark:text-white">
                             {cluster.label}
                           </h3>
-                          <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${colorClasses.badge}`}>
+                          <span
+                            className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${colorClasses.badge}`}
+                          >
                             {total} problem{total !== 1 ? 's' : ''}
                           </span>
                         </div>
