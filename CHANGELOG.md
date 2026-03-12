@@ -18,10 +18,8 @@ and this project adheres to [Semantic Versioning].
   - Per-subject deep dive with topic cluster map, mastery status bars, and progress narratives
   - "Review these problems" integration: start targeted review sessions from any weak spot or topic cluster
   - Error category badges inline on attempt timeline with user override support
-  - On-demand digest generation with automatic backfill of uncategorised attempts
   - Daily digest cron job (19:00 UTC) for pre-computing insights
   - New database tables: `error_categorisations`, `insight_digests`
-  - New navigation item: "Insights" with orange Lightbulb icon
 
 - **Add to Notebook**: Copy individual problems from shared problem sets to your own notebooks
   - Available in problem row actions and on the review page
@@ -38,6 +36,12 @@ and this project adheres to [Semantic Versioning].
   - Viewer-only review sessions: ungated navigation, no assessment form, clean session completion
 
 ### Fixed
+
+- **Insights Digest Accuracy**
+  - Fixed overcounting in error distribution (now counts per unique problem, not per attempt)
+  - Fixed mastered topics incorrectly appearing as weak spots
+  - Fixed cluster merge inflating mastered/wrong counts when clusters share problems
+  - Added total problem counts per subject for balanced AI assessments (not just errors)
 
 - **Review Session Bug for Non-Owner Users**
   - Fixed Next button permanently disabled in read-only review sessions (form saved callback never fired)

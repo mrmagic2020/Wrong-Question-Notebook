@@ -48,21 +48,44 @@ export async function GET(req: Request) {
       ...new Set((candidateUsers ?? []).map(r => r.user_id as string)),
     ];
 
+    // Mark stale 'generating' rows as failed before checking
+    const staleThreshold = new Date(
+      Date.now() - INSIGHT_CONSTANTS.GENERATING_STALE_MINUTES * 60 * 1000
+    ).toISOString();
+
+    await supabase
+      .from('insight_digests')
+      .update({ status: 'failed' })
+      .eq('status', 'generating')
+      .lt('generated_at', staleThreshold);
+
     // For each user, check if they need a new digest
     const usersToProcess: string[] = [];
 
     for (const userId of uniqueUserIds) {
-      // Get the user's latest digest
+      // Skip users with an active generation in progress
+      const { data: generatingRow } = await supabase
+        .from('insight_digests')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('status', 'generating')
+        .limit(1)
+        .maybeSingle();
+
+      if (generatingRow) continue;
+
+      // Get the user's latest completed digest
       const { data: latestDigest } = await supabase
         .from('insight_digests')
         .select('generated_at')
         .eq('user_id', userId)
+        .eq('status', 'completed')
         .order('generated_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (!latestDigest) {
-        // No digest yet — should generate one
+        // No completed digest yet — should generate one
         usersToProcess.push(userId);
         continue;
       }

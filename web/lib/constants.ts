@@ -405,6 +405,9 @@ export const SUBJECT_CONSTANTS = {
       icon: 'bg-amber-500/10 dark:bg-amber-500/20',
       iconColor: 'text-amber-600 dark:text-amber-400',
       buttonHover: 'hover:bg-amber-500/10 dark:hover:bg-amber-500/20',
+      cardBg: 'bg-amber-50/30 dark:bg-amber-950/20',
+      badge:
+        'bg-amber-100/80 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
     },
     orange: {
       light: 'from-orange-50 to-orange-100/50',
@@ -413,6 +416,9 @@ export const SUBJECT_CONSTANTS = {
       icon: 'bg-orange-500/10 dark:bg-orange-500/20',
       iconColor: 'text-orange-600 dark:text-orange-400',
       buttonHover: 'hover:bg-orange-500/10 dark:hover:bg-orange-500/20',
+      cardBg: 'bg-orange-50/30 dark:bg-orange-950/20',
+      badge:
+        'bg-orange-100/80 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
     },
     rose: {
       light: 'from-rose-50 to-rose-100/50',
@@ -421,6 +427,9 @@ export const SUBJECT_CONSTANTS = {
       icon: 'bg-rose-500/10 dark:bg-rose-500/20',
       iconColor: 'text-rose-600 dark:text-rose-400',
       buttonHover: 'hover:bg-rose-500/10 dark:hover:bg-rose-500/20',
+      cardBg: 'bg-rose-50/30 dark:bg-rose-950/20',
+      badge:
+        'bg-rose-100/80 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
     },
     blue: {
       light: 'from-blue-50 to-blue-100/50',
@@ -429,6 +438,9 @@ export const SUBJECT_CONSTANTS = {
       icon: 'bg-blue-500/10 dark:bg-blue-500/20',
       iconColor: 'text-blue-600 dark:text-blue-400',
       buttonHover: 'hover:bg-blue-500/10 dark:hover:bg-blue-500/20',
+      cardBg: 'bg-blue-50/30 dark:bg-blue-950/20',
+      badge:
+        'bg-blue-100/80 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
     },
     emerald: {
       light: 'from-emerald-50 to-emerald-100/50',
@@ -437,6 +449,9 @@ export const SUBJECT_CONSTANTS = {
       icon: 'bg-emerald-500/10 dark:bg-emerald-500/20',
       iconColor: 'text-emerald-600 dark:text-emerald-400',
       buttonHover: 'hover:bg-emerald-500/10 dark:hover:bg-emerald-500/20',
+      cardBg: 'bg-emerald-50/30 dark:bg-emerald-950/20',
+      badge:
+        'bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
     },
     purple: {
       light: 'from-purple-50 to-purple-100/50',
@@ -445,6 +460,9 @@ export const SUBJECT_CONSTANTS = {
       icon: 'bg-purple-500/10 dark:bg-purple-500/20',
       iconColor: 'text-purple-600 dark:text-purple-400',
       buttonHover: 'hover:bg-purple-500/10 dark:hover:bg-purple-500/20',
+      cardBg: 'bg-purple-50/30 dark:bg-purple-950/20',
+      badge:
+        'bg-purple-100/80 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
     },
     teal: {
       light: 'from-teal-50 to-teal-100/50',
@@ -453,6 +471,9 @@ export const SUBJECT_CONSTANTS = {
       icon: 'bg-teal-500/10 dark:bg-teal-500/20',
       iconColor: 'text-teal-600 dark:text-teal-400',
       buttonHover: 'hover:bg-teal-500/10 dark:hover:bg-teal-500/20',
+      cardBg: 'bg-teal-50/30 dark:bg-teal-950/20',
+      badge:
+        'bg-teal-100/80 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300',
     },
     pink: {
       light: 'from-pink-50 to-pink-100/50',
@@ -461,6 +482,9 @@ export const SUBJECT_CONSTANTS = {
       icon: 'bg-pink-500/10 dark:bg-pink-500/20',
       iconColor: 'text-pink-600 dark:text-pink-400',
       buttonHover: 'hover:bg-pink-500/10 dark:hover:bg-pink-500/20',
+      cardBg: 'bg-pink-50/30 dark:bg-pink-950/20',
+      badge:
+        'bg-pink-100/80 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300',
     },
   },
 } as const;
@@ -661,6 +685,10 @@ export const INSIGHT_CONSTANTS = {
   DIGEST_COOLDOWN_HOURS: 24,
   MAX_DIGESTS_RETAINED: 30,
   MAX_REVIEW_PROBLEMS: 50,
+  /** If a digest has been 'generating' for longer than this, treat it as stale/failed */
+  GENERATING_STALE_MINUTES: 5,
+  /** Polling interval (ms) for checking generation status on client */
+  GENERATION_POLL_INTERVAL_MS: 3000,
 } as const;
 
 export const COOKIE_CONSENT_CONSTANTS = {

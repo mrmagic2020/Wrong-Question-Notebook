@@ -361,12 +361,16 @@ export interface TopicCluster {
   problem_ids: string[];
 }
 
+export type DigestStatus = 'generating' | 'completed' | 'failed';
+
 export interface InsightDigest {
   id: string;
   user_id: string;
   generated_at: string;
+  status: DigestStatus;
   headline: string;
   error_pattern_summary: string;
+  subject_error_patterns?: Record<string, string>;
   subject_health: Record<string, string>;
   weak_spots: WeakSpot[];
   topic_clusters: Record<string, TopicCluster[]>;

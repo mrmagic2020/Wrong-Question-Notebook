@@ -12,27 +12,62 @@ import {
   TrendingUp,
   MessageSquareText,
   AlertTriangle,
+  Play,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import type { InsightDigest, TopicCluster } from '@/lib/types';
+import { SUBJECT_CONSTANTS } from '@/lib/constants';
+
+interface ReviewSessionSummary {
+  id: string;
+  is_active: boolean;
+  problem_ids: string[];
+}
+
+type ReviewState = 'review' | 'resume';
+
+function getReviewState(
+  problemIds: string[],
+  sessions: ReviewSessionSummary[]
+): ReviewState {
+  const key = [...problemIds].sort().join(',');
+  if (sessions.some(s => s.is_active && s.problem_ids.join(',') === key)) {
+    return 'resume';
+  }
+  return 'review';
+}
 
 interface SubjectInsightsClientProps {
   subject: { id: string; name: string; color: string | null };
   digest: InsightDigest | null;
+  reviewSessions: ReviewSessionSummary[];
 }
 
 export default function SubjectInsightsClient({
   subject,
   digest,
+  reviewSessions,
 }: SubjectInsightsClientProps) {
   const router = useRouter();
   const [reviewingCluster, setReviewingCluster] = useState<string | null>(null);
 
+  const safeColor =
+    subject.color && subject.color in SUBJECT_CONSTANTS.COLOR_GRADIENTS
+      ? subject.color
+      : SUBJECT_CONSTANTS.DEFAULT_COLOR;
+  const colorClasses =
+    SUBJECT_CONSTANTS.COLOR_GRADIENTS[
+      safeColor as keyof typeof SUBJECT_CONSTANTS.COLOR_GRADIENTS
+    ];
+
   const topicClusters: TopicCluster[] =
     digest?.topic_clusters?.[subject.id] ?? [];
   const progressNarrative = digest?.progress_narratives?.[subject.id] ?? null;
-  const errorPatternSummary = digest?.error_pattern_summary ?? null;
+  const errorPatternSummary =
+    digest?.subject_error_patterns?.[subject.id] ??
+    digest?.error_pattern_summary ??
+    null;
   const weakSpots = (digest?.weak_spots ?? []).filter(
     ws => ws.subject_id === subject.id
   );
@@ -84,16 +119,10 @@ export default function SubjectInsightsClient({
         <div className="page-header">
           <h1 className="page-title flex items-center gap-3">
             <span
-              className="flex h-10 w-10 items-center justify-center rounded-xl"
-              style={{
-                backgroundColor: subject.color
-                  ? `${subject.color}1a`
-                  : undefined,
-              }}
+              className={`flex h-10 w-10 items-center justify-center rounded-xl ${colorClasses.icon}`}
             >
               <Lightbulb
-                className="h-5 w-5"
-                style={{ color: subject.color || undefined }}
+                className={`h-5 w-5 ${colorClasses.iconColor}`}
               />
             </span>
             {subject.name} Insights
@@ -105,7 +134,7 @@ export default function SubjectInsightsClient({
 
         {/* No digest or no data */}
         {!digest || !hasData ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-orange-200/40 bg-gradient-to-br from-orange-50 to-amber-50/50 p-12 text-center dark:border-orange-800/30 dark:from-orange-950/40 dark:to-amber-900/20">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-orange-200/40 bg-orange-50/50 p-12 text-center dark:border-orange-800/30 dark:bg-orange-950/30">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-500/10 dark:bg-orange-500/20">
               <Lightbulb className="h-8 w-8 text-orange-600 dark:text-orange-400" />
             </div>
@@ -135,42 +164,40 @@ export default function SubjectInsightsClient({
                   Weak Spots
                 </h2>
                 <div className="space-y-3">
-                  {weakSpots.map((ws, i) => (
-                    <div
-                      key={`${ws.topic_label}-${i}`}
-                      className="rounded-xl border border-rose-200/40 bg-gradient-to-br from-rose-50/50 to-white p-4 dark:border-rose-800/30 dark:from-rose-950/30 dark:to-gray-900"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1 space-y-1">
-                          <h3 className="font-semibold text-gray-900 dark:text-white">
-                            {ws.topic_label}
-                          </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">
-                            {ws.trend_phrase}
-                          </p>
-                          <span className="inline-flex items-center rounded-full bg-rose-100/80 px-2.5 py-0.5 text-xs font-medium text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">
-                            {ws.dominant_error_type}
-                          </span>
+                  {weakSpots.map((ws, i) => {
+                    const state = getReviewState(
+                      ws.problem_ids,
+                      reviewSessions
+                    );
+                    return (
+                      <div
+                        key={`${ws.topic_label}-${i}`}
+                        className="rounded-xl border border-rose-200/40 bg-rose-50/30 p-4 dark:border-rose-800/30 dark:bg-rose-950/20"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <h3 className="font-semibold text-gray-900 dark:text-white">
+                              {ws.topic_label}
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                              {ws.trend_phrase}
+                            </p>
+                            <span className="inline-flex items-center rounded-full bg-rose-100/80 px-2.5 py-0.5 text-xs font-medium text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">
+                              {ws.dominant_error_type}
+                            </span>
+                          </div>
+                          <ReviewButton
+                            state={state}
+                            isLoading={reviewingCluster === ws.topic_label}
+                            onClick={() =>
+                              handleReview(ws.problem_ids, ws.topic_label)
+                            }
+                            colorClassName="border-rose-200/50 text-rose-600 hover:bg-rose-50 dark:border-rose-800/40 dark:text-rose-400 dark:hover:bg-rose-950/30"
+                          />
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={reviewingCluster === ws.topic_label}
-                          onClick={() =>
-                            handleReview(ws.problem_ids, ws.topic_label)
-                          }
-                          className="shrink-0 rounded-xl border-rose-200/50 text-rose-600 hover:bg-rose-50 dark:border-rose-800/40 dark:text-rose-400 dark:hover:bg-rose-950/30"
-                        >
-                          {reviewingCluster === ws.topic_label ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          ) : (
-                            <ArrowRight className="mr-2 h-4 w-4" />
-                          )}
-                          Review
-                        </Button>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </section>
             )}
@@ -179,7 +206,7 @@ export default function SubjectInsightsClient({
             {topicClusters.length > 0 && (
               <section className="space-y-4">
                 <h2 className="heading-sm text-foreground flex items-center gap-2">
-                  <Layers className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  <Layers className={`h-5 w-5 ${colorClasses.iconColor}`} />
                   Topic Clusters
                 </h2>
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -190,77 +217,79 @@ export default function SubjectInsightsClient({
                         ? Math.round((cluster.mastered_count / total) * 100)
                         : 0;
                     const isReviewing = reviewingCluster === cluster.label;
+                    const state = getReviewState(
+                      cluster.problem_ids,
+                      reviewSessions
+                    );
 
                     return (
                       <div
                         key={cluster.label}
-                        className="rounded-2xl border border-blue-200/40 bg-gradient-to-br from-blue-50/50 to-white p-5 dark:border-blue-800/30 dark:from-blue-950/30 dark:to-gray-900"
+                        className={`grid grid-rows-subgrid row-span-4 gap-3 rounded-2xl border p-5 ${colorClasses.border} ${colorClasses.cardBg}`}
                       >
-                        <div className="space-y-3">
-                          <div className="flex items-start justify-between gap-2">
-                            <h3 className="font-semibold text-gray-900 dark:text-white">
-                              {cluster.label}
-                            </h3>
-                            <span className="shrink-0 rounded-full bg-blue-100/80 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                              {total} problem{total !== 1 ? 's' : ''}
-                            </span>
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="font-semibold text-gray-900 dark:text-white">
+                            {cluster.label}
+                          </h3>
+                          <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${colorClasses.badge}`}>
+                            {total} problem{total !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+
+                        {/* Progress bar */}
+                        <div className="space-y-1.5">
+                          <div className="flex h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+                            {cluster.mastered_count > 0 && (
+                              <div
+                                className="bg-emerald-500"
+                                style={{
+                                  width: `${(cluster.mastered_count / total) * 100}%`,
+                                }}
+                              />
+                            )}
+                            {cluster.needs_review_count > 0 && (
+                              <div
+                                className="bg-amber-500"
+                                style={{
+                                  width: `${(cluster.needs_review_count / total) * 100}%`,
+                                }}
+                              />
+                            )}
+                            {cluster.wrong_count > 0 && (
+                              <div
+                                className="bg-rose-500"
+                                style={{
+                                  width: `${(cluster.wrong_count / total) * 100}%`,
+                                }}
+                              />
+                            )}
                           </div>
-
-                          {/* Progress bar */}
-                          <div className="space-y-1.5">
-                            <div className="flex h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
-                              {cluster.mastered_count > 0 && (
-                                <div
-                                  className="bg-emerald-500"
-                                  style={{
-                                    width: `${(cluster.mastered_count / total) * 100}%`,
-                                  }}
-                                />
-                              )}
-                              {cluster.needs_review_count > 0 && (
-                                <div
-                                  className="bg-amber-500"
-                                  style={{
-                                    width: `${(cluster.needs_review_count / total) * 100}%`,
-                                  }}
-                                />
-                              )}
-                              {cluster.wrong_count > 0 && (
-                                <div
-                                  className="bg-rose-500"
-                                  style={{
-                                    width: `${(cluster.wrong_count / total) * 100}%`,
-                                  }}
-                                />
-                              )}
-                            </div>
-                            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                              <span>{masteredPct}% mastered</span>
-                              <span>{cluster.wrong_count} wrong</span>
-                            </div>
+                          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                            <span>{masteredPct}% mastered</span>
+                            <span>{cluster.wrong_count} wrong</span>
                           </div>
+                        </div>
 
-                          <p className="text-sm text-gray-600 dark:text-gray-300">
-                            {cluster.narrative}
-                          </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          {cluster.narrative}
+                        </p>
 
+                        <div className="self-end">
                           {cluster.problem_ids.length > 0 && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              disabled={isReviewing}
+                            <ReviewButton
+                              state={state}
+                              isLoading={isReviewing}
                               onClick={() =>
                                 handleReview(cluster.problem_ids, cluster.label)
                               }
-                              className="w-full rounded-xl border-blue-200/50 text-blue-600 hover:bg-blue-50 dark:border-blue-800/40 dark:text-blue-400 dark:hover:bg-blue-950/30"
-                            >
-                              {isReviewing ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              ) : (
-                                <ArrowRight className="mr-2 h-4 w-4" />
-                              )}
-                              Review Cluster
-                            </Button>
+                              colorClassName={`${colorClasses.border} ${colorClasses.iconColor} ${colorClasses.buttonHover}`}
+                              fullWidth
+                              label={
+                                state === 'resume'
+                                  ? 'Resume Cluster'
+                                  : 'Review Cluster'
+                              }
+                            />
                           )}
                         </div>
                       </div>
@@ -277,7 +306,7 @@ export default function SubjectInsightsClient({
                   <TrendingUp className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                   Error Pattern Summary
                 </h2>
-                <div className="rounded-2xl border border-amber-200/40 bg-gradient-to-br from-amber-50/50 to-white p-5 dark:border-amber-800/30 dark:from-amber-950/30 dark:to-gray-900">
+                <div className="rounded-2xl border border-amber-200/40 bg-amber-50/30 p-5 dark:border-amber-800/30 dark:bg-amber-950/20">
                   <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 whitespace-pre-line">
                     {errorPatternSummary}
                   </p>
@@ -292,7 +321,7 @@ export default function SubjectInsightsClient({
                   <MessageSquareText className="h-5 w-5 text-green-600 dark:text-green-400" />
                   Progress Narrative
                 </h2>
-                <div className="rounded-2xl border border-green-200/40 bg-gradient-to-br from-green-50/50 to-white p-5 dark:border-green-800/30 dark:from-green-950/30 dark:to-gray-900">
+                <div className="rounded-2xl border border-green-200/40 bg-green-50/30 p-5 dark:border-green-800/30 dark:bg-green-950/20">
                   <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 whitespace-pre-line">
                     {progressNarrative}
                   </p>
@@ -303,5 +332,42 @@ export default function SubjectInsightsClient({
         )}
       </div>
     </div>
+  );
+}
+
+function ReviewButton({
+  state,
+  isLoading,
+  onClick,
+  colorClassName,
+  fullWidth,
+  label,
+}: {
+  state: ReviewState;
+  isLoading: boolean;
+  onClick: () => void;
+  colorClassName: string;
+  fullWidth?: boolean;
+  label?: string;
+}) {
+  const defaultLabel = state === 'resume' ? 'Resume' : 'Review';
+
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      disabled={isLoading}
+      onClick={onClick}
+      className={`${fullWidth ? 'w-full' : 'shrink-0'} rounded-xl ${colorClassName}`}
+    >
+      {isLoading ? (
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      ) : state === 'resume' ? (
+        <Play className="mr-2 h-4 w-4" />
+      ) : (
+        <ArrowRight className="mr-2 h-4 w-4" />
+      )}
+      {label ?? defaultLabel}
+    </Button>
   );
 }

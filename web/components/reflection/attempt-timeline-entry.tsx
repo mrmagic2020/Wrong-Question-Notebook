@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 import { ATTEMPT_CONSTANTS } from '@/lib/constants';
 import { ERROR_CATEGORY_LABELS, ERROR_CATEGORY_COLORS } from '@/lib/constants';
 import { Attempt, ErrorCategorisation } from '@/lib/types';
-import type { ErrorBroadCategory } from '@/lib/types';
 import {
   Accordion,
   AccordionItem,

@@ -41,20 +41,59 @@ interface WeakSpotCandidate extends ClusterAccumulator {
   dominant_error_type: string;
 }
 
+/** Topic labels the AI may generate when it lacks context. Filtered out. */
+const GARBAGE_LABELS = new Set([
+  'unknown',
+  'unknown topic',
+  'unknown_topic',
+  'unknown problem topic',
+  'n/a',
+  'no error',
+  'data unavailable',
+  'error classification',
+  'task completion',
+  'answer submission',
+  'transcription',
+  'task understanding',
+  'problem engagement',
+  'test taking etiquette',
+  'data entry',
+  'response format',
+  'problem submission',
+  'following instructions',
+  'core concept',
+  'unspecified problem area',
+  'unspecified method recall',
+  'general problem solving',
+  'extended response format',
+  'conceptual mastery',
+  'time management',
+]);
+
 interface GeminiNarrativeResponse {
   headline: string;
   error_pattern_summary: string;
-  subject_health: Record<string, string>;
+  subject_error_patterns: Array<{
+    subject_id: string;
+    summary: string;
+  }>;
+  subject_health: Array<{
+    subject_id: string;
+    assessment: string;
+  }>;
   weak_spot_trends: Array<{
     topic_label_normalised: string;
     trend_phrase: string;
     dominant_error_type: string;
   }>;
-  topic_cluster_narratives: Record<
-    string,
-    Array<{ topic_label_normalised: string; narrative: string }>
-  >;
-  progress_narratives: Record<string, string>;
+  topic_cluster_narratives: Array<{
+    subject_id: string;
+    clusters: Array<{ topic_label_normalised: string; narrative: string }>;
+  }>;
+  progress_narratives: Array<{
+    subject_id: string;
+    narrative: string;
+  }>;
 }
 
 // =====================================================
@@ -68,7 +107,8 @@ interface GeminiNarrativeResponse {
  * `MIN_PROBLEMS_FOR_INSIGHTS` categorised attempts.
  */
 export async function generateDigestForUser(
-  userId: string
+  userId: string,
+  placeholderDigestId?: string
 ): Promise<InsightDigest | null> {
   const supabase = createServiceClient();
 
@@ -94,12 +134,35 @@ export async function generateDigestForUser(
     return null;
   }
 
-  // 3. Aggregate data
-  const clusters = buildClusters(aggregationRows);
+  // 3. Aggregate & deduplicate clusters
+  const rawClusters = buildClusters(aggregationRows);
+  const clusters = mergeSimilarClusters(rawClusters);
   const clustersBySubject = groupClustersBySubject(clusters);
   const errorDistribution = computeErrorDistribution(aggregationRows);
   const errorDistributionBySubject =
     computeErrorDistributionBySubject(aggregationRows);
+
+  // Build subject ID → name mapping for Gemini prompt
+  const subjectNames: Record<string, string> = {};
+  for (const c of clusters) {
+    if (!subjectNames[c.subject_id]) {
+      subjectNames[c.subject_id] = c.subject_name;
+    }
+  }
+
+  // Fetch total problem counts per subject for balanced context
+  const subjectIds = Object.keys(subjectNames);
+  const { data: problemCountRows } = await supabase
+    .from('problems')
+    .select('subject_id')
+    .eq('user_id', userId)
+    .in('subject_id', subjectIds);
+
+  const totalProblemsPerSubject: Record<string, number> = {};
+  for (const row of problemCountRows ?? []) {
+    totalProblemsPerSubject[row.subject_id] =
+      (totalProblemsPerSubject[row.subject_id] ?? 0) + 1;
+  }
 
   // 4. Rank weak spots
   const weakSpotCandidates = rankWeakSpots(clusters);
@@ -109,11 +172,13 @@ export async function generateDigestForUser(
   );
 
   // 5. Build raw aggregation data for AI context
+  const uniqueProblems = new Set(aggregationRows.map(r => r.problem_id)).size;
   const rawAggregationData: Record<string, unknown> = {
     total_categorisations: aggregationRows.length,
-    unique_problems: new Set(aggregationRows.map(r => r.problem_id)).size,
+    unique_problems_with_errors: uniqueProblems,
+    total_problems_per_subject: totalProblemsPerSubject,
     clusters_count: clusters.length,
-    subjects: Object.keys(clustersBySubject),
+    subject_names: subjectNames,
     error_distribution: errorDistribution,
     error_distribution_by_subject: errorDistributionBySubject,
     weak_spots: topWeakSpots.map(ws => ({
@@ -143,6 +208,27 @@ export async function generateDigestForUser(
   // 6. Call Gemini for narrative generation
   const narratives = await generateNarratives(rawAggregationData);
 
+  // Convert Gemini array responses to record format for storage
+  const subjectHealthRecord: Record<string, string> = {};
+  for (const sh of narratives.subject_health) {
+    subjectHealthRecord[sh.subject_id] = sh.assessment;
+  }
+  const subjectErrorPatternsRecord: Record<string, string> = {};
+  for (const sep of narratives.subject_error_patterns) {
+    subjectErrorPatternsRecord[sep.subject_id] = sep.summary;
+  }
+  const progressNarrativesRecord: Record<string, string> = {};
+  for (const pn of narratives.progress_narratives) {
+    progressNarrativesRecord[pn.subject_id] = pn.narrative;
+  }
+  const clusterNarrativeLookup: Record<
+    string,
+    Array<{ topic_label_normalised: string; narrative: string }>
+  > = {};
+  for (const tcn of narratives.topic_cluster_narratives) {
+    clusterNarrativeLookup[tcn.subject_id] = tcn.clusters;
+  }
+
   // 7. Merge AI narratives with computed data
   const weakSpots: WeakSpot[] = topWeakSpots.map(ws => {
     const aiTrend = narratives.weak_spot_trends.find(
@@ -164,7 +250,7 @@ export async function generateDigestForUser(
   for (const [subjectId, subjectClusters] of Object.entries(
     clustersBySubject
   )) {
-    const aiNarratives = narratives.topic_cluster_narratives[subjectId] ?? [];
+    const aiNarratives = clusterNarrativeLookup[subjectId] ?? [];
     topicClusters[subjectId] = subjectClusters.map(c => {
       const aiNarrative = aiNarratives.find(
         n => n.topic_label_normalised === c.topic_label_normalised
@@ -183,30 +269,49 @@ export async function generateDigestForUser(
 
   const now = new Date().toISOString();
 
-  // 8. Insert digest into the database
-  const { data: inserted, error: insertError } = await supabase
-    .from('insight_digests')
-    .insert({
-      user_id: userId,
-      generated_at: now,
-      headline: narratives.headline,
-      error_pattern_summary: narratives.error_pattern_summary,
-      subject_health: narratives.subject_health,
-      weak_spots: weakSpots,
-      topic_clusters: topicClusters,
-      progress_narratives: narratives.progress_narratives,
-      raw_aggregation_data: rawAggregationData,
-    })
-    .select()
-    .single();
+  const digestData = {
+    generated_at: now,
+    status: 'completed' as const,
+    headline: narratives.headline,
+    error_pattern_summary: narratives.error_pattern_summary,
+    subject_error_patterns: subjectErrorPatternsRecord,
+    subject_health: subjectHealthRecord,
+    weak_spots: weakSpots,
+    topic_clusters: topicClusters,
+    progress_narratives: progressNarrativesRecord,
+    raw_aggregation_data: rawAggregationData,
+  };
+
+  // 8. Save digest — update placeholder if provided, otherwise insert new row
+  let inserted;
+  let insertError;
+
+  if (placeholderDigestId) {
+    const result = await supabase
+      .from('insight_digests')
+      .update(digestData)
+      .eq('id', placeholderDigestId)
+      .select()
+      .single();
+    inserted = result.data;
+    insertError = result.error;
+  } else {
+    const result = await supabase
+      .from('insight_digests')
+      .insert({ user_id: userId, ...digestData })
+      .select()
+      .single();
+    inserted = result.data;
+    insertError = result.error;
+  }
 
   if (insertError) {
-    logger.error('Failed to insert insight digest', insertError, {
+    logger.error('Failed to save insight digest', insertError, {
       component: 'DigestGenerator',
-      action: 'insertDigest',
+      action: placeholderDigestId ? 'updateDigest' : 'insertDigest',
       userId,
     });
-    throw new Error(`Insert error: ${insertError.message}`);
+    throw new Error(`Save error: ${insertError.message}`);
   }
 
   // 9. Clean up old digests
@@ -281,9 +386,21 @@ export async function categoriseSingleAttempt(
     return null;
   }
 
+  const supabase = createServiceClient();
+
+  // Fetch existing topic labels for this subject to promote reuse
+  const { data: existingLabelsData } = await supabase
+    .from('error_categorisations')
+    .select('topic_label')
+    .eq('subject_id', attempt.subject_id)
+    .eq('user_id', userId);
+  const existingLabels = [
+    ...new Set((existingLabelsData ?? []).map(l => l.topic_label)),
+  ];
+
   const genai = new GoogleGenAI({ apiKey });
 
-  const userPrompt = buildCategorisationPrompt(attempt);
+  const userPrompt = buildCategorisationPrompt(attempt, existingLabels);
 
   const categorisationSchema = {
     type: 'object' as const,
@@ -307,7 +424,7 @@ export async function categoriseSingleAttempt(
   };
 
   const response = await genai.models.generateContent({
-    model: 'gemini-2.5-flash',
+    model: 'gemini-3-flash-preview',
     contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
     config: {
       systemInstruction: CATEGORISATION_SYSTEM_PROMPT,
@@ -332,8 +449,6 @@ export async function categoriseSingleAttempt(
     .toLowerCase()
     .trim()
     .replace(/\s+/g, ' ');
-
-  const supabase = createServiceClient();
 
   const { data: inserted, error: insertError } = await supabase
     .from('error_categorisations')
@@ -399,21 +514,30 @@ function buildClusters(rows: ErrorAggregationRow[]): ClusterAccumulator[] {
 
     cluster.rows.push(row);
     cluster.problem_ids.add(row.problem_id);
-
-    switch (row.problem_status) {
-      case 'wrong':
-        cluster.wrong_count++;
-        break;
-      case 'needs_review':
-        cluster.needs_review_count++;
-        break;
-      case 'mastered':
-        cluster.mastered_count++;
-        break;
-    }
-
     cluster.error_type_counts[row.broad_category] =
       (cluster.error_type_counts[row.broad_category] ?? 0) + 1;
+  }
+
+  // Count statuses per unique problem (not per categorisation row).
+  // problem_status is the problem's current status, so multiple rows
+  // for the same problem would inflate counts without deduplication.
+  for (const cluster of clusterMap.values()) {
+    const counted = new Set<string>();
+    for (const row of cluster.rows) {
+      if (counted.has(row.problem_id)) continue;
+      counted.add(row.problem_id);
+      switch (row.problem_status) {
+        case 'wrong':
+          cluster.wrong_count++;
+          break;
+        case 'needs_review':
+          cluster.needs_review_count++;
+          break;
+        case 'mastered':
+          cluster.mastered_count++;
+          break;
+      }
+    }
   }
 
   return Array.from(clusterMap.values());
@@ -432,11 +556,123 @@ function groupClustersBySubject(
   return grouped;
 }
 
+/**
+ * Merge similar clusters within the same subject and remove garbage labels.
+ *
+ * 1. Filter out clusters whose normalised label is a known placeholder.
+ * 2. When a shorter label is a substring of a longer label within the same
+ *    subject, absorb it into the longer (more specific) cluster.
+ */
+function mergeSimilarClusters(
+  clusters: ClusterAccumulator[]
+): ClusterAccumulator[] {
+  // 1. Filter garbage labels
+  const filtered = clusters.filter(
+    c => !GARBAGE_LABELS.has(c.topic_label_normalised)
+  );
+
+  // 2. Merge within same subject where one label contains another
+  const used = new Set<number>();
+  const merged: ClusterAccumulator[] = [];
+
+  // Sort by label length descending — more specific labels are canonical
+  const indexed = filtered.map((c, i) => ({ c, i }));
+  indexed.sort(
+    (a, b) =>
+      b.c.topic_label_normalised.length - a.c.topic_label_normalised.length
+  );
+
+  for (const { c: primary, i: pi } of indexed) {
+    if (used.has(pi)) continue;
+    used.add(pi);
+
+    // Find shorter labels in same subject that are substrings
+    const absorbed = indexed.filter(
+      ({ c: other, i: oi }) =>
+        !used.has(oi) &&
+        other.subject_id === primary.subject_id &&
+        primary.topic_label_normalised.includes(other.topic_label_normalised)
+    );
+
+    if (absorbed.length === 0) {
+      merged.push(primary);
+      continue;
+    }
+
+    const mergedPids = new Set(primary.problem_ids);
+    const mergedRows = [...primary.rows];
+    const etc = { ...primary.error_type_counts };
+
+    for (const { c: other, i: oi } of absorbed) {
+      used.add(oi);
+      for (const pid of other.problem_ids) mergedPids.add(pid);
+      mergedRows.push(...other.rows);
+      for (const [t, cnt] of Object.entries(other.error_type_counts)) {
+        etc[t] = (etc[t] ?? 0) + cnt;
+      }
+    }
+
+    // Re-count statuses from merged rows, deduplicating by problem_id
+    let w = 0;
+    let nr = 0;
+    let m = 0;
+    const counted = new Set<string>();
+    for (const row of mergedRows) {
+      if (counted.has(row.problem_id)) continue;
+      counted.add(row.problem_id);
+      switch (row.problem_status) {
+        case 'wrong':
+          w++;
+          break;
+        case 'needs_review':
+          nr++;
+          break;
+        case 'mastered':
+          m++;
+          break;
+      }
+    }
+
+    merged.push({
+      ...primary,
+      problem_ids: mergedPids,
+      rows: mergedRows,
+      wrong_count: w,
+      needs_review_count: nr,
+      mastered_count: m,
+      error_type_counts: etc,
+    });
+  }
+
+  return merged;
+}
+
+/**
+ * Pick the most recent categorisation per problem_id, then count
+ * broad_category occurrences.  This avoids inflating numbers when a
+ * single problem has many wrong attempts.
+ */
+function deduplicateByProblem(
+  rows: ErrorAggregationRow[]
+): ErrorAggregationRow[] {
+  const latest = new Map<string, ErrorAggregationRow>();
+  for (const row of rows) {
+    const existing = latest.get(row.problem_id);
+    if (
+      !existing ||
+      new Date(row.attempt_created_at) > new Date(existing.attempt_created_at)
+    ) {
+      latest.set(row.problem_id, row);
+    }
+  }
+  return Array.from(latest.values());
+}
+
 function computeErrorDistribution(
   rows: ErrorAggregationRow[]
 ): Record<string, number> {
   const dist: Record<string, number> = {};
-  for (const row of rows) {
+  for (const row of deduplicateByProblem(rows)) {
     dist[row.broad_category] = (dist[row.broad_category] ?? 0) + 1;
   }
   return dist;
@@ -446,7 +682,7 @@ function computeErrorDistributionBySubject(
   rows: ErrorAggregationRow[]
 ): Record<string, Record<string, number>> {
   const dist: Record<string, Record<string, number>> = {};
-  for (const row of rows) {
+  for (const row of deduplicateByProblem(rows)) {
     if (!dist[row.subject_id]) {
       dist[row.subject_id] = {};
     }
@@ -470,7 +706,9 @@ function rankWeakSpots(clusters: ClusterAccumulator[]): WeakSpotCandidate[] {
         cluster.wrong_count +
         cluster.needs_review_count +
         cluster.mastered_count;
+      // Skip clusters with no data or where all problems are now mastered
       if (total === 0) return null;
+      if (cluster.wrong_count + cluster.needs_review_count === 0) return null;
 
       // Recency score (weight 0.3): proportion of attempts in last 7 days
       const recentCount = cluster.rows.filter(r => {
@@ -575,16 +813,40 @@ function generateTrendPhrase(trendScore: number, recencyScore: number): string {
 // Gemini narrative generation
 // =====================================================
 
-const NARRATIVE_SYSTEM_PROMPT = `You are a study advisor for a high school student. Based on the following data about their recent study performance, write a concise, specific, and actionable study briefing. Use a warm but direct tone — be honest about weaknesses while acknowledging progress. Do not use generic advice. Every observation should reference specific topics and specific patterns from their data.`;
+const NARRATIVE_SYSTEM_PROMPT = `You are a study advisor for a high school student. Based on the following data about their recent study performance, write a concise, specific, and actionable study briefing. Use a warm but direct tone — be honest about weaknesses while acknowledging progress. Do not use generic advice. Every observation should reference specific topics and specific patterns from their data.
+
+IMPORTANT: The data includes a "subject_names" mapping of subject_id to subject name. You MUST generate exactly one entry per subject for subject_error_patterns, subject_health, topic_cluster_narratives, and progress_narratives, using the exact subject_id values from subject_names.
+
+The error_pattern_summary is the GLOBAL overview across all subjects. Each subject_error_patterns entry should be specific to that subject's error distribution — do NOT repeat the global summary.
+
+The data includes "total_problems_per_subject" showing how many problems the student has in each subject, and "unique_problems_with_errors" showing how many had errors. Use this to give balanced assessments — if most problems are mastered, acknowledge that progress rather than only focusing on errors. For example, "5 of your 16 Chemistry problems had errors" is more helpful than listing errors without context.`;
 
 const NARRATIVE_RESPONSE_SCHEMA = {
   type: 'object' as const,
   properties: {
     headline: { type: 'string' as const },
     error_pattern_summary: { type: 'string' as const },
+    subject_error_patterns: {
+      type: 'array' as const,
+      items: {
+        type: 'object' as const,
+        properties: {
+          subject_id: { type: 'string' as const },
+          summary: { type: 'string' as const },
+        },
+        required: ['subject_id', 'summary'] as const,
+      },
+    },
     subject_health: {
-      type: 'object' as const,
-      additionalProperties: { type: 'string' as const },
+      type: 'array' as const,
+      items: {
+        type: 'object' as const,
+        properties: {
+          subject_id: { type: 'string' as const },
+          assessment: { type: 'string' as const },
+        },
+        required: ['subject_id', 'assessment'] as const,
+      },
     },
     weak_spot_trends: {
       type: 'array' as const,
@@ -603,32 +865,57 @@ const NARRATIVE_RESPONSE_SCHEMA = {
       },
     },
     topic_cluster_narratives: {
-      type: 'object' as const,
-      additionalProperties: {
-        type: 'array' as const,
-        items: {
-          type: 'object' as const,
-          properties: {
-            topic_label_normalised: { type: 'string' as const },
-            narrative: { type: 'string' as const },
+      type: 'array' as const,
+      items: {
+        type: 'object' as const,
+        properties: {
+          subject_id: { type: 'string' as const },
+          clusters: {
+            type: 'array' as const,
+            items: {
+              type: 'object' as const,
+              properties: {
+                topic_label_normalised: { type: 'string' as const },
+                narrative: { type: 'string' as const },
+              },
+              required: ['topic_label_normalised', 'narrative'] as const,
+            },
           },
-          required: ['topic_label_normalised', 'narrative'] as const,
         },
+        required: ['subject_id', 'clusters'] as const,
       },
     },
     progress_narratives: {
-      type: 'object' as const,
-      additionalProperties: { type: 'string' as const },
+      type: 'array' as const,
+      items: {
+        type: 'object' as const,
+        properties: {
+          subject_id: { type: 'string' as const },
+          narrative: { type: 'string' as const },
+        },
+        required: ['subject_id', 'narrative'] as const,
+      },
     },
   },
   required: [
     'headline',
     'error_pattern_summary',
+    'subject_error_patterns',
     'subject_health',
     'weak_spot_trends',
     'topic_cluster_narratives',
     'progress_narratives',
   ] as const,
+};
+
+const EMPTY_NARRATIVE: GeminiNarrativeResponse = {
+  headline: 'Study insights generated',
+  error_pattern_summary: '',
+  subject_error_patterns: [],
+  subject_health: [],
+  weak_spot_trends: [],
+  topic_cluster_narratives: [],
+  progress_narratives: [],
 };
 
 async function generateNarratives(
@@ -640,22 +927,15 @@ async function generateNarratives(
       component: 'DigestGenerator',
       action: 'generateNarratives',
     });
-    return {
-      headline: 'Study insights generated',
-      error_pattern_summary: '',
-      subject_health: {},
-      weak_spot_trends: [],
-      topic_cluster_narratives: {},
-      progress_narratives: {},
-    };
+    return EMPTY_NARRATIVE;
   }
 
   const genai = new GoogleGenAI({ apiKey });
 
-  const userPrompt = `Here is the student's aggregated study performance data:\n\n${JSON.stringify(rawAggregationData, null, 2)}\n\nGenerate a study briefing based on this data. The headline must be at most 200 characters. Be specific about topics and patterns — avoid generic advice.`;
+  const userPrompt = `Here is the student's aggregated study performance data:\n\n${JSON.stringify(rawAggregationData, null, 2)}\n\nGenerate a study briefing based on this data. The headline must be at most 200 characters. Be specific about topics and patterns — avoid generic advice.\n\nIMPORTANT: For subject_error_patterns, subject_health, topic_cluster_narratives, and progress_narratives, generate exactly one entry per subject using the subject_id values from the "subject_names" field above.`;
 
   const response = await genai.models.generateContent({
-    model: 'gemini-2.5-flash',
+    model: 'gemini-3-flash-preview',
     contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
     config: {
       systemInstruction: NARRATIVE_SYSTEM_PROMPT,
@@ -670,14 +950,7 @@ async function generateNarratives(
       component: 'DigestGenerator',
       action: 'generateNarratives',
     });
-    return {
-      headline: 'Study insights generated',
-      error_pattern_summary: '',
-      subject_health: {},
-      weak_spot_trends: [],
-      topic_cluster_narratives: {},
-      progress_narratives: {},
-    };
+    return EMPTY_NARRATIVE;
   }
 
   return JSON.parse(text) as GeminiNarrativeResponse;
@@ -700,11 +973,21 @@ You must classify the error into one of these broad categories:
 
 Also provide:
 - granular_tag: A short, specific tag for the exact sub-skill (e.g. "fraction_division", "quadratic_formula_sign_error")
-- topic_label: A human-readable topic label (e.g. "Fraction Operations", "Quadratic Formula")
+- topic_label: A human-readable ACADEMIC topic label (e.g. "Fraction Operations", "Quadratic Formula")
 - confidence: Your confidence in this categorisation from 0.0 to 1.0
-- reasoning: Brief explanation of why you chose this category`;
+- reasoning: Brief explanation of why you chose this category
 
-function buildCategorisationPrompt(attempt: UncategorisedAttempt): string {
+# Topic Label Rules
+- The topic_label MUST be an academic topic directly related to the subject being studied.
+- Use Title Case, 2–5 words (e.g. "Trigonometric Ratios", "Acid-Base Equilibrium").
+- NEVER use placeholder labels such as "Unknown", "Unknown Topic", "N/A", "No Error", "Data Unavailable", "General Problem Solving", "Task Completion", or similar non-academic labels.
+- If the problem content is sparse, infer the most likely academic topic from the subject name, problem title, and any available context.
+- If existing topic labels are listed in the prompt, PREFER reusing a matching one to keep clusters consistent.`;
+
+function buildCategorisationPrompt(
+  attempt: UncategorisedAttempt,
+  existingLabels: string[] = []
+): string {
   const parts: string[] = [
     `Subject: ${attempt.subject_name}`,
     `Problem title: ${attempt.problem_title}`,
@@ -712,7 +995,6 @@ function buildCategorisationPrompt(attempt: UncategorisedAttempt): string {
   ];
 
   if (attempt.problem_content) {
-    // Truncate very long content
     const content =
       attempt.problem_content.length > 2000
         ? attempt.problem_content.slice(0, 2000) + '...'
@@ -742,6 +1024,12 @@ function buildCategorisationPrompt(attempt: UncategorisedAttempt): string {
   }
 
   parts.push(`Status after attempt: ${attempt.selected_status}`);
+
+  if (existingLabels.length > 0) {
+    parts.push(
+      `\nExisting topic labels for this subject (reuse one if it fits): ${existingLabels.join(', ')}`
+    );
+  }
 
   return parts.join('\n');
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Lightbulb,
@@ -12,31 +12,97 @@ import {
   Loader2,
   TrendingUp,
   FileQuestion,
+  Play,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import type { InsightDigest, WeakSpot, TopicCluster } from '@/lib/types';
+import { SUBJECT_CONSTANTS, INSIGHT_CONSTANTS } from '@/lib/constants';
+
+interface ReviewSessionSummary {
+  id: string;
+  is_active: boolean;
+  problem_ids: string[];
+}
+
+type ReviewState = 'review' | 'resume';
+
+function getReviewState(
+  problemIds: string[],
+  sessions: ReviewSessionSummary[]
+): ReviewState {
+  const key = [...problemIds].sort().join(',');
+  if (sessions.some(s => s.is_active && s.problem_ids.join(',') === key)) {
+    return 'resume';
+  }
+  return 'review';
+}
 
 interface InsightsPageClientProps {
   initialDigest: InsightDigest | null;
+  initialIsGenerating?: boolean;
   subjects: Array<{ id: string; name: string; color: string | null }>;
+  reviewSessions: ReviewSessionSummary[];
 }
 
 export default function InsightsPageClient({
   initialDigest,
+  initialIsGenerating = false,
   subjects,
+  reviewSessions,
 }: InsightsPageClientProps) {
   const router = useRouter();
   const [digest, setDigest] = useState<InsightDigest | null>(initialDigest);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(initialIsGenerating);
   const [hasInsufficientData, setHasInsufficientData] = useState(false);
   const [reviewingSubjectId, setReviewingSubjectId] = useState<string | null>(
     null
   );
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const subjectMap = Object.fromEntries(
     subjects.map(s => [s.id, { name: s.name, color: s.color }])
   );
+
+  const stopPolling = useCallback(() => {
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+  }, []);
+
+  const startPolling = useCallback(() => {
+    stopPolling();
+    pollRef.current = setInterval(async () => {
+      try {
+        const res = await fetch('/api/insights/status');
+        const json = await res.json();
+        const data = json.data ?? json;
+
+        if (data.status === 'completed' && data.digest) {
+          setDigest(data.digest);
+          setIsGenerating(false);
+          stopPolling();
+          toast.success('Insights generated successfully');
+        } else if (data.status === 'failed' || data.status === 'none') {
+          setIsGenerating(false);
+          stopPolling();
+          toast.error('Insights generation failed. Please try again.');
+        }
+        // 'generating' → keep polling
+      } catch {
+        // Network error — keep polling
+      }
+    }, INSIGHT_CONSTANTS.GENERATION_POLL_INTERVAL_MS);
+  }, [stopPolling]);
+
+  // Start polling on mount if generation is in progress
+  useEffect(() => {
+    if (isGenerating) {
+      startPolling();
+    }
+    return stopPolling;
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleGenerate() {
     setIsGenerating(true);
@@ -46,22 +112,42 @@ export default function InsightsPageClient({
       const json = await res.json();
 
       if (!res.ok) {
+        if (res.status === 409) {
+          // Already generating — start polling
+          startPolling();
+          return;
+        }
         if (res.status === 422 || json?.error === 'insufficient_data') {
           setHasInsufficientData(true);
+          setIsGenerating(false);
           return;
         }
         throw new Error(json?.error || 'Failed to generate insights');
       }
 
-      setDigest(json.data ?? json);
+      const data = json.data ?? json;
+      if (data.insufficient_data) {
+        setHasInsufficientData(true);
+        setIsGenerating(false);
+        return;
+      }
+
+      // Check if the API returned a cached digest due to cooldown
+      if (json.message && digest && data.id === digest.id) {
+        setIsGenerating(false);
+        toast.info('Insights were generated recently. Try again later.');
+        return;
+      }
+
+      setDigest(data);
+      setIsGenerating(false);
       toast.success('Insights generated successfully');
       router.refresh();
     } catch (err) {
+      setIsGenerating(false);
       toast.error(
         err instanceof Error ? err.message : 'Failed to generate insights'
       );
-    } finally {
-      setIsGenerating(false);
     }
   }
 
@@ -170,6 +256,7 @@ export default function InsightsPageClient({
             weakSpots={weakSpots}
             onReview={handleReview}
             reviewingSubjectId={reviewingSubjectId}
+            reviewSessions={reviewSessions}
           />
         )}
 
@@ -236,7 +323,7 @@ function EmptyInsightsState({
   onGenerate: () => void;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-orange-200/40 bg-gradient-to-br from-orange-50 to-amber-50/50 p-12 text-center dark:border-orange-800/30 dark:from-orange-950/40 dark:to-amber-900/20">
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-orange-200/40 bg-orange-50/50 p-12 text-center dark:border-orange-800/30 dark:bg-orange-950/30">
       {isGenerating ? (
         <>
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-500/10 dark:bg-orange-500/20">
@@ -312,7 +399,7 @@ function DigestHeader({
   });
 
   return (
-    <div className="rounded-2xl border border-orange-200/40 bg-gradient-to-br from-orange-50 to-amber-50/50 p-6 dark:border-orange-800/30 dark:from-orange-950/40 dark:to-amber-900/20">
+    <div className="rounded-2xl border border-orange-200/40 bg-orange-50/50 p-6 dark:border-orange-800/30 dark:bg-orange-950/30">
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -343,10 +430,12 @@ function WeakSpotsList({
   weakSpots,
   onReview,
   reviewingSubjectId,
+  reviewSessions,
 }: {
   weakSpots: WeakSpot[];
   onReview: (subjectId: string, problemIds: string[]) => void;
   reviewingSubjectId: string | null;
+  reviewSessions: ReviewSessionSummary[];
 }) {
   return (
     <section className="space-y-4">
@@ -357,11 +446,12 @@ function WeakSpotsList({
       <div className="space-y-3">
         {weakSpots.map((ws, i) => {
           const isReviewing = reviewingSubjectId === ws.subject_id;
+          const state = getReviewState(ws.problem_ids, reviewSessions);
 
           return (
             <div
               key={`${ws.topic_label}-${i}`}
-              className="rounded-xl border border-rose-200/40 bg-gradient-to-br from-rose-50/50 to-white p-4 dark:border-rose-800/30 dark:from-rose-950/30 dark:to-gray-900"
+              className="rounded-xl border border-rose-200/40 bg-rose-50/30 p-4 dark:border-rose-800/30 dark:bg-rose-950/20"
               style={{
                 borderLeftWidth: '4px',
                 borderLeftColor: ws.subject_color || undefined,
@@ -383,20 +473,12 @@ function WeakSpotsList({
                     {ws.dominant_error_type}
                   </span>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={isReviewing}
+                <ReviewButton
+                  state={state}
+                  isLoading={isReviewing}
                   onClick={() => onReview(ws.subject_id, ws.problem_ids)}
-                  className="shrink-0 rounded-xl border-rose-200/50 text-rose-600 hover:bg-rose-50 dark:border-rose-800/40 dark:text-rose-400 dark:hover:bg-rose-950/30"
-                >
-                  {isReviewing ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <ArrowRight className="mr-2 h-4 w-4" />
-                  )}
-                  Review
-                </Button>
+                  variant="rose"
+                />
               </div>
             </div>
           );
@@ -413,7 +495,7 @@ function ErrorPatternSummary({ summary }: { summary: string }) {
         <TrendingUp className="h-5 w-5 text-amber-600 dark:text-amber-400" />
         Error Pattern Summary
       </h2>
-      <div className="rounded-2xl border border-amber-200/40 bg-gradient-to-br from-amber-50/50 to-white p-5 dark:border-amber-800/30 dark:from-amber-950/30 dark:to-gray-900">
+      <div className="rounded-2xl border border-amber-200/40 bg-amber-50/30 p-5 dark:border-amber-800/30 dark:bg-amber-950/20">
         <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 whitespace-pre-line">
           {summary}
         </p>
@@ -436,22 +518,25 @@ function SubjectHealthRow({
   onViewDetails: () => void;
 }) {
   const clusterCount = topicClusters?.length ?? 0;
+  const safeColor =
+    subjectColor && subjectColor in SUBJECT_CONSTANTS.COLOR_GRADIENTS
+      ? subjectColor
+      : SUBJECT_CONSTANTS.DEFAULT_COLOR;
+  const colorClasses =
+    SUBJECT_CONSTANTS.COLOR_GRADIENTS[
+      safeColor as keyof typeof SUBJECT_CONSTANTS.COLOR_GRADIENTS
+    ];
 
   return (
-    <div className="rounded-2xl border border-blue-200/40 bg-gradient-to-br from-blue-50/50 to-white p-5 dark:border-blue-800/30 dark:from-blue-950/30 dark:to-gray-900">
+    <div
+      className={`rounded-2xl border bg-gradient-to-br p-5 ${colorClasses.border}       
+          - ${colorClasses.light} ${colorClasses.dark}`}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1 space-y-1">
-          <div className="flex items-center gap-2">
-            {subjectColor && (
-              <span
-                className="h-3 w-3 rounded-full"
-                style={{ backgroundColor: subjectColor }}
-              />
-            )}
-            <h3 className="font-semibold text-gray-900 dark:text-white">
-              {subjectName}
-            </h3>
-          </div>
+          <h3 className="font-semibold text-gray-900 dark:text-white">
+            {subjectName}
+          </h3>
           <p className="text-sm text-gray-600 dark:text-gray-300">
             {healthSummary}
           </p>
@@ -466,12 +551,48 @@ function SubjectHealthRow({
           variant="outline"
           size="sm"
           onClick={onViewDetails}
-          className="shrink-0 rounded-xl border-blue-200/50 text-blue-600 hover:bg-blue-50 dark:border-blue-800/40 dark:text-blue-400 dark:hover:bg-blue-950/30"
+          className={`shrink-0 rounded-xl ${colorClasses.border} ${colorClasses.iconColor} ${colorClasses.buttonHover}`}
         >
           Details
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </div>
+  );
+}
+
+function ReviewButton({
+  state,
+  isLoading,
+  onClick,
+  variant,
+}: {
+  state: ReviewState;
+  isLoading: boolean;
+  onClick: () => void;
+  variant: 'rose' | 'blue';
+}) {
+  const colors =
+    variant === 'rose'
+      ? 'border-rose-200/50 text-rose-600 hover:bg-rose-50 dark:border-rose-800/40 dark:text-rose-400 dark:hover:bg-rose-950/30'
+      : 'border-blue-200/50 text-blue-600 hover:bg-blue-50 dark:border-blue-800/40 dark:text-blue-400 dark:hover:bg-blue-950/30';
+
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      disabled={isLoading}
+      onClick={onClick}
+      className={`shrink-0 rounded-xl ${colors}`}
+    >
+      {isLoading ? (
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      ) : state === 'resume' ? (
+        <Play className="mr-2 h-4 w-4" />
+      ) : (
+        <ArrowRight className="mr-2 h-4 w-4" />
+      )}
+      {state === 'resume' ? 'Resume' : 'Review'}
+    </Button>
   );
 }

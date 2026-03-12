@@ -79,6 +79,10 @@ function buildSystemPrompt(
 2. Consider the student's self-reported cause and reflection notes if provided.
 3. Generate a specific, descriptive granular_tag (e.g. "mixed up sine and cosine in right triangles", "forgot to distribute the negative sign").
 4. Generate a consistent, reusable topic_label for clustering related problems (e.g. "Trigonometric Ratios", "Polynomial Factoring"). Use Title Case. Keep it concise (2-5 words). This label should be reusable across many problems in the same topic area.
+   - The topic_label MUST be an academic topic directly related to the subject.
+   - NEVER use placeholder labels like "Unknown", "N/A", "No Error", "Data Unavailable", "General Problem Solving", etc.
+   - If problem content is sparse, infer the topic from the subject name and problem title.
+   - If existing topic labels are provided in the user prompt, prefer reusing a matching one.
 5. If previous attempts are provided, look for recurring error patterns.
 6. Set confidence between 0 and 1 based on how certain you are about the categorisation.
 7. Provide brief reasoning explaining your categorisation.`;
@@ -102,7 +106,8 @@ function buildUserPrompt(
     is_correct: boolean | null;
     cause: string | null;
     created_at: string;
-  }>
+  }>,
+  existingLabels: string[] = []
 ) {
   let prompt = `# Problem
 Title: ${problem.title}
@@ -121,6 +126,10 @@ Confidence level: ${attempt.confidence ?? '(not provided)'}`;
     for (const prev of previousAttempts) {
       prompt += `\n- Answer: ${JSON.stringify(prev.submitted_answer)}, Correct: ${prev.is_correct}, Cause: ${prev.cause || 'N/A'}, Date: ${prev.created_at}`;
     }
+  }
+
+  if (existingLabels.length > 0) {
+    prompt += `\n\nExisting topic labels for this subject (reuse one if it fits): ${existingLabels.join(', ')}`;
   }
 
   prompt +=
@@ -175,32 +184,42 @@ export async function POST(req: Request) {
     const serviceClient = createServiceClient();
 
     // Fetch all required data in parallel
-    const [attemptResult, problemResult, subjectResult, previousResult] =
-      await Promise.all([
-        serviceClient
-          .from('attempts')
-          .select('*')
-          .eq('id', attempt_id)
-          .eq('user_id', user_id)
-          .single(),
-        serviceClient
-          .from('problems')
-          .select('title, content, problem_type, correct_answer, subject_id')
-          .eq('id', problem_id)
-          .single(),
-        serviceClient
-          .from('subjects')
-          .select('name')
-          .eq('id', subject_id)
-          .single(),
-        serviceClient
-          .from('attempts')
-          .select('submitted_answer, is_correct, cause, created_at')
-          .eq('problem_id', problem_id)
-          .eq('user_id', user_id)
-          .order('created_at', { ascending: false })
-          .limit(5),
-      ]);
+    const [
+      attemptResult,
+      problemResult,
+      subjectResult,
+      previousResult,
+      existingLabelsResult,
+    ] = await Promise.all([
+      serviceClient
+        .from('attempts')
+        .select('*')
+        .eq('id', attempt_id)
+        .eq('user_id', user_id)
+        .single(),
+      serviceClient
+        .from('problems')
+        .select('title, content, problem_type, correct_answer, subject_id')
+        .eq('id', problem_id)
+        .single(),
+      serviceClient
+        .from('subjects')
+        .select('name')
+        .eq('id', subject_id)
+        .single(),
+      serviceClient
+        .from('attempts')
+        .select('submitted_answer, is_correct, cause, created_at')
+        .eq('problem_id', problem_id)
+        .eq('user_id', user_id)
+        .order('created_at', { ascending: false })
+        .limit(5),
+      serviceClient
+        .from('error_categorisations')
+        .select('topic_label')
+        .eq('subject_id', subject_id)
+        .eq('user_id', user_id),
+    ]);
 
     if (attemptResult.error || !attemptResult.data) {
       return NextResponse.json(
@@ -240,10 +259,22 @@ export async function POST(req: Request) {
     const problem = problemResult.data;
     const subject = subjectResult.data;
     const previousAttempts = previousResult.data ?? [];
+    const existingLabels = [
+      ...new Set(
+        (existingLabelsResult.data ?? []).map(
+          (l: { topic_label: string }) => l.topic_label
+        )
+      ),
+    ];
 
     // Build prompt and call Gemini
     const systemPrompt = buildSystemPrompt(problem, subject.name);
-    const userPrompt = buildUserPrompt(problem, attempt, previousAttempts);
+    const userPrompt = buildUserPrompt(
+      problem,
+      attempt,
+      previousAttempts,
+      existingLabels
+    );
 
     const genai = new GoogleGenAI({ apiKey });
 

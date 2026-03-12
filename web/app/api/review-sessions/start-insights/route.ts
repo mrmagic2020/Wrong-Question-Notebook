@@ -38,6 +38,40 @@ async function startInsightsSession(req: Request) {
   const { subject_id, problem_ids } = parsed.data;
 
   try {
+    // Check for an existing active insights_review session with the same problems
+    const { data: activeSessions } = await supabase
+      .from('review_session_state')
+      .select('id, session_state')
+      .eq('user_id', user.id)
+      .eq('session_type', 'insights_review')
+      .eq('subject_id', subject_id)
+      .eq('is_active', true)
+      .order('last_activity_at', { ascending: false });
+
+    if (activeSessions && activeSessions.length > 0) {
+      const sortedRequestIds = [...problem_ids].sort().join(',');
+      const match = activeSessions.find(s => {
+        const sessionIds = [
+          ...((s.session_state as { problem_ids?: string[] })?.problem_ids ??
+            []),
+        ]
+          .sort()
+          .join(',');
+        return sessionIds === sortedRequestIds;
+      });
+
+      if (match) {
+        return NextResponse.json(
+          createApiSuccessResponse({
+            sessionId: match.id,
+            problemCount: problem_ids.length,
+            firstProblemId: problem_ids[0],
+            resumed: true,
+          })
+        );
+      }
+    }
+
     // Validate the user owns all the problems
     const { data: ownedProblems, error: ownershipError } = await supabase
       .from('problems')

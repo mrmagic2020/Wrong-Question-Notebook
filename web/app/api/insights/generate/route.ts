@@ -19,8 +19,40 @@ async function generateInsights(req: Request) {
   if (!user) return unauthorised();
 
   try {
-    // Check cooldown: was a digest generated within the last DIGEST_COOLDOWN_HOURS?
     const supabase = createServiceClient();
+
+    // Mark stale 'generating' rows as failed
+    const staleThreshold = new Date(
+      Date.now() - INSIGHT_CONSTANTS.GENERATING_STALE_MINUTES * 60 * 1000
+    ).toISOString();
+
+    await supabase
+      .from('insight_digests')
+      .update({ status: 'failed' })
+      .eq('user_id', user.id)
+      .eq('status', 'generating')
+      .lt('generated_at', staleThreshold);
+
+    // Check if generation is already in progress
+    const { data: activeRow } = await supabase
+      .from('insight_digests')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('status', 'generating')
+      .limit(1)
+      .maybeSingle();
+
+    if (activeRow) {
+      return NextResponse.json(
+        createApiErrorResponse(
+          'Insights generation is already in progress',
+          409
+        ),
+        { status: 409 }
+      );
+    }
+
+    // Check cooldown: was a completed digest generated recently?
     const cooldownThreshold = new Date(
       Date.now() - INSIGHT_CONSTANTS.DIGEST_COOLDOWN_HOURS * 60 * 60 * 1000
     ).toISOString();
@@ -29,6 +61,7 @@ async function generateInsights(req: Request) {
       .from('insight_digests')
       .select('*')
       .eq('user_id', user.id)
+      .eq('status', 'completed')
       .gte('generated_at', cooldownThreshold)
       .order('generated_at', { ascending: false })
       .limit(1);
@@ -53,16 +86,45 @@ async function generateInsights(req: Request) {
       );
     }
 
+    // Insert placeholder row with 'generating' status
+    const { data: placeholder, error: placeholderError } = await supabase
+      .from('insight_digests')
+      .insert({
+        user_id: user.id,
+        status: 'generating',
+        headline: '',
+        error_pattern_summary: '',
+      })
+      .select('id')
+      .single();
+
+    if (placeholderError || !placeholder) {
+      return NextResponse.json(
+        createApiErrorResponse(
+          'Failed to start generation',
+          500,
+          placeholderError?.message
+        ),
+        { status: 500 }
+      );
+    }
+
     // Backfill uncategorised attempts first
     await categoriseUncategorisedAttempts(
       user.id,
       INSIGHT_CONSTANTS.BACKFILL_BATCH_SIZE
     );
 
-    // Generate the digest
-    const digest = await generateDigestForUser(user.id);
+    // Generate the digest (updates placeholder row on success)
+    const digest = await generateDigestForUser(user.id, placeholder.id);
 
     if (!digest) {
+      // No data — delete placeholder
+      await supabase
+        .from('insight_digests')
+        .delete()
+        .eq('id', placeholder.id);
+
       return NextResponse.json(
         createApiSuccessResponse(
           { insufficient_data: true },
@@ -73,6 +135,18 @@ async function generateInsights(req: Request) {
 
     return NextResponse.json(createApiSuccessResponse(digest));
   } catch (error) {
+    // Best-effort: mark any generating rows as failed
+    try {
+      const supabase = createServiceClient();
+      await supabase
+        .from('insight_digests')
+        .update({ status: 'failed' })
+        .eq('user_id', user.id)
+        .eq('status', 'generating');
+    } catch {
+      // ignore cleanup errors
+    }
+
     const { message, status } = handleAsyncError(error);
     return NextResponse.json(createApiErrorResponse(message, status), {
       status,
