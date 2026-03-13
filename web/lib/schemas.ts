@@ -9,6 +9,7 @@ import {
   SUBJECT_CONSTANTS,
   ATTEMPT_CONSTANTS,
   SPACED_REPETITION_CONSTANTS,
+  ERROR_CATEGORY_VALUES,
 } from './constants';
 import { sanitizeHtmlContent } from './html-sanitizer';
 import { isValidTimezone } from './timezone-utils';
@@ -427,15 +428,7 @@ export const RemoveProblemsFromSetDto = z.object({
 // Error Categorisation & Insights Schemas
 // =====================================================
 
-export const ErrorBroadCategorySchema = z.enum([
-  'conceptual_misunderstanding',
-  'procedural_error',
-  'knowledge_gap',
-  'misread_question',
-  'careless_mistake',
-  'time_pressure',
-  'incomplete_answer',
-]);
+export const ErrorBroadCategorySchema = z.enum(ERROR_CATEGORY_VALUES);
 
 export const AICategorisationResponseSchema = z.object({
   broad_category: ErrorBroadCategorySchema,
