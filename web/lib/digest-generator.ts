@@ -1226,7 +1226,15 @@ async function generateNarratives(
     return EMPTY_NARRATIVE;
   }
 
-  return JSON.parse(text) as GeminiNarrativeResponse;
+  try {
+    return JSON.parse(text) as GeminiNarrativeResponse;
+  } catch {
+    logger.error('Failed to parse Gemini narrative response', { text }, {
+      component: 'DigestGenerator',
+      action: 'generateNarratives',
+    });
+    return EMPTY_NARRATIVE;
+  }
 }
 
 // =====================================================
