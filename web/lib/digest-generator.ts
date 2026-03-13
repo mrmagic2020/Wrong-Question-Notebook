@@ -1176,26 +1176,14 @@ const NARRATIVE_RESPONSE_SCHEMA = {
   ] as const,
 };
 
-const EMPTY_NARRATIVE: GeminiNarrativeResponse = {
-  headline: 'Study insights generated',
-  error_pattern_summary: '',
-  subject_error_patterns: [],
-  subject_health: [],
-  weak_spot_trends: [],
-  topic_cluster_narratives: [],
-  progress_narratives: [],
-};
-
 async function generateNarratives(
   rawAggregationData: Record<string, unknown>
 ): Promise<GeminiNarrativeResponse> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    logger.warn('GEMINI_API_KEY not configured, returning empty narratives', {
-      component: 'DigestGenerator',
-      action: 'generateNarratives',
-    });
-    return EMPTY_NARRATIVE;
+    throw new Error(
+      'GEMINI_API_KEY not configured — cannot generate narrative insights'
+    );
   }
 
   const genai = new GoogleGenAI({ apiKey });
@@ -1219,11 +1207,7 @@ async function generateNarratives(
 
   const text = response.text;
   if (!text) {
-    logger.warn('Gemini returned empty narrative response', {
-      component: 'DigestGenerator',
-      action: 'generateNarratives',
-    });
-    return EMPTY_NARRATIVE;
+    throw new Error('Gemini returned empty narrative response');
   }
 
   try {
@@ -1233,7 +1217,7 @@ async function generateNarratives(
       component: 'DigestGenerator',
       action: 'generateNarratives',
     });
-    return EMPTY_NARRATIVE;
+    throw new Error('Failed to parse AI narrative response');
   }
 }
 
