@@ -131,7 +131,7 @@ export async function PATCH(
         await revalidateProblemAndSubject(data.problem_id, problem.subject_id);
       }
 
-      // Fire-and-forget AI error categorisation for wrong/needs_review
+      // Trigger AI error categorisation for wrong/needs_review
       if (
         (parsed.data.selected_status === 'wrong' ||
           parsed.data.selected_status === 'needs_review') &&
@@ -141,7 +141,9 @@ export async function PATCH(
           const origin = new URL(req.url).origin;
           const secret = process.env.CATEGORISATION_SECRET;
           if (secret) {
-            fetch(`${origin}/api/ai/categorise-error`, {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 3000);
+            await fetch(`${origin}/api/ai/categorise-error`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -153,9 +155,12 @@ export async function PATCH(
                 subject_id: problem.subject_id,
                 user_id: user.id,
               }),
-            }).catch(err =>
-              console.error('[categorise-trigger] fetch failed:', err)
-            );
+              signal: controller.signal,
+            })
+              .catch(err =>
+                console.error('[categorise-trigger] fetch failed:', err)
+              )
+              .finally(() => clearTimeout(timeout));
           }
         } catch (e) {
           console.error('[categorise-trigger] error:', e);
