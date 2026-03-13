@@ -12,52 +12,27 @@ import {
   Loader2,
   TrendingUp,
   FileQuestion,
-  Play,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import type { InsightDigest, WeakSpot, TopicCluster } from '@/lib/types';
+import type { InsightDigest, TopicCluster } from '@/lib/types';
 import { SUBJECT_CONSTANTS, INSIGHT_CONSTANTS } from '@/lib/constants';
-
-interface ReviewSessionSummary {
-  id: string;
-  is_active: boolean;
-  problem_ids: string[];
-}
-
-type ReviewState = 'review' | 'resume';
-
-function getReviewState(
-  problemIds: string[],
-  sessions: ReviewSessionSummary[]
-): ReviewState {
-  const key = [...problemIds].sort().join(',');
-  if (sessions.some(s => s.is_active && s.problem_ids.join(',') === key)) {
-    return 'resume';
-  }
-  return 'review';
-}
 
 interface InsightsPageClientProps {
   initialDigest: InsightDigest | null;
   initialIsGenerating?: boolean;
   subjects: Array<{ id: string; name: string; color: string | null }>;
-  reviewSessions: ReviewSessionSummary[];
 }
 
 export default function InsightsPageClient({
   initialDigest,
   initialIsGenerating = false,
   subjects,
-  reviewSessions,
 }: InsightsPageClientProps) {
   const router = useRouter();
   const [digest, setDigest] = useState<InsightDigest | null>(initialDigest);
   const [isGenerating, setIsGenerating] = useState(initialIsGenerating);
   const [hasInsufficientData, setHasInsufficientData] = useState(false);
-  const [reviewingSubjectId, setReviewingSubjectId] = useState<string | null>(
-    null
-  );
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const subjectMap = Object.fromEntries(
@@ -151,34 +126,6 @@ export default function InsightsPageClient({
     }
   }
 
-  async function handleReview(subjectId: string, problemIds: string[]) {
-    setReviewingSubjectId(subjectId);
-    try {
-      const res = await fetch('/api/review-sessions/start-insights', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          subject_id: subjectId,
-          problem_ids: problemIds,
-        }),
-      });
-      const json = await res.json();
-
-      if (!res.ok) {
-        throw new Error(json?.error || 'Failed to start review session');
-      }
-
-      const sessionId = json.data?.sessionId ?? json.sessionId;
-      router.push(`/subjects/${subjectId}/review-due?sessionId=${sessionId}`);
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : 'Failed to start review'
-      );
-    } finally {
-      setReviewingSubjectId(null);
-    }
-  }
-
   // Empty state: no digest and not generating
   if (!digest && !isGenerating && !hasInsufficientData) {
     return (
@@ -228,14 +175,15 @@ export default function InsightsPageClient({
   }
 
   // We have a digest
-  const weakSpots = (digest!.weak_spots || []).map(ws => ({
-    ...ws,
-    subject_color: subjectMap[ws.subject_id]?.color ?? undefined,
-    subject_name:
-      ws.subject_name || subjectMap[ws.subject_id]?.name || 'Unknown',
-  }));
-
+  const weakSpots = digest!.weak_spots || [];
   const subjectHealth = digest!.subject_health || {};
+
+  // Count weak spots per subject
+  const weakSpotCountBySubject: Record<string, number> = {};
+  for (const ws of weakSpots) {
+    weakSpotCountBySubject[ws.subject_id] =
+      (weakSpotCountBySubject[ws.subject_id] ?? 0) + 1;
+  }
 
   return (
     <div className="page-container max-w-4xl mx-auto">
@@ -249,16 +197,6 @@ export default function InsightsPageClient({
           onRegenerate={handleGenerate}
           isGenerating={isGenerating}
         />
-
-        {/* Weak Spots */}
-        {weakSpots.length > 0 && (
-          <WeakSpotsList
-            weakSpots={weakSpots}
-            onReview={handleReview}
-            reviewingSubjectId={reviewingSubjectId}
-            reviewSessions={reviewSessions}
-          />
-        )}
 
         {/* Error Pattern Summary */}
         {digest!.error_pattern_summary && (
@@ -283,6 +221,7 @@ export default function InsightsPageClient({
                     subjectColor={subjectMap[subjectId]?.color ?? null}
                     healthSummary={healthSummary}
                     topicClusters={digest!.topic_clusters?.[subjectId]}
+                    weakSpotCount={weakSpotCountBySubject[subjectId] ?? 0}
                     onViewDetails={() => router.push(`/insights/${subjectId}`)}
                   />
                 )
@@ -426,68 +365,6 @@ function DigestHeader({
   );
 }
 
-function WeakSpotsList({
-  weakSpots,
-  onReview,
-  reviewingSubjectId,
-  reviewSessions,
-}: {
-  weakSpots: WeakSpot[];
-  onReview: (subjectId: string, problemIds: string[]) => void;
-  reviewingSubjectId: string | null;
-  reviewSessions: ReviewSessionSummary[];
-}) {
-  return (
-    <section className="space-y-4">
-      <h2 className="heading-sm text-foreground flex items-center gap-2">
-        <AlertTriangle className="h-5 w-5 text-rose-600 dark:text-rose-400" />
-        Weak Spots
-      </h2>
-      <div className="space-y-3">
-        {weakSpots.map((ws, i) => {
-          const isReviewing = reviewingSubjectId === ws.subject_id;
-          const state = getReviewState(ws.problem_ids, reviewSessions);
-
-          return (
-            <div
-              key={`${ws.topic_label}-${i}`}
-              className="rounded-xl border border-rose-200/40 bg-rose-50/30 p-4 dark:border-rose-800/30 dark:bg-rose-950/20"
-              style={{
-                borderLeftWidth: '4px',
-                borderLeftColor: ws.subject_color || undefined,
-              }}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1 space-y-1">
-                  <h3 className="font-semibold text-gray-900 dark:text-white">
-                    {ws.topic_label}
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {ws.subject_name} &middot; {ws.problem_count} problem
-                    {ws.problem_count !== 1 ? 's' : ''}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
-                    {ws.trend_phrase}
-                  </p>
-                  <span className="inline-flex items-center rounded-full bg-rose-100/80 px-2.5 py-0.5 text-xs font-medium text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">
-                    {ws.dominant_error_type}
-                  </span>
-                </div>
-                <ReviewButton
-                  state={state}
-                  isLoading={isReviewing}
-                  onClick={() => onReview(ws.subject_id, ws.problem_ids)}
-                  variant="rose"
-                />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
 function ErrorPatternSummary({ summary }: { summary: string }) {
   return (
     <section className="space-y-4">
@@ -509,12 +386,14 @@ function SubjectHealthRow({
   subjectColor,
   healthSummary,
   topicClusters,
+  weakSpotCount,
   onViewDetails,
 }: {
   subjectName: string;
   subjectColor: string | null;
   healthSummary: string;
   topicClusters?: TopicCluster[];
+  weakSpotCount: number;
   onViewDetails: () => void;
 }) {
   const clusterCount = topicClusters?.length ?? 0;
@@ -539,12 +418,19 @@ function SubjectHealthRow({
           <p className="text-sm text-gray-600 dark:text-gray-300">
             {healthSummary}
           </p>
-          {clusterCount > 0 && (
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              {clusterCount} topic cluster{clusterCount !== 1 ? 's' : ''}{' '}
-              identified
-            </p>
-          )}
+          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+            {weakSpotCount > 0 && (
+              <span className="inline-flex items-center gap-1 text-rose-600 dark:text-rose-400">
+                <AlertTriangle className="h-3 w-3" />
+                {weakSpotCount} weak spot{weakSpotCount !== 1 ? 's' : ''}
+              </span>
+            )}
+            {clusterCount > 0 && (
+              <span>
+                {clusterCount} topic cluster{clusterCount !== 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
         </div>
         <Button
           variant="outline"
@@ -557,41 +443,5 @@ function SubjectHealthRow({
         </Button>
       </div>
     </div>
-  );
-}
-
-function ReviewButton({
-  state,
-  isLoading,
-  onClick,
-  variant,
-}: {
-  state: ReviewState;
-  isLoading: boolean;
-  onClick: () => void;
-  variant: 'rose' | 'blue';
-}) {
-  const colors =
-    variant === 'rose'
-      ? 'border-rose-200/50 text-rose-600 hover:bg-rose-50 dark:border-rose-800/40 dark:text-rose-400 dark:hover:bg-rose-950/30'
-      : 'border-blue-200/50 text-blue-600 hover:bg-blue-50 dark:border-blue-800/40 dark:text-blue-400 dark:hover:bg-blue-950/30';
-
-  return (
-    <Button
-      variant="outline"
-      size="sm"
-      disabled={isLoading}
-      onClick={onClick}
-      className={`shrink-0 rounded-xl ${colors}`}
-    >
-      {isLoading ? (
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-      ) : state === 'resume' ? (
-        <Play className="mr-2 h-4 w-4" />
-      ) : (
-        <ArrowRight className="mr-2 h-4 w-4" />
-      )}
-      {state === 'resume' ? 'Resume' : 'Review'}
-    </Button>
   );
 }

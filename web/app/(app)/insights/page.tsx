@@ -51,29 +51,11 @@ export default async function InsightsPage() {
     .select('id, name, color')
     .eq('user_id', user.id);
 
-  // Fetch recent insights review sessions for button state
-  const { data: reviewSessions } = await supabase
-    .from('review_session_state')
-    .select('id, is_active, session_state')
-    .eq('user_id', user.id)
-    .eq('session_type', 'insights_review')
-    .order('last_activity_at', { ascending: false })
-    .limit(50);
-
-  const sessionSummaries = (reviewSessions ?? []).map(s => ({
-    id: s.id,
-    is_active: s.is_active as boolean,
-    problem_ids: (
-      (s.session_state as { problem_ids?: string[] })?.problem_ids ?? []
-    ).sort(),
-  }));
-
   return (
     <InsightsPageClient
       initialDigest={digest}
       initialIsGenerating={isGenerating}
       subjects={subjects || []}
-      reviewSessions={sessionSummaries}
     />
   );
 }
