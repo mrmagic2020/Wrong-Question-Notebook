@@ -154,7 +154,7 @@ export default function AttemptTimeline({
                 attempt={attempt}
                 isLast={i === attempts.length - 1}
                 onUpdated={fetchAttempts}
-                initialCategorisation={categorisations[attempt.id] ?? null}
+                initialCategorisation={categorisations[attempt.id]}
               />
             ))}
           </div>
