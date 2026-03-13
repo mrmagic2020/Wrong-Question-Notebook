@@ -477,7 +477,7 @@ export async function categoriseSingleAttempt(
   };
 
   const response = await genai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-2.5-flash',
     contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
     config: {
       systemInstruction: CATEGORISATION_SYSTEM_PROMPT,
@@ -1213,10 +1213,14 @@ async function generateNarratives(
   try {
     return JSON.parse(text) as GeminiNarrativeResponse;
   } catch {
-    logger.error('Failed to parse Gemini narrative response', { text }, {
-      component: 'DigestGenerator',
-      action: 'generateNarratives',
-    });
+    logger.error(
+      'Failed to parse Gemini narrative response',
+      { text },
+      {
+        component: 'DigestGenerator',
+        action: 'generateNarratives',
+      }
+    );
     throw new Error('Failed to parse AI narrative response');
   }
 }
