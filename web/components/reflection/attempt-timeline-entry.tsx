@@ -20,6 +20,7 @@ interface AttemptTimelineEntryProps {
   attempt: Attempt;
   isLast: boolean;
   onUpdated: () => void;
+  initialCategorisation?: ErrorCategorisation | null;
 }
 
 function formatRelativeDate(dateString: string): string {
@@ -87,10 +88,18 @@ export default function AttemptTimelineEntry({
   attempt,
   isLast,
   onUpdated,
+  initialCategorisation,
 }: AttemptTimelineEntryProps) {
   const [editOpen, setEditOpen] = useState(false);
   const [categorisation, setCategorisation] =
-    useState<ErrorCategorisation | null>(null);
+    useState<ErrorCategorisation | null>(initialCategorisation ?? null);
+
+  // Sync when parent passes updated initialCategorisation
+  useEffect(() => {
+    if (initialCategorisation !== undefined) {
+      setCategorisation(initialCategorisation);
+    }
+  }, [initialCategorisation]);
 
   const fetchCategorisation = useCallback(async () => {
     try {
@@ -107,13 +116,15 @@ export default function AttemptTimelineEntry({
   }, [attempt.id]);
 
   useEffect(() => {
+    // Skip fetch if parent already provided categorisation
+    if (initialCategorisation !== undefined) return;
     if (
       attempt.selected_status === 'wrong' ||
       attempt.selected_status === 'needs_review'
     ) {
       fetchCategorisation();
     }
-  }, [attempt.selected_status, fetchCategorisation]);
+  }, [attempt.selected_status, fetchCategorisation, initialCategorisation]);
 
   const handleCategorisationSave = async (
     id: string,

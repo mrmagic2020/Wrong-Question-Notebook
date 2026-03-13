@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Attempt } from '@/lib/types';
+import { Attempt, ErrorCategorisation } from '@/lib/types';
 import AttemptTimelineEntry from './attempt-timeline-entry';
 
 interface AttemptTimelineProps {
@@ -34,6 +34,9 @@ export default function AttemptTimeline({
   refreshKey = 0,
 }: AttemptTimelineProps) {
   const [attempts, setAttempts] = useState<Attempt[]>([]);
+  const [categorisations, setCategorisations] = useState<
+    Record<string, ErrorCategorisation>
+  >({});
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -45,7 +48,44 @@ export default function AttemptTimeline({
       );
       if (res.ok) {
         const json = await res.json();
-        setAttempts(json.data || []);
+        const fetched: Attempt[] = json.data || [];
+        setAttempts(fetched);
+
+        // Batch-fetch categorisations for wrong/needs_review attempts
+        const eligibleIds = fetched
+          .filter(
+            a =>
+              a.selected_status === 'wrong' ||
+              a.selected_status === 'needs_review'
+          )
+          .map(a => a.id);
+
+        if (eligibleIds.length > 0) {
+          const catResults = await Promise.all(
+            eligibleIds.map(async id => {
+              try {
+                const catRes = await fetch(
+                  `/api/ai/categorise-error?attempt_id=${encodeURIComponent(id)}`
+                );
+                if (catRes.ok) {
+                  const catJson = await catRes.json();
+                  return catJson.data
+                    ? { id, data: catJson.data as ErrorCategorisation }
+                    : null;
+                }
+              } catch {
+                // Silently fail — categorisation is optional
+              }
+              return null;
+            })
+          );
+
+          const catMap: Record<string, ErrorCategorisation> = {};
+          for (const result of catResults) {
+            if (result) catMap[result.id] = result.data;
+          }
+          setCategorisations(catMap);
+        }
       }
     } catch {
       // Silently fail
@@ -114,6 +154,7 @@ export default function AttemptTimeline({
                 attempt={attempt}
                 isLast={i === attempts.length - 1}
                 onUpdated={fetchAttempts}
+                initialCategorisation={categorisations[attempt.id] ?? null}
               />
             ))}
           </div>

@@ -26,11 +26,15 @@ export async function GET(req: Request) {
     // Strategy:
     // 1. Get users who have at least one attempt with wrong or needs_review status
     // 2. For each, check if they have attempts newer than their last digest
+    // Fetch candidate user IDs. We only need distinct user_id values, but
+    // Supabase JS doesn't support SELECT DISTINCT on non-primary columns.
+    // Limit the result set to avoid fetching unbounded rows, then dedup in JS.
     const { data: candidateUsers, error: usersError } = await supabase
       .from('attempts')
       .select('user_id')
       .in('selected_status', ['wrong', 'needs_review'])
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(1000);
 
     if (usersError) {
       logger.error('Cron: failed to query candidate users', usersError, {
@@ -43,7 +47,6 @@ export async function GET(req: Request) {
       );
     }
 
-    // Deduplicate user IDs
     const uniqueUserIds = [
       ...new Set((candidateUsers ?? []).map(r => r.user_id as string)),
     ];
