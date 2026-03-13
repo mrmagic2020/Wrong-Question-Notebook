@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
 import { CreateAttemptDto } from '@/lib/schemas';
 import { withSecurity } from '@/lib/security-middleware';
@@ -184,38 +184,33 @@ async function createAttempt(req: Request) {
       console.error('Failed to update review schedule:', e);
     }
 
-    // Trigger AI error categorisation for wrong/needs_review attempts
+    // Trigger AI error categorisation after the response is sent
     const triggerStatus =
       parsed.data.selected_status ??
       (data.is_correct === false ? 'wrong' : null);
     if (triggerStatus === 'wrong' || triggerStatus === 'needs_review') {
-      try {
-        const origin = new URL(req.url).origin;
-        const secret = process.env.CATEGORISATION_SECRET;
-        if (secret) {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 3000);
-          await fetch(`${origin}/api/ai/categorise-error`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-categorisation-secret': secret,
-            },
-            body: JSON.stringify({
-              attempt_id: data.id,
-              problem_id: parsed.data.problem_id,
-              subject_id: problem.subject_id,
-              user_id: user.id,
-            }),
-            signal: controller.signal,
-          })
-            .catch(err =>
-              console.error('[categorise-trigger] fetch failed:', err)
-            )
-            .finally(() => clearTimeout(timeout));
-        }
-      } catch (e) {
-        console.error('[categorise-trigger] error:', e);
+      const origin = new URL(req.url).origin;
+      const secret = process.env.CATEGORISATION_SECRET;
+      if (secret) {
+        after(async () => {
+          try {
+            await fetch(`${origin}/api/ai/categorise-error`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-categorisation-secret': secret,
+              },
+              body: JSON.stringify({
+                attempt_id: data.id,
+                problem_id: parsed.data.problem_id,
+                subject_id: problem.subject_id,
+                user_id: user.id,
+              }),
+            });
+          } catch (err) {
+            console.error('[categorise-trigger] fetch failed:', err);
+          }
+        });
       }
     }
 
