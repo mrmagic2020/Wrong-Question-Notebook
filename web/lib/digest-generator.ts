@@ -7,7 +7,12 @@
 
 import { GoogleGenAI } from '@google/genai';
 import { createServiceClient } from '@/lib/supabase-utils';
-import { INSIGHT_CONSTANTS, ERROR_CATEGORY_VALUES } from '@/lib/constants';
+import {
+  INSIGHT_CONSTANTS,
+  ERROR_CATEGORY_VALUES,
+  PROBLEM_CONSTANTS,
+} from '@/lib/constants';
+import { normaliseTopicLabel } from '@/lib/insights-utils';
 import { logger } from '@/lib/logger';
 import type {
   ErrorAggregationRow,
@@ -364,12 +369,41 @@ export async function categoriseUncategorisedAttempts(
   const uncategorised = (attempts ?? []) as UncategorisedAttempt[];
   if (uncategorised.length === 0) return 0;
 
+  // Pre-fetch topic labels per subject to avoid N+1 queries
+  const subjectIds = [...new Set(uncategorised.map(a => a.subject_id))];
+  const labelCache = new Map<string, string[]>();
+  await Promise.all(
+    subjectIds.map(async sid => {
+      const { data } = await supabase
+        .from('error_categorisations')
+        .select('topic_label')
+        .eq('subject_id', sid)
+        .eq('user_id', userId);
+      labelCache.set(sid, [...new Set((data ?? []).map(l => l.topic_label))]);
+    })
+  );
+
   let successCount = 0;
 
   for (const attempt of uncategorised) {
     try {
-      const result = await categoriseSingleAttempt(userId, attempt);
-      if (result) successCount++;
+      const result = await categoriseSingleAttempt(
+        userId,
+        attempt,
+        labelCache.get(attempt.subject_id)
+      );
+      if (result) {
+        successCount++;
+        // Update cache with newly created label
+        const parsed = result as { topic_label?: string };
+        if (parsed.topic_label) {
+          const labels = labelCache.get(attempt.subject_id) ?? [];
+          if (!labels.includes(parsed.topic_label)) {
+            labels.push(parsed.topic_label);
+            labelCache.set(attempt.subject_id, labels);
+          }
+        }
+      }
     } catch (err) {
       logger.error('Failed to categorise attempt', err, {
         component: 'DigestGenerator',
@@ -388,7 +422,8 @@ export async function categoriseUncategorisedAttempts(
  */
 export async function categoriseSingleAttempt(
   userId: string,
-  attempt: UncategorisedAttempt
+  attempt: UncategorisedAttempt,
+  cachedLabels?: string[]
 ): Promise<Record<string, unknown> | null> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
@@ -401,15 +436,20 @@ export async function categoriseSingleAttempt(
 
   const supabase = createServiceClient();
 
-  // Fetch existing topic labels for this subject to promote reuse
-  const { data: existingLabelsData } = await supabase
-    .from('error_categorisations')
-    .select('topic_label')
-    .eq('subject_id', attempt.subject_id)
-    .eq('user_id', userId);
-  const existingLabels = [
-    ...new Set((existingLabelsData ?? []).map(l => l.topic_label)),
-  ];
+  // Use cached labels if provided, otherwise fetch from DB
+  let existingLabels: string[];
+  if (cachedLabels) {
+    existingLabels = cachedLabels;
+  } else {
+    const { data: existingLabelsData } = await supabase
+      .from('error_categorisations')
+      .select('topic_label')
+      .eq('subject_id', attempt.subject_id)
+      .eq('user_id', userId);
+    existingLabels = [
+      ...new Set((existingLabelsData ?? []).map(l => l.topic_label)),
+    ];
+  }
 
   const genai = new GoogleGenAI({ apiKey });
 
@@ -449,19 +489,30 @@ export async function categoriseSingleAttempt(
   const text = response.text;
   if (!text) return null;
 
-  const parsed = JSON.parse(text) as {
+  let parsed: {
     broad_category: ErrorBroadCategory;
     granular_tag: string;
     topic_label: string;
     confidence: number;
     reasoning: string;
   };
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    logger.error(
+      'Failed to parse AI categorisation response',
+      { text },
+      {
+        component: 'DigestGenerator',
+        action: 'categoriseSingleAttempt',
+        userId,
+        attemptId: attempt.attempt_id,
+      }
+    );
+    return null;
+  }
 
-  // Normalise topic label: lowercase, trim, collapse whitespace
-  const topicLabelNormalised = parsed.topic_label
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, ' ');
+  const topicLabelNormalised = normaliseTopicLabel(parsed.topic_label);
 
   const { data: inserted, error: insertError } = await supabase
     .from('error_categorisations')
@@ -540,13 +591,13 @@ function buildClusters(rows: ErrorAggregationRow[]): ClusterAccumulator[] {
       if (counted.has(row.problem_id)) continue;
       counted.add(row.problem_id);
       switch (row.problem_status) {
-        case 'wrong':
+        case PROBLEM_CONSTANTS.STATUS.WRONG:
           cluster.wrong_count++;
           break;
-        case 'needs_review':
+        case PROBLEM_CONSTANTS.STATUS.NEEDS_REVIEW:
           cluster.needs_review_count++;
           break;
-        case 'mastered':
+        case PROBLEM_CONSTANTS.STATUS.MASTERED:
           cluster.mastered_count++;
           break;
       }
@@ -634,13 +685,13 @@ function mergeSimilarClusters(
       if (counted.has(row.problem_id)) continue;
       counted.add(row.problem_id);
       switch (row.problem_status) {
-        case 'wrong':
+        case PROBLEM_CONSTANTS.STATUS.WRONG:
           w++;
           break;
-        case 'needs_review':
+        case PROBLEM_CONSTANTS.STATUS.NEEDS_REVIEW:
           nr++;
           break;
-        case 'mastered':
+        case PROBLEM_CONSTANTS.STATUS.MASTERED:
           m++;
           break;
       }
@@ -693,7 +744,10 @@ function computeErrorDistributionWithStatus(rows: ErrorAggregationRow[]): {
   const resolved: Record<string, number> = {};
   const unresolved: Record<string, number> = {};
   for (const row of deduplicateByProblem(rows)) {
-    const target = row.problem_status === 'mastered' ? resolved : unresolved;
+    const target =
+      row.problem_status === PROBLEM_CONSTANTS.STATUS.MASTERED
+        ? resolved
+        : unresolved;
     target[row.broad_category] = (target[row.broad_category] ?? 0) + 1;
   }
   return { resolved, unresolved };
@@ -714,7 +768,7 @@ function computeErrorDistributionBySubjectWithStatus(
       dist[row.subject_id] = { resolved: {}, unresolved: {} };
     }
     const target =
-      row.problem_status === 'mastered'
+      row.problem_status === PROBLEM_CONSTANTS.STATUS.MASTERED
         ? dist[row.subject_id].resolved
         : dist[row.subject_id].unresolved;
     target[row.broad_category] = (target[row.broad_category] ?? 0) + 1;
@@ -765,13 +819,13 @@ function computeMasterySummaryBySubject(
     let needsReview = 0;
     for (const status of problemMap.values()) {
       switch (status) {
-        case 'mastered':
+        case PROBLEM_CONSTANTS.STATUS.MASTERED:
           mastered++;
           break;
-        case 'wrong':
+        case PROBLEM_CONSTANTS.STATUS.WRONG:
           wrong++;
           break;
-        case 'needs_review':
+        case PROBLEM_CONSTANTS.STATUS.NEEDS_REVIEW:
           needsReview++;
           break;
       }
@@ -918,11 +972,11 @@ function computeTrendScore(cluster: ClusterAccumulator): number {
 
   const statusToScore = (status: string): number => {
     switch (status) {
-      case 'mastered':
+      case PROBLEM_CONSTANTS.STATUS.MASTERED:
         return 1;
-      case 'needs_review':
+      case PROBLEM_CONSTANTS.STATUS.NEEDS_REVIEW:
         return 0.5;
-      case 'wrong':
+      case PROBLEM_CONSTANTS.STATUS.WRONG:
         return 0;
       default:
         return 0.5;

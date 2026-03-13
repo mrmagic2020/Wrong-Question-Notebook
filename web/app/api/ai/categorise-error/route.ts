@@ -9,8 +9,9 @@ import {
   handleAsyncError,
   isValidUuid,
 } from '@/lib/common-utils';
-import { ERROR_MESSAGES } from '@/lib/constants';
+import { ERROR_MESSAGES, ERROR_CATEGORY_VALUES } from '@/lib/constants';
 import { createServiceClient } from '@/lib/supabase-utils';
+import { normaliseTopicLabel } from '@/lib/insights-utils';
 
 const RequestSchema = z.object({
   attempt_id: z.uuid(),
@@ -19,22 +20,12 @@ const RequestSchema = z.object({
   user_id: z.uuid(),
 });
 
-const BROAD_CATEGORIES = [
-  'conceptual_misunderstanding',
-  'procedural_error',
-  'knowledge_gap',
-  'misread_question',
-  'careless_mistake',
-  'time_pressure',
-  'incomplete_answer',
-] as const;
-
 const RESPONSE_SCHEMA = {
   type: 'object' as const,
   properties: {
     broad_category: {
       type: 'string' as const,
-      enum: [...BROAD_CATEGORIES],
+      enum: [...ERROR_CATEGORY_VALUES],
     },
     granular_tag: { type: 'string' as const },
     topic_label: { type: 'string' as const },
@@ -316,10 +307,7 @@ export async function POST(req: Request) {
         broad_category: result.broad_category,
         granular_tag: result.granular_tag,
         topic_label: result.topic_label,
-        topic_label_normalised: result.topic_label
-          .toLowerCase()
-          .trim()
-          .replace(/\s+/g, ' '),
+        topic_label_normalised: normaliseTopicLabel(result.topic_label),
         ai_confidence: result.confidence,
         ai_reasoning: result.reasoning,
       })

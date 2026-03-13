@@ -9,6 +9,14 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { ErrorCategorisation, InsightDigest } from '@/lib/types';
 
 /**
+ * Normalise a topic label: lowercase, trim, collapse whitespace.
+ * Used in both categorise-error API and digest-generator.
+ */
+export function normaliseTopicLabel(label: string): string {
+  return label.toLowerCase().trim().replace(/\s+/g, ' ');
+}
+
+/**
  * Fetch the latest insight digest for a user.
  * Returns null if no digest exists.
  */
