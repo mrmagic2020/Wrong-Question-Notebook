@@ -482,7 +482,7 @@ export async function categoriseSingleAttempt(
   }
 
   // If null, the attempt was already categorised (duplicate ignored)
-  return (inserted as Record<string, unknown>) ?? {};
+  return (inserted as Record<string, unknown>) ?? null;
 }
 
 // =====================================================
@@ -493,7 +493,7 @@ function buildClusters(rows: ErrorAggregationRow[]): ClusterAccumulator[] {
   const clusterMap = new Map<string, ClusterAccumulator>();
 
   for (const row of rows) {
-    const key = row.topic_label_normalised;
+    const key = `${row.subject_id}:${row.topic_label_normalised}`;
     let cluster = clusterMap.get(key);
 
     if (!cluster) {
