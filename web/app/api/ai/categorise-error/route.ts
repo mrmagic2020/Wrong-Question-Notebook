@@ -201,11 +201,13 @@ export async function POST(req: Request) {
         .from('problems')
         .select('title, content, problem_type, correct_answer, subject_id')
         .eq('id', problem_id)
+        .eq('user_id', user_id)
         .single(),
       serviceClient
         .from('subjects')
         .select('name')
         .eq('id', subject_id)
+        .eq('user_id', user_id)
         .single(),
       serviceClient
         .from('attempts')
@@ -314,7 +316,10 @@ export async function POST(req: Request) {
         broad_category: result.broad_category,
         granular_tag: result.granular_tag,
         topic_label: result.topic_label,
-        topic_label_normalised: result.topic_label.toLowerCase().trim(),
+        topic_label_normalised: result.topic_label
+          .toLowerCase()
+          .trim()
+          .replace(/\s+/g, ' '),
         ai_confidence: result.confidence,
         ai_reasoning: result.reasoning,
       })

@@ -72,12 +72,13 @@ async function startInsightsSession(req: Request) {
       }
     }
 
-    // Validate the user owns all the problems
+    // Validate the user owns all the problems and they belong to the subject
     const { data: ownedProblems, error: ownershipError } = await supabase
       .from('problems')
       .select('id, status')
       .in('id', problem_ids)
-      .eq('user_id', user.id);
+      .eq('user_id', user.id)
+      .eq('subject_id', subject_id);
 
     if (ownershipError) {
       return NextResponse.json(
