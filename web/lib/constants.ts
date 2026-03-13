@@ -569,6 +569,7 @@ export const ATTEMPT_CONSTANTS = {
   } as Record<number, string>,
   MAX_REFLECTION_NOTES_LENGTH: 2000,
   MAX_RESPONSE_LENGTH: 500,
+  TIMELINE_PAGE_SIZE: 5,
 } as const;
 
 // =====================================================
