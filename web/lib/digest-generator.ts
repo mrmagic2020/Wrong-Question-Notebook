@@ -138,9 +138,9 @@ export async function generateDigestForUser(
   const rawClusters = buildClusters(aggregationRows);
   const clusters = mergeSimilarClusters(rawClusters);
   const clustersBySubject = groupClustersBySubject(clusters);
-  const errorDistribution = computeErrorDistribution(aggregationRows);
+  const errorDistribution = computeErrorDistributionWithStatus(aggregationRows);
   const errorDistributionBySubject =
-    computeErrorDistributionBySubject(aggregationRows);
+    computeErrorDistributionBySubjectWithStatus(aggregationRows);
 
   // Build subject ID → name mapping for Gemini prompt
   const subjectNames: Record<string, string> = {};
@@ -171,12 +171,25 @@ export async function generateDigestForUser(
     INSIGHT_CONSTANTS.MAX_WEAK_SPOTS_OVERVIEW
   );
 
+  // 4b. Fetch the previous completed digest for continuity
+  const previousDigestSummary = await fetchPreviousDigestSummary(
+    supabase,
+    userId,
+    placeholderDigestId
+  );
+
   // 5. Build raw aggregation data for AI context
   const uniqueProblems = new Set(aggregationRows.map(r => r.problem_id)).size;
+  const masterySummary = computeMasterySummaryBySubject(
+    aggregationRows,
+    totalProblemsPerSubject
+  );
   const rawAggregationData: Record<string, unknown> = {
     total_categorisations: aggregationRows.length,
     unique_problems_with_errors: uniqueProblems,
     total_problems_per_subject: totalProblemsPerSubject,
+    current_mastery_by_subject: masterySummary,
+    previous_digest: previousDigestSummary,
     clusters_count: clusters.length,
     subject_names: subjectNames,
     error_distribution: errorDistribution,
@@ -668,28 +681,169 @@ function deduplicateByProblem(
   return Array.from(latest.values());
 }
 
-function computeErrorDistribution(
-  rows: ErrorAggregationRow[]
-): Record<string, number> {
-  const dist: Record<string, number> = {};
+/**
+ * Split error distribution into resolved (now mastered) and unresolved
+ * (still wrong/needs_review) so the AI can distinguish between historical
+ * errors the student has overcome and current weak spots.
+ */
+function computeErrorDistributionWithStatus(rows: ErrorAggregationRow[]): {
+  resolved: Record<string, number>;
+  unresolved: Record<string, number>;
+} {
+  const resolved: Record<string, number> = {};
+  const unresolved: Record<string, number> = {};
   for (const row of deduplicateByProblem(rows)) {
-    dist[row.broad_category] = (dist[row.broad_category] ?? 0) + 1;
+    const target = row.problem_status === 'mastered' ? resolved : unresolved;
+    target[row.broad_category] = (target[row.broad_category] ?? 0) + 1;
+  }
+  return { resolved, unresolved };
+}
+
+function computeErrorDistributionBySubjectWithStatus(
+  rows: ErrorAggregationRow[]
+): Record<
+  string,
+  { resolved: Record<string, number>; unresolved: Record<string, number> }
+> {
+  const dist: Record<
+    string,
+    { resolved: Record<string, number>; unresolved: Record<string, number> }
+  > = {};
+  for (const row of deduplicateByProblem(rows)) {
+    if (!dist[row.subject_id]) {
+      dist[row.subject_id] = { resolved: {}, unresolved: {} };
+    }
+    const target =
+      row.problem_status === 'mastered'
+        ? dist[row.subject_id].resolved
+        : dist[row.subject_id].unresolved;
+    target[row.broad_category] = (target[row.broad_category] ?? 0) + 1;
   }
   return dist;
 }
 
-function computeErrorDistributionBySubject(
-  rows: ErrorAggregationRow[]
-): Record<string, Record<string, number>> {
-  const dist: Record<string, Record<string, number>> = {};
-  for (const row of deduplicateByProblem(rows)) {
-    if (!dist[row.subject_id]) {
-      dist[row.subject_id] = {};
-    }
-    dist[row.subject_id][row.broad_category] =
-      (dist[row.subject_id][row.broad_category] ?? 0) + 1;
+/**
+ * Compute per-subject current mastery summary showing how many problems
+ * with errors are now mastered vs still problematic.
+ */
+function computeMasterySummaryBySubject(
+  rows: ErrorAggregationRow[],
+  totalProblemsPerSubject: Record<string, number>
+): Record<
+  string,
+  {
+    total_problems: number;
+    problems_with_errors: number;
+    now_mastered: number;
+    still_wrong: number;
+    still_needs_review: number;
   }
-  return dist;
+> {
+  // Deduplicate: one entry per problem, using its current status
+  const subjectProblems: Record<string, Map<string, string>> = {};
+  for (const row of rows) {
+    if (!subjectProblems[row.subject_id]) {
+      subjectProblems[row.subject_id] = new Map();
+    }
+    subjectProblems[row.subject_id].set(row.problem_id, row.problem_status);
+  }
+
+  const result: Record<
+    string,
+    {
+      total_problems: number;
+      problems_with_errors: number;
+      now_mastered: number;
+      still_wrong: number;
+      still_needs_review: number;
+    }
+  > = {};
+
+  for (const [subjectId, problemMap] of Object.entries(subjectProblems)) {
+    let mastered = 0;
+    let wrong = 0;
+    let needsReview = 0;
+    for (const status of problemMap.values()) {
+      switch (status) {
+        case 'mastered':
+          mastered++;
+          break;
+        case 'wrong':
+          wrong++;
+          break;
+        case 'needs_review':
+          needsReview++;
+          break;
+      }
+    }
+    result[subjectId] = {
+      total_problems: totalProblemsPerSubject[subjectId] ?? problemMap.size,
+      problems_with_errors: problemMap.size,
+      now_mastered: mastered,
+      still_wrong: wrong,
+      still_needs_review: needsReview,
+    };
+  }
+
+  return result;
+}
+
+// =====================================================
+// Previous digest context
+// =====================================================
+
+interface PreviousDigestSummary {
+  generated_at: string;
+  headline: string;
+  subject_health: Record<string, string>;
+  weak_spot_topics: string[];
+  error_pattern_summary: string;
+}
+
+/**
+ * Fetch the most recent completed digest for a user and extract a concise
+ * summary for the AI to reference when generating the new one.
+ * Returns null if no previous digest exists.
+ */
+async function fetchPreviousDigestSummary(
+  supabase: ReturnType<typeof createServiceClient>,
+  userId: string,
+  currentPlaceholderId?: string
+): Promise<PreviousDigestSummary | null> {
+  // Build query: latest completed digest, excluding the current placeholder
+  let query = supabase
+    .from('insight_digests')
+    .select(
+      'generated_at, headline, subject_health, weak_spots, error_pattern_summary'
+    )
+    .eq('user_id', userId)
+    .eq('status', 'completed')
+    .order('generated_at', { ascending: false })
+    .limit(1);
+
+  if (currentPlaceholderId) {
+    query = query.neq('id', currentPlaceholderId);
+  }
+
+  const { data, error } = await query.maybeSingle();
+
+  if (error || !data) return null;
+
+  // Extract just the topic labels from weak spots to keep payload small
+  const weakSpots = (data.weak_spots ?? []) as Array<{
+    topic_label?: string;
+  }>;
+  const weakSpotTopics = weakSpots
+    .map(ws => ws.topic_label)
+    .filter((t): t is string => !!t);
+
+  return {
+    generated_at: data.generated_at,
+    headline: data.headline ?? '',
+    subject_health: (data.subject_health ?? {}) as Record<string, string>,
+    weak_spot_topics: weakSpotTopics,
+    error_pattern_summary: (data.error_pattern_summary ?? '') as string,
+  };
 }
 
 // =====================================================
@@ -813,13 +967,73 @@ function generateTrendPhrase(trendScore: number, recencyScore: number): string {
 // Gemini narrative generation
 // =====================================================
 
-const NARRATIVE_SYSTEM_PROMPT = `You are a study advisor for a high school student. Based on the following data about their recent study performance, write a concise, specific, and actionable study briefing. Use a warm but direct tone — be honest about weaknesses while acknowledging progress. Do not use generic advice. Every observation should reference specific topics and specific patterns from their data.
+const NARRATIVE_SYSTEM_PROMPT = `You are a study advisor for a high school student using Wrong Question Notebook (WQN).
+
+# How WQN works
+
+WQN is a study app where students log problems they got wrong, review them through spaced repetition, and track their mastery over time. Each problem has a current status:
+- "wrong" — the student still hasn't mastered it
+- "needs_review" — the student is making progress but hasn't fully mastered it yet
+- "mastered" — the student has demonstrated they can solve it correctly
+
+When a student gets a problem wrong, we run AI error categorisation to tag the error type. Over time, a student may get a problem wrong multiple times before eventually mastering it. The error categorisation data captures this HISTORY of mistakes, while the problem status captures the CURRENT mastery level.
+
+# Your task
+
+Write a concise, specific, and actionable study briefing. Use a warm but direct tone — be honest about weaknesses while celebrating genuine progress. Do not use generic advice. Every observation should reference specific topics and patterns from their data.
 
 IMPORTANT: The data includes a "subject_names" mapping of subject_id to subject name. You MUST generate exactly one entry per subject for subject_error_patterns, subject_health, topic_cluster_narratives, and progress_narratives, using the exact subject_id values from subject_names.
 
-The error_pattern_summary is the GLOBAL overview across all subjects. Each subject_error_patterns entry should be specific to that subject's error distribution — do NOT repeat the global summary.
+The error_pattern_summary is the GLOBAL overview across all subjects. Each subject_error_patterns entry should be specific to that subject — do NOT repeat the global summary.
 
-The data includes "total_problems_per_subject" showing how many problems the student has in each subject, and "unique_problems_with_errors" showing how many had errors. Use this to give balanced assessments — if most problems are mastered, acknowledge that progress rather than only focusing on errors. For example, "5 of your 16 Chemistry problems had errors" is more helpful than listing errors without context.`;
+# Understanding the data — CRITICAL
+
+The data distinguishes between CURRENT mastery status and HISTORICAL error patterns. You must understand this distinction to write accurate assessments.
+
+## current_mastery_by_subject (PRIMARY source of truth)
+Shows each subject's CURRENT state: total problems, how many ever had errors, and of those, how many are now_mastered vs still_wrong/still_needs_review.
+
+## error_distribution and error_distribution_by_subject
+Split into "resolved" (errors on problems the student has since mastered) and "unresolved" (errors on problems still wrong/needs_review).
+- "resolved" errors represent OVERCOME challenges — the student struggled with these but has since mastered them
+- "unresolved" errors represent CURRENT weaknesses that still need work
+
+## clusters_by_subject
+Per-topic breakdowns with current wrong_count, mastered_count, and needs_review_count.
+
+# How to frame your narratives
+
+## Progress is the story
+The journey from errors to mastery IS the learning process. A subject where a student had 7 knowledge gap errors but has since mastered all of them is a SUCCESS STORY, not a warning sign. Frame it as: "You overcame 7 knowledge gaps in Chemistry through consistent review — all those problems are now mastered."
+
+## Subject health must reflect current status
+- If now_mastered == problems_with_errors and still_wrong == 0 and still_needs_review == 0: the subject is HEALTHY. The student has mastered every problem that ever gave them trouble. Celebrate this.
+- If there are significant unresolved errors: acknowledge progress on resolved ones, then focus on what still needs work.
+- NEVER call a subject "at risk" or "critical" if all its problems are mastered.
+
+## Error patterns should show trajectory
+Don't just list historical error counts. Show how the student's error patterns have been resolved or persist:
+- "You had 4 knowledge gap errors in Chemistry — all now resolved through review"
+- "Procedural errors in Algebra remain your main challenge, with 3 still unresolved"
+
+## Headline should reflect current standing
+Lead with where the student IS, not where they WERE. If 90% of problems are mastered, that should be reflected in the headline, even if the student had many errors historically.
+
+## Be proportional
+Compare error counts against total problem counts. "3 errors across 32 problems" is excellent, not concerning. Use total_problems_per_subject and current_mastery_by_subject to calibrate your assessments.
+
+# Continuity with previous digests
+
+The data may include a "previous_digest" field containing a summary of the student's last insight digest (headline, subject_health, weak_spot_topics, error_pattern_summary, and when it was generated). Use this to create narrative continuity:
+
+- If previous_digest is null, this is the student's FIRST digest. Acknowledge this: set a baseline, welcome them, and frame the briefing as a starting point.
+- If previous_digest exists, compare the current data with what was highlighted before:
+  - If weak spots from the previous digest are now mastered, celebrate: "Last time we flagged Deductive Reasoning as a weak spot — you've since mastered it."
+  - If previous weak spots persist, acknowledge the continuity: "Deductive Reasoning remains a challenge, as we noted in your last briefing."
+  - If subject health has improved (e.g. previously flagged "at risk" but now all mastered), highlight the turnaround.
+  - If new weak spots have appeared that weren't in the previous digest, flag them as emerging concerns.
+- Keep references to the previous digest natural and brief — don't quote it verbatim, just reference the trajectory.
+- The generated_at timestamp tells you how recent the previous digest is. If it was very recent (< 1 day), changes may be small. If it was days or weeks ago, larger shifts are expected.`;
 
 const NARRATIVE_RESPONSE_SCHEMA = {
   type: 'object' as const,
@@ -932,7 +1146,12 @@ async function generateNarratives(
 
   const genai = new GoogleGenAI({ apiKey });
 
-  const userPrompt = `Here is the student's aggregated study performance data:\n\n${JSON.stringify(rawAggregationData, null, 2)}\n\nGenerate a study briefing based on this data. The headline must be at most 200 characters. Be specific about topics and patterns — avoid generic advice.\n\nIMPORTANT: For subject_error_patterns, subject_health, topic_cluster_narratives, and progress_narratives, generate exactly one entry per subject using the subject_id values from the "subject_names" field above.`;
+  const hasPreviousDigest = rawAggregationData.previous_digest != null;
+  const continuityNote = hasPreviousDigest
+    ? 'The data includes a "previous_digest" summary from the student\'s last briefing. Reference it to show progress, continuity, or new developments as described in the system instructions.'
+    : "This is the student's FIRST insight digest — there is no previous_digest. Frame the briefing as a baseline assessment.";
+
+  const userPrompt = `Here is the student's aggregated study performance data:\n\n${JSON.stringify(rawAggregationData, null, 2)}\n\nGenerate a study briefing based on this data. The headline must be at most 200 characters. Be specific about topics and patterns — avoid generic advice.\n\n${continuityNote}\n\nIMPORTANT: For subject_error_patterns, subject_health, topic_cluster_narratives, and progress_narratives, generate exactly one entry per subject using the subject_id values from the "subject_names" field above.`;
 
   const response = await genai.models.generateContent({
     model: 'gemini-3-flash-preview',
