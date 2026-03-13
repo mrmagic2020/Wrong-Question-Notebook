@@ -567,6 +567,7 @@ export const ATTEMPT_CONSTANTS = {
     4: 'Fairly confident',
     5: 'Absolutely certain',
   } as Record<number, string>,
+  MAX_CAUSE_LENGTH: 50,
   MAX_REFLECTION_NOTES_LENGTH: 2000,
   MAX_RESPONSE_LENGTH: 500,
   TIMELINE_PAGE_SIZE: 5,

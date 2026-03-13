@@ -158,7 +158,7 @@ export const CreateAttemptDto = z.object({
     z.record(z.string(), z.unknown()),
   ]),
   is_correct: z.boolean().nullable().optional(), // optional for manual types
-  cause: z.string().optional(), // categorical reason for correct/incorrect
+  cause: z.string().max(ATTEMPT_CONSTANTS.MAX_CAUSE_LENGTH).optional(),
   is_self_assessed: z.boolean().default(false),
   confidence: z.number().int().min(1).max(5).nullable().optional(),
   reflection_notes: z
@@ -170,7 +170,7 @@ export const CreateAttemptDto = z.object({
 
 export const UpdateAttemptDto = z.object({
   confidence: z.number().int().min(1).max(5).nullable().optional(),
-  cause: z.string().nullable().optional(),
+  cause: z.string().max(ATTEMPT_CONSTANTS.MAX_CAUSE_LENGTH).nullable().optional(),
   reflection_notes: z
     .string()
     .max(ATTEMPT_CONSTANTS.MAX_REFLECTION_NOTES_LENGTH)
