@@ -529,8 +529,7 @@ function SubjectHealthRow({
 
   return (
     <div
-      className={`rounded-2xl border bg-gradient-to-br p-5 ${colorClasses.border}       
-          - ${colorClasses.light} ${colorClasses.dark}`}
+      className={`rounded-2xl border bg-gradient-to-br p-5 ${colorClasses.border} ${colorClasses.light} ${colorClasses.dark}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1 space-y-1">
