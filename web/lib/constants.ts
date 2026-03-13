@@ -688,7 +688,9 @@ export const INSIGHT_CONSTANTS = {
   /** If a digest has been 'generating' for longer than this, treat it as stale/failed */
   GENERATING_STALE_MINUTES: 5,
   /** Polling interval (ms) for checking generation status on client */
-  GENERATION_POLL_INTERVAL_MS: 3000,
+  GENERATION_POLL_INTERVAL_MS: 10 * 1000,
+  /** Max polling attempts before giving up (~5 minutes) */
+  MAX_POLL_ATTEMPTS: 30,
 } as const;
 
 export const COOKIE_CONSENT_CONSTANTS = {

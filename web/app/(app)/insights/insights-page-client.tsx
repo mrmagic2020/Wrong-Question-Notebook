@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Lightbulb,
@@ -34,6 +34,7 @@ export default function InsightsPageClient({
   const [isGenerating, setIsGenerating] = useState(initialIsGenerating);
   const [hasInsufficientData, setHasInsufficientData] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollCountRef = useRef(0);
 
   const subjectMap = Object.fromEntries(
     subjects.map(s => [s.id, { name: s.name, color: s.color }])
@@ -44,11 +45,22 @@ export default function InsightsPageClient({
       clearInterval(pollRef.current);
       pollRef.current = null;
     }
+    pollCountRef.current = 0;
   }, []);
 
   const startPolling = useCallback(() => {
     stopPolling();
     pollRef.current = setInterval(async () => {
+      pollCountRef.current++;
+      if (pollCountRef.current > INSIGHT_CONSTANTS.MAX_POLL_ATTEMPTS) {
+        setIsGenerating(false);
+        stopPolling();
+        toast.error(
+          'Insights generation is taking too long. Please try again later.'
+        );
+        return;
+      }
+
       try {
         const res = await fetch('/api/insights/status');
         const json = await res.json();
@@ -78,6 +90,16 @@ export default function InsightsPageClient({
     }
     return stopPolling;
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Pre-compute weak spot counts (must be before early returns for hook rules)
+  const weakSpotCountBySubject = useMemo(() => {
+    const spots = digest?.weak_spots || [];
+    const counts: Record<string, number> = {};
+    for (const ws of spots) {
+      counts[ws.subject_id] = (counts[ws.subject_id] ?? 0) + 1;
+    }
+    return counts;
+  }, [digest]);
 
   async function handleGenerate() {
     setIsGenerating(true);
@@ -175,15 +197,7 @@ export default function InsightsPageClient({
   }
 
   // We have a digest
-  const weakSpots = digest!.weak_spots || [];
   const subjectHealth = digest!.subject_health || {};
-
-  // Count weak spots per subject
-  const weakSpotCountBySubject: Record<string, number> = {};
-  for (const ws of weakSpots) {
-    weakSpotCountBySubject[ws.subject_id] =
-      (weakSpotCountBySubject[ws.subject_id] ?? 0) + 1;
-  }
 
   return (
     <div className="page-container max-w-4xl mx-auto">
