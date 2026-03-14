@@ -353,7 +353,7 @@ function DigestHeader({
 
   return (
     <div className="rounded-2xl border border-orange-200/40 bg-orange-50/50 p-6 dark:border-orange-800/30 dark:bg-orange-950/30">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="space-y-1">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
             {headline}
@@ -367,7 +367,7 @@ function DigestHeader({
           size="sm"
           onClick={onRegenerate}
           disabled={isGenerating}
-          className="shrink-0 rounded-xl border-orange-200/50 dark:border-orange-800/40"
+          className="shrink-0 self-start rounded-xl border-orange-200/50 dark:border-orange-800/40"
         >
           <RefreshCw
             className={`mr-2 h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`}
@@ -424,7 +424,7 @@ function SubjectHealthRow({
     <div
       className={`rounded-2xl border bg-gradient-to-br p-5 ${colorClasses.border} ${colorClasses.light} ${colorClasses.dark}`}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
         <div className="min-w-0 flex-1 space-y-1">
           <h3 className="font-semibold text-gray-900 dark:text-white">
             {subjectName}
@@ -450,7 +450,7 @@ function SubjectHealthRow({
           variant="outline"
           size="sm"
           onClick={onViewDetails}
-          className={`shrink-0 rounded-xl ${colorClasses.border} ${colorClasses.iconColor} ${colorClasses.buttonHover}`}
+          className={`shrink-0 self-start rounded-xl ${colorClasses.border} ${colorClasses.iconColor} ${colorClasses.buttonHover}`}
         >
           Details
           <ArrowRight className="ml-2 h-4 w-4" />
