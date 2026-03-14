@@ -12,6 +12,7 @@ import ProblemSetCreationDialog from '@/components/problem-set-creation-dialog';
 import AddToSetDialog from '@/components/add-to-set-dialog';
 import { SearchFilters, Problem, SimpleTag, Tag } from '@/lib/types';
 import { useIsMobile } from '@/lib/hooks/useMediaQuery';
+import { confirmUnsavedNavigation } from '@/lib/hooks/useUnsavedChanges';
 import ProblemCardList from '@/components/problems/problem-card-list';
 
 export default function EnhancedProblemsTable({
@@ -391,6 +392,7 @@ export default function EnhancedProblemsTable({
 
   const handleRowClick = useCallback(
     (problem: Problem) => {
+      if (!confirmUnsavedNavigation()) return;
       router.push(
         `/subjects/${problem.subject_id}/problems/${problem.id}/review`
       );
