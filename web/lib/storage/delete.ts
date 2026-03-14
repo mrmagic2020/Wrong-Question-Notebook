@@ -1,6 +1,7 @@
 // web/lib/storage/delete.ts
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { FILE_CONSTANTS, DATABASE_CONSTANTS } from '../constants';
+import { createServiceClient } from '../supabase-utils';
 
 /**
  * Recursively lists ALL file paths (not folders) under a prefix.
@@ -34,7 +35,11 @@ async function listFilesRecursive(
   return files;
 }
 
-/** Delete all files anywhere under user/{uid}/problems/{problemId}/ */
+/**
+ * Delete files under user/{uid}/problems/{problemId}/, skipping any file
+ * that is still referenced by another problem's assets or solution_assets
+ * (e.g. from a copied problem set).
+ */
 export async function deleteProblemFiles(
   supabase: SupabaseClient,
   userId: string,
@@ -43,7 +48,20 @@ export async function deleteProblemFiles(
   const base = `user/${userId}/problems/${problemId}/`;
   const allFiles = await listFilesRecursive(supabase, base);
   if (!allFiles.length) return;
-  await supabase.storage.from(FILE_CONSTANTS.STORAGE.BUCKET).remove(allFiles);
+
+  // Filter out files still referenced by other problems (copies)
+  const serviceClient = createServiceClient();
+  const { data: safeToDelete } = await serviceClient.rpc(
+    'get_unreferenced_asset_paths',
+    { p_paths: allFiles, p_exclude_problem_id: problemId }
+  );
+
+  const filesToDelete: string[] = safeToDelete ?? allFiles;
+  if (!filesToDelete.length) return;
+
+  await supabase.storage
+    .from(FILE_CONSTANTS.STORAGE.BUCKET)
+    .remove(filesToDelete);
 }
 
 // Staging-related functions removed - no longer needed with direct upload approach
