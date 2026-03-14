@@ -16,6 +16,7 @@ import {
 import { updateReviewSchedule } from '@/lib/spaced-repetition';
 import { createServiceClient } from '@/lib/supabase-utils';
 import { getUserTimezone } from '@/lib/timezone-utils';
+import { performErrorCategorisation } from '@/lib/categorise-error';
 
 async function getAttempts(req: Request) {
   const { user, supabase } = await requireUser();
@@ -189,29 +190,18 @@ async function createAttempt(req: Request) {
       parsed.data.selected_status ??
       (data.is_correct === false ? 'wrong' : null);
     if (triggerStatus === 'wrong' || triggerStatus === 'needs_review') {
-      const origin = new URL(req.url).origin;
-      const secret = process.env.CATEGORISATION_SECRET;
-      if (secret) {
-        after(async () => {
-          try {
-            await fetch(`${origin}/api/ai/categorise-error`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'x-categorisation-secret': secret,
-              },
-              body: JSON.stringify({
-                attempt_id: data.id,
-                problem_id: parsed.data.problem_id,
-                subject_id: problem.subject_id,
-                user_id: user.id,
-              }),
-            });
-          } catch (err) {
-            console.error('[categorise-trigger] fetch failed:', err);
-          }
-        });
-      }
+      after(async () => {
+        try {
+          await performErrorCategorisation({
+            attempt_id: data.id,
+            problem_id: parsed.data.problem_id,
+            subject_id: problem.subject_id,
+            user_id: user.id,
+          });
+        } catch (err) {
+          console.error('[categorise-trigger] failed:', err);
+        }
+      });
     }
 
     return NextResponse.json(createApiSuccessResponse(data), { status: 201 });

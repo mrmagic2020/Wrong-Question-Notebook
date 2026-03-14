@@ -14,6 +14,7 @@ import {
   revalidateUserReviewSchedule,
 } from '@/lib/cache-invalidation';
 import { getUserTimezone } from '@/lib/timezone-utils';
+import { performErrorCategorisation } from '@/lib/categorise-error';
 
 export async function PATCH(
   req: Request,
@@ -137,31 +138,20 @@ export async function PATCH(
           parsed.data.selected_status === 'needs_review') &&
         problem?.subject_id
       ) {
-        const origin = new URL(req.url).origin;
-        const secret = process.env.CATEGORISATION_SECRET;
-        if (secret) {
-          const subjectId = problem.subject_id;
-          const problemId = data.problem_id;
-          after(async () => {
-            try {
-              await fetch(`${origin}/api/ai/categorise-error`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'x-categorisation-secret': secret,
-                },
-                body: JSON.stringify({
-                  attempt_id: attemptId,
-                  problem_id: problemId,
-                  subject_id: subjectId,
-                  user_id: user.id,
-                }),
-              });
-            } catch (err) {
-              console.error('[categorise-trigger] fetch failed:', err);
-            }
-          });
-        }
+        const subjectId = problem.subject_id;
+        const problemId = data.problem_id;
+        after(async () => {
+          try {
+            await performErrorCategorisation({
+              attempt_id: attemptId,
+              problem_id: problemId,
+              subject_id: subjectId,
+              user_id: user.id,
+            });
+          } catch (err) {
+            console.error('[categorise-trigger] failed:', err);
+          }
+        });
       }
     }
 
