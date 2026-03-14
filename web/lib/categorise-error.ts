@@ -2,6 +2,7 @@ import { GoogleGenAI } from '@google/genai';
 import { ERROR_CATEGORY_VALUES } from '@/lib/constants';
 import { createServiceClient } from '@/lib/supabase-utils';
 import { normaliseTopicLabel } from '@/lib/insights-utils';
+import type { AnswerConfig } from '@/lib/types';
 
 const RESPONSE_SCHEMA = {
   type: 'object' as const,
@@ -30,14 +31,23 @@ function buildSystemPrompt(
     content: string;
     problem_type: string;
     correct_answer: string | null;
+    solution_text: string | null;
+    answer_config: AnswerConfig | null;
   },
-  subjectName: string
+  subjectName: string,
+  tags: string[]
 ) {
+  let context = `- Subject: ${subjectName}
+- Problem type: ${problem.problem_type}`;
+
+  if (tags.length > 0) {
+    context += `\n- Tags: ${tags.join(', ')}`;
+  }
+
   return `You are an expert educational diagnostician. Your task is to analyse a student's error on a problem and categorise it.
 
 # Context
-- Subject: ${subjectName}
-- Problem type: ${problem.problem_type}
+${context}
 
 # Broad categories (pick exactly one)
 - conceptual_misunderstanding: The student does not understand the underlying concept
@@ -49,7 +59,7 @@ function buildSystemPrompt(
 - incomplete_answer: The student's reasoning was on track but the answer is partial or missing steps
 
 # Instructions
-1. Compare the student's submitted answer to the correct answer.
+1. Compare the student's submitted answer to the correct answer. If a worked solution is provided, use it to understand the intended approach and identify where the student diverged.
 2. Consider the student's self-reported cause and reflection notes if provided.
 3. Generate a specific, descriptive granular_tag (e.g. "mixed up sine and cosine in right triangles", "forgot to distribute the negative sign").
 4. Generate a consistent, reusable topic_label for clustering related problems (e.g. "Trigonometric Ratios", "Polynomial Factoring"). Use Title Case. Keep it concise (2-5 words). This label should be reusable across many problems in the same topic area.
@@ -67,13 +77,14 @@ function buildUserPrompt(
     title: string;
     content: string;
     correct_answer: string | null;
+    solution_text: string | null;
+    answer_config: AnswerConfig | null;
   },
   attempt: {
     submitted_answer: unknown;
     is_correct: boolean | null;
     cause: string | null;
     reflection_notes: string | null;
-    confidence: number | null;
   },
   previousAttempts: Array<{
     submitted_answer: unknown;
@@ -86,14 +97,23 @@ function buildUserPrompt(
   let prompt = `# Problem
 Title: ${problem.title}
 Content: ${problem.content || '(no content)'}
-Correct answer: ${problem.correct_answer || '(not provided)'}
+Correct answer: ${problem.correct_answer || '(not provided)'}`;
+
+  if (problem.solution_text) {
+    prompt += `\nWorked solution: ${problem.solution_text}`;
+  }
+
+  if (problem.answer_config) {
+    prompt += `\nAnswer configuration: ${JSON.stringify(problem.answer_config)}`;
+  }
+
+  prompt += `
 
 # Student's Attempt
 Submitted answer: ${JSON.stringify(attempt.submitted_answer)}
 Was correct: ${attempt.is_correct}
 Self-reported cause: ${attempt.cause || '(not provided)'}
-Reflection notes: ${attempt.reflection_notes || '(not provided)'}
-Confidence level: ${attempt.confidence ?? '(not provided)'}`;
+Reflection notes: ${attempt.reflection_notes || '(not provided)'}`;
 
   if (previousAttempts.length > 0) {
     prompt += '\n\n# Previous Attempts (most recent first)';
@@ -149,6 +169,7 @@ export async function performErrorCategorisation(
     subjectResult,
     previousResult,
     existingLabelsResult,
+    tagResult,
   ] = await Promise.all([
     serviceClient
       .from('attempts')
@@ -158,7 +179,9 @@ export async function performErrorCategorisation(
       .single(),
     serviceClient
       .from('problems')
-      .select('title, content, problem_type, correct_answer, subject_id')
+      .select(
+        'title, content, problem_type, correct_answer, solution_text, answer_config, subject_id'
+      )
       .eq('id', problem_id)
       .eq('user_id', user_id)
       .single(),
@@ -179,6 +202,11 @@ export async function performErrorCategorisation(
       .from('error_categorisations')
       .select('topic_label')
       .eq('subject_id', subject_id)
+      .eq('user_id', user_id),
+    serviceClient
+      .from('problem_tag')
+      .select('tags:tag_id(name)')
+      .eq('problem_id', problem_id)
       .eq('user_id', user_id),
   ]);
 
@@ -214,9 +242,13 @@ export async function performErrorCategorisation(
       )
     ),
   ];
+  const tags: string[] =
+    (tagResult.data ?? [])
+      .map((pt: any) => pt.tags?.name)
+      .filter(Boolean) ?? [];
 
   // Build prompt and call Gemini
-  const systemPrompt = buildSystemPrompt(problem, subject.name);
+  const systemPrompt = buildSystemPrompt(problem, subject.name, tags);
   const userPrompt = buildUserPrompt(
     problem,
     attempt,
