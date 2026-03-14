@@ -59,6 +59,7 @@ export interface AttemptState {
   cause?: string | null;
   reflectionNotes?: string | null;
   submittedResponse?: string | null;
+  needsReviewIsCorrect?: boolean | null;
 }
 
 interface ProblemReviewProps {
@@ -234,6 +235,7 @@ export default function ProblemReview({
       cause?: string | null;
       reflectionNotes?: string | null;
       submittedResponse?: string | null;
+      needsReviewIsCorrect?: boolean | null;
     }
   ) => {
     setTimelineRefreshKey(k => k + 1);
@@ -251,6 +253,7 @@ export default function ProblemReview({
       cause: details?.cause ?? null,
       reflectionNotes: details?.reflectionNotes ?? null,
       submittedResponse: details?.submittedResponse ?? null,
+      needsReviewIsCorrect: details?.needsReviewIsCorrect ?? null,
     });
   };
 
@@ -273,6 +276,8 @@ export default function ProblemReview({
           cause: initialAttemptState.cause ?? null,
           reflectionNotes: initialAttemptState.reflectionNotes ?? null,
           submittedResponse: initialAttemptState.submittedResponse ?? null,
+          needsReviewIsCorrect:
+            initialAttemptState.needsReviewIsCorrect ?? null,
         }
       : null;
 
