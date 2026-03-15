@@ -1025,8 +1025,7 @@ function rankWeakSpots(clusters: ClusterAccumulator[]): WeakSpotCandidate[] {
       const recentProblemIds = new Set(
         cluster.rows
           .filter(
-            r =>
-              now - new Date(r.attempt_created_at).getTime() < sevenDaysMs
+            r => now - new Date(r.attempt_created_at).getTime() < sevenDaysMs
           )
           .map(r => r.problem_id)
       );

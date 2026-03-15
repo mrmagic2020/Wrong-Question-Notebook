@@ -35,9 +35,11 @@ describe('hasOnlyOwnedAssetPaths', () => {
 
   it('rejects foreign asset paths in solution_assets', () => {
     expect(
-      hasOnlyOwnedAssetPaths(USER_A, [], [
-        { path: `user/${USER_B}/problems/abc/solution/img.png` },
-      ])
+      hasOnlyOwnedAssetPaths(
+        USER_A,
+        [],
+        [{ path: `user/${USER_B}/problems/abc/solution/img.png` }]
+      )
     ).toBe(false);
   });
 
@@ -66,9 +68,15 @@ describe('hasOnlyOwnedAssetPaths', () => {
 
   it('rejects dot-segment traversal in solution assets', () => {
     expect(
-      hasOnlyOwnedAssetPaths(USER_A, [], [
-        { path: `user/${USER_A}/./../../${USER_B}/problems/abc/solution/img.png` },
-      ])
+      hasOnlyOwnedAssetPaths(
+        USER_A,
+        [],
+        [
+          {
+            path: `user/${USER_A}/./../../${USER_B}/problems/abc/solution/img.png`,
+          },
+        ]
+      )
     ).toBe(false);
   });
 
