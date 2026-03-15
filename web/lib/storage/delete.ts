@@ -49,14 +49,17 @@ export async function deleteProblemFiles(
   const allFiles = await listFilesRecursive(supabase, base);
   if (!allFiles.length) return;
 
-  // Filter out files still referenced by other problems (copies)
+  // Filter out files still referenced by other problems (copies).
+  // If the RPC fails, bail out rather than deleting everything.
   const serviceClient = createServiceClient();
-  const { data: safeToDelete } = await serviceClient.rpc(
+  const { data: safeToDelete, error: rpcError } = await serviceClient.rpc(
     'get_unreferenced_asset_paths',
     { p_paths: allFiles, p_exclude_problem_id: problemId }
   );
 
-  const filesToDelete: string[] = safeToDelete ?? allFiles;
+  if (rpcError) return;
+
+  const filesToDelete: string[] = safeToDelete ?? [];
   if (!filesToDelete.length) return;
 
   await supabase.storage
