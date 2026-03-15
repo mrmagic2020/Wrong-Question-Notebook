@@ -393,6 +393,7 @@ export interface ErrorAggregationRow {
   problem_title: string;
   attempt_created_at: string;
   categorisation_created_at: string;
+  attempt_selected_status: string;
 }
 
 export interface UncategorisedAttempt {

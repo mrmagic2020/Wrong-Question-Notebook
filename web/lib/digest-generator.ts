@@ -1019,12 +1019,18 @@ function rankWeakSpots(clusters: ClusterAccumulator[]): WeakSpotCandidate[] {
       if (total === 0) return null;
       if (cluster.wrong_count + cluster.needs_review_count === 0) return null;
 
-      // Recency score (weight 0.3): proportion of attempts in last 7 days
-      const recentCount = cluster.rows.filter(r => {
-        const attemptTime = new Date(r.attempt_created_at).getTime();
-        return now - attemptTime < sevenDaysMs;
-      }).length;
-      const recencyScore = total > 0 ? recentCount / total : 0;
+      // Recency score (weight 0.3): proportion of unique problems with
+      // attempts in the last 7 days, matching the per-problem counting
+      // used by wrong_count / needs_review_count / mastered_count.
+      const recentProblemIds = new Set(
+        cluster.rows
+          .filter(
+            r =>
+              now - new Date(r.attempt_created_at).getTime() < sevenDaysMs
+          )
+          .map(r => r.problem_id)
+      );
+      const recencyScore = total > 0 ? recentProblemIds.size / total : 0;
 
       // Severity score (weight 0.35): proportion of wrong status
       const severityScore = cluster.wrong_count / total;
@@ -1071,6 +1077,9 @@ function computeTrendScore(cluster: ClusterAccumulator): number {
   const olderHalf = sorted.slice(0, midpoint);
   const newerHalf = sorted.slice(midpoint);
 
+  // Use per-attempt outcome (attempt_selected_status) rather than the
+  // problem's current snapshot (problem_status) so we can detect genuine
+  // improvement or decline over time.
   const statusToScore = (status: string): number => {
     switch (status) {
       case PROBLEM_CONSTANTS.STATUS.MASTERED:
@@ -1085,11 +1094,15 @@ function computeTrendScore(cluster: ClusterAccumulator): number {
   };
 
   const olderAvg =
-    olderHalf.reduce((sum, r) => sum + statusToScore(r.problem_status), 0) /
-    olderHalf.length;
+    olderHalf.reduce(
+      (sum, r) => sum + statusToScore(r.attempt_selected_status),
+      0
+    ) / olderHalf.length;
   const newerAvg =
-    newerHalf.reduce((sum, r) => sum + statusToScore(r.problem_status), 0) /
-    newerHalf.length;
+    newerHalf.reduce(
+      (sum, r) => sum + statusToScore(r.attempt_selected_status),
+      0
+    ) / newerHalf.length;
 
   // If newer average is worse (lower), trend score is higher (indicating decline)
   const decline = olderAvg - newerAvg;
