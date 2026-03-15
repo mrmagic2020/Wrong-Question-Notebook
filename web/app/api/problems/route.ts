@@ -11,6 +11,7 @@ import {
   createApiErrorResponse,
   createApiSuccessResponse,
   handleAsyncError,
+  hasOnlyOwnedAssetPaths,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
 import { revalidateProblemComprehensive } from '@/lib/cache-invalidation';
@@ -233,6 +234,14 @@ async function createProblem(req: Request) {
     id: clientProvidedId,
     ...problem
   } = parsed.data;
+
+  // Reject asset paths that don't belong to the current user
+  if (!hasOnlyOwnedAssetPaths(user.id, assets, solution_assets)) {
+    return NextResponse.json(
+      createApiErrorResponse(ERROR_MESSAGES.UNAUTHORIZED, 403),
+      { status: 403 }
+    );
+  }
 
   // Use client-provided ID if available, otherwise let database generate one
   const problemId = clientProvidedId || undefined;

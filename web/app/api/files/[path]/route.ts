@@ -48,11 +48,12 @@ async function isProblemInPublicSet(
 /**
  * GET /api/files/[path] - Serve file content using signed URLs with secure access control
  *
- * Access is granted if:
+ * Access is granted if any of:
  * 1. File is in the current user's directory (ownership) - fast path
  * 2. File belongs to a problem the user can view via can_view_problem RPC
  *    (covers public sharing, limited sharing, and smart set sharing)
- * 3. (Anonymous) File belongs to a problem in a public problem set
+ * 3. User owns a copied problem that references the file (retained access)
+ * 4. (Anonymous) File belongs to a problem in a public problem set
  *
  * Uses signed URLs for efficient and secure file delivery.
  */
@@ -123,10 +124,19 @@ export async function GET(
         }
 
         if (!canView) {
-          return NextResponse.json(
-            createApiErrorResponse(ERROR_MESSAGES.NOT_FOUND, 404),
-            { status: 404 }
-          );
+          // Fallback: the user may own a copied problem that references
+          // this asset. The copy was obtained through legitimate sharing,
+          // so the user retains access even if the original sharing changes.
+          const { data: ownsCopy } = await supabase
+            .rpc('user_owns_problem_with_asset', { p_path: decodedPath })
+            .single();
+
+          if (!ownsCopy) {
+            return NextResponse.json(
+              createApiErrorResponse(ERROR_MESSAGES.NOT_FOUND, 404),
+              { status: 404 }
+            );
+          }
         }
       } else {
         // Anonymous user: check if problem is in any public problem set

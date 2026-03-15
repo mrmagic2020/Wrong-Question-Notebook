@@ -253,6 +253,20 @@ export function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
+/**
+ * Returns true if all asset paths belong to the given user's storage directory.
+ * Rejects foreign asset paths to prevent unauthorized cross-user file access.
+ * Copy APIs bypass this check since they legitimately create foreign references.
+ */
+export function hasOnlyOwnedAssetPaths(
+  userId: string,
+  assets: Array<{ path: string }> | undefined,
+  solutionAssets: Array<{ path: string }> | undefined
+): boolean {
+  const allPaths = [...(assets ?? []), ...(solutionAssets ?? [])];
+  return allPaths.every(a => a.path.startsWith(`user/${userId}/`));
+}
+
 export function isValidEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
