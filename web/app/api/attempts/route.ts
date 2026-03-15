@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
 import { CreateAttemptDto } from '@/lib/schemas';
 import { withSecurity } from '@/lib/security-middleware';
@@ -16,6 +16,7 @@ import {
 import { updateReviewSchedule } from '@/lib/spaced-repetition';
 import { createServiceClient } from '@/lib/supabase-utils';
 import { getUserTimezone } from '@/lib/timezone-utils';
+import { performErrorCategorisation } from '@/lib/categorise-error';
 
 async function getAttempts(req: Request) {
   const { user, supabase } = await requireUser();
@@ -182,6 +183,25 @@ async function createAttempt(req: Request) {
       }
     } catch (e) {
       console.error('Failed to update review schedule:', e);
+    }
+
+    // Trigger AI error categorisation after the response is sent
+    const triggerStatus =
+      parsed.data.selected_status ??
+      (data.is_correct === false ? 'wrong' : null);
+    if (triggerStatus === 'wrong' || triggerStatus === 'needs_review') {
+      after(async () => {
+        try {
+          await performErrorCategorisation({
+            attempt_id: data.id,
+            problem_id: parsed.data.problem_id,
+            subject_id: problem.subject_id,
+            user_id: user.id,
+          });
+        } catch (err) {
+          console.error('[categorise-trigger] failed:', err);
+        }
+      });
     }
 
     return NextResponse.json(createApiSuccessResponse(data), { status: 201 });

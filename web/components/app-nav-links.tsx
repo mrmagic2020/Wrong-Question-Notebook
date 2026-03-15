@@ -8,6 +8,7 @@ import {
   BookOpen,
   FolderOpen,
   BarChart3,
+  Lightbulb,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -41,6 +42,13 @@ const APP_LINKS = [
     icon: BarChart3,
     iconBg: 'bg-green-500/10 dark:bg-green-500/20',
     iconColor: 'text-green-600 dark:text-green-400',
+  },
+  {
+    href: '/insights',
+    label: 'Insights',
+    icon: Lightbulb,
+    iconBg: 'bg-orange-500/10 dark:bg-orange-500/20',
+    iconColor: 'text-orange-600 dark:text-orange-400',
   },
 ];
 

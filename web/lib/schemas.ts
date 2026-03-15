@@ -9,6 +9,7 @@ import {
   SUBJECT_CONSTANTS,
   ATTEMPT_CONSTANTS,
   SPACED_REPETITION_CONSTANTS,
+  ERROR_CATEGORY_VALUES,
 } from './constants';
 import { sanitizeHtmlContent } from './html-sanitizer';
 import { isValidTimezone } from './timezone-utils';
@@ -157,7 +158,7 @@ export const CreateAttemptDto = z.object({
     z.record(z.string(), z.unknown()),
   ]),
   is_correct: z.boolean().nullable().optional(), // optional for manual types
-  cause: z.string().optional(), // categorical reason for correct/incorrect
+  cause: z.string().max(ATTEMPT_CONSTANTS.MAX_CAUSE_LENGTH).optional(),
   is_self_assessed: z.boolean().default(false),
   confidence: z.number().int().min(1).max(5).nullable().optional(),
   reflection_notes: z
@@ -169,7 +170,11 @@ export const CreateAttemptDto = z.object({
 
 export const UpdateAttemptDto = z.object({
   confidence: z.number().int().min(1).max(5).nullable().optional(),
-  cause: z.string().nullable().optional(),
+  cause: z
+    .string()
+    .max(ATTEMPT_CONSTANTS.MAX_CAUSE_LENGTH)
+    .nullable()
+    .optional(),
   reflection_notes: z
     .string()
     .max(ATTEMPT_CONSTANTS.MAX_REFLECTION_NOTES_LENGTH)
@@ -422,6 +427,30 @@ export const RemoveProblemsFromSetDto = z.object({
 // =====================================================
 // QR Upload Session Schemas
 // =====================================================
+
+// =====================================================
+// Error Categorisation & Insights Schemas
+// =====================================================
+
+export const ErrorBroadCategorySchema = z.enum(ERROR_CATEGORY_VALUES);
+
+export const AICategorisationResponseSchema = z.object({
+  broad_category: ErrorBroadCategorySchema,
+  granular_tag: z.string().min(1).max(200),
+  topic_label: z.string().min(1).max(200),
+  confidence: z.number().min(0).max(1),
+  reasoning: z.string().max(1000),
+});
+
+export const UpdateErrorCategorisationDto = z.object({
+  broad_category: ErrorBroadCategorySchema.optional(),
+  granular_tag: z.string().min(1).max(200).optional(),
+});
+
+export const StartInsightsReviewDto = z.object({
+  subject_id: z.uuid(),
+  problem_ids: z.array(z.uuid()).min(1).max(50),
+});
 
 export const QRSessionIdParam = z.uuid();
 

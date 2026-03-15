@@ -62,6 +62,14 @@ export default function SpacedReviewClient({
   const fetchSession = useCallback(async () => {
     try {
       const res = await fetch(`/api/review-sessions/${sessionId}`);
+      if (res.status === 410) {
+        // All problems deleted — session was auto-closed
+        toast.error(
+          'All problems in this session were deleted. The session has been closed.'
+        );
+        router.push(`/subjects/${subjectId}/problems`);
+        return;
+      }
       if (!res.ok) throw new Error('Failed to load session');
       const data = await res.json();
       setSessionData(data.data);

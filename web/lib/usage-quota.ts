@@ -9,6 +9,14 @@ export interface QuotaCheckResult {
   remaining: number;
 }
 
+/** Resolve the system default limit for a resource type. */
+function getDefaultLimit(resourceType: string): number {
+  return (
+    USAGE_QUOTA_CONSTANTS.DEFAULT_LIMITS[resourceType] ??
+    USAGE_QUOTA_CONSTANTS.DEFAULTS.AI_EXTRACTION_DAILY_LIMIT
+  );
+}
+
 /**
  * Get the effective daily limit for a user (override or system default).
  */
@@ -30,10 +38,7 @@ export async function getUserQuotaLimit(
     throw new Error('Failed to look up quota limit');
   }
 
-  return (
-    data?.daily_limit ??
-    USAGE_QUOTA_CONSTANTS.DEFAULTS.AI_EXTRACTION_DAILY_LIMIT
-  );
+  return data?.daily_limit ?? getDefaultLimit(resourceType);
 }
 
 /**
@@ -50,7 +55,7 @@ export async function checkAndIncrementQuota(
   const { data, error } = await supabase.rpc('check_and_increment_quota', {
     p_user_id: userId,
     p_resource_type: resourceType,
-    p_default_limit: USAGE_QUOTA_CONSTANTS.DEFAULTS.AI_EXTRACTION_DAILY_LIMIT,
+    p_default_limit: getDefaultLimit(resourceType),
     p_user_tz: userTimezone,
   });
 

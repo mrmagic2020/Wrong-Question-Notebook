@@ -71,6 +71,64 @@ async function getSession(
       problems = problemIds
         .map((id: string) => problemMap.get(id))
         .filter(Boolean);
+
+      // Heal session: strip deleted problem IDs from session state
+      const foundIds = new Set(problems.map((p: any) => p.id));
+      const deletedIds = problemIds.filter((id: string) => !foundIds.has(id));
+
+      if (deletedIds.length > 0) {
+        const deletedSet = new Set(deletedIds);
+        const healedState = { ...session.session_state };
+        healedState.problem_ids = problemIds.filter(
+          (id: string) => !deletedSet.has(id)
+        );
+        healedState.completed_problem_ids = (
+          healedState.completed_problem_ids || []
+        ).filter((id: string) => !deletedSet.has(id));
+        healedState.skipped_problem_ids = (
+          healedState.skipped_problem_ids || []
+        ).filter((id: string) => !deletedSet.has(id));
+        if (healedState.initial_statuses) {
+          for (const id of deletedIds) {
+            delete healedState.initial_statuses[id];
+          }
+        }
+        // Clamp current_index to the new bounds
+        if (healedState.problem_ids.length === 0) {
+          healedState.current_index = 0;
+        } else if (
+          healedState.current_index >= healedState.problem_ids.length
+        ) {
+          healedState.current_index = healedState.problem_ids.length - 1;
+        }
+
+        // Persist healed state
+        await supabase
+          .from('review_session_state')
+          .update({ session_state: healedState })
+          .eq('id', sessionId);
+
+        session.session_state = healedState;
+      }
+    }
+
+    // If no problems remain after healing, auto-complete the session
+    if (problems.length === 0) {
+      await supabase
+        .from('review_session_state')
+        .update({
+          is_active: false,
+          last_activity_at: new Date().toISOString(),
+        })
+        .eq('id', sessionId);
+
+      return NextResponse.json(
+        createApiErrorResponse(
+          'All problems in this session have been deleted. The session has been closed.',
+          410
+        ),
+        { status: 410 }
+      );
     }
 
     // Get session results so far

@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Brain, Loader2, Play } from 'lucide-react';
+import { Brain, Loader2, Play, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SPACED_REPETITION_CONSTANTS } from '@/lib/constants';
 import { toast } from 'sonner';
@@ -43,6 +43,7 @@ export function ReviewDuePickerDialog({
   const [selectedSize, setSelectedSize] = useState<number | null>(null);
   const [starting, setStarting] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [discarding, setDiscarding] = useState(false);
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(
     null
   );
@@ -90,6 +91,23 @@ export function ReviewDuePickerDialog({
     router.push(
       `/subjects/${subjectId}/review-due?sessionId=${activeSession.sessionId}`
     );
+  };
+
+  const handleDiscard = async () => {
+    if (!activeSession) return;
+    setDiscarding(true);
+    try {
+      const res = await fetch(
+        `/api/review-sessions/${activeSession.sessionId}`,
+        { method: 'DELETE' }
+      );
+      if (!res.ok) throw new Error('Failed to discard session');
+      setActiveSession(null);
+    } catch {
+      toast.error('Failed to discard session');
+    } finally {
+      setDiscarding(false);
+    }
   };
 
   const handleStart = async () => {
@@ -154,6 +172,19 @@ export function ReviewDuePickerDialog({
             >
               <Play className="h-4 w-4 mr-2" />
               Resume Session
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleDiscard}
+              disabled={discarding}
+              className="w-full rounded-xl text-muted-foreground"
+            >
+              {discarding ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4 mr-2" />
+              )}
+              Discard &amp; Start New
             </Button>
           </div>
         ) : (

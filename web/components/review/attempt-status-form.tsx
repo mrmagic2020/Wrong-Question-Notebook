@@ -66,6 +66,7 @@ interface AttemptStatusFormProps {
       cause?: string | null;
       reflectionNotes?: string | null;
       submittedResponse?: string | null;
+      needsReviewIsCorrect?: boolean | null;
     }
   ) => void;
   initialSavedState?: {
@@ -74,6 +75,7 @@ interface AttemptStatusFormProps {
     cause?: string | null;
     reflectionNotes?: string | null;
     submittedResponse?: string | null;
+    needsReviewIsCorrect?: boolean | null;
   } | null;
   disabled?: boolean;
 }
@@ -98,6 +100,9 @@ export default function AttemptStatusForm({
   const [notes, setNotes] = useState(initialSavedState?.reflectionNotes ?? '');
   const [response, setResponse] = useState(
     initialSavedState?.submittedResponse ?? ''
+  );
+  const [needsReviewIsCorrect, setNeedsReviewIsCorrect] = useState<boolean>(
+    initialSavedState?.needsReviewIsCorrect ?? false
   );
   const [isSaving, setIsSaving] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -145,6 +150,23 @@ export default function AttemptStatusForm({
 
   const availableOptions = getAvailableOptions();
 
+  // Show correctness sub-option for needs_review on non-auto-mark problems
+  const showNeedsReviewSubOption =
+    selectedStatus === 'needs_review' &&
+    (!autoMark || autoMarkCorrect === null || autoMarkCorrect === undefined);
+
+  const handleStatusChange = (status: ProblemStatus) => {
+    setSelectedStatus(status);
+    if (status !== 'needs_review') {
+      setNeedsReviewIsCorrect(false);
+    }
+  };
+
+  const handleNeedsReviewToggle = (isCorrect: boolean) => {
+    setNeedsReviewIsCorrect(isCorrect);
+    setCause(undefined); // Reset cause since categories switch
+  };
+
   // Auto-select default status based on auto-mark result (only when not restoring from saved state)
   const getDefaultStatus = (): ProblemStatus | null => {
     if (initialSavedState) return null;
@@ -174,7 +196,9 @@ export default function AttemptStatusForm({
   const effectiveIsCorrect =
     autoMarkCorrect !== null && autoMarkCorrect !== undefined
       ? autoMarkCorrect
-      : selectedStatus === 'mastered';
+      : selectedStatus === 'needs_review'
+        ? needsReviewIsCorrect
+        : selectedStatus === 'mastered';
 
   const handleSave = async () => {
     if (!selectedStatus) return;
@@ -210,7 +234,10 @@ export default function AttemptStatusForm({
           body: JSON.stringify({
             problem_id: problemId,
             submitted_answer: response || 'Self-assessed',
-            is_correct: selectedStatus !== 'wrong',
+            is_correct:
+              selectedStatus === 'needs_review'
+                ? needsReviewIsCorrect
+                : selectedStatus === 'mastered',
             is_self_assessed: true,
             selected_status: selectedStatus,
             cause: cause || undefined,
@@ -228,6 +255,8 @@ export default function AttemptStatusForm({
         cause: cause || null,
         reflectionNotes: notes || null,
         submittedResponse: response || null,
+        needsReviewIsCorrect:
+          selectedStatus === 'needs_review' ? needsReviewIsCorrect : null,
       });
     } catch {
       toast.error('Failed to save assessment. Please try again.');
@@ -284,6 +313,14 @@ export default function AttemptStatusForm({
           <SavedIcon className="h-4 w-4 flex-shrink-0" />
           <span>{savedOption.label}</span>
         </div>
+        {savedState.selectedStatus === 'needs_review' &&
+          showNeedsReviewSubOption && (
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {needsReviewIsCorrect
+                ? 'Correct, but unsure'
+                : 'Wrong, but close'}
+            </p>
+          )}
         {cause && (
           <p className="text-xs text-muted-foreground mt-1.5">
             Cause:{' '}
@@ -326,7 +363,7 @@ export default function AttemptStatusForm({
             <button
               type="button"
               key={option.value}
-              onClick={() => setSelectedStatus(option.value)}
+              onClick={() => handleStatusChange(option.value)}
               disabled={disabled}
               className={cn(
                 'w-full px-3 py-2 rounded-lg text-left text-sm font-medium border transition-all flex items-center gap-2',
@@ -341,6 +378,43 @@ export default function AttemptStatusForm({
           );
         })}
       </div>
+
+      {/* Needs Review correctness sub-option */}
+      {showNeedsReviewSubOption && (
+        <div className="mt-1.5 space-y-1">
+          <p className="text-xs font-medium text-yellow-700 dark:text-yellow-300">
+            How did it go?
+          </p>
+          <div className="grid grid-cols-2 gap-1.5">
+            <button
+              type="button"
+              onClick={() => handleNeedsReviewToggle(true)}
+              disabled={disabled}
+              className={cn(
+                'px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all text-left',
+                needsReviewIsCorrect
+                  ? 'bg-green-100 dark:bg-green-950/20 text-green-800 dark:text-green-200 border-green-300 dark:border-green-800'
+                  : 'border-border bg-background hover:bg-green-50 dark:hover:bg-green-950/10 hover:border-green-200 dark:hover:border-green-900/30'
+              )}
+            >
+              Correct, but unsure
+            </button>
+            <button
+              type="button"
+              onClick={() => handleNeedsReviewToggle(false)}
+              disabled={disabled}
+              className={cn(
+                'px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all text-left',
+                !needsReviewIsCorrect
+                  ? 'bg-red-100 dark:bg-red-950/20 text-red-800 dark:text-red-200 border-red-300 dark:border-red-800'
+                  : 'border-border bg-background hover:bg-red-50 dark:hover:bg-red-950/10 hover:border-red-200 dark:hover:border-red-900/30'
+              )}
+            >
+              Wrong, but close
+            </button>
+          </div>
+        </div>
+      )}
 
       <p className="text-xs text-muted-foreground mt-2 text-center">
         Current:{' '}

@@ -5,6 +5,7 @@ import { deleteProblemFiles } from '@/lib/storage/delete';
 import {
   createApiErrorResponse,
   createApiSuccessResponse,
+  hasOnlyOwnedAssetPaths,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
 import { revalidateProblemComprehensive } from '@/lib/cache-invalidation';
@@ -96,6 +97,14 @@ export async function PATCH(
 
   const { id } = await params;
   const { tag_ids, assets, solution_assets, ...problem } = parsed.data;
+
+  // Reject asset paths that don't belong to the current user
+  if (!hasOnlyOwnedAssetPaths(user.id, assets, solution_assets)) {
+    return NextResponse.json(
+      createApiErrorResponse(ERROR_MESSAGES.UNAUTHORIZED, 403),
+      { status: 403 }
+    );
+  }
 
   // 1) Update the problem row (without assets first)
   const { error } = await supabase

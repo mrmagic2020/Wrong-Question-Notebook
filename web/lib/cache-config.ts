@@ -26,6 +26,9 @@ export const CACHE_DURATIONS = {
 
   // Review schedule - 5 minutes
   REVIEW_SCHEDULE: 5 * 60, // 5 minutes
+
+  // Insights - 30 minutes (digests are pre-computed daily)
+  INSIGHTS: 30 * 60, // 30 minutes
 } as const;
 
 // Cache tags for organized invalidation
@@ -42,6 +45,7 @@ export const CACHE_TAGS = {
 
   STATISTICS: 'statistics',
   REVIEW_SCHEDULE: 'review-schedule',
+  INSIGHTS: 'insights',
 
   // User-specific tags (will be combined with user ID)
   USER_SUBJECTS: 'user-subjects',
@@ -51,6 +55,7 @@ export const CACHE_TAGS = {
   USER_TAGS: 'user-tags',
   USER_STATISTICS: 'user-statistics',
   USER_REVIEW_SCHEDULE: 'user-review-schedule',
+  USER_INSIGHTS: 'user-insights',
 } as const;
 
 // Helper function to create user-specific cache tags

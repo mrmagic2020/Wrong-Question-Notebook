@@ -38,7 +38,7 @@ export default async function SRSummaryPage({
     .select('id, subject_id, session_type')
     .eq('id', sessionId)
     .eq('user_id', user.id)
-    .eq('session_type', 'spaced_repetition')
+    .in('session_type', ['spaced_repetition', 'insights_review'])
     .single();
 
   if (!session || session.subject_id !== subjectId) {

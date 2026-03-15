@@ -334,8 +334,19 @@ export const AI_CONSTANTS = {
 // Usage Quota Constants
 // =====================================================
 export const USAGE_QUOTA_CONSTANTS = {
-  RESOURCE_TYPES: { AI_EXTRACTION: 'ai_extraction' },
-  DEFAULTS: { AI_EXTRACTION_DAILY_LIMIT: 10 },
+  RESOURCE_TYPES: {
+    AI_EXTRACTION: 'ai_extraction',
+    AI_CATEGORISATION: 'ai_categorisation',
+  },
+  DEFAULTS: {
+    AI_EXTRACTION_DAILY_LIMIT: 10,
+    AI_CATEGORISATION_DAILY_LIMIT: 50,
+  },
+  /** Map resource type → system default limit (used by quota functions) */
+  DEFAULT_LIMITS: {
+    ai_extraction: 10,
+    ai_categorisation: 50,
+  } as Record<string, number>,
 } as const;
 
 // =====================================================
@@ -405,6 +416,9 @@ export const SUBJECT_CONSTANTS = {
       icon: 'bg-amber-500/10 dark:bg-amber-500/20',
       iconColor: 'text-amber-600 dark:text-amber-400',
       buttonHover: 'hover:bg-amber-500/10 dark:hover:bg-amber-500/20',
+      cardBg: 'bg-amber-50/30 dark:bg-amber-950/20',
+      badge:
+        'bg-amber-100/80 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
     },
     orange: {
       light: 'from-orange-50 to-orange-100/50',
@@ -413,6 +427,9 @@ export const SUBJECT_CONSTANTS = {
       icon: 'bg-orange-500/10 dark:bg-orange-500/20',
       iconColor: 'text-orange-600 dark:text-orange-400',
       buttonHover: 'hover:bg-orange-500/10 dark:hover:bg-orange-500/20',
+      cardBg: 'bg-orange-50/30 dark:bg-orange-950/20',
+      badge:
+        'bg-orange-100/80 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
     },
     rose: {
       light: 'from-rose-50 to-rose-100/50',
@@ -421,6 +438,9 @@ export const SUBJECT_CONSTANTS = {
       icon: 'bg-rose-500/10 dark:bg-rose-500/20',
       iconColor: 'text-rose-600 dark:text-rose-400',
       buttonHover: 'hover:bg-rose-500/10 dark:hover:bg-rose-500/20',
+      cardBg: 'bg-rose-50/30 dark:bg-rose-950/20',
+      badge:
+        'bg-rose-100/80 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
     },
     blue: {
       light: 'from-blue-50 to-blue-100/50',
@@ -429,6 +449,9 @@ export const SUBJECT_CONSTANTS = {
       icon: 'bg-blue-500/10 dark:bg-blue-500/20',
       iconColor: 'text-blue-600 dark:text-blue-400',
       buttonHover: 'hover:bg-blue-500/10 dark:hover:bg-blue-500/20',
+      cardBg: 'bg-blue-50/30 dark:bg-blue-950/20',
+      badge:
+        'bg-blue-100/80 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
     },
     emerald: {
       light: 'from-emerald-50 to-emerald-100/50',
@@ -437,6 +460,9 @@ export const SUBJECT_CONSTANTS = {
       icon: 'bg-emerald-500/10 dark:bg-emerald-500/20',
       iconColor: 'text-emerald-600 dark:text-emerald-400',
       buttonHover: 'hover:bg-emerald-500/10 dark:hover:bg-emerald-500/20',
+      cardBg: 'bg-emerald-50/30 dark:bg-emerald-950/20',
+      badge:
+        'bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
     },
     purple: {
       light: 'from-purple-50 to-purple-100/50',
@@ -445,6 +471,9 @@ export const SUBJECT_CONSTANTS = {
       icon: 'bg-purple-500/10 dark:bg-purple-500/20',
       iconColor: 'text-purple-600 dark:text-purple-400',
       buttonHover: 'hover:bg-purple-500/10 dark:hover:bg-purple-500/20',
+      cardBg: 'bg-purple-50/30 dark:bg-purple-950/20',
+      badge:
+        'bg-purple-100/80 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
     },
     teal: {
       light: 'from-teal-50 to-teal-100/50',
@@ -453,6 +482,9 @@ export const SUBJECT_CONSTANTS = {
       icon: 'bg-teal-500/10 dark:bg-teal-500/20',
       iconColor: 'text-teal-600 dark:text-teal-400',
       buttonHover: 'hover:bg-teal-500/10 dark:hover:bg-teal-500/20',
+      cardBg: 'bg-teal-50/30 dark:bg-teal-950/20',
+      badge:
+        'bg-teal-100/80 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300',
     },
     pink: {
       light: 'from-pink-50 to-pink-100/50',
@@ -461,6 +493,9 @@ export const SUBJECT_CONSTANTS = {
       icon: 'bg-pink-500/10 dark:bg-pink-500/20',
       iconColor: 'text-pink-600 dark:text-pink-400',
       buttonHover: 'hover:bg-pink-500/10 dark:hover:bg-pink-500/20',
+      cardBg: 'bg-pink-50/30 dark:bg-pink-950/20',
+      badge:
+        'bg-pink-100/80 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300',
     },
   },
 } as const;
@@ -543,8 +578,10 @@ export const ATTEMPT_CONSTANTS = {
     4: 'Fairly confident',
     5: 'Absolutely certain',
   } as Record<number, string>,
+  MAX_CAUSE_LENGTH: 50,
   MAX_REFLECTION_NOTES_LENGTH: 2000,
   MAX_RESPONSE_LENGTH: 500,
+  TIMELINE_PAGE_SIZE: 5,
 } as const;
 
 // =====================================================
@@ -585,6 +622,93 @@ export const SPACED_REPETITION_CONSTANTS = {
   MAX_SESSION_SIZE: 50,
   DEFAULT_SESSION_SIZE: 20,
   SESSION_PRESETS: [5, 10, 20],
+} as const;
+
+// =====================================================
+// Insight & Error Categorisation Constants
+// =====================================================
+export const ERROR_CATEGORY_VALUES = [
+  'conceptual_misunderstanding',
+  'procedural_error',
+  'knowledge_gap',
+  'misread_question',
+  'careless_mistake',
+  'time_pressure',
+  'incomplete_answer',
+] as const;
+
+export type ErrorBroadCategory = (typeof ERROR_CATEGORY_VALUES)[number];
+
+export const ERROR_CATEGORY_LABELS: Record<ErrorBroadCategory, string> = {
+  conceptual_misunderstanding: 'Conceptual',
+  procedural_error: 'Procedural',
+  knowledge_gap: 'Knowledge Gap',
+  misread_question: 'Misread Question',
+  careless_mistake: 'Careless Mistake',
+  time_pressure: 'Time Pressure',
+  incomplete_answer: 'Incomplete',
+};
+
+export const ERROR_CATEGORY_COLORS: Record<
+  ErrorBroadCategory,
+  { bg: string; text: string; dot: string }
+> = {
+  conceptual_misunderstanding: {
+    bg: 'bg-red-100 dark:bg-red-900/30',
+    text: 'text-red-700 dark:text-red-400',
+    dot: 'bg-red-500',
+  },
+  procedural_error: {
+    bg: 'bg-orange-100 dark:bg-orange-900/30',
+    text: 'text-orange-700 dark:text-orange-400',
+    dot: 'bg-orange-500',
+  },
+  knowledge_gap: {
+    bg: 'bg-amber-100 dark:bg-amber-900/30',
+    text: 'text-amber-700 dark:text-amber-400',
+    dot: 'bg-amber-500',
+  },
+  misread_question: {
+    bg: 'bg-blue-100 dark:bg-blue-900/30',
+    text: 'text-blue-700 dark:text-blue-400',
+    dot: 'bg-blue-500',
+  },
+  careless_mistake: {
+    bg: 'bg-purple-100 dark:bg-purple-900/30',
+    text: 'text-purple-700 dark:text-purple-400',
+    dot: 'bg-purple-500',
+  },
+  time_pressure: {
+    bg: 'bg-rose-100 dark:bg-rose-900/30',
+    text: 'text-rose-700 dark:text-rose-400',
+    dot: 'bg-rose-500',
+  },
+  incomplete_answer: {
+    bg: 'bg-gray-100 dark:bg-gray-800',
+    text: 'text-gray-700 dark:text-gray-400',
+    dot: 'bg-gray-500',
+  },
+};
+
+export const INSIGHT_CONSTANTS = {
+  MAX_WEAK_SPOTS_OVERVIEW: 7,
+  MAX_WEAK_SPOTS_EXPANDED: 20,
+  /** Minimum unique problems with at least one attempt (any outcome) */
+  MIN_ACTIVITY_FOR_INSIGHTS: 5,
+  /** Minimum unique problems with categorised errors for full error analysis */
+  MIN_ERRORS_FOR_FULL_DIGEST: 3,
+  /** Minimum subjects for cross-subject comparative framing */
+  MIN_SUBJECTS_FOR_CROSS_SUBJECT: 2,
+  BACKFILL_BATCH_SIZE: 20,
+  DIGEST_COOLDOWN_HOURS: 24,
+  MAX_DIGESTS_RETAINED: 30,
+  MAX_REVIEW_PROBLEMS: 50,
+  /** If a digest has been 'generating' for longer than this, treat it as stale/failed */
+  GENERATING_STALE_MINUTES: 5,
+  /** Polling interval (ms) for checking generation status on client */
+  GENERATION_POLL_INTERVAL_MS: 10 * 1000,
+  /** Max polling attempts before giving up (~5 minutes) */
+  MAX_POLL_ATTEMPTS: 30,
 } as const;
 
 export const COOKIE_CONSENT_CONSTANTS = {

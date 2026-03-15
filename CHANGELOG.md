@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning].
 
 ### Added
 
+- **Weak Spots & Insights Dashboard**
+  - New `/insights` route with AI-generated narrative study briefings
+  - Per-attempt AI error categorisation (runs automatically after wrong/needs_review attempts)
+  - 7 broad error categories: conceptual, procedural, knowledge gap, misread, careless, time pressure, incomplete
+  - AI-generated topic clustering for grouping related problems
+  - Cross-subject overview with ranked weak spots, error pattern summary, and subject health assessments
+  - Per-subject deep dive with topic cluster map, mastery status bars, and progress narratives
+  - "Review these problems" integration: start targeted review sessions from any weak spot or topic cluster
+  - Error category badges inline on attempt timeline with user override support
+  - Daily digest cron job (19:00 UTC) for pre-computing insights
+  - New database tables: `error_categorisations`, `insight_digests`
+  - **Tiered insight generation**: multi-dimensional threshold replaces single error-count gate
+    - "Full" digest when ≥5 attempted problems and ≥3 with errors (existing behavior)
+    - "Mastery" digest when ≥5 attempted problems but <3 errors — celebrates accuracy instead of requiring failures
+    - "Narrow" (preliminary) digest when <5 problems but ≥3 errors — provides early analysis with limited-data caveat
+    - Progress bars showing how close the user is to unlocking insights when data is insufficient
+    - Tier badges ("Preliminary", "Mastery") on digest headers
+
 - **Add to Notebook**: Copy individual problems from shared problem sets to your own notebooks
   - Available in problem row actions and on the review page
   - Select target subject and optionally copy tags
@@ -24,6 +42,12 @@ and this project adheres to [Semantic Versioning].
   - Viewer-only review sessions: ungated navigation, no assessment form, clean session completion
 
 ### Fixed
+
+- **Insights Digest Accuracy**
+  - Fixed overcounting in error distribution (now counts per unique problem, not per attempt)
+  - Fixed mastered topics incorrectly appearing as weak spots
+  - Fixed cluster merge inflating mastered/wrong counts when clusters share problems
+  - Added total problem counts per subject for balanced AI assessments (not just errors)
 
 - **Review Session Bug for Non-Owner Users**
   - Fixed Next button permanently disabled in read-only review sessions (form saved callback never fired)

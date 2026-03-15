@@ -2,6 +2,7 @@
 // This file contains all application types to eliminate redundancy and improve type safety
 
 import { ProblemType, ProblemStatus, ProblemSetSharingLevel } from './schemas';
+import type { ErrorBroadCategory } from './constants';
 import { ColumnDef } from '@tanstack/react-table';
 
 // =====================================================
@@ -306,6 +307,124 @@ export interface QRSessionStatusResponse {
 export interface QRSessionConsumeResponse {
   filePath: string;
   mimeType: string;
+}
+
+// =====================================================
+// Error Categorisation & Insights Types
+// =====================================================
+
+// ErrorBroadCategory is the single source of truth in constants.ts (derived from ERROR_CATEGORY_VALUES).
+// Re-exported here so consumers can import from either location.
+export type { ErrorBroadCategory } from './constants';
+
+export interface ErrorCategorisation {
+  id: string;
+  attempt_id: string;
+  problem_id: string;
+  subject_id: string;
+  user_id: string;
+  broad_category: ErrorBroadCategory;
+  granular_tag: string;
+  topic_label: string;
+  topic_label_normalised: string;
+  ai_confidence: number;
+  ai_reasoning: string | null;
+  is_user_override: boolean;
+  original_broad_category: ErrorBroadCategory | null;
+  original_granular_tag: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WeakSpot {
+  topic_label: string;
+  subject_id: string;
+  subject_name: string;
+  subject_color?: string;
+  problem_count: number;
+  trend_phrase: string;
+  dominant_error_type: string;
+  problem_ids: string[];
+}
+
+export interface TopicCluster {
+  label: string;
+  problem_count: number;
+  wrong_count: number;
+  needs_review_count: number;
+  mastered_count: number;
+  narrative: string;
+  problem_ids: string[];
+}
+
+export type DigestStatus = 'generating' | 'completed' | 'failed';
+
+export type DigestTier = 'full' | 'mastery' | 'narrow';
+
+export interface InsightDigest {
+  id: string;
+  user_id: string;
+  generated_at: string;
+  status: DigestStatus;
+  headline: string;
+  error_pattern_summary: string;
+  subject_error_patterns?: Record<string, string>;
+  subject_health: Record<string, string>;
+  weak_spots: WeakSpot[];
+  topic_clusters: Record<string, TopicCluster[]>;
+  progress_narratives: Record<string, string>;
+  raw_aggregation_data?: Record<string, unknown>;
+  digest_tier?: DigestTier;
+}
+
+export interface ErrorAggregationRow {
+  categorisation_id: string;
+  attempt_id: string;
+  problem_id: string;
+  subject_id: string;
+  subject_name: string;
+  broad_category: ErrorBroadCategory;
+  granular_tag: string;
+  topic_label: string;
+  topic_label_normalised: string;
+  ai_confidence: number;
+  is_user_override: boolean;
+  problem_status: string;
+  problem_title: string;
+  attempt_created_at: string;
+  categorisation_created_at: string;
+  attempt_selected_status: string;
+}
+
+export interface UncategorisedAttempt {
+  attempt_id: string;
+  problem_id: string;
+  subject_id: string;
+  submitted_answer: unknown;
+  is_correct: boolean | null;
+  cause: string | null;
+  reflection_notes: string | null;
+  selected_status: string;
+  attempt_created_at: string;
+  problem_title: string;
+  problem_content: string | null;
+  problem_type: string;
+  correct_answer: string | null;
+  subject_name: string;
+}
+
+export interface ActivitySummary {
+  total_problems: number;
+  total_attempts: number;
+  total_subjects: number;
+  problems_with_errors: number;
+}
+
+export interface InsufficientDataResult {
+  insufficient_data: true;
+  activity: ActivitySummary;
+  activity_needed: number;
+  errors_needed: number;
 }
 
 // =====================================================

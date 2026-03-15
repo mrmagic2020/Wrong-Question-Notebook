@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
 import { UpdateAttemptDto } from '@/lib/schemas';
 import {
@@ -14,6 +14,7 @@ import {
   revalidateUserReviewSchedule,
 } from '@/lib/cache-invalidation';
 import { getUserTimezone } from '@/lib/timezone-utils';
+import { performErrorCategorisation } from '@/lib/categorise-error';
 
 export async function PATCH(
   req: Request,
@@ -129,6 +130,28 @@ export async function PATCH(
       // Invalidate caches
       if (problem) {
         await revalidateProblemAndSubject(data.problem_id, problem.subject_id);
+      }
+
+      // Trigger AI error categorisation after the response is sent
+      if (
+        (parsed.data.selected_status === 'wrong' ||
+          parsed.data.selected_status === 'needs_review') &&
+        problem?.subject_id
+      ) {
+        const subjectId = problem.subject_id;
+        const problemId = data.problem_id;
+        after(async () => {
+          try {
+            await performErrorCategorisation({
+              attempt_id: attemptId,
+              problem_id: problemId,
+              subject_id: subjectId,
+              user_id: user.id,
+            });
+          } catch (err) {
+            console.error('[categorise-trigger] failed:', err);
+          }
+        });
       }
     }
 
