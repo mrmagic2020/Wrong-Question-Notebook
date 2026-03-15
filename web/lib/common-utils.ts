@@ -263,8 +263,13 @@ export function hasOnlyOwnedAssetPaths(
   assets: Array<{ path: string }> | undefined,
   solutionAssets: Array<{ path: string }> | undefined
 ): boolean {
+  const prefix = `user/${userId}/`;
   const allPaths = [...(assets ?? []), ...(solutionAssets ?? [])];
-  return allPaths.every(a => a.path.startsWith(`user/${userId}/`));
+  return allPaths.every(a => {
+    // Reject paths containing traversal segments before the prefix check
+    if (a.path.includes('/../') || a.path.includes('/./')) return false;
+    return a.path.startsWith(prefix);
+  });
 }
 
 export function isValidEmail(email: string): boolean {

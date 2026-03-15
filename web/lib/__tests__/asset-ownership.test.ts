@@ -55,15 +55,21 @@ describe('hasOnlyOwnedAssetPaths', () => {
   });
 
   it('rejects path traversal attempts', () => {
-    // Trying to escape via ../
     expect(
       hasOnlyOwnedAssetPaths(
         USER_A,
         [{ path: `user/${USER_A}/../${USER_B}/problems/abc/problem/img.png` }],
         []
       )
-    ).toBe(true); // Path starts with user/{USER_A}/ so it passes the prefix check
-    // But the storage layer would resolve this — the check is a first line of defense
+    ).toBe(false);
+  });
+
+  it('rejects dot-segment traversal in solution assets', () => {
+    expect(
+      hasOnlyOwnedAssetPaths(USER_A, [], [
+        { path: `user/${USER_A}/./../../${USER_B}/problems/abc/solution/img.png` },
+      ])
+    ).toBe(false);
   });
 
   it('rejects empty-string user ID prefix spoofing', () => {
