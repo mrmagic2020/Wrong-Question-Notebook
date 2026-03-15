@@ -12,6 +12,7 @@ import {
   AccordionContent,
 } from '@/components/ui/accordion';
 import { Pencil, User } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import AttemptEditDialog from './attempt-edit-dialog';
 import { ErrorCategoryEditor } from '@/components/insights/error-category-editor';
@@ -130,24 +131,30 @@ export default function AttemptTimelineEntry({
     id: string,
     updates: { broad_category?: string; granular_tag?: string }
   ) => {
-    const res = await fetch(`/api/ai/categorise-error/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updates),
-    });
-    if (res.ok) {
+    try {
+      const res = await fetch(`/api/ai/categorise-error/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
+      if (!res.ok) throw new Error('Failed to save');
       const json = await res.json();
       if (json.data) setCategorisation(json.data);
+    } catch {
+      toast.error('Failed to save classification. Please try again.');
     }
   };
 
   const handleCategorisationReset = async (id: string) => {
-    const res = await fetch(`/api/ai/categorise-error/${id}`, {
-      method: 'DELETE',
-    });
-    if (res.ok) {
+    try {
+      const res = await fetch(`/api/ai/categorise-error/${id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error('Failed to reset');
       const json = await res.json();
       if (json.data) setCategorisation(json.data);
+    } catch {
+      toast.error('Failed to reset classification. Please try again.');
     }
   };
 
