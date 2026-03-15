@@ -334,8 +334,19 @@ export const AI_CONSTANTS = {
 // Usage Quota Constants
 // =====================================================
 export const USAGE_QUOTA_CONSTANTS = {
-  RESOURCE_TYPES: { AI_EXTRACTION: 'ai_extraction' },
-  DEFAULTS: { AI_EXTRACTION_DAILY_LIMIT: 10 },
+  RESOURCE_TYPES: {
+    AI_EXTRACTION: 'ai_extraction',
+    AI_CATEGORISATION: 'ai_categorisation',
+  },
+  DEFAULTS: {
+    AI_EXTRACTION_DAILY_LIMIT: 10,
+    AI_CATEGORISATION_DAILY_LIMIT: 50,
+  },
+  /** Map resource type → system default limit (used by quota functions) */
+  DEFAULT_LIMITS: {
+    ai_extraction: 10,
+    ai_categorisation: 50,
+  } as Record<string, number>,
 } as const;
 
 // =====================================================

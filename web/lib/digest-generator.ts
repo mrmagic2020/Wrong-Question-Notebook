@@ -11,7 +11,10 @@ import {
   INSIGHT_CONSTANTS,
   ERROR_CATEGORY_VALUES,
   PROBLEM_CONSTANTS,
+  USAGE_QUOTA_CONSTANTS,
 } from '@/lib/constants';
+import { checkAndIncrementQuota } from '@/lib/usage-quota';
+import { getUserTimezone } from '@/lib/timezone-utils';
 import { normaliseTopicLabel } from '@/lib/insights-utils';
 import { logger } from '@/lib/logger';
 import type {
@@ -452,9 +455,38 @@ export async function categoriseUncategorisedAttempts(
     })
   );
 
+  // Resolve user timezone once for quota checks
+  let userTimezone: string;
+  try {
+    userTimezone = await getUserTimezone(userId);
+  } catch {
+    userTimezone = 'UTC';
+  }
+
   let successCount = 0;
 
   for (const attempt of uncategorised) {
+    // Check categorisation quota before each Gemini call
+    try {
+      const quota = await checkAndIncrementQuota(
+        userId,
+        USAGE_QUOTA_CONSTANTS.RESOURCE_TYPES.AI_CATEGORISATION,
+        userTimezone
+      );
+      if (!quota.allowed) {
+        logger.info('Categorisation quota exhausted during backfill', {
+          component: 'DigestGenerator',
+          action: 'categoriseUncategorisedAttempts',
+          userId,
+          categorised: String(successCount),
+          remaining: String(uncategorised.length - successCount),
+        });
+        break;
+      }
+    } catch {
+      // Quota check failure should not block categorisation
+    }
+
     try {
       const result = await categoriseSingleAttempt(
         userId,

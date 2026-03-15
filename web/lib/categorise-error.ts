@@ -1,7 +1,9 @@
 import { GoogleGenAI } from '@google/genai';
-import { ERROR_CATEGORY_VALUES } from '@/lib/constants';
+import { ERROR_CATEGORY_VALUES, USAGE_QUOTA_CONSTANTS } from '@/lib/constants';
 import { createServiceClient } from '@/lib/supabase-utils';
 import { normaliseTopicLabel } from '@/lib/insights-utils';
+import { checkAndIncrementQuota } from '@/lib/usage-quota';
+import { getUserTimezone } from '@/lib/timezone-utils';
 import type { AnswerConfig } from '@/lib/types';
 
 const RESPONSE_SCHEMA = {
@@ -145,6 +147,7 @@ export interface CategoriseErrorParams {
 export interface CategoriseErrorResult {
   already_exists?: boolean;
   categorisation?: Record<string, unknown>;
+  quota_exceeded?: boolean;
 }
 
 /**
@@ -163,6 +166,22 @@ export async function performErrorCategorisation(
   }
 
   const { attempt_id, problem_id, subject_id, user_id } = params;
+
+  // Check daily categorisation quota before making any Gemini calls
+  try {
+    const userTimezone = await getUserTimezone(user_id);
+    const quota = await checkAndIncrementQuota(
+      user_id,
+      USAGE_QUOTA_CONSTANTS.RESOURCE_TYPES.AI_CATEGORISATION,
+      userTimezone
+    );
+    if (!quota.allowed) {
+      return { quota_exceeded: true };
+    }
+  } catch {
+    // Quota check failure should not block categorisation
+  }
+
   const serviceClient = createServiceClient();
 
   // Fetch all required data in parallel
