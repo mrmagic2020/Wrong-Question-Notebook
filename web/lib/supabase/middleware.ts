@@ -144,7 +144,7 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith('/api/problems/') &&
     !request.nextUrl.pathname.startsWith('/upload/') &&
     !request.nextUrl.pathname.startsWith('/api/qr-upload/') &&
-    !request.nextUrl.pathname.startsWith('/api/cron/')
+    request.nextUrl.pathname !== '/api/cron/generate-digests'
   ) {
     const loginUrl = new URL(ROUTES.AUTH.LOGIN, request.url);
     loginUrl.searchParams.set(
