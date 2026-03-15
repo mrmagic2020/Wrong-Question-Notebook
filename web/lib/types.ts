@@ -359,6 +359,8 @@ export interface TopicCluster {
 
 export type DigestStatus = 'generating' | 'completed' | 'failed';
 
+export type DigestTier = 'full' | 'mastery' | 'narrow';
+
 export interface InsightDigest {
   id: string;
   user_id: string;
@@ -372,6 +374,7 @@ export interface InsightDigest {
   topic_clusters: Record<string, TopicCluster[]>;
   progress_narratives: Record<string, string>;
   raw_aggregation_data?: Record<string, unknown>;
+  digest_tier?: DigestTier;
 }
 
 export interface ErrorAggregationRow {
@@ -407,6 +410,20 @@ export interface UncategorisedAttempt {
   problem_type: string;
   correct_answer: string | null;
   subject_name: string;
+}
+
+export interface ActivitySummary {
+  total_problems: number;
+  total_attempts: number;
+  total_subjects: number;
+  problems_with_errors: number;
+}
+
+export interface InsufficientDataResult {
+  insufficient_data: true;
+  activity: ActivitySummary;
+  activity_needed: number;
+  errors_needed: number;
 }
 
 // =====================================================

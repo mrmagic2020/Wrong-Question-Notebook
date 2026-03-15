@@ -20,6 +20,12 @@ and this project adheres to [Semantic Versioning].
   - Error category badges inline on attempt timeline with user override support
   - Daily digest cron job (19:00 UTC) for pre-computing insights
   - New database tables: `error_categorisations`, `insight_digests`
+  - **Tiered insight generation**: multi-dimensional threshold replaces single error-count gate
+    - "Full" digest when ≥5 attempted problems and ≥3 with errors (existing behavior)
+    - "Mastery" digest when ≥5 attempted problems but <3 errors — celebrates accuracy instead of requiring failures
+    - "Narrow" (preliminary) digest when <5 problems but ≥3 errors — provides early analysis with limited-data caveat
+    - Progress bars showing how close the user is to unlocking insights when data is insufficient
+    - Tier badges ("Preliminary", "Mastery") on digest headers
 
 - **Add to Notebook**: Copy individual problems from shared problem sets to your own notebooks
   - Available in problem row actions and on the review page

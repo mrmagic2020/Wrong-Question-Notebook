@@ -682,7 +682,12 @@ export const ERROR_CATEGORY_COLORS: Record<
 export const INSIGHT_CONSTANTS = {
   MAX_WEAK_SPOTS_OVERVIEW: 7,
   MAX_WEAK_SPOTS_EXPANDED: 20,
-  MIN_PROBLEMS_FOR_INSIGHTS: 5,
+  /** Minimum unique problems with at least one attempt (any outcome) */
+  MIN_ACTIVITY_FOR_INSIGHTS: 5,
+  /** Minimum unique problems with categorised errors for full error analysis */
+  MIN_ERRORS_FOR_FULL_DIGEST: 3,
+  /** Minimum subjects for cross-subject comparative framing */
+  MIN_SUBJECTS_FOR_CROSS_SUBJECT: 2,
   BACKFILL_BATCH_SIZE: 20,
   DIGEST_COOLDOWN_HOURS: 24,
   MAX_DIGESTS_RETAINED: 30,

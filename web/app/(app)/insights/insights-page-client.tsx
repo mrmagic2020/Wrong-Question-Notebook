@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import type { InsightDigest, TopicCluster } from '@/lib/types';
+import type { ActivitySummary, InsightDigest, TopicCluster } from '@/lib/types';
 import { SUBJECT_CONSTANTS, INSIGHT_CONSTANTS } from '@/lib/constants';
 
 interface InsightsPageClientProps {
@@ -33,6 +33,11 @@ export default function InsightsPageClient({
   const [digest, setDigest] = useState<InsightDigest | null>(initialDigest);
   const [isGenerating, setIsGenerating] = useState(initialIsGenerating);
   const [hasInsufficientData, setHasInsufficientData] = useState(false);
+  const [activityProgress, setActivityProgress] = useState<{
+    activity: ActivitySummary;
+    activity_needed: number;
+    errors_needed: number;
+  } | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollCountRef = useRef(0);
 
@@ -104,6 +109,7 @@ export default function InsightsPageClient({
   async function handleGenerate() {
     setIsGenerating(true);
     setHasInsufficientData(false);
+    setActivityProgress(null);
     try {
       const res = await fetch('/api/insights/generate', { method: 'POST' });
       const json = await res.json();
@@ -114,17 +120,17 @@ export default function InsightsPageClient({
           startPolling();
           return;
         }
-        if (res.status === 422 || json?.error === 'insufficient_data') {
-          setHasInsufficientData(true);
-          setIsGenerating(false);
-          return;
-        }
         throw new Error(json?.error || 'Failed to generate insights');
       }
 
       const data = json.data ?? json;
       if (data.insufficient_data) {
         setHasInsufficientData(true);
+        setActivityProgress({
+          activity: data.activity,
+          activity_needed: data.activity_needed,
+          errors_needed: data.errors_needed,
+        });
         setIsGenerating(false);
         return;
       }
@@ -190,6 +196,7 @@ export default function InsightsPageClient({
             isGenerating={false}
             hasInsufficientData={true}
             onGenerate={handleGenerate}
+            activityProgress={activityProgress}
           />
         </div>
       </div>
@@ -210,6 +217,7 @@ export default function InsightsPageClient({
           generatedAt={digest!.generated_at}
           onRegenerate={handleGenerate}
           isGenerating={isGenerating}
+          digestTier={digest!.digest_tier}
         />
 
         {/* Error Pattern Summary */}
@@ -266,14 +274,60 @@ function PageHeader() {
   );
 }
 
+function ProgressBar({
+  label,
+  current,
+  target,
+  met,
+}: {
+  label: string;
+  current: number;
+  target: number;
+  met: boolean;
+}) {
+  const pct = Math.min(100, Math.round((current / target) * 100));
+  return (
+    <div className="w-full max-w-xs space-y-1">
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-gray-600 dark:text-gray-400">{label}</span>
+        <span
+          className={
+            met
+              ? 'font-medium text-green-600 dark:text-green-400'
+              : 'font-medium text-amber-600 dark:text-amber-400'
+          }
+        >
+          {current} / {target}
+        </span>
+      </div>
+      <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
+        <div
+          className={`h-2 rounded-full transition-all ${
+            met
+              ? 'bg-green-500 dark:bg-green-400'
+              : 'bg-amber-500 dark:bg-amber-400'
+          }`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 function EmptyInsightsState({
   isGenerating,
   hasInsufficientData,
   onGenerate,
+  activityProgress,
 }: {
   isGenerating: boolean;
   hasInsufficientData: boolean;
   onGenerate: () => void;
+  activityProgress?: {
+    activity: ActivitySummary;
+    activity_needed: number;
+    errors_needed: number;
+  } | null;
 }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border border-orange-200/40 bg-orange-50/50 p-12 text-center dark:border-orange-800/30 dark:bg-orange-950/30">
@@ -296,12 +350,37 @@ function EmptyInsightsState({
             <FileQuestion className="h-8 w-8 text-amber-600 dark:text-amber-400" />
           </div>
           <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-            Not enough data yet
+            {activityProgress ? 'Almost there!' : 'Not enough data yet'}
           </h3>
-          <p className="mb-6 max-w-sm text-sm text-gray-600 dark:text-gray-400">
-            Keep reviewing problems and logging your attempts. We need more data
-            to generate meaningful insights for you.
-          </p>
+          {activityProgress ? (
+            <div className="mb-6 flex flex-col items-center gap-3 pt-2">
+              <ProgressBar
+                label="Problems attempted"
+                current={activityProgress.activity.total_problems}
+                target={INSIGHT_CONSTANTS.MIN_ACTIVITY_FOR_INSIGHTS}
+                met={activityProgress.activity_needed === 0}
+              />
+              <ProgressBar
+                label="Errors to analyse"
+                current={activityProgress.activity.problems_with_errors}
+                target={INSIGHT_CONSTANTS.MIN_ERRORS_FOR_FULL_DIGEST}
+                met={activityProgress.errors_needed === 0}
+              />
+              <p className="mt-1 max-w-sm text-sm text-gray-500 dark:text-gray-400">
+                {activityProgress.activity_needed > 0 &&
+                activityProgress.errors_needed > 0
+                  ? `Attempt ${activityProgress.activity_needed} more problem${activityProgress.activity_needed === 1 ? '' : 's'} to unlock insights.`
+                  : activityProgress.activity_needed > 0
+                    ? `Attempt ${activityProgress.activity_needed} more problem${activityProgress.activity_needed === 1 ? '' : 's'} to unlock insights.`
+                    : `Log ${activityProgress.errors_needed} more wrong answer${activityProgress.errors_needed === 1 ? '' : 's'} for error analysis.`}
+              </p>
+            </div>
+          ) : (
+            <p className="mb-6 max-w-sm text-sm text-gray-600 dark:text-gray-400">
+              Keep reviewing problems and logging your attempts. We need more
+              data to generate meaningful insights for you.
+            </p>
+          )}
           <Button
             variant="outline"
             onClick={onGenerate}
@@ -337,11 +416,13 @@ function DigestHeader({
   generatedAt,
   onRegenerate,
   isGenerating,
+  digestTier,
 }: {
   headline: string;
   generatedAt: string;
   onRegenerate: () => void;
   isGenerating: boolean;
+  digestTier?: string;
 }) {
   const formattedDate = new Date(generatedAt).toLocaleDateString('en-US', {
     month: 'short',
@@ -355,9 +436,21 @@ function DigestHeader({
     <div className="rounded-2xl border border-orange-200/40 bg-orange-50/50 p-6 dark:border-orange-800/30 dark:bg-orange-950/30">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="space-y-1">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            {headline}
-          </h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              {headline}
+            </h2>
+            {digestTier === 'narrow' && (
+              <span className="inline-flex items-center rounded-full bg-amber-100/80 px-2.5 py-0.5 text-xs font-medium text-amber-800 border border-amber-200/50 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800/40">
+                Preliminary
+              </span>
+            )}
+            {digestTier === 'mastery' && (
+              <span className="inline-flex items-center rounded-full bg-green-100/80 px-2.5 py-0.5 text-xs font-medium text-green-800 border border-green-200/50 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800/40">
+                Mastery
+              </span>
+            )}
+          </div>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Generated {formattedDate}
           </p>

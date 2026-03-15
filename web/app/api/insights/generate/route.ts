@@ -104,21 +104,21 @@ async function generateInsights(req: Request) {
     );
 
     // Generate the digest (updates placeholder row on success)
-    const digest = await generateDigestForUser(user.id, placeholder.id);
+    const result = await generateDigestForUser(user.id, placeholder.id);
 
-    if (!digest) {
-      // No data — delete placeholder
+    if ('insufficient_data' in result) {
+      // Not enough data — delete placeholder and return progress info
       await supabase.from('insight_digests').delete().eq('id', placeholder.id);
 
       return NextResponse.json(
         createApiSuccessResponse(
-          { insufficient_data: true },
-          'Not enough categorised problems to generate insights. Keep logging your wrong answers and try again later.'
+          result,
+          'Not enough activity to generate insights yet.'
         )
       );
     }
 
-    return NextResponse.json(createApiSuccessResponse(digest));
+    return NextResponse.json(createApiSuccessResponse(result));
   } catch (error) {
     // Best-effort: mark any generating rows as failed
     try {

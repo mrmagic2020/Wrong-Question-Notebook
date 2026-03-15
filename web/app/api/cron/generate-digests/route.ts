@@ -117,12 +117,11 @@ export async function GET(req: Request) {
           userId,
           INSIGHT_CONSTANTS.BACKFILL_BATCH_SIZE
         );
-        const digest = await generateDigestForUser(userId);
-        if (digest) {
-          processed++;
-        } else {
+        const result = await generateDigestForUser(userId);
+        if ('insufficient_data' in result) {
           // Insufficient data — count as skipped rather than failed
-          // (This is not an error, just not enough data)
+        } else {
+          processed++;
         }
       } catch (err) {
         failed++;

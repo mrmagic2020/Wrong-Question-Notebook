@@ -246,9 +246,8 @@ export async function performErrorCategorisation(
     ),
   ];
   const tags: string[] =
-    (tagResult.data ?? [])
-      .map((pt: any) => pt.tags?.name)
-      .filter(Boolean) ?? [];
+    (tagResult.data ?? []).map((pt: any) => pt.tags?.name).filter(Boolean) ??
+    [];
 
   // Build prompt and call Gemini
   const systemPrompt = buildSystemPrompt(problem, subject.name, tags);
