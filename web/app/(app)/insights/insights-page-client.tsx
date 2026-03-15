@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Lightbulb,
   Sparkles,
   AlertTriangle,
   ArrowRight,
@@ -12,9 +11,13 @@ import {
   Loader2,
   TrendingUp,
   FileQuestion,
+  Layers,
+  NotebookPen,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/page-header';
+import { HeroStatCard } from '@/components/statistics/hero-stat-card';
 import type { ActivitySummary, InsightDigest, TopicCluster } from '@/lib/types';
 import { SUBJECT_CONSTANTS, INSIGHT_CONSTANTS } from '@/lib/constants';
 
@@ -154,125 +157,162 @@ export default function InsightsPageClient({
     }
   }
 
-  // Empty state: no digest and not generating
-  if (!digest && !isGenerating && !hasInsufficientData) {
-    return (
-      <div className="page-container max-w-4xl mx-auto">
-        <div className="space-y-6">
-          <PageHeader />
-          <EmptyInsightsState
-            isGenerating={false}
-            hasInsufficientData={false}
-            onGenerate={handleGenerate}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  // Generating state
-  if (isGenerating) {
-    return (
-      <div className="page-container max-w-4xl mx-auto">
-        <div className="space-y-6">
-          <PageHeader />
-          <EmptyInsightsState
-            isGenerating={true}
-            hasInsufficientData={false}
-            onGenerate={handleGenerate}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  // Insufficient data state
-  if (hasInsufficientData) {
-    return (
-      <div className="page-container max-w-4xl mx-auto">
-        <div className="space-y-6">
-          <PageHeader />
-          <EmptyInsightsState
-            isGenerating={false}
-            hasInsufficientData={true}
-            onGenerate={handleGenerate}
-            activityProgress={activityProgress}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  // We have a digest
-  const subjectHealth = digest!.subject_health || {};
+  // We have a digest (or showing empty/generating/insufficient state)
+  const subjectHealth = digest?.subject_health || {};
 
   return (
-    <div className="page-container max-w-4xl mx-auto">
-      <div className="space-y-6">
-        <PageHeader />
+    <div className="section-container">
+      <PageHeader
+        title="Insights"
+        description="AI-powered analysis of your error patterns and weak spots."
+      />
 
-        {/* Digest Header */}
-        <DigestHeader
-          headline={digest!.headline}
-          generatedAt={digest!.generated_at}
-          onRegenerate={handleGenerate}
+      {/* Empty / Generating / Insufficient data states */}
+      {(!digest || isGenerating || hasInsufficientData) && (
+        <EmptyInsightsState
           isGenerating={isGenerating}
-          digestTier={digest!.digest_tier}
+          hasInsufficientData={hasInsufficientData}
+          onGenerate={handleGenerate}
+          activityProgress={activityProgress}
         />
+      )}
 
-        {/* Error Pattern Summary */}
-        {digest!.error_pattern_summary && (
-          <ErrorPatternSummary summary={digest!.error_pattern_summary} />
-        )}
+      {/* Digest content */}
+      {digest && !isGenerating && !hasInsufficientData && (
+        <>
+          {/* Digest Header */}
+          <DigestHeader
+            headline={digest.headline}
+            generatedAt={digest.generated_at}
+            onRegenerate={handleGenerate}
+            isGenerating={isGenerating}
+            digestTier={digest.digest_tier}
+          />
 
-        {/* Subject Overview */}
-        {Object.keys(subjectHealth).length > 0 && (
-          <section className="space-y-4">
-            <h2 className="heading-sm text-foreground flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              Subject Overview
-            </h2>
-            <div className="space-y-3">
-              {Object.entries(subjectHealth).map(
-                ([subjectId, healthSummary]) => (
-                  <SubjectHealthRow
-                    key={subjectId}
-                    subjectName={
-                      subjectMap[subjectId]?.name || 'Unknown Subject'
-                    }
-                    subjectColor={subjectMap[subjectId]?.color ?? null}
-                    healthSummary={healthSummary}
-                    topicClusters={digest!.topic_clusters?.[subjectId]}
-                    weakSpotCount={weakSpotCountBySubject[subjectId] ?? 0}
-                    onViewDetails={() => router.push(`/insights/${subjectId}`)}
-                  />
-                )
+          {/* Summary stat cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <HeroStatCard
+              icon={BookOpen}
+              value={Object.keys(subjectHealth).length}
+              label="Subjects"
+              color="blue"
+            />
+            <HeroStatCard
+              icon={AlertTriangle}
+              value={digest.weak_spots?.length ?? 0}
+              label="Weak Spots"
+              color="rose"
+            />
+            <HeroStatCard
+              icon={Layers}
+              value={Object.values(digest.topic_clusters ?? {}).reduce(
+                (sum, arr) => sum + arr.length,
+                0
               )}
-            </div>
-          </section>
-        )}
-      </div>
+              label="Topic Clusters"
+              color="amber"
+            />
+            <HeroStatCard
+              icon={Sparkles}
+              value={
+                digest.digest_tier === 'mastery'
+                  ? 'Mastery'
+                  : digest.digest_tier === 'narrow'
+                    ? 'Preliminary'
+                    : 'Full'
+              }
+              label="Analysis Depth"
+              color={
+                digest.digest_tier === 'mastery'
+                  ? 'emerald'
+                  : digest.digest_tier === 'narrow'
+                    ? 'amber'
+                    : 'orange'
+              }
+            />
+          </div>
+
+          {/* Bento grid: Error patterns + Subject cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            {/* Error Pattern Summary */}
+            {digest.error_pattern_summary && (
+              <div className="lg:col-span-5 lg:flex lg:flex-col">
+                <div className="lg:sticky lg:top-20 shrink-0">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 dark:bg-amber-500/20">
+                      <TrendingUp className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                      Error Patterns
+                    </h3>
+                  </div>
+                  <div className="rounded-2xl border border-amber-200/40 bg-gradient-to-br from-amber-50/50 to-orange-50/30 p-5 dark:border-amber-800/30 dark:from-amber-950/20 dark:to-orange-950/10">
+                    <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 whitespace-pre-line">
+                      {digest.error_pattern_summary}
+                    </p>
+                  </div>
+                </div>
+                {/* Decorative notebook filler — stretches to match subject column */}
+                <div className="mt-4 hidden lg:block flex-1 rounded-2xl border border-amber-200/20 dark:border-amber-900/20 overflow-hidden min-h-[3rem]">
+                  <div className="ruled-lines h-full relative opacity-60">
+                    <NotebookPen className="absolute bottom-4 right-4 h-10 w-10 text-amber-300/40 dark:text-amber-700/30 -rotate-12" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Subject Overview */}
+            {Object.keys(subjectHealth).length > 0 && (
+              <div
+                className={
+                  digest.error_pattern_summary
+                    ? 'lg:col-span-7'
+                    : 'lg:col-span-12'
+                }
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 dark:bg-blue-500/20">
+                    <BookOpen className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Subject Overview
+                  </h3>
+                </div>
+                <div
+                  className={`grid grid-cols-1 gap-3 ${
+                    digest.error_pattern_summary
+                      ? 'sm:grid-cols-2'
+                      : 'sm:grid-cols-2 lg:grid-cols-3'
+                  }`}
+                >
+                  {Object.entries(subjectHealth).map(
+                    ([subjectId, healthSummary]) => (
+                      <SubjectHealthCard
+                        key={subjectId}
+                        subjectName={
+                          subjectMap[subjectId]?.name || 'Unknown Subject'
+                        }
+                        subjectColor={subjectMap[subjectId]?.color ?? null}
+                        healthSummary={healthSummary}
+                        topicClusters={digest.topic_clusters?.[subjectId]}
+                        weakSpotCount={weakSpotCountBySubject[subjectId] ?? 0}
+                        onViewDetails={() =>
+                          router.push(`/insights/${subjectId}`)
+                        }
+                      />
+                    )
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }
 
 /* ===== Sub-components ===== */
-
-function PageHeader() {
-  return (
-    <div className="page-header">
-      <h1 className="page-title flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500/10 dark:bg-orange-500/20">
-          <Lightbulb className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-        </span>
-        Insights
-      </h1>
-      <p className="page-description">
-        AI-powered analysis of your error patterns and weak spots.
-      </p>
-    </div>
-  );
-}
 
 function ProgressBar({
   label,
@@ -472,23 +512,7 @@ function DigestHeader({
   );
 }
 
-function ErrorPatternSummary({ summary }: { summary: string }) {
-  return (
-    <section className="space-y-4">
-      <h2 className="heading-sm text-foreground flex items-center gap-2">
-        <TrendingUp className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-        Error Pattern Summary
-      </h2>
-      <div className="rounded-2xl border border-amber-200/40 bg-amber-50/30 p-5 dark:border-amber-800/30 dark:bg-amber-950/20">
-        <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 whitespace-pre-line">
-          {summary}
-        </p>
-      </div>
-    </section>
-  );
-}
-
-function SubjectHealthRow({
+function SubjectHealthCard({
   subjectName,
   subjectColor,
   healthSummary,
@@ -514,41 +538,33 @@ function SubjectHealthRow({
     ];
 
   return (
-    <div
-      className={`rounded-2xl border bg-gradient-to-br p-5 ${colorClasses.border} ${colorClasses.light} ${colorClasses.dark}`}
+    <button
+      onClick={onViewDetails}
+      className={`rounded-2xl border bg-gradient-to-br p-4 text-left transition-all hover:shadow-md group ${colorClasses.border} ${colorClasses.light} ${colorClasses.dark}`}
     >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
-        <div className="min-w-0 flex-1 space-y-1">
-          <h3 className="font-semibold text-gray-900 dark:text-white">
-            {subjectName}
-          </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-300">
-            {healthSummary}
-          </p>
-          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-            {weakSpotCount > 0 && (
-              <span className="inline-flex items-center gap-1 text-rose-600 dark:text-rose-400">
-                <AlertTriangle className="h-3 w-3" />
-                {weakSpotCount} weak spot{weakSpotCount !== 1 ? 's' : ''}
-              </span>
-            )}
-            {clusterCount > 0 && (
-              <span>
-                {clusterCount} topic cluster{clusterCount !== 1 ? 's' : ''}
-              </span>
-            )}
-          </div>
+      <h3 className="font-semibold text-gray-900 dark:text-white mb-1.5">
+        {subjectName}
+      </h3>
+      <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-3">
+        {healthSummary}
+      </p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5 text-xs">
+          {weakSpotCount > 0 && (
+            <span className="inline-flex items-center gap-1 text-rose-600 dark:text-rose-400">
+              <AlertTriangle className="h-3 w-3" />
+              {weakSpotCount} weak spot{weakSpotCount !== 1 ? 's' : ''}
+            </span>
+          )}
+          {clusterCount > 0 && (
+            <span className="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400">
+              <Layers className="h-3 w-3" />
+              {clusterCount} cluster{clusterCount !== 1 ? 's' : ''}
+            </span>
+          )}
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onViewDetails}
-          className={`shrink-0 self-start rounded-xl ${colorClasses.border} ${colorClasses.iconColor} ${colorClasses.buttonHover}`}
-        >
-          Details
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
+        <ArrowRight className="h-4 w-4 text-gray-400 group-hover:translate-x-0.5 transition-transform dark:text-gray-500" />
       </div>
-    </div>
+    </button>
   );
 }

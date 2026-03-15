@@ -133,9 +133,5 @@ async function loadStatistics() {
 
 export default async function StatisticsPage() {
   const data = await loadStatistics();
-  return (
-    <div className="page-container">
-      <StatisticsPageClient data={data} />
-    </div>
-  );
+  return <StatisticsPageClient data={data} />;
 }

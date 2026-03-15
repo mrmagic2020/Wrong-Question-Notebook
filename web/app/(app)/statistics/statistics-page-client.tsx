@@ -2,6 +2,7 @@
 
 import { FileQuestion, Trophy, Flame, Clock } from 'lucide-react';
 import { StatisticsData } from '@/lib/types';
+import { PageHeader } from '@/components/page-header';
 import { HeroStatCard } from '@/components/statistics/hero-stat-card';
 import { StatusDoughnutChart } from '@/components/statistics/status-doughnut-chart';
 import { SubjectBarChart } from '@/components/statistics/subject-bar-chart';
@@ -21,14 +22,11 @@ export default function StatisticsPageClient({
   const { overview, streaks, sessionStats, subjectBreakdown } = data;
 
   return (
-    <div className="space-y-6">
-      {/* Page header */}
-      <div className="page-header">
-        <h1 className="page-title">Statistics</h1>
-        <p className="page-description">
-          Track your progress, study habits, and mastery over time.
-        </p>
-      </div>
+    <div className="section-container">
+      <PageHeader
+        title="Statistics"
+        description="Track your progress, study habits, and mastery over time."
+      />
 
       {/* Row 1: Hero stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
