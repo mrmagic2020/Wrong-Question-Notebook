@@ -43,12 +43,14 @@ export async function getLatestDigest(
  */
 export async function getErrorCategorisationForAttempt(
   supabase: SupabaseClient,
-  attemptId: string
+  attemptId: string,
+  userId: string
 ): Promise<ErrorCategorisation | null> {
   const { data, error } = await supabase
     .from('error_categorisations')
     .select('*')
     .eq('attempt_id', attemptId)
+    .eq('user_id', userId)
     .limit(1)
     .single();
 
@@ -63,12 +65,14 @@ export async function getErrorCategorisationForAttempt(
  */
 export async function getErrorCategorisationsForProblem(
   supabase: SupabaseClient,
-  problemId: string
+  problemId: string,
+  userId: string
 ): Promise<ErrorCategorisation[]> {
   const { data, error } = await supabase
     .from('error_categorisations')
     .select('*')
     .eq('problem_id', problemId)
+    .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
   if (error || !data) return [];

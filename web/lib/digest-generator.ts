@@ -1475,6 +1475,7 @@ async function pruneOldDigests(userId: string): Promise<void> {
     const { error: deleteError } = await supabase
       .from('insight_digests')
       .delete()
+      .eq('user_id', userId)
       .in('id', idsToDelete);
 
     if (deleteError) {
