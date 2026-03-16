@@ -117,7 +117,7 @@ export default function InsightsPageClient({
       const res = await fetch('/api/insights/generate', { method: 'POST' });
       const json = await res.json();
 
-      if (!res.ok) {
+      if (!res.ok && res.status !== 202) {
         if (res.status === 409) {
           // Already generating — start polling
           startPolling();
@@ -127,6 +127,13 @@ export default function InsightsPageClient({
       }
 
       const data = json.data ?? json;
+
+      // 202 = generation started in background — poll for completion
+      if (res.status === 202) {
+        startPolling();
+        return;
+      }
+
       if (data.insufficient_data) {
         setHasInsufficientData(true);
         setActivityProgress({

@@ -729,6 +729,8 @@ export const INSIGHT_CONSTANTS = {
   /** Minimum subjects for cross-subject comparative framing */
   MIN_SUBJECTS_FOR_CROSS_SUBJECT: 2,
   BACKFILL_BATCH_SIZE: 20,
+  /** Max concurrent Gemini calls during categorisation backfill */
+  CATEGORISATION_CONCURRENCY: 5,
   DIGEST_COOLDOWN_HOURS: 24,
   MAX_DIGESTS_RETAINED: 30,
   MAX_REVIEW_PROBLEMS: 50,

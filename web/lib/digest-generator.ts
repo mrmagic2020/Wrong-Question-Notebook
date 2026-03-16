@@ -465,8 +465,9 @@ export async function categoriseUncategorisedAttempts(
 
   let successCount = 0;
 
-  for (const attempt of uncategorised) {
-    // Check categorisation quota before each Gemini call
+  // Check quota upfront to determine how many we can process
+  const quotaAllowed: boolean[] = [];
+  for (let _qi = 0; _qi < uncategorised.length; _qi++) {
     try {
       const quota = await checkAndIncrementQuota(
         userId,
@@ -478,40 +479,56 @@ export async function categoriseUncategorisedAttempts(
           component: 'DigestGenerator',
           action: 'categoriseUncategorisedAttempts',
           userId,
-          categorised: String(successCount),
-          remaining: String(uncategorised.length - successCount),
+          categorised: String(quotaAllowed.length),
+          remaining: String(uncategorised.length - quotaAllowed.length),
         });
         break;
       }
+      quotaAllowed.push(true);
     } catch {
       // Quota check failure should not block categorisation
+      quotaAllowed.push(true);
     }
+  }
 
-    try {
-      const result = await categoriseSingleAttempt(
-        userId,
-        attempt,
-        labelCache.get(attempt.subject_id)
-      );
-      if (result) {
+  const attemptsToProcess = uncategorised.slice(0, quotaAllowed.length);
+
+  // Process in parallel batches for speed
+  const concurrency = INSIGHT_CONSTANTS.CATEGORISATION_CONCURRENCY;
+  for (let i = 0; i < attemptsToProcess.length; i += concurrency) {
+    const batch = attemptsToProcess.slice(i, i + concurrency);
+    const results = await Promise.allSettled(
+      batch.map(attempt =>
+        categoriseSingleAttempt(
+          userId,
+          attempt,
+          labelCache.get(attempt.subject_id)
+        )
+      )
+    );
+
+    for (let j = 0; j < results.length; j++) {
+      const result = results[j];
+      if (result.status === 'fulfilled' && result.value) {
         successCount++;
         // Update cache with newly created label
-        const parsed = result as { topic_label?: string };
+        const parsed = result.value as { topic_label?: string };
         if (parsed.topic_label) {
+          const attempt = batch[j];
           const labels = labelCache.get(attempt.subject_id) ?? [];
           if (!labels.includes(parsed.topic_label)) {
             labels.push(parsed.topic_label);
             labelCache.set(attempt.subject_id, labels);
           }
         }
+      } else if (result.status === 'rejected') {
+        logger.error('Failed to categorise attempt', result.reason, {
+          component: 'DigestGenerator',
+          action: 'categoriseSingleAttempt',
+          userId,
+          attemptId: batch[j].attempt_id,
+        });
       }
-    } catch (err) {
-      logger.error('Failed to categorise attempt', err, {
-        component: 'DigestGenerator',
-        action: 'categoriseSingleAttempt',
-        userId,
-        attemptId: attempt.attempt_id,
-      });
     }
   }
 

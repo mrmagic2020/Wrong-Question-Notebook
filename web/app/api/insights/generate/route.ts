@@ -1,10 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
 import { withSecurity } from '@/lib/security-middleware';
 import {
   createApiErrorResponse,
   createApiSuccessResponse,
-  handleAsyncError,
 } from '@/lib/common-utils';
 import { INSIGHT_CONSTANTS, ERROR_MESSAGES } from '@/lib/constants';
 import {
@@ -12,6 +11,7 @@ import {
   categoriseUncategorisedAttempts,
 } from '@/lib/digest-generator';
 import { createServiceClient } from '@/lib/supabase-utils';
+import { logger } from '@/lib/logger';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function generateInsights(req: Request) {
@@ -24,20 +24,33 @@ async function generateInsights(req: Request) {
     // Check if generation is already in progress
     const { data: activeRow } = await supabase
       .from('insight_digests')
-      .select('id')
+      .select('id, generated_at')
       .eq('user_id', user.id)
       .eq('status', 'generating')
       .limit(1)
       .maybeSingle();
 
     if (activeRow) {
-      return NextResponse.json(
-        createApiErrorResponse(
-          'Insights generation is already in progress',
-          409
-        ),
-        { status: 409 }
-      );
+      // If the row is stale (e.g. the serverless function timed out),
+      // mark it as failed and allow a fresh generation to proceed.
+      const staleThreshold = new Date(
+        Date.now() - INSIGHT_CONSTANTS.GENERATING_STALE_MINUTES * 60 * 1000
+      ).toISOString();
+
+      if (activeRow.generated_at < staleThreshold) {
+        await supabase
+          .from('insight_digests')
+          .update({ status: 'failed' })
+          .eq('id', activeRow.id);
+      } else {
+        return NextResponse.json(
+          createApiErrorResponse(
+            'Insights generation is already in progress',
+            409
+          ),
+          { status: 409 }
+        );
+      }
     }
 
     // Check cooldown: was a completed digest generated recently?
@@ -97,28 +110,50 @@ async function generateInsights(req: Request) {
       );
     }
 
-    // Backfill uncategorised attempts first
-    await categoriseUncategorisedAttempts(
-      user.id,
-      INSIGHT_CONSTANTS.BACKFILL_BATCH_SIZE
+    // Schedule the heavy work to run after the response is sent
+    after(async () => {
+      try {
+        // Backfill uncategorised attempts first
+        await categoriseUncategorisedAttempts(
+          user.id,
+          INSIGHT_CONSTANTS.BACKFILL_BATCH_SIZE
+        );
+
+        // Generate the digest (updates placeholder row on success)
+        const result = await generateDigestForUser(user.id, placeholder.id);
+
+        if ('insufficient_data' in result) {
+          // Not enough data — delete placeholder
+          const bg = createServiceClient();
+          await bg.from('insight_digests').delete().eq('id', placeholder.id);
+        }
+      } catch (error) {
+        // Mark placeholder as failed
+        try {
+          const bg = createServiceClient();
+          await bg
+            .from('insight_digests')
+            .update({ status: 'failed' })
+            .eq('id', placeholder.id);
+        } catch {
+          // ignore cleanup errors
+        }
+        logger.error('Background digest generation failed', error, {
+          component: 'InsightsGenerate',
+          action: 'afterCallback',
+          userId: user.id,
+        });
+      }
+    });
+
+    // Return 202 immediately — client should poll /api/insights/status
+    return NextResponse.json(
+      createApiSuccessResponse(
+        { id: placeholder.id, status: 'generating' },
+        'Digest generation started. Poll /api/insights/status for updates.'
+      ),
+      { status: 202 }
     );
-
-    // Generate the digest (updates placeholder row on success)
-    const result = await generateDigestForUser(user.id, placeholder.id);
-
-    if ('insufficient_data' in result) {
-      // Not enough data — delete placeholder and return progress info
-      await supabase.from('insight_digests').delete().eq('id', placeholder.id);
-
-      return NextResponse.json(
-        createApiSuccessResponse(
-          result,
-          'Not enough activity to generate insights yet.'
-        )
-      );
-    }
-
-    return NextResponse.json(createApiSuccessResponse(result));
   } catch (error) {
     // Best-effort: mark any generating rows as failed
     try {
@@ -132,10 +167,15 @@ async function generateInsights(req: Request) {
       // ignore cleanup errors
     }
 
-    const { message, status } = handleAsyncError(error);
-    return NextResponse.json(createApiErrorResponse(message, status), {
-      status,
+    logger.error('Insights generation request failed', error, {
+      component: 'InsightsGenerate',
+      action: 'generateInsights',
+      userId: user.id,
     });
+    return NextResponse.json(
+      createApiErrorResponse('Failed to start generation', 500),
+      { status: 500 }
+    );
   }
 }
 

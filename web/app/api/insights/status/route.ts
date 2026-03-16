@@ -6,6 +6,7 @@ import {
   createApiSuccessResponse,
   handleAsyncError,
 } from '@/lib/common-utils';
+import { INSIGHT_CONSTANTS } from '@/lib/constants';
 import { createServiceClient } from '@/lib/supabase-utils';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -32,6 +33,22 @@ async function getInsightStatus(req: Request) {
     }
 
     if (latest.status === 'generating') {
+      // Auto-fail stale generating rows so the user isn't stuck forever
+      const staleThreshold = new Date(
+        Date.now() - INSIGHT_CONSTANTS.GENERATING_STALE_MINUTES * 60 * 1000
+      ).toISOString();
+
+      if (latest.generated_at < staleThreshold) {
+        await supabase
+          .from('insight_digests')
+          .update({ status: 'failed' })
+          .eq('id', latest.id);
+
+        return NextResponse.json(
+          createApiSuccessResponse({ status: 'failed', digest: null })
+        );
+      }
+
       return NextResponse.json(
         createApiSuccessResponse({ status: 'generating', digest: null })
       );
