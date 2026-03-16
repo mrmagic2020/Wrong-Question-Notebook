@@ -130,7 +130,10 @@ function ContentLimitRow({ item }: { item: ContentLimitResult }) {
         </p>
       )}
       {hasPerSubject && expanded && (
-        <div id={`breakdown-${item.resource_type}`} className="mt-2 space-y-1 pl-6">
+        <div
+          id={`breakdown-${item.resource_type}`}
+          className="mt-2 space-y-1 pl-6"
+        >
           {item.per_subject!.map(s => (
             <div
               key={s.subject_id}

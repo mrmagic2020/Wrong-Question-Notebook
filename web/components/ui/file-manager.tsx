@@ -46,7 +46,8 @@ export default function FileManager({
     isExhausted: storageLimitExhausted,
     refresh: refreshStorageLimit,
   } = useContentLimit(CONTENT_LIMIT_CONSTANTS.RESOURCE_TYPES.STORAGE_BYTES);
-  const uploadDisabled = disabled || storageLimitLoading || storageLimitExhausted;
+  const uploadDisabled =
+    disabled || storageLimitLoading || storageLimitExhausted;
 
   // Helper function to check if a file is an image
   const isImageFile = (fileName: string): boolean => {
@@ -114,7 +115,9 @@ export default function FileManager({
 
     // Check storage limit
     if (storageLimitExhausted) {
-      setError('Storage limit reached. Delete existing files or contact support.');
+      setError(
+        'Storage limit reached. Delete existing files or contact support.'
+      );
       return;
     }
 
