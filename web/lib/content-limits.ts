@@ -128,7 +128,7 @@ async function getStorageBytes(userId: string): Promise<number> {
 
   if (error) {
     console.error('Storage RPC failed:', error);
-    return 0; // Fail open — don't block uploads on query failure
+    throw new Error('Failed to query storage usage');
   }
 
   return Number(data) || 0;
