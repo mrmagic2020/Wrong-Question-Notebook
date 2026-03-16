@@ -14,6 +14,9 @@ import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { Tag } from '@/lib/types';
 import { Check, Pencil, Trash2, X } from 'lucide-react';
+import { useContentLimit } from '@/lib/hooks/useContentLimit';
+import { ContentLimitIndicator } from '@/components/ui/content-limit-indicator';
+import { CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
 
 interface TagManageDialogProps {
   open: boolean;
@@ -40,6 +43,14 @@ export function TagManageDialog({
     null
   );
   const editInputRef = useRef<HTMLInputElement>(null);
+  const {
+    data: limitData,
+    isExhausted: tagLimitExhausted,
+    refresh: refreshLimit,
+  } = useContentLimit(
+    CONTENT_LIMIT_CONSTANTS.RESOURCE_TYPES.TAGS_PER_SUBJECT,
+    subjectId
+  );
 
   // Fetch tags when dialog opens
   useEffect(() => {
@@ -87,6 +98,7 @@ export function TagManageDialog({
       setTags(prev => [...prev, j.data]);
       setNewTagName('');
       toast.success('Tag created');
+      refreshLimit();
       router.refresh();
     } catch (e: any) {
       toast.error(e.message || 'Failed to create tag');
@@ -171,9 +183,18 @@ export function TagManageDialog({
           </DialogHeader>
 
           {/* Create tag */}
+          {limitData && (
+            <ContentLimitIndicator
+              current={limitData.current}
+              limit={limitData.limit}
+              label="tags used"
+            />
+          )}
           <div className="flex items-center gap-2">
             <Input
-              placeholder="New tag name"
+              placeholder={
+                tagLimitExhausted ? 'Tag limit reached' : 'New tag name'
+              }
               value={newTagName}
               onChange={e => setNewTagName(e.target.value)}
               onKeyDown={e => {
@@ -182,14 +203,14 @@ export function TagManageDialog({
                   handleCreateTag();
                 }
               }}
-              disabled={creatingTag}
+              disabled={creatingTag || tagLimitExhausted}
               className="flex-1"
             />
             <Button
               type="button"
               size="sm"
               onClick={handleCreateTag}
-              disabled={creatingTag || !newTagName.trim()}
+              disabled={creatingTag || !newTagName.trim() || tagLimitExhausted}
             >
               {creatingTag && <Spinner />}
               Add

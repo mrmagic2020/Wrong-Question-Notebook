@@ -22,7 +22,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ProfileAvatar } from '@/components/profile-avatar';
-import { LogoutButton } from '@/components/logout-button';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -34,8 +33,9 @@ import {
   AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
 import type { UserProfileType } from '@/lib/schemas';
-import { Loader2, Camera, X, Check } from 'lucide-react';
+import { Loader2, Camera, X, Check, BarChart3, LogOut } from 'lucide-react';
 import { FILE_CONSTANTS } from '@/lib/constants';
+import { UsageLimitsDialog } from '@/components/usage-limits-dialog';
 
 interface ProfileSheetProps {
   initialProfile: UserProfileType | null;
@@ -93,6 +93,9 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
   // Username check state
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [usernameChecking, setUsernameChecking] = useState(false);
+
+  // Usage dialog state
+  const [usageDialogOpen, setUsageDialogOpen] = useState(false);
 
   // Save state
   const [saving, setSaving] = useState(false);
@@ -560,12 +563,41 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
               )}
             </Button>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Sign out</span>
-              <LogoutButton />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground px-2"
+                onClick={() => setUsageDialogOpen(true)}
+              >
+                <BarChart3 className="w-4 h-4 mr-1.5" />
+                Usage & Limits
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground px-2"
+                onClick={async () => {
+                  const { createClient } = await import(
+                    '@/lib/supabase/client'
+                  );
+                  const supabase = createClient();
+                  await supabase.auth.signOut();
+                  router.replace('/');
+                  router.refresh();
+                }}
+              >
+                Sign out
+                <LogOut className="w-4 h-4 ml-1.5" />
+              </Button>
             </div>
           </SheetFooter>
         </SheetContent>
       </Sheet>
+
+      <UsageLimitsDialog
+        open={usageDialogOpen}
+        onOpenChange={setUsageDialogOpen}
+      />
 
       <AlertDialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
         <AlertDialogContent>

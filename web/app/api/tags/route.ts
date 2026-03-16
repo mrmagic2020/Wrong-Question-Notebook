@@ -8,7 +8,8 @@ import {
   createApiSuccessResponse,
   handleAsyncError,
 } from '@/lib/common-utils';
-import { ERROR_MESSAGES } from '@/lib/constants';
+import { ERROR_MESSAGES, CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
+import { checkContentLimit } from '@/lib/content-limits';
 import {
   revalidateUserTags,
   revalidateSubjectTags,
@@ -95,6 +96,23 @@ async function createTag(req: Request) {
         parsed.error.flatten()
       ),
       { status: 400 }
+    );
+  }
+
+  // Check content limit
+  const limitCheck = await checkContentLimit(
+    user.id,
+    CONTENT_LIMIT_CONSTANTS.RESOURCE_TYPES.TAGS_PER_SUBJECT,
+    { subjectId: parsed.data.subject_id }
+  );
+  if (!limitCheck.allowed) {
+    return NextResponse.json(
+      createApiErrorResponse(
+        ERROR_MESSAGES.CONTENT_LIMIT_REACHED,
+        403,
+        limitCheck
+      ),
+      { status: 403 }
     );
   }
 

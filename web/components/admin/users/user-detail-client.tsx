@@ -32,15 +32,9 @@ import { UserRoleBadge } from './user-role-badge';
 import { UserStatusBadge } from './user-status-badge';
 import { DeleteUserDialog } from './delete-user-dialog';
 import { ChangeRoleDialog } from './change-role-dialog';
-import { ROUTES } from '@/lib/constants';
-
-function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
-}
+import { ROUTES, CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
+import { formatBytes } from '@/lib/format-utils';
+import type { ContentLimitResult } from '@/lib/content-limits';
 
 interface UserDetailClientProps {
   profile: UserProfileType;
@@ -53,6 +47,7 @@ interface UserDetailClientProps {
   quotaUsage: QuotaCheckResult | null;
   activity: UserActivityLogType[];
   storageUsage: { totalBytes: number; fileCount: number };
+  contentLimits: ContentLimitResult[];
 }
 
 export function UserDetailClient({
@@ -61,6 +56,7 @@ export function UserDetailClient({
   quotaUsage,
   activity,
   storageUsage,
+  contentLimits: initialContentLimits,
 }: UserDetailClientProps) {
   const router = useRouter();
   const [deleteDialog, setDeleteDialog] = useState(false);
@@ -69,6 +65,13 @@ export function UserDetailClient({
   const [roleLoading, setRoleLoading] = useState(false);
   const [quotaInput, setQuotaInput] = useState('');
   const [quotaSaving, setQuotaSaving] = useState(false);
+  const [contentLimits, setContentLimits] = useState(initialContentLimits);
+  const [contentLimitInputs, setContentLimitInputs] = useState<
+    Record<string, string>
+  >({});
+  const [contentLimitSaving, setContentLimitSaving] = useState<string | null>(
+    null
+  );
 
   const displayName =
     profile.username ||
@@ -160,6 +163,36 @@ export function UserDetailClient({
       toast.error('Error updating quota');
     } finally {
       setQuotaSaving(false);
+    }
+  };
+
+  const handleContentLimitSave = async (resourceType: string) => {
+    setContentLimitSaving(resourceType);
+    try {
+      const inputValue = contentLimitInputs[resourceType];
+      const res = await fetch(`/api/admin/users/${profile.id}/content-limits`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resource_type: resourceType,
+          limit_value: inputValue ? parseInt(inputValue) : null,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        toast.error(err.error || 'Failed to update limit');
+        return;
+      }
+      const json = await res.json();
+      setContentLimits(json.limits);
+      toast.success(
+        inputValue ? 'Limit override set' : 'Limit override removed'
+      );
+      setContentLimitInputs(prev => ({ ...prev, [resourceType]: '' }));
+    } catch {
+      toast.error('Error updating limit');
+    } finally {
+      setContentLimitSaving(null);
     }
   };
 
@@ -411,6 +444,73 @@ export function UserDetailClient({
                   No quota data
                 </p>
               )}
+            </div>
+          </div>
+
+          {/* Content Limits */}
+          <div className="admin-section-card">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Content Limits
+            </h2>
+            <div className="space-y-4">
+              {contentLimits.map(cl => {
+                const ratio =
+                  cl.limit > 0 ? Math.min(cl.current / cl.limit, 1) : 0;
+                const barColor =
+                  cl.current >= cl.limit
+                    ? 'bg-rose-500 dark:bg-rose-400'
+                    : ratio >= CONTENT_LIMIT_CONSTANTS.WARNING_THRESHOLD
+                      ? 'bg-amber-500 dark:bg-amber-400'
+                      : 'bg-emerald-500 dark:bg-emerald-400';
+                const isStorage =
+                  cl.resource_type ===
+                  CONTENT_LIMIT_CONSTANTS.RESOURCE_TYPES.STORAGE_BYTES;
+                const fmt = (n: number) =>
+                  isStorage ? formatBytes(n) : String(n);
+                return (
+                  <div key={cl.resource_type}>
+                    <div className="flex items-baseline justify-between mb-1">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {CONTENT_LIMIT_CONSTANTS.LABELS[cl.resource_type] ??
+                          cl.resource_type}
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {fmt(cl.current)} / {fmt(cl.limit)}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-stone-700 rounded-full h-2">
+                      <div
+                        className={`${barColor} h-2 rounded-full transition-all`}
+                        style={{ width: `${ratio * 100}%` }}
+                      />
+                    </div>
+                    <div className="flex gap-2 mt-2">
+                      <Input
+                        type="number"
+                        placeholder="Override"
+                        value={contentLimitInputs[cl.resource_type] ?? ''}
+                        onChange={e =>
+                          setContentLimitInputs(prev => ({
+                            ...prev,
+                            [cl.resource_type]: e.target.value,
+                          }))
+                        }
+                        className="h-7 text-xs rounded-lg"
+                        min="0"
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs rounded-lg"
+                        onClick={() => handleContentLimitSave(cl.resource_type)}
+                        disabled={contentLimitSaving === cl.resource_type}
+                      >
+                        {contentLimitInputs[cl.resource_type] ? 'Set' : 'Reset'}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

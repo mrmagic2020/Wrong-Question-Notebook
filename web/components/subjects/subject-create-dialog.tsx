@@ -15,6 +15,9 @@ import { ColorPicker } from '@/components/ui/color-picker';
 import { Spinner } from '@/components/ui/spinner';
 import { SubjectWithMetadata } from '@/lib/types';
 import { useSubjectForm } from '@/lib/hooks/useSubjectForm';
+import { useContentLimit } from '@/lib/hooks/useContentLimit';
+import { ContentLimitIndicator } from '@/components/ui/content-limit-indicator';
+import { CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
 
 interface SubjectCreateDialogProps {
   open: boolean;
@@ -29,6 +32,10 @@ export function SubjectCreateDialog({
   existingSubjects,
   onSuccess,
 }: SubjectCreateDialogProps) {
+  const { data: limitData, isExhausted } = useContentLimit(
+    CONTENT_LIMIT_CONSTANTS.RESOURCE_TYPES.SUBJECTS
+  );
+
   const {
     name,
     color,
@@ -60,6 +67,13 @@ export function SubjectCreateDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Create New Notebook</DialogTitle>
+          {limitData && (
+            <ContentLimitIndicator
+              current={limitData.current}
+              limit={limitData.limit}
+              label="notebooks used"
+            />
+          )}
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -95,9 +109,13 @@ export function SubjectCreateDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={busy}>
+            <Button type="submit" disabled={busy || isExhausted}>
               {busy && <Spinner />}
-              {busy ? 'Creating...' : 'Create Notebook'}
+              {busy
+                ? 'Creating...'
+                : isExhausted
+                  ? 'Notebook limit reached'
+                  : 'Create Notebook'}
             </Button>
           </div>
         </form>

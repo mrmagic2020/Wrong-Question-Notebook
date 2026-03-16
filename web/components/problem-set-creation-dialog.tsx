@@ -25,8 +25,10 @@ import { X, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProblemSetSharingLevel } from '@/lib/schemas';
 import { RichTextEditor } from '@/components/editor';
-import { VALIDATION_CONSTANTS } from '@/lib/constants';
+import { VALIDATION_CONSTANTS, CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
 import { Switch } from '@/components/ui/switch';
+import { useContentLimit } from '@/lib/hooks/useContentLimit';
+import { ContentLimitIndicator } from '@/components/ui/content-limit-indicator';
 
 interface ProblemSetCreationDialogProps {
   open: boolean;
@@ -44,6 +46,9 @@ export default function ProblemSetCreationDialog({
   onSuccess,
 }: ProblemSetCreationDialogProps) {
   const router = useRouter();
+  const { data: limitData, isExhausted } = useContentLimit(
+    CONTENT_LIMIT_CONSTANTS.RESOURCE_TYPES.PROBLEM_SETS
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -188,6 +193,13 @@ export default function ProblemSetCreationDialog({
             Create a new problem set with {selectedProblemIds.length} selected
             problem{selectedProblemIds.length !== 1 ? 's' : ''}.
           </DialogDescription>
+          {limitData && (
+            <ContentLimitIndicator
+              current={limitData.current}
+              limit={limitData.limit}
+              label="problem sets used"
+            />
+          )}
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -310,8 +322,12 @@ export default function ProblemSetCreationDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Creating...' : 'Create Problem Set'}
+            <Button type="submit" disabled={isLoading || isExhausted}>
+              {isLoading
+                ? 'Creating...'
+                : isExhausted
+                  ? 'Problem set limit reached'
+                  : 'Create Problem Set'}
             </Button>
           </DialogFooter>
         </form>

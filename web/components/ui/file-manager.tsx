@@ -3,6 +3,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { uploadFiles } from '@/lib/storage/client';
 import { Button } from '@/components/ui/button';
+import { ContentLimitIndicator } from '@/components/ui/content-limit-indicator';
+import { useContentLimit } from '@/lib/hooks/useContentLimit';
+import { CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
+import { formatBytes } from '@/lib/format-utils';
 import Link from 'next/link';
 
 interface FileAsset {
@@ -36,6 +40,14 @@ export default function FileManager({
   const [files, setFiles] = useState<FileAsset[]>(initialFiles);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const {
+    loading: storageLimitLoading,
+    data: storageLimit,
+    isExhausted: storageLimitExhausted,
+    refresh: refreshStorageLimit,
+  } = useContentLimit(CONTENT_LIMIT_CONSTANTS.RESOURCE_TYPES.STORAGE_BYTES);
+  const uploadDisabled =
+    disabled || storageLimitLoading || storageLimitExhausted;
 
   // Helper function to check if a file is an image
   const isImageFile = (fileName: string): boolean => {
@@ -101,6 +113,14 @@ export default function FileManager({
       return;
     }
 
+    // Check storage limit
+    if (storageLimitExhausted) {
+      setError(
+        'Storage limit reached. Delete existing files or contact support.'
+      );
+      return;
+    }
+
     // Validate problemId before attempting upload
     if (!problemId || problemId.trim() === '' || problemId === 'disabled') {
       setError(
@@ -156,6 +176,7 @@ export default function FileManager({
       ];
 
       updateFiles(finalFiles);
+      refreshStorageLimit();
 
       // Update database in edit mode
       await updateDatabaseAssets(finalFiles);
@@ -192,6 +213,7 @@ export default function FileManager({
       // Remove from local state
       const updatedFiles = files.filter(f => f.path !== fileToDelete.path);
       updateFiles(updatedFiles);
+      refreshStorageLimit();
 
       // Update database in edit mode
       await updateDatabaseAssets(updatedFiles);
@@ -213,16 +235,28 @@ export default function FileManager({
 
   return (
     <div className={`space-y-3 ${className}`}>
+      {/* Storage usage indicator */}
+      {storageLimit && (
+        <ContentLimitIndicator
+          current={storageLimit.current}
+          limit={storageLimit.limit}
+          label="storage used"
+          formatValue={formatBytes}
+        />
+      )}
+
       {/* Upload Area */}
       <div
         className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-          disabled
+          uploadDisabled
             ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/40 cursor-not-allowed'
             : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 cursor-pointer'
         }`}
-        onDrop={disabled ? undefined : handleDrop}
-        onDragOver={disabled ? undefined : handleDragOver}
-        onClick={disabled ? undefined : () => fileInputRef.current?.click()}
+        onDrop={uploadDisabled ? undefined : handleDrop}
+        onDragOver={uploadDisabled ? undefined : handleDragOver}
+        onClick={
+          uploadDisabled ? undefined : () => fileInputRef.current?.click()
+        }
       >
         <input
           ref={fileInputRef}
@@ -231,6 +265,7 @@ export default function FileManager({
           onChange={e => e.target.files && handleFileUpload(e.target.files)}
           className="hidden"
           accept="image/*,.pdf"
+          disabled={uploadDisabled}
         />
         <div className="space-y-2">
           <svg
@@ -247,7 +282,11 @@ export default function FileManager({
             />
           </svg>
           <div className="text-sm text-gray-600 dark:text-gray-400">
-            {disabled ? (
+            {storageLimitExhausted ? (
+              <span className="font-medium text-rose-600 dark:text-rose-400">
+                Storage limit reached
+              </span>
+            ) : disabled ? (
               <span className="font-medium text-gray-400 dark:text-gray-500">
                 Expand the form to upload files
               </span>
@@ -261,9 +300,11 @@ export default function FileManager({
             )}
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            {disabled
-              ? 'Form must be expanded first'
-              : 'Images and PDFs up to 10MB each'}
+            {storageLimitExhausted
+              ? 'Delete existing files or contact support'
+              : disabled
+                ? 'Form must be expanded first'
+                : 'Images and PDFs up to 10MB each'}
           </p>
         </div>
       </div>

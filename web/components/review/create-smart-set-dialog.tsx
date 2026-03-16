@@ -26,6 +26,9 @@ import { Sparkles, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProblemSetSharingLevel } from '@/lib/schemas';
 import { Subject, SimpleTag } from '@/lib/types';
+import { useContentLimit } from '@/lib/hooks/useContentLimit';
+import { ContentLimitIndicator } from '@/components/ui/content-limit-indicator';
+import { CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
 
 interface CreateSmartSetDialogProps {
   open: boolean;
@@ -38,6 +41,9 @@ export default function CreateSmartSetDialog({
   onOpenChange,
   onSuccess,
 }: CreateSmartSetDialogProps) {
+  const { data: limitData, isExhausted } = useContentLimit(
+    CONTENT_LIMIT_CONSTANTS.RESOURCE_TYPES.PROBLEM_SETS
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [availableTags, setAvailableTags] = useState<SimpleTag[]>([]);
@@ -233,6 +239,13 @@ export default function CreateSmartSetDialog({
           <DialogDescription>
             Automatically generate a review set based on filter criteria.
           </DialogDescription>
+          {limitData && (
+            <ContentLimitIndicator
+              current={limitData.current}
+              limit={limitData.limit}
+              label="problem sets used"
+            />
+          )}
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -494,8 +507,12 @@ export default function CreateSmartSetDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Creating...' : 'Create Smart Set'}
+            <Button type="submit" disabled={isLoading || isExhausted}>
+              {isLoading
+                ? 'Creating...'
+                : isExhausted
+                  ? 'Problem set limit reached'
+                  : 'Create Smart Set'}
             </Button>
           </DialogFooter>
         </form>

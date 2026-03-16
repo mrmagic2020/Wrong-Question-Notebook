@@ -13,7 +13,8 @@ import {
   handleAsyncError,
   hasOnlyOwnedAssetPaths,
 } from '@/lib/common-utils';
-import { ERROR_MESSAGES } from '@/lib/constants';
+import { ERROR_MESSAGES, CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
+import { checkContentLimit } from '@/lib/content-limits';
 import { revalidateProblemComprehensive } from '@/lib/cache-invalidation';
 import { createServiceClient } from '@/lib/supabase-utils';
 
@@ -241,6 +242,44 @@ async function createProblem(req: Request) {
       createApiErrorResponse(ERROR_MESSAGES.UNAUTHORIZED, 403),
       { status: 403 }
     );
+  }
+
+  // Check problem count limit
+  const problemLimit = await checkContentLimit(
+    user.id,
+    CONTENT_LIMIT_CONSTANTS.RESOURCE_TYPES.PROBLEMS_PER_SUBJECT,
+    { subjectId: problem.subject_id }
+  );
+  if (!problemLimit.allowed) {
+    return NextResponse.json(
+      createApiErrorResponse(
+        ERROR_MESSAGES.CONTENT_LIMIT_REACHED,
+        403,
+        problemLimit
+      ),
+      { status: 403 }
+    );
+  }
+
+  // Check storage limit if problem has file assets
+  const hasFiles =
+    (assets && assets.length > 0) ||
+    (solution_assets && solution_assets.length > 0);
+  if (hasFiles) {
+    const storageLimit = await checkContentLimit(
+      user.id,
+      CONTENT_LIMIT_CONSTANTS.RESOURCE_TYPES.STORAGE_BYTES
+    );
+    if (!storageLimit.allowed) {
+      return NextResponse.json(
+        createApiErrorResponse(
+          ERROR_MESSAGES.CONTENT_LIMIT_REACHED,
+          403,
+          storageLimit
+        ),
+        { status: 403 }
+      );
+    }
   }
 
   // Use client-provided ID if available, otherwise let database generate one

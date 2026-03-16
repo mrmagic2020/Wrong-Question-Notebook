@@ -6,9 +6,10 @@ import {
   createApiSuccessResponse,
   handleAsyncError,
 } from '@/lib/common-utils';
-import { ERROR_MESSAGES } from '@/lib/constants';
+import { ERROR_MESSAGES, CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
 import { CreateSubjectDto } from '@/lib/schemas';
 import { revalidateUserSubjects } from '@/lib/cache-invalidation';
+import { checkContentLimit } from '@/lib/content-limits';
 
 // Cache configuration for this route
 export const revalidate = 600; // 10 minutes
@@ -72,6 +73,22 @@ async function createSubject(req: Request) {
         parsed.error.flatten()
       ),
       { status: 400 }
+    );
+  }
+
+  // Check content limit
+  const limitCheck = await checkContentLimit(
+    user.id,
+    CONTENT_LIMIT_CONSTANTS.RESOURCE_TYPES.SUBJECTS
+  );
+  if (!limitCheck.allowed) {
+    return NextResponse.json(
+      createApiErrorResponse(
+        ERROR_MESSAGES.CONTENT_LIMIT_REACHED,
+        403,
+        limitCheck
+      ),
+      { status: 403 }
     );
   }
 
