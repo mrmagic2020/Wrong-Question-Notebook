@@ -15,6 +15,7 @@ import { SubjectWithMetadata } from '@/lib/types';
 import { useOnboarding } from '@/components/onboarding/onboarding-provider';
 import { Search, BookMarked } from 'lucide-react';
 import { toast } from 'sonner';
+import { CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
 import { ReviewDuePickerDialog } from '@/components/subjects/review-due-picker-dialog';
 
 export default function SubjectsPageClient({
@@ -34,6 +35,8 @@ export default function SubjectsPageClient({
     useState<SubjectWithMetadata | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { refreshChecklistStatus } = useOnboarding();
+  const subjectLimit = CONTENT_LIMIT_CONSTANTS.DEFAULTS.subjects as number;
+  const atSubjectLimit = subjects.length >= subjectLimit;
   const { showConfirmation, ConfirmationDialogComponent } =
     useConfirmationDialog();
 
@@ -142,6 +145,7 @@ export default function SubjectsPageClient({
             >
               <PlaceholderNotebookCard
                 onClick={() => setCreateDialogOpen(true)}
+                atLimit={atSubjectLimit}
               />
             </div>
           </div>

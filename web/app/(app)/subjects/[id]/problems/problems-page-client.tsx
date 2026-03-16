@@ -9,6 +9,8 @@ import ProblemFab from './problem-fab';
 import { ProblemsPageClientProps, Problem } from '@/lib/types';
 import { useOnboarding } from '@/components/onboarding/onboarding-provider';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import { useContentLimit } from '@/lib/hooks/useContentLimit';
+import { CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
 import { toast } from 'sonner';
 
 type FormMode = 'closed' | 'create-manual' | 'create-scan' | 'edit';
@@ -27,6 +29,16 @@ export default function ProblemsPageClient({
   const [editingProblem, setEditingProblem] = useState<Problem | null>(null);
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
 
+  // Content limit checks
+  const {
+    data: problemLimit,
+    isExhausted: problemLimitExhausted,
+    refresh: refreshProblemLimit,
+  } = useContentLimit(
+    CONTENT_LIMIT_CONSTANTS.RESOURCE_TYPES.PROBLEMS_PER_SUBJECT,
+    subjectId
+  );
+
   // Confirmation dialog for switching from create to edit
   const [switchDialog, setSwitchDialog] = useState<{
     open: boolean;
@@ -34,16 +46,28 @@ export default function ProblemsPageClient({
   }>({ open: false, pendingProblem: null });
 
   const handleAddManually = useCallback(() => {
+    if (problemLimitExhausted) {
+      toast.error(
+        `You've reached the maximum of ${problemLimit?.limit ?? 300} problems in this notebook.`
+      );
+      return;
+    }
     setFormMode('create-manual');
     setEditingProblem(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+  }, [problemLimitExhausted, problemLimit?.limit]);
 
   const handleAddScan = useCallback(() => {
+    if (problemLimitExhausted) {
+      toast.error(
+        `You've reached the maximum of ${problemLimit?.limit ?? 300} problems in this notebook.`
+      );
+      return;
+    }
     setFormMode('create-scan');
     setEditingProblem(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+  }, [problemLimitExhausted, problemLimit?.limit]);
 
   const fetchAndOpenEdit = useCallback(async (problem: Problem) => {
     try {
@@ -96,8 +120,9 @@ export default function ProblemsPageClient({
       setFormMode('closed');
       setEditingProblem(null);
       refreshChecklistStatus();
+      refreshProblemLimit();
     },
-    [refreshChecklistStatus]
+    [refreshChecklistStatus, refreshProblemLimit]
   );
 
   const handleProblemDeleted = useCallback((problemId: string) => {

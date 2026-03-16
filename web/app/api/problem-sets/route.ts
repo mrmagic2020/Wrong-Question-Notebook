@@ -8,7 +8,8 @@ import {
   handleAsyncError,
   isValidUuid,
 } from '@/lib/common-utils';
-import { ERROR_MESSAGES } from '@/lib/constants';
+import { ERROR_MESSAGES, CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
+import { checkContentLimit } from '@/lib/content-limits';
 import { revalidateUserProblemSets } from '@/lib/cache-invalidation';
 
 // Cache configuration for this route
@@ -138,6 +139,22 @@ async function createProblemSet(req: Request) {
         );
       }
     }
+  }
+
+  // Check content limit
+  const limitCheck = await checkContentLimit(
+    user.id,
+    CONTENT_LIMIT_CONSTANTS.RESOURCE_TYPES.PROBLEM_SETS
+  );
+  if (!limitCheck.allowed) {
+    return NextResponse.json(
+      createApiErrorResponse(
+        ERROR_MESSAGES.CONTENT_LIMIT_REACHED,
+        403,
+        limitCheck
+      ),
+      { status: 403 }
+    );
   }
 
   try {

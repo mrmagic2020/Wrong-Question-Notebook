@@ -204,6 +204,7 @@ export const ERROR_MESSAGES = {
   // Request errors
   INVALID_REQUEST: 'Invalid request',
   RATE_LIMIT_EXCEEDED: 'Rate limit exceeded',
+  CONTENT_LIMIT_REACHED: 'Resource limit reached',
   MALICIOUS_REQUEST: 'Suspicious request detected',
 
   // Authentication errors
@@ -347,6 +348,34 @@ export const USAGE_QUOTA_CONSTANTS = {
     ai_extraction: 10,
     ai_categorisation: 50,
   } as Record<string, number>,
+} as const;
+
+// =====================================================
+// Content Limit Constants (cumulative, non-daily)
+// =====================================================
+export const CONTENT_LIMIT_CONSTANTS = {
+  RESOURCE_TYPES: {
+    STORAGE_BYTES: 'storage_bytes',
+    SUBJECTS: 'subjects',
+    PROBLEMS_PER_SUBJECT: 'problems_per_subject',
+    PROBLEM_SETS: 'problem_sets',
+    TAGS_PER_SUBJECT: 'tags_per_subject',
+  },
+  DEFAULTS: {
+    storage_bytes: 50 * 1024 * 1024, // 50 MB
+    subjects: 6,
+    problems_per_subject: 300,
+    problem_sets: 30,
+    tags_per_subject: 50,
+  } as Record<string, number>,
+  WARNING_THRESHOLD: 0.8, // Show warning at 80% usage
+  LABELS: {
+    storage_bytes: 'Storage',
+    subjects: 'Notebooks',
+    problems_per_subject: 'Problems per notebook',
+    problem_sets: 'Problem sets',
+    tags_per_subject: 'Tags per notebook',
+  } as Record<string, string>,
 } as const;
 
 // =====================================================
