@@ -41,11 +41,12 @@ export default function FileManager({
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const {
+    loading: storageLimitLoading,
     data: storageLimit,
     isExhausted: storageLimitExhausted,
     refresh: refreshStorageLimit,
   } = useContentLimit(CONTENT_LIMIT_CONSTANTS.RESOURCE_TYPES.STORAGE_BYTES);
-  const uploadDisabled = disabled || storageLimitExhausted;
+  const uploadDisabled = disabled || storageLimitLoading || storageLimitExhausted;
 
   // Helper function to check if a file is an image
   const isImageFile = (fileName: string): boolean => {
