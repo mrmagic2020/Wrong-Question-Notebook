@@ -107,6 +107,13 @@ function ContentLimitRow({ item }: { item: ContentLimitResult }) {
           {hasPerSubject && (
             <button
               onClick={() => setExpanded(!expanded)}
+              aria-label={
+                expanded
+                  ? 'Hide per-notebook breakdown'
+                  : 'Show per-notebook breakdown'
+              }
+              aria-expanded={expanded}
+              aria-controls={`breakdown-${item.resource_type}`}
               className="rounded p-0.5 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
             >
               <ChevronDown
@@ -123,7 +130,7 @@ function ContentLimitRow({ item }: { item: ContentLimitResult }) {
         </p>
       )}
       {hasPerSubject && expanded && (
-        <div className="mt-2 space-y-1 pl-6">
+        <div id={`breakdown-${item.resource_type}`} className="mt-2 space-y-1 pl-6">
           {item.per_subject!.map(s => (
             <div
               key={s.subject_id}
