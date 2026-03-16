@@ -22,19 +22,7 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import { formatBytes } from '@/lib/format-utils';
 import { CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
-
-interface ContentLimitResult {
-  allowed: boolean;
-  current: number;
-  limit: number;
-  remaining: number;
-  resource_type: string;
-  per_subject?: Array<{
-    subject_id: string;
-    subject_name: string;
-    current: number;
-  }>;
-}
+import type { ContentLimitResult } from '@/lib/content-limits';
 
 interface QuotaCheckResult {
   allowed: boolean;
