@@ -33,7 +33,7 @@ export function useContentLimit(resourceType: string, subjectId?: string) {
     fetchLimit();
   }, [fetchLimit]);
 
-  const ratio = data ? data.current / data.limit : 0;
+  const ratio = data && data.limit > 0 ? data.current / data.limit : 0;
   const isWarning = ratio >= WARNING_THRESHOLD && ratio < 1;
   const isExhausted = data ? data.current >= data.limit : false;
 
