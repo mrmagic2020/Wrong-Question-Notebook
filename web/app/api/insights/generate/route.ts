@@ -87,6 +87,63 @@ async function generateInsights(req: Request) {
       );
     }
 
+    // Lightweight activity check before committing to background work.
+    // This is a single RPC returning 4 scalars — fast enough to run
+    // synchronously so we can return the insufficient_data payload
+    // directly instead of losing it in the async after() path.
+    const { data: summaryRows, error: summaryError } = await supabase.rpc(
+      'get_activity_summary',
+      { p_user_id: user.id }
+    );
+
+    if (summaryError) {
+      return NextResponse.json(
+        createApiErrorResponse(
+          ERROR_MESSAGES.DATABASE_ERROR,
+          500,
+          summaryError.message
+        ),
+        { status: 500 }
+      );
+    }
+
+    const activity = (Array.isArray(summaryRows)
+      ? summaryRows[0]
+      : summaryRows) ?? {
+      total_problems: 0,
+      total_attempts: 0,
+      total_subjects: 0,
+      problems_with_errors: 0,
+    };
+
+    const activityMet =
+      activity.total_problems >= INSIGHT_CONSTANTS.MIN_ACTIVITY_FOR_INSIGHTS;
+    const errorsMet =
+      activity.problems_with_errors >=
+      INSIGHT_CONSTANTS.MIN_ERRORS_FOR_FULL_DIGEST;
+
+    if (!activityMet && !errorsMet) {
+      return NextResponse.json(
+        createApiSuccessResponse(
+          {
+            insufficient_data: true,
+            activity,
+            activity_needed: Math.max(
+              0,
+              INSIGHT_CONSTANTS.MIN_ACTIVITY_FOR_INSIGHTS -
+                activity.total_problems
+            ),
+            errors_needed: Math.max(
+              0,
+              INSIGHT_CONSTANTS.MIN_ERRORS_FOR_FULL_DIGEST -
+                activity.problems_with_errors
+            ),
+          },
+          'Not enough activity to generate insights yet.'
+        )
+      );
+    }
+
     // Insert placeholder row with 'generating' status
     const { data: placeholder, error: placeholderError } = await supabase
       .from('insight_digests')
@@ -119,14 +176,11 @@ async function generateInsights(req: Request) {
           INSIGHT_CONSTANTS.BACKFILL_BATCH_SIZE
         );
 
-        // Generate the digest (updates placeholder row on success)
-        const result = await generateDigestForUser(user.id, placeholder.id);
-
-        if ('insufficient_data' in result) {
-          // Not enough data — delete placeholder
-          const bg = createServiceClient();
-          await bg.from('insight_digests').delete().eq('id', placeholder.id);
-        }
+        // Generate the digest (updates placeholder row on success).
+        // The insufficient_data case is already handled synchronously
+        // above, so generateDigestForUser will always proceed to the
+        // full/mastery/narrow tier here.
+        await generateDigestForUser(user.id, placeholder.id);
       } catch (error) {
         // Mark placeholder as failed
         try {
