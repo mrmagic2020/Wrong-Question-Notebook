@@ -466,7 +466,7 @@ export async function categoriseUncategorisedAttempts(
   let successCount = 0;
 
   // Check quota upfront to determine how many we can process
-  const quotaAllowed: boolean[] = [];
+  let allowedCount = 0;
   for (let _qi = 0; _qi < uncategorised.length; _qi++) {
     try {
       const quota = await checkAndIncrementQuota(
@@ -479,19 +479,19 @@ export async function categoriseUncategorisedAttempts(
           component: 'DigestGenerator',
           action: 'categoriseUncategorisedAttempts',
           userId,
-          categorised: String(quotaAllowed.length),
-          remaining: String(uncategorised.length - quotaAllowed.length),
+          categorised: String(allowedCount),
+          remaining: String(uncategorised.length - allowedCount),
         });
         break;
       }
-      quotaAllowed.push(true);
+      allowedCount++;
     } catch {
       // Quota check failure should not block categorisation
-      quotaAllowed.push(true);
+      allowedCount++;
     }
   }
 
-  const attemptsToProcess = uncategorised.slice(0, quotaAllowed.length);
+  const attemptsToProcess = uncategorised.slice(0, allowedCount);
 
   // Process in parallel batches for speed
   const concurrency = INSIGHT_CONSTANTS.CATEGORISATION_CONCURRENCY;
