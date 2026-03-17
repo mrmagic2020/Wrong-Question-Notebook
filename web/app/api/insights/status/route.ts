@@ -34,11 +34,11 @@ async function getInsightStatus(req: Request) {
 
     if (latest.status === 'generating') {
       // Auto-fail stale generating rows so the user isn't stuck forever
-      const staleThreshold = new Date(
-        Date.now() - INSIGHT_CONSTANTS.GENERATING_STALE_MINUTES * 60 * 1000
-      ).toISOString();
+      const staleMs = INSIGHT_CONSTANTS.GENERATING_STALE_MINUTES * 60 * 1000;
+      const isStale =
+        Date.now() - new Date(latest.generated_at).getTime() > staleMs;
 
-      if (latest.generated_at < staleThreshold) {
+      if (isStale) {
         await supabase
           .from('insight_digests')
           .update({ status: 'failed' })

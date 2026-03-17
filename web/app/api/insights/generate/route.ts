@@ -21,36 +21,36 @@ async function generateInsights(req: Request) {
   try {
     const supabase = createServiceClient();
 
-    // Check if generation is already in progress
+    // Mark any stale 'generating' rows as failed before checking.
+    // Uses a DB-level filter to avoid JS timestamp string comparison.
+    const staleThreshold = new Date(
+      Date.now() - INSIGHT_CONSTANTS.GENERATING_STALE_MINUTES * 60 * 1000
+    ).toISOString();
+
+    await supabase
+      .from('insight_digests')
+      .update({ status: 'failed' })
+      .eq('user_id', user.id)
+      .eq('status', 'generating')
+      .lt('generated_at', staleThreshold);
+
+    // Check if a non-stale generation is still in progress
     const { data: activeRow } = await supabase
       .from('insight_digests')
-      .select('id, generated_at')
+      .select('id')
       .eq('user_id', user.id)
       .eq('status', 'generating')
       .limit(1)
       .maybeSingle();
 
     if (activeRow) {
-      // If the row is stale (e.g. the serverless function timed out),
-      // mark it as failed and allow a fresh generation to proceed.
-      const staleThreshold = new Date(
-        Date.now() - INSIGHT_CONSTANTS.GENERATING_STALE_MINUTES * 60 * 1000
-      ).toISOString();
-
-      if (activeRow.generated_at < staleThreshold) {
-        await supabase
-          .from('insight_digests')
-          .update({ status: 'failed' })
-          .eq('id', activeRow.id);
-      } else {
-        return NextResponse.json(
-          createApiErrorResponse(
-            'Insights generation is already in progress',
-            409
-          ),
-          { status: 409 }
-        );
-      }
+      return NextResponse.json(
+        createApiErrorResponse(
+          'Insights generation is already in progress',
+          409
+        ),
+        { status: 409 }
+      );
     }
 
     // Check cooldown: was a completed digest generated recently?
