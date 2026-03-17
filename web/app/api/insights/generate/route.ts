@@ -27,12 +27,31 @@ async function generateInsights(req: Request) {
       Date.now() - INSIGHT_CONSTANTS.GENERATING_STALE_MINUTES * 60 * 1000
     ).toISOString();
 
-    await supabase
+    const { error: staleCleanupError } = await supabase
       .from('insight_digests')
       .update({ status: 'failed' })
       .eq('user_id', user.id)
       .eq('status', 'generating')
       .lt('generated_at', staleThreshold);
+
+    if (staleCleanupError) {
+      logger.error(
+        'Failed to clean up stale generating rows',
+        staleCleanupError,
+        {
+          component: 'InsightsGenerate',
+          action: 'staleCleanup',
+          userId: user.id,
+        }
+      );
+      return NextResponse.json(
+        createApiErrorResponse(
+          'Failed to prepare for generation. Please try again.',
+          500
+        ),
+        { status: 500 }
+      );
+    }
 
     // Check if a non-stale generation is still in progress
     const { data: activeRow } = await supabase
