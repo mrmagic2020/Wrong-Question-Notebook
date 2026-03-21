@@ -26,6 +26,7 @@ export function Navigation({
         <div className="flex min-w-0 items-center gap-4">
           <Link
             href="/"
+            aria-label="Wrong Question Notebook"
             className="group flex items-baseline gap-0 text-lg font-bold tracking-tight text-foreground"
           >
             <WLogo className="h-7 w-7 text-amber-600 dark:text-amber-400 self-center shrink-0 transition-transform group-hover:scale-110" />
