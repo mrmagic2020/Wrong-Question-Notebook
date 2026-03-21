@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ProfileButton } from '@/components/profile-button';
 import { ThemeSwitcher } from '@/components/theme-switcher';
-import { NotebookPen } from 'lucide-react';
+import { WLogo } from '@/components/w-logo';
 import { hasEnvVars } from '@/lib/server-utils';
 import { AppNavLinks } from '@/components/app-nav-links';
 
@@ -26,13 +26,13 @@ export function Navigation({
         <div className="flex min-w-0 items-center gap-4">
           <Link
             href="/"
-            className="flex items-center gap-2 text-lg font-bold tracking-tight text-foreground"
+            className="group flex items-baseline gap-0 text-lg font-bold tracking-tight text-foreground"
           >
-            <NotebookPen className="h-6 w-6 text-blue-600" />
-            <span className="hidden sm:inline text-lg">
-              Wrong Question Notebook
+            <WLogo className="h-7 w-7 text-amber-600 dark:text-amber-400 self-center shrink-0 transition-transform group-hover:scale-110" />
+            <span className="hidden sm:inline text-lg -ml-0.5">
+              rong Question Notebook
             </span>
-            <span className="sm:hidden text-lg">WQN</span>
+            <span className="sm:hidden text-lg -ml-0.5">QN</span>
           </Link>
 
           {showAppLinks ? <AppNavLinks /> : null}
