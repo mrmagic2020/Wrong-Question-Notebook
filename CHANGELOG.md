@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning].
 
 ### Added
 
+- **Auto-pause review sessions**: Timer automatically pauses when the browser tab loses focus or is minimized, preventing idle time from inflating session duration
+
 - **Weak Spots & Insights Dashboard**
   - New `/insights` route with AI-generated narrative study briefings
   - Per-attempt AI error categorisation (runs automatically after wrong/needs_review attempts)

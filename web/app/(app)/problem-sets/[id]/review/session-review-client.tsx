@@ -123,6 +123,20 @@ export default function SessionReviewClient({
     };
   }, [loading, sessionData, isPaused]);
 
+  // Auto-pause when page becomes hidden (tab switch, minimize)
+  useEffect(() => {
+    if (isReadOnly) return;
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        setIsPaused(true);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isReadOnly]);
+
   // Reset form saved tracking when navigating to a new problem
   useEffect(() => {
     if (!sessionData) return;
