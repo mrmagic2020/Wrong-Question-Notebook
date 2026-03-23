@@ -124,6 +124,8 @@ export default function SpacedReviewClient({
         setIsPaused(true);
       }
     };
+    // Catch the case where the tab is already hidden on mount
+    handleVisibilityChange();
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
