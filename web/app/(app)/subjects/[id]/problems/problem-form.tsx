@@ -1284,6 +1284,7 @@ export default function ProblemForm({
                       <button
                         key={`pending-${name}`}
                         type="button"
+                        aria-pressed={selected}
                         onClick={() =>
                           setDeselectedPendingTags(prev => {
                             const next = new Set(prev);
