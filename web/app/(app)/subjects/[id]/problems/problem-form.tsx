@@ -563,6 +563,7 @@ export default function ProblemForm({
       const activePendingTags = pendingNewTags.filter(
         n => !deselectedPendingTags.has(n)
       );
+      const createdTagNames: string[] = [];
       if (activePendingTags.length > 0) {
         for (const tagName of activePendingTags) {
           const existing = tags.find(
@@ -572,6 +573,7 @@ export default function ProblemForm({
             if (!finalTagIds.includes(existing.id)) {
               finalTagIds.push(existing.id);
             }
+            createdTagNames.push(tagName);
             continue;
           }
           try {
@@ -585,6 +587,7 @@ export default function ProblemForm({
               const created: Tag = j.data;
               setTags(prev => [...prev, created]);
               finalTagIds.push(created.id);
+              createdTagNames.push(tagName);
             } else if (res.status === 403) {
               toast.warning(
                 `Could not create tag "${tagName}": tag limit reached`
@@ -594,8 +597,19 @@ export default function ProblemForm({
             toast.warning(`Could not create tag "${tagName}"`);
           }
         }
-        setPendingNewTags([]);
-        setDeselectedPendingTags(new Set());
+        // Sync selectedTagIds to include created/matched tags so the UI
+        // reflects them even if the problem save fails and the user retries.
+        setSelectedTagIds(finalTagIds);
+        // Remove only the tags that were successfully created/matched,
+        // keeping any that failed so they can be retried.
+        setPendingNewTags(prev =>
+          prev.filter(n => !createdTagNames.includes(n))
+        );
+        setDeselectedPendingTags(prev => {
+          const next = new Set(prev);
+          for (const n of createdTagNames) next.delete(n);
+          return next;
+        });
       }
 
       const payload: Record<string, any> = {
