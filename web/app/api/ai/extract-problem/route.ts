@@ -20,7 +20,7 @@ const RequestSchema = z.object({
     'image/webp',
     'image/gif',
   ] as const),
-  subjectId: z.string().uuid().optional(),
+  subjectId: z.uuid().optional(),
 });
 
 const SYSTEM_PROMPT = `You are an expert at extracting problems from images of test papers, worksheets, and handwritten notes.
