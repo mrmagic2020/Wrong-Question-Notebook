@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning].
 
 ### Added
 
+- **AI Tag Suggestions During Extraction**
+  - When extracting a problem from an image, the AI model now suggests up to 3 matching existing tags and up to 3 new tags
+  - Suggested existing tags are auto-selected in the form; new tags appear as blue dashed-border pills
+  - New tags are only created in the database when the problem is saved
+  - Tag suggestions are toggleable (click to deselect/reselect) rather than permanently removed
+  - The model mimics the naming style (casing, abbreviations, language) of the user's existing tags
+
+## [0.2.0-beta] - 2026-03-25
+
+### Added
+
 - **Auto-pause review sessions**: Timer automatically pauses when the browser tab loses focus or is minimized, preventing idle time from inflating session duration
 
 - **Weak Spots & Insights Dashboard**
@@ -43,6 +54,30 @@ and this project adheres to [Semantic Versioning].
   - Owner-only progress stats (total/wrong/needs review/mastered); non-owners see simple problem count
   - Viewer-only review sessions: ungated navigation, no assessment form, clean session completion
 
+- **Spaced Repetition System (SM-2)**
+  - SM-2 algorithm implementation for intelligent review scheduling (`web/lib/spaced-repetition.ts`)
+  - Review schedule automatically updates after each attempt using SM-2 quality derived from `selected_status`
+  - New problems get a review schedule on creation; existing problems seeded based on status
+  - "Due" badge on notebook cards showing how many problems need review per subject
+  - Session size picker dialog (5, 10, 20, or All) before starting a spaced review
+  - Full spaced review session flow: review problems, self-assess non-auto-mark problems, complete summary
+  - SR status prompt for non-auto-mark problems using the unified attempt status form
+  - Database RPCs for efficient due count queries (`get_due_problems_count`, `get_due_problems_for_subject`)
+  - Extended `get_subjects_with_metadata` RPC with `due_count` field
+  - Review schedule cache invalidation on session completion
+  - Comprehensive Vitest unit tests for SM-2 algorithm (24 test cases)
+
+- **Subject Problems Page UX Improvements**
+  - Stats strip showing total problems, proportional status bar (wrong/review/mastered), and mastery percentage
+  - Empty state with illustration and CTA buttons when no problems exist
+  - Floating action button (split pill: Write / Scan) at bottom of viewport for quick problem creation
+  - Form opens inline at top of page with slide-in animation, replacing the always-visible card form
+  - Confirmation dialog when switching from create to edit mode with unsaved data
+  - Table row left-border color accents by status (red/amber/green) and reduced opacity for mastered rows
+  - Mobile card list view (below 768px) with status-colored borders, overflow menus, and "Show more" pagination
+  - Mobile-responsive search/filter toolbar with popover filters and select mode toggle
+  - `useMediaQuery` and `useIsMobile` hooks for responsive layout switching
+
 ### Fixed
 
 - **Insights Digest Accuracy**
@@ -73,44 +108,6 @@ and this project adheres to [Semantic Versioning].
   - Timeline entries now show status badges (Wrong/Needs Review/Mastered) instead of Correct/Incorrect; removed confidence dots
   - Session clients (problem-set and spaced review) gate "Next" on form save instead of separate status selection
   - Form state persists across session navigation via `AttemptState` cache with `selectedStatus` and `formSaved` fields
-
-### Removed
-
-- `StatusSelector` component (replaced by `AttemptStatusForm`)
-- `ReflectionDialog` component (replaced by `AttemptStatusForm` + `AttemptEditDialog`)
-- `ConfidenceSelector` component (confidence removed from UI)
-- `SRCorrectnessPrompt` component (replaced by `AttemptStatusForm`)
-- `StatusSelectorProps` interface from types
-- `mapConfidenceToQuality()` function (replaced by `mapStatusToQuality()`)
-- `DEFAULT_CONFIDENCE` constant (no longer needed)
-
-### Added
-
-- **Spaced Repetition System (SM-2)**
-  - SM-2 algorithm implementation for intelligent review scheduling (`web/lib/spaced-repetition.ts`)
-  - Review schedule automatically updates after each attempt using SM-2 quality derived from `selected_status`
-  - New problems get a review schedule on creation; existing problems seeded based on status
-  - "Due" badge on notebook cards showing how many problems need review per subject
-  - Session size picker dialog (5, 10, 20, or All) before starting a spaced review
-  - Full spaced review session flow: review problems, self-assess non-auto-mark problems, complete summary
-  - SR status prompt for non-auto-mark problems using the unified attempt status form
-  - Database RPCs for efficient due count queries (`get_due_problems_count`, `get_due_problems_for_subject`)
-  - Extended `get_subjects_with_metadata` RPC with `due_count` field
-  - Review schedule cache invalidation on session completion
-  - Comprehensive Vitest unit tests for SM-2 algorithm (24 test cases)
-
-- **Subject Problems Page UX Improvements**
-  - Stats strip showing total problems, proportional status bar (wrong/review/mastered), and mastery percentage
-  - Empty state with illustration and CTA buttons when no problems exist
-  - Floating action button (split pill: Write / Scan) at bottom of viewport for quick problem creation
-  - Form opens inline at top of page with slide-in animation, replacing the always-visible card form
-  - Confirmation dialog when switching from create to edit mode with unsaved data
-  - Table row left-border color accents by status (red/amber/green) and reduced opacity for mastered rows
-  - Mobile card list view (below 768px) with status-colored borders, overflow menus, and "Show more" pagination
-  - Mobile-responsive search/filter toolbar with popover filters and select mode toggle
-  - `useMediaQuery` and `useIsMobile` hooks for responsive layout switching
-
-### Changed
 
 - **Subject Problems Page Layout**
   - Removed the always-visible "Add a problem" card; creation now triggered via FAB or empty state CTAs
@@ -150,6 +147,16 @@ and this project adheres to [Semantic Versioning].
   - Edit reflection data from timeline entries at any time
   - `PATCH /api/attempts/[id]` endpoint for updating reflection data
   - Database migration: `is_self_assessed`, `confidence`, `reflection_notes`, `updated_at` columns on `attempts` table
+
+### Removed
+
+- `StatusSelector` component (replaced by `AttemptStatusForm`)
+- `ReflectionDialog` component (replaced by `AttemptStatusForm` + `AttemptEditDialog`)
+- `ConfidenceSelector` component (confidence removed from UI)
+- `SRCorrectnessPrompt` component (replaced by `AttemptStatusForm`)
+- `StatusSelectorProps` interface from types
+- `mapConfidenceToQuality()` function (replaced by `mapStatusToQuality()`)
+- `DEFAULT_CONFIDENCE` constant (no longer needed)
 
 ## [0.1.0-beta] - 2025-09-27
 
@@ -197,5 +204,6 @@ and this project adheres to [Semantic Versioning].
 
 <!-- Versions -->
 
-[unreleased]: https://github.com/mrmagic2020/Wong-Question-Notebook/compare/v0.1.0-beta...HEAD
+[unreleased]: https://github.com/mrmagic2020/Wong-Question-Notebook/compare/v0.2.0-beta...HEAD
+[0.2.0-beta]: https://github.com/mrmagic2020/Wong-Question-Notebook/compare/v0.1.0-beta...v0.2.0-beta
 [0.1.0-beta]: https://github.com/mrmagic2020/Wong-Question-Notebook/releases/tag/v0.1.0-beta
