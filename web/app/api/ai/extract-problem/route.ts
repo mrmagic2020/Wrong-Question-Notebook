@@ -8,7 +8,7 @@ import {
   createApiSuccessResponse,
   handleAsyncError,
 } from '@/lib/common-utils';
-import { AI_CONSTANTS } from '@/lib/constants';
+import { AI_CONSTANTS, CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
 import { checkAndIncrementQuota } from '@/lib/usage-quota';
 import { getUserTimezone } from '@/lib/timezone-utils';
 
@@ -209,12 +209,25 @@ async function extractProblem(req: Request) {
   // Fetch existing tags for the subject (used for AI tag suggestions)
   let existingTags: { id: string; name: string }[] = [];
   if (subjectId) {
-    const { data } = await supabase
+    const { data, error: tagError } = await supabase
       .from('tags')
       .select('id, name')
       .eq('user_id', user.id)
       .eq('subject_id', subjectId)
-      .order('name');
+      .order('name')
+      .limit(CONTENT_LIMIT_CONSTANTS.DEFAULTS.tags_per_subject);
+
+    if (tagError) {
+      console.error('Failed to fetch existing tags for subject', {
+        userId: user.id,
+        subjectId,
+        error: tagError,
+      });
+      return NextResponse.json(
+        createApiErrorResponse('Failed to load existing tags', 500),
+        { status: 500 }
+      );
+    }
     existingTags = data ?? [];
   }
 
