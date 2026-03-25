@@ -257,9 +257,7 @@ export default function ProblemForm({
 
       // Pre-select suggested existing tags and store new tag suggestions
       if (data.suggested_tags) {
-        const existingIds = data.suggested_tags.existing
-          .map(t => t.id)
-          .filter(id => tags.some(t => t.id === id));
+        const existingIds = data.suggested_tags.existing.map(t => t.id);
         setSelectedTagIds(prev => {
           const combined = new Set([...prev, ...existingIds]);
           return Array.from(combined);
