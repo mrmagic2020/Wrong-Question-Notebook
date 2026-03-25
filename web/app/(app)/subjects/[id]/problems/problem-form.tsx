@@ -777,7 +777,7 @@ export default function ProblemForm({
       solutionText.length > 0 ||
       solutionAssets.length > 0 ||
       selectedTagIds.length > 0 ||
-      pendingNewTags.length > 0
+      pendingNewTags.some(n => !deselectedPendingTags.has(n))
     );
   }, [
     isExpanded,
@@ -790,6 +790,7 @@ export default function ProblemForm({
     solutionAssets,
     selectedTagIds,
     pendingNewTags,
+    deselectedPendingTags,
   ]);
 
   // Warn user before leaving page with unsaved form data
