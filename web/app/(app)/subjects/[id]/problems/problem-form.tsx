@@ -118,6 +118,10 @@ export default function ProblemForm({
     return [];
   });
 
+  const [pendingNewTags, setPendingNewTags] = useState<string[]>([]);
+  const [deselectedPendingTags, setDeselectedPendingTags] = useState<
+    Set<string>
+  >(new Set());
   const [newTagName, setNewTagName] = useState('');
   const [creatingTag, setCreatingTag] = useState(false);
 
@@ -251,10 +255,29 @@ export default function ProblemForm({
         }
       }
 
+      // Pre-select suggested existing tags and store new tag suggestions
+      if (data.suggested_tags) {
+        const existingIds = data.suggested_tags.existing
+          .map(t => t.id)
+          .filter(id => tags.some(t => t.id === id));
+        setSelectedTagIds(prev => {
+          const combined = new Set([...prev, ...existingIds]);
+          return Array.from(combined);
+        });
+
+        const newNames = data.suggested_tags.new
+          .map(t => t.name)
+          .filter(
+            name => !tags.some(t => t.name.toLowerCase() === name.toLowerCase())
+          );
+        setPendingNewTags(newNames);
+        setDeselectedPendingTags(new Set());
+      }
+
       setShowImageScan(false);
       setIsExpanded(true);
     },
-    []
+    [tags]
   );
 
   const [title, setTitle] = useState(problem?.title || '');
@@ -537,6 +560,46 @@ export default function ProblemForm({
           )
         : '';
 
+      // Create any pending new tags before submitting the problem
+      const finalTagIds = [...selectedTagIds];
+      const activePendingTags = pendingNewTags.filter(
+        n => !deselectedPendingTags.has(n)
+      );
+      if (activePendingTags.length > 0) {
+        for (const tagName of activePendingTags) {
+          const existing = tags.find(
+            t => t.name.toLowerCase() === tagName.toLowerCase()
+          );
+          if (existing) {
+            if (!finalTagIds.includes(existing.id)) {
+              finalTagIds.push(existing.id);
+            }
+            continue;
+          }
+          try {
+            const res = await fetch('/api/tags', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ subject_id: subjectId, name: tagName }),
+            });
+            const j = await res.json().catch(() => ({}));
+            if (res.ok && j.data) {
+              const created: Tag = j.data;
+              setTags(prev => [...prev, created]);
+              finalTagIds.push(created.id);
+            } else if (res.status === 403) {
+              toast.warning(
+                `Could not create tag "${tagName}": tag limit reached`
+              );
+            }
+          } catch {
+            toast.warning(`Could not create tag "${tagName}"`);
+          }
+        }
+        setPendingNewTags([]);
+        setDeselectedPendingTags(new Set());
+      }
+
       const payload: Record<string, any> = {
         title: sanitizedTitle,
         content: sanitizedContent,
@@ -549,7 +612,7 @@ export default function ProblemForm({
         assets,
         solution_text: sanitizedSolutionText,
         solution_assets,
-        tag_ids: selectedTagIds, // Always send the array, even if empty
+        tag_ids: finalTagIds,
       };
 
       // Add subject_id and problem_id for create operations
@@ -619,6 +682,8 @@ export default function ProblemForm({
         setUseEnhancedMcq(false);
         setUseEnhancedShort(false);
         setSelectedTagIds([]);
+        setPendingNewTags([]);
+        setDeselectedPendingTags(new Set());
         setProblemType('short');
         setStatus('needs_review');
         setAutoMark(false);
@@ -713,7 +778,8 @@ export default function ProblemForm({
       problemAssets.length > 0 ||
       solutionText.length > 0 ||
       solutionAssets.length > 0 ||
-      selectedTagIds.length > 0
+      selectedTagIds.length > 0 ||
+      pendingNewTags.length > 0
     );
   }, [
     isExpanded,
@@ -725,6 +791,7 @@ export default function ProblemForm({
     solutionText,
     solutionAssets,
     selectedTagIds,
+    pendingNewTags,
   ]);
 
   // Warn user before leaving page with unsaved form data
@@ -774,6 +841,7 @@ export default function ProblemForm({
         )}
         {showImageScan && (
           <ImageScanUploader
+            subjectId={subjectId}
             onExtracted={handleExtractionComplete}
             onCancel={() => setShowImageScan(false)}
             quota={extractionQuota}
@@ -789,6 +857,7 @@ export default function ProblemForm({
     return (
       <div className="space-y-3">
         <ImageScanUploader
+          subjectId={subjectId}
           onExtracted={handleExtractionComplete}
           onCancel={() => onCancel?.()}
           quota={extractionQuota}
@@ -1164,11 +1233,21 @@ export default function ProblemForm({
               <span className="text-sm font-semibold text-gray-800 dark:text-gray-300">
                 Tags
               </span>
-              {selectedTagIds.length > 0 && (
-                <span className="text-xs text-amber-600 dark:text-amber-400">
-                  {selectedTagIds.length} selected
-                </span>
-              )}
+              {(() => {
+                const selectedPendingCount = pendingNewTags.filter(
+                  n => !deselectedPendingTags.has(n)
+                ).length;
+                const total = selectedTagIds.length + selectedPendingCount;
+                return (
+                  total > 0 && (
+                    <span className="text-xs text-amber-600 dark:text-amber-400">
+                      {total} selected
+                      {selectedPendingCount > 0 &&
+                        ` (${selectedPendingCount} new)`}
+                    </span>
+                  )
+                );
+              })()}
             </div>
           </AccordionTrigger>
           <AccordionContent>
@@ -1198,6 +1277,37 @@ export default function ProblemForm({
                   </p>
                 )}
               </div>
+              {pendingNewTags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {pendingNewTags.map(name => {
+                    const selected = !deselectedPendingTags.has(name);
+                    return (
+                      <button
+                        key={`pending-${name}`}
+                        type="button"
+                        onClick={() =>
+                          setDeselectedPendingTags(prev => {
+                            const next = new Set(prev);
+                            if (next.has(name)) next.delete(name);
+                            else next.add(name);
+                            return next;
+                          })
+                        }
+                        className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm border border-dashed transition-colors ${
+                          selected
+                            ? 'bg-blue-50/80 text-blue-700 border-blue-300/60 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-700/40 hover:bg-blue-100/80 dark:hover:bg-blue-900/40'
+                            : 'bg-gray-100/80 text-gray-500 border-gray-300/50 dark:bg-gray-800/40 dark:text-gray-500 dark:border-gray-700/40 hover:bg-gray-200/80 dark:hover:bg-gray-700/40'
+                        }`}
+                      >
+                        {name}
+                        <span className="text-[10px] font-medium opacity-70 ml-0.5">
+                          new
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
               <div className="flex items-center gap-2 border-t border-gray-200/40 dark:border-gray-700/30 pt-3">
                 <Input
                   placeholder="New tag name"

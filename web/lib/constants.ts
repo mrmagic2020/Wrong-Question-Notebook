@@ -328,6 +328,10 @@ export const AI_CONSTANTS = {
     COMPRESS_THRESHOLD: 4.3 * 1024 * 1024, // compress if base64 length exceeds this (leaves headroom below 4.5 MB Vercel limit)
     COMPRESS_MAX_DIMENSION: 1500, // max px on longest side
     COMPRESS_QUALITY: 0.8, // JPEG quality when compressing
+    TAG_SUGGESTIONS: {
+      MAX_EXISTING: 3,
+      MAX_NEW: 3,
+    },
   },
 } as const;
 

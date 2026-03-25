@@ -40,6 +40,7 @@ export interface ImageAttachment {
 }
 
 interface ImageScanUploaderProps {
+  subjectId?: string;
   onExtracted: (
     data: ExtractedProblemData,
     imageAttachment?: ImageAttachment
@@ -152,6 +153,7 @@ function ImageAssetToggles({
 }
 
 export function ImageScanUploader({
+  subjectId,
   onExtracted,
   onCancel,
   quota,
@@ -443,6 +445,7 @@ export function ImageScanUploader({
         body: JSON.stringify({
           image: base64,
           mimeType,
+          subjectId,
         }),
       });
 
@@ -469,7 +472,7 @@ export function ImageScanUploader({
     } finally {
       setIsExtracting(false);
     }
-  }, [imageFile, imagePreview, onQuotaChange]);
+  }, [imageFile, imagePreview, onQuotaChange, subjectId]);
 
   const reset = useCallback(() => {
     stopListening();
@@ -812,6 +815,37 @@ export function ImageScanUploader({
               ))}
             </div>
           )}
+          {/* Suggested tags */}
+          {extractionResult.suggested_tags &&
+            (extractionResult.suggested_tags.existing.length > 0 ||
+              extractionResult.suggested_tags.new.length > 0) && (
+              <div className="mt-3 space-y-1.5">
+                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                  Suggested tags
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {extractionResult.suggested_tags.existing.map(tag => (
+                    <span
+                      key={tag.id}
+                      className="inline-flex items-center rounded-full bg-amber-100/80 px-2.5 py-0.5 text-xs font-medium text-amber-800 border border-amber-200/50 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800/40"
+                    >
+                      {tag.name}
+                    </span>
+                  ))}
+                  {extractionResult.suggested_tags.new.map(tag => (
+                    <span
+                      key={`new-${tag.name}`}
+                      className="inline-flex items-center gap-1 rounded-full bg-blue-50/80 px-2.5 py-0.5 text-xs font-medium text-blue-700 border border-dashed border-blue-300/60 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-700/40"
+                    >
+                      {tag.name}
+                      <span className="text-[10px] font-normal opacity-70">
+                        new
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
         </div>
 
         <ImageAssetToggles

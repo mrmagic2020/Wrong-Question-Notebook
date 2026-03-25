@@ -250,6 +250,11 @@ export interface ExtractionConfidence {
   warnings?: string[];
 }
 
+export interface SuggestedTags {
+  existing: { id: string; name: string }[];
+  new: { name: string }[];
+}
+
 export interface ExtractedProblemData {
   problem_type: 'mcq' | 'short' | 'extended';
   title: string;
@@ -257,6 +262,7 @@ export interface ExtractedProblemData {
   mcq_choices?: { id: string; text: string }[];
   suggest_image_asset: boolean;
   confidence: ExtractionConfidence;
+  suggested_tags?: SuggestedTags;
 }
 
 // =====================================================
