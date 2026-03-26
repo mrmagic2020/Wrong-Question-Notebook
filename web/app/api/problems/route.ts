@@ -98,11 +98,22 @@ async function getProblems(req: Request) {
 
   if (tagIds.length > 0) {
     // First, get problem IDs that have the specified tags
-    const { data: tagLinks } = await supabase
+    const { data: tagLinks, error: tagError } = await supabase
       .from('problem_tag')
       .select('problem_id, tag_id')
       .in('tag_id', tagIds)
       .eq('user_id', user.id);
+
+    if (tagError) {
+      return NextResponse.json(
+        createApiErrorResponse(
+          ERROR_MESSAGES.DATABASE_ERROR,
+          500,
+          tagError.message
+        ),
+        { status: 500 }
+      );
+    }
 
     if (tagFilterMode === 'all') {
       // AND mode: only keep problems that have ALL selected tags
