@@ -32,7 +32,9 @@ async function getProblems(req: Request) {
   const searchContent = searchParams.get('search_content') === 'true';
   const problemTypes =
     searchParams.get('problem_types')?.split(',').filter(Boolean) || [];
-  const tagIds = searchParams.get('tag_ids')?.split(',').filter(Boolean) || [];
+  const tagIds = Array.from(
+    new Set(searchParams.get('tag_ids')?.split(',').filter(Boolean) || [])
+  );
   const tagFilterMode =
     searchParams.get('tag_filter_mode') === 'all' ? 'all' : 'any';
   const statuses =
