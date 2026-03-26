@@ -301,84 +301,79 @@ export default function CompactSearchFilter({
   );
 
   return (
-    <div className="space-y-3">
-      {/* Main layout */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        {/* Search + filters */}
-        <div className="flex items-center gap-2 flex-1">
-          {/* Search input */}
-          <div className="relative w-full md:w-80">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              ref={inputRef}
-              placeholder="Search problems..."
-              value={searchText}
-              onChange={e => {
-                const newValue = e.target.value;
-                onSearchTextChange(newValue);
-                searchFromInputRef.current = true;
+    <div className="space-y-2">
+      {/* Top row: search + actions */}
+      <div className="flex items-center gap-2">
+        {/* Search input */}
+        <div className="relative w-full md:w-80 flex-shrink-0">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            ref={inputRef}
+            placeholder="Search problems..."
+            value={searchText}
+            onChange={e => {
+              const newValue = e.target.value;
+              onSearchTextChange(newValue);
+              searchFromInputRef.current = true;
 
-                if (newValue === '') {
-                  cancelDebounce();
-                  triggerSearch({ searchText: '' });
-                } else {
-                  debouncedSearch();
-                }
-              }}
-              className="pl-10 pr-10"
-              disabled={isSearching}
-            />
-            {isSearching ? (
-              <div className="absolute right-3 top-2.5">
-                <div className="w-4 h-4 border border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
-              </div>
-            ) : (
-              !searchText && (
-                <div className="absolute right-3 inset-y-0 my-auto hidden md:flex items-center">
-                  <Kbd>/</Kbd>
-                </div>
-              )
-            )}
-          </div>
-
-          {/* Desktop filter dropdowns */}
-          <div className="hidden md:flex items-center gap-2">
-            {filterElements}
-          </div>
-
-          {/* Mobile filters popover */}
-          <div className="md:hidden">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="relative">
-                  <SlidersHorizontal className="h-4 w-4" />
-                  <span className="sr-only md:not-sr-only ml-1">Filters</span>
-                  {activeFilterCount > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center font-medium">
-                      {activeFilterCount}
-                    </span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-72 p-3 space-y-3" align="end">
-                {filterElements}
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          {/* Mobile select mode toggle */}
-          {onSelectModeChange && (
-            <div className="md:hidden">
-              <Button
-                variant={isSelectMode ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => onSelectModeChange(!isSelectMode)}
-              >
-                <CheckSquare className="h-4 w-4" />
-              </Button>
+              if (newValue === '') {
+                cancelDebounce();
+                triggerSearch({ searchText: '' });
+              } else {
+                debouncedSearch();
+              }
+            }}
+            className="pl-10 pr-10"
+            disabled={isSearching}
+          />
+          {isSearching ? (
+            <div className="absolute right-3 top-2.5">
+              <div className="w-4 h-4 border border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
             </div>
+          ) : (
+            !searchText && (
+              <div className="absolute right-3 inset-y-0 my-auto hidden md:flex items-center">
+                <Kbd>/</Kbd>
+              </div>
+            )
           )}
         </div>
+
+        {/* Mobile filters popover */}
+        <div className="md:hidden">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="relative">
+                <SlidersHorizontal className="h-4 w-4" />
+                <span className="sr-only md:not-sr-only ml-1">Filters</span>
+                {activeFilterCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center font-medium">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-72 p-3 space-y-3" align="end">
+              {filterElements}
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        {/* Mobile select mode toggle */}
+        {onSelectModeChange && (
+          <div className="md:hidden">
+            <Button
+              variant={isSelectMode ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => onSelectModeChange(!isSelectMode)}
+            >
+              <CheckSquare className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
+        {/* Spacer */}
+        <div className="hidden md:block flex-1" />
 
         {/* Right side: bulk actions, clear, view */}
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -410,10 +405,12 @@ export default function CompactSearchFilter({
           )}
 
           {hasActiveFilters && (
-            <Button variant="ghost" size="sm" onClick={clearFilters}>
-              <X className="h-4 w-4 mr-1" />
-              Clear
-            </Button>
+            <div className="md:hidden">
+              <Button variant="ghost" size="sm" onClick={clearFilters}>
+                <X className="h-4 w-4 mr-1" />
+                Clear
+              </Button>
+            </div>
           )}
 
           {/* View Options — hidden on mobile */}
@@ -455,6 +452,17 @@ export default function CompactSearchFilter({
             </div>
           )}
         </div>
+      </div>
+
+      {/* Desktop filter row — wraps naturally when many filters are active */}
+      <div className="hidden md:flex items-center gap-2 flex-wrap">
+        {filterElements}
+        {hasActiveFilters && (
+          <Button variant="ghost" size="sm" onClick={clearFilters}>
+            <X className="h-4 w-4 mr-1" />
+            Clear
+          </Button>
+        )}
       </div>
     </div>
   );
