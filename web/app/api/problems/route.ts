@@ -32,7 +32,11 @@ async function getProblems(req: Request) {
   const searchContent = searchParams.get('search_content') === 'true';
   const problemTypes =
     searchParams.get('problem_types')?.split(',').filter(Boolean) || [];
-  const tagIds = searchParams.get('tag_ids')?.split(',').filter(Boolean) || [];
+  const tagIds = Array.from(
+    new Set(searchParams.get('tag_ids')?.split(',').filter(Boolean) || [])
+  );
+  const tagFilterMode =
+    searchParams.get('tag_filter_mode') === 'all' ? 'all' : 'any';
   const statuses =
     searchParams.get('statuses')?.split(',').filter(Boolean) || [];
 
@@ -94,13 +98,39 @@ async function getProblems(req: Request) {
 
   if (tagIds.length > 0) {
     // First, get problem IDs that have the specified tags
-    const { data: tagLinks } = await supabase
+    const { data: tagLinks, error: tagError } = await supabase
       .from('problem_tag')
-      .select('problem_id')
+      .select('problem_id, tag_id')
       .in('tag_id', tagIds)
       .eq('user_id', user.id);
 
-    problemIds = tagLinks?.map(link => link.problem_id) || [];
+    if (tagError) {
+      return NextResponse.json(
+        createApiErrorResponse(
+          ERROR_MESSAGES.DATABASE_ERROR,
+          500,
+          tagError.message
+        ),
+        { status: 500 }
+      );
+    }
+
+    if (tagFilterMode === 'all') {
+      // AND mode: only keep problems that have ALL selected tags
+      const countByProblem = new Map<string, number>();
+      for (const link of tagLinks || []) {
+        countByProblem.set(
+          link.problem_id,
+          (countByProblem.get(link.problem_id) || 0) + 1
+        );
+      }
+      problemIds = Array.from(countByProblem.entries())
+        .filter(([, count]) => count >= tagIds.length)
+        .map(([id]) => id);
+    } else {
+      // OR mode: keep problems that have ANY selected tag
+      problemIds = [...new Set(tagLinks?.map(link => link.problem_id) || [])];
+    }
 
     // If no problems have the specified tags, return empty result
     if (problemIds.length === 0) {

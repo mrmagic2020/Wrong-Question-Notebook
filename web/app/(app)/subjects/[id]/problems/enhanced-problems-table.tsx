@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { DataTable } from '@/components/problems/data-table';
 import { columns } from './columns';
@@ -10,8 +10,15 @@ import { toast } from 'sonner';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import ProblemSetCreationDialog from '@/components/problem-set-creation-dialog';
 import AddToSetDialog from '@/components/add-to-set-dialog';
-import { SearchFilters, Problem, SimpleTag, Tag } from '@/lib/types';
+import {
+  SearchFilters,
+  Problem,
+  SimpleTag,
+  Tag,
+  TagFilterMode,
+} from '@/lib/types';
 import { useIsMobile } from '@/lib/hooks/useMediaQuery';
+import { useFilterParams } from '@/lib/hooks/useFilterParams';
 import { confirmUnsavedNavigation } from '@/lib/hooks/useUnsavedChanges';
 import ProblemCardList from '@/components/problems/problem-card-list';
 
@@ -40,17 +47,25 @@ export default function EnhancedProblemsTable({
 }) {
   const router = useRouter();
   const isMobile = useIsMobile();
+  const { initialFilters, updateUrl } = useFilterParams();
   const [problems, setProblems] = useState<Problem[]>(initialProblems);
   const [tagsByProblem, setTagsByProblem] = useState(initialTagsByProblem);
   const [error, setError] = useState<string | null>(null);
   const [isFiltered, setIsFiltered] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Search and filter state
-  const [searchText, setSearchText] = useState('');
-  const [problemTypes, setProblemTypes] = useState<ProblemType[]>([]);
-  const [tagIds, setTagIds] = useState<string[]>([]);
-  const [statuses, setStatuses] = useState<ProblemStatus[]>([]);
+  // Search and filter state — initialised from URL params
+  const [searchText, setSearchText] = useState(initialFilters.searchText);
+  const [problemTypes, setProblemTypes] = useState<ProblemType[]>(
+    initialFilters.problemTypes
+  );
+  const [tagIds, setTagIds] = useState<string[]>(initialFilters.tagIds);
+  const [statuses, setStatuses] = useState<ProblemStatus[]>(
+    initialFilters.statuses
+  );
+  const [tagFilterMode, setTagFilterMode] = useState<TagFilterMode>(
+    initialFilters.tagFilterMode
+  );
 
   // Bulk operations state
   const [selectedProblems, setSelectedProblems] = useState<Problem[]>([]);
@@ -126,6 +141,22 @@ export default function EnhancedProblemsTable({
     [problems, tagsByProblem, problemSetProblemIds]
   );
 
+  // Run initial search if URL had filter params
+  const didMountSearch = useRef(false);
+  useEffect(() => {
+    if (didMountSearch.current) return;
+    didMountSearch.current = true;
+    const hasUrlFilters =
+      initialFilters.searchText ||
+      initialFilters.problemTypes.length > 0 ||
+      initialFilters.tagIds.length > 0 ||
+      initialFilters.statuses.length > 0;
+    if (hasUrlFilters) {
+      handleSearch(initialFilters);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Only update from props when not in a filtered state
   useEffect(() => {
     if (!isFiltered) {
@@ -163,6 +194,9 @@ export default function EnhancedProblemsTable({
     setError(null);
     setIsSearching(true);
 
+    // Sync filter state to URL
+    updateUrl(filters);
+
     // Check if we have any active filters
     const filtersActive =
       filters.searchText.trim() !== '' ||
@@ -171,6 +205,9 @@ export default function EnhancedProblemsTable({
       filters.statuses.length > 0;
 
     setIsFiltered(filtersActive);
+
+    // Track tag filter mode from latest search
+    setTagFilterMode(filters.tagFilterMode);
 
     // If no active filters, reset to show all problems from initial state
     if (!filtersActive) {
@@ -196,6 +233,9 @@ export default function EnhancedProblemsTable({
 
       if (filters.tagIds.length > 0) {
         params.set('tag_ids', filters.tagIds.join(','));
+        if (filters.tagFilterMode === 'all') {
+          params.set('tag_filter_mode', 'all');
+        }
       }
 
       if (filters.statuses.length > 0) {
@@ -423,6 +463,8 @@ export default function EnhancedProblemsTable({
         onProblemTypesChange={setProblemTypes}
         tagIds={tagIds}
         onTagIdsChange={setTagIds}
+        tagFilterMode={tagFilterMode}
+        onTagFilterModeChange={setTagFilterMode}
         statuses={statuses}
         onStatusesChange={setStatuses}
         table={tableInstance}

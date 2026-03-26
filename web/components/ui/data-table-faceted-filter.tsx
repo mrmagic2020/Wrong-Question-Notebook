@@ -45,6 +45,7 @@ interface DataTableFacetedFilterProps<TData, TValue> {
   }[];
   selectedValues?: Set<string>;
   onSelectedValuesChange?: (values: Set<string>) => void;
+  children?: React.ReactNode;
 }
 
 export function DataTableFacetedFilter<TData, TValue>({
@@ -53,6 +54,7 @@ export function DataTableFacetedFilter<TData, TValue>({
   options,
   selectedValues: externalSelectedValues,
   onSelectedValuesChange,
+  children,
 }: DataTableFacetedFilterProps<TData, TValue>) {
   const facets = column?.getFacetedUniqueValues();
   const internalSelectedValues = new Set(column?.getFilterValue() as string[]);
@@ -198,6 +200,7 @@ export function DataTableFacetedFilter<TData, TValue>({
             )}
           </CommandList>
         </Command>
+        {children}
       </PopoverContent>
     </Popover>
   );

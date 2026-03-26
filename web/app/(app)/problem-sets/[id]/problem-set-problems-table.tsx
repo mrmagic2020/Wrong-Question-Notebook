@@ -6,7 +6,14 @@ import { DataTable } from '@/components/problems/data-table';
 import CompactSearchFilter from '@/components/problems/compact-search-filter';
 import ProblemCardList from '@/components/problems/problem-card-list';
 import { useIsMobile } from '@/lib/hooks/useMediaQuery';
-import { ProblemInSet, Problem, SimpleTag, SearchFilters } from '@/lib/types';
+import { useFilterParams } from '@/lib/hooks/useFilterParams';
+import {
+  ProblemInSet,
+  Problem,
+  SimpleTag,
+  SearchFilters,
+  TagFilterMode,
+} from '@/lib/types';
 import { ProblemType, ProblemStatus } from '@/lib/schemas';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import CopyProblemDialog from '@/components/copy-problem-dialog';
@@ -38,12 +45,20 @@ export default function ProblemSetProblemsTable({
 }: ProblemSetProblemsTableProps) {
   const router = useRouter();
   const isMobile = useIsMobile();
+  const { initialFilters, updateUrl } = useFilterParams();
 
-  // Filter state
-  const [searchText, setSearchText] = useState('');
-  const [problemTypes, setProblemTypes] = useState<ProblemType[]>([]);
-  const [tagIds, setTagIds] = useState<string[]>([]);
-  const [statuses, setStatuses] = useState<ProblemStatus[]>([]);
+  // Filter state — initialised from URL params
+  const [searchText, setSearchText] = useState(initialFilters.searchText);
+  const [problemTypes, setProblemTypes] = useState<ProblemType[]>(
+    initialFilters.problemTypes
+  );
+  const [tagIds, setTagIds] = useState<string[]>(initialFilters.tagIds);
+  const [tagFilterMode, setTagFilterMode] = useState<TagFilterMode>(
+    initialFilters.tagFilterMode
+  );
+  const [statuses, setStatuses] = useState<ProblemStatus[]>(
+    initialFilters.statuses
+  );
 
   // Table state
   const [tableInstance, setTableInstance] = useState<any>(null);
@@ -103,7 +118,11 @@ export default function ProblemSetProblemsTable({
       // Tag filter
       if (tagIds.length > 0) {
         const pTagIds = p.tags?.map(t => t.id) || [];
-        if (!tagIds.some(id => pTagIds.includes(id))) return false;
+        if (tagFilterMode === 'all') {
+          if (!tagIds.every(id => pTagIds.includes(id))) return false;
+        } else {
+          if (!tagIds.some(id => pTagIds.includes(id))) return false;
+        }
       }
 
       // Status filter (owner only)
@@ -117,15 +136,25 @@ export default function ProblemSetProblemsTable({
 
       return true;
     });
-  }, [problems, searchText, problemTypes, tagIds, statuses, isOwner]);
+  }, [
+    problems,
+    searchText,
+    problemTypes,
+    tagIds,
+    tagFilterMode,
+    statuses,
+    isOwner,
+  ]);
 
   const columns = isOwner ? ownerColumns : viewerColumns;
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleSearch = useCallback((_filters: SearchFilters) => {
-    // State is already managed individually; this is a no-op callback
-    // The actual filtering happens in the filteredProblems memo
-  }, []);
+  const handleSearch = useCallback(
+    (filters: SearchFilters) => {
+      // Actual filtering happens in filteredProblems memo; sync URL here
+      updateUrl(filters);
+    },
+    [updateUrl]
+  );
 
   const handleRowClick = useCallback(
     (problem: Problem) => {
@@ -229,6 +258,8 @@ export default function ProblemSetProblemsTable({
         onProblemTypesChange={setProblemTypes}
         tagIds={tagIds}
         onTagIdsChange={setTagIds}
+        tagFilterMode={tagFilterMode}
+        onTagFilterModeChange={setTagFilterMode}
         statuses={statuses}
         onStatusesChange={setStatuses}
         table={tableInstance}

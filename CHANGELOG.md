@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning].
 
 ### Added
 
+- **Tag Filter Mode Toggle**
+  - When 2+ tags are selected, a segmented "Any / All" toggle appears inside the Tags filter dropdown
+  - "Any" (default) returns problems matching any selected tag; "All" returns only problems matching every selected tag
+  - Works on both the subject problems page (server-side filtering) and the problem set page (client-side filtering)
+
 - **AI Tag Suggestions During Extraction**
   - When extracting a problem from an image, the AI model now suggests up to 3 matching existing tags and up to 3 new tags
   - Suggested existing tags are auto-selected in the form; new tags appear as blue dashed-border pills
