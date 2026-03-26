@@ -265,6 +265,7 @@ export default function CompactSearchFilter({
                 <button
                   key={mode}
                   type="button"
+                  aria-pressed={tagFilterMode === mode}
                   onClick={() => {
                     onTagFilterModeChange(mode);
                     cancelDebounce();
