@@ -6,7 +6,13 @@ import { DataTable } from '@/components/problems/data-table';
 import CompactSearchFilter from '@/components/problems/compact-search-filter';
 import ProblemCardList from '@/components/problems/problem-card-list';
 import { useIsMobile } from '@/lib/hooks/useMediaQuery';
-import { ProblemInSet, Problem, SimpleTag, SearchFilters } from '@/lib/types';
+import {
+  ProblemInSet,
+  Problem,
+  SimpleTag,
+  SearchFilters,
+  TagFilterMode,
+} from '@/lib/types';
 import { ProblemType, ProblemStatus } from '@/lib/schemas';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import CopyProblemDialog from '@/components/copy-problem-dialog';
@@ -43,6 +49,7 @@ export default function ProblemSetProblemsTable({
   const [searchText, setSearchText] = useState('');
   const [problemTypes, setProblemTypes] = useState<ProblemType[]>([]);
   const [tagIds, setTagIds] = useState<string[]>([]);
+  const [tagFilterMode, setTagFilterMode] = useState<TagFilterMode>('any');
   const [statuses, setStatuses] = useState<ProblemStatus[]>([]);
 
   // Table state
@@ -103,7 +110,11 @@ export default function ProblemSetProblemsTable({
       // Tag filter
       if (tagIds.length > 0) {
         const pTagIds = p.tags?.map(t => t.id) || [];
-        if (!tagIds.some(id => pTagIds.includes(id))) return false;
+        if (tagFilterMode === 'all') {
+          if (!tagIds.every(id => pTagIds.includes(id))) return false;
+        } else {
+          if (!tagIds.some(id => pTagIds.includes(id))) return false;
+        }
       }
 
       // Status filter (owner only)
@@ -117,7 +128,15 @@ export default function ProblemSetProblemsTable({
 
       return true;
     });
-  }, [problems, searchText, problemTypes, tagIds, statuses, isOwner]);
+  }, [
+    problems,
+    searchText,
+    problemTypes,
+    tagIds,
+    tagFilterMode,
+    statuses,
+    isOwner,
+  ]);
 
   const columns = isOwner ? ownerColumns : viewerColumns;
 
@@ -229,6 +248,8 @@ export default function ProblemSetProblemsTable({
         onProblemTypesChange={setProblemTypes}
         tagIds={tagIds}
         onTagIdsChange={setTagIds}
+        tagFilterMode={tagFilterMode}
+        onTagFilterModeChange={setTagFilterMode}
         statuses={statuses}
         onStatusesChange={setStatuses}
         table={tableInstance}

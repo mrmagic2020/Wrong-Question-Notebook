@@ -437,11 +437,14 @@ export interface InsufficientDataResult {
 // Component Prop Types
 // =====================================================
 
+export type TagFilterMode = 'any' | 'all';
+
 export interface SearchFilters {
   searchText: string;
   problemTypes: ProblemType[];
   statuses: ProblemStatus[];
   tagIds: string[];
+  tagFilterMode: TagFilterMode;
 }
 
 export interface ConfirmationConfig {

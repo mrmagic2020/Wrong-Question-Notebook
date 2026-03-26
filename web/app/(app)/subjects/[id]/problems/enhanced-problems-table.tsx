@@ -10,7 +10,13 @@ import { toast } from 'sonner';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import ProblemSetCreationDialog from '@/components/problem-set-creation-dialog';
 import AddToSetDialog from '@/components/add-to-set-dialog';
-import { SearchFilters, Problem, SimpleTag, Tag } from '@/lib/types';
+import {
+  SearchFilters,
+  Problem,
+  SimpleTag,
+  Tag,
+  TagFilterMode,
+} from '@/lib/types';
 import { useIsMobile } from '@/lib/hooks/useMediaQuery';
 import { confirmUnsavedNavigation } from '@/lib/hooks/useUnsavedChanges';
 import ProblemCardList from '@/components/problems/problem-card-list';
@@ -51,6 +57,7 @@ export default function EnhancedProblemsTable({
   const [problemTypes, setProblemTypes] = useState<ProblemType[]>([]);
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [statuses, setStatuses] = useState<ProblemStatus[]>([]);
+  const [tagFilterMode, setTagFilterMode] = useState<TagFilterMode>('any');
 
   // Bulk operations state
   const [selectedProblems, setSelectedProblems] = useState<Problem[]>([]);
@@ -172,6 +179,9 @@ export default function EnhancedProblemsTable({
 
     setIsFiltered(filtersActive);
 
+    // Track tag filter mode from latest search
+    setTagFilterMode(filters.tagFilterMode);
+
     // If no active filters, reset to show all problems from initial state
     if (!filtersActive) {
       setProblems(initialProblems);
@@ -196,6 +206,9 @@ export default function EnhancedProblemsTable({
 
       if (filters.tagIds.length > 0) {
         params.set('tag_ids', filters.tagIds.join(','));
+        if (filters.tagFilterMode === 'all') {
+          params.set('tag_filter_mode', 'all');
+        }
       }
 
       if (filters.statuses.length > 0) {
@@ -423,6 +436,8 @@ export default function EnhancedProblemsTable({
         onProblemTypesChange={setProblemTypes}
         tagIds={tagIds}
         onTagIdsChange={setTagIds}
+        tagFilterMode={tagFilterMode}
+        onTagFilterModeChange={setTagFilterMode}
         statuses={statuses}
         onStatusesChange={setStatuses}
         table={tableInstance}

@@ -35,7 +35,7 @@ import {
 import { useCallback, useEffect, useRef } from 'react';
 import { useLatestRef } from '@/lib/hooks/use-latest-ref';
 import { Kbd } from '@/components/ui/kbd';
-import { SearchFilters, SimpleTag } from '@/lib/types';
+import { SearchFilters, SimpleTag, TagFilterMode } from '@/lib/types';
 
 interface CompactSearchFilterProps {
   onSearch: (filters: SearchFilters) => void;
@@ -46,6 +46,8 @@ interface CompactSearchFilterProps {
   onProblemTypesChange: (types: ProblemType[]) => void;
   tagIds: string[];
   onTagIdsChange: (tagIds: string[]) => void;
+  tagFilterMode: TagFilterMode;
+  onTagFilterModeChange: (mode: TagFilterMode) => void;
   statuses: ProblemStatus[];
   onStatusesChange: (statuses: ProblemStatus[]) => void;
   // View options props
@@ -73,6 +75,8 @@ export default function CompactSearchFilter({
   onProblemTypesChange,
   tagIds,
   onTagIdsChange,
+  tagFilterMode,
+  onTagFilterModeChange,
   statuses,
   onStatusesChange,
   table,
@@ -92,7 +96,12 @@ export default function CompactSearchFilter({
 
   // Keep refs to latest values so debounced callbacks never go stale
   const searchTextRef = useLatestRef(searchText);
-  const filtersRef = useLatestRef({ problemTypes, tagIds, statuses });
+  const filtersRef = useLatestRef({
+    problemTypes,
+    tagIds,
+    tagFilterMode,
+    statuses,
+  });
   const onSearchRef = useLatestRef(onSearch);
 
   // Stable search trigger — always reads from refs
@@ -104,6 +113,7 @@ export default function CompactSearchFilter({
         problemTypes: (overrides?.problemTypes ??
           current.problemTypes) as ProblemType[],
         tagIds: overrides?.tagIds ?? current.tagIds,
+        tagFilterMode: overrides?.tagFilterMode ?? current.tagFilterMode,
         statuses: overrides?.statuses ?? current.statuses,
       });
     },
@@ -166,12 +176,14 @@ export default function CompactSearchFilter({
     onSearchTextChange('');
     onProblemTypesChange([]);
     onTagIdsChange([]);
+    onTagFilterModeChange('any');
     onStatusesChange([]);
     cancelDebounce();
     onSearch({
       searchText: '',
       problemTypes: [],
       tagIds: [],
+      tagFilterMode: 'any',
       statuses: [],
     });
   };
@@ -244,7 +256,33 @@ export default function CompactSearchFilter({
           cancelDebounce();
           triggerSearch({ tagIds: newTagIds });
         }}
-      />
+      >
+        {tagIds.length > 1 && (
+          <div className="flex items-center justify-between border-t px-2 py-1.5">
+            <span className="text-xs text-muted-foreground">Match</span>
+            <div className="inline-flex rounded-full bg-muted p-0.5">
+              {(['any', 'all'] as const).map(mode => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => {
+                    onTagFilterModeChange(mode);
+                    cancelDebounce();
+                    triggerSearch({ tagFilterMode: mode });
+                  }}
+                  className={`rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors ${
+                    tagFilterMode === mode
+                      ? 'bg-white text-foreground shadow-sm dark:bg-gray-700'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {mode === 'any' ? 'Any' : 'All'}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </DataTableFacetedFilter>
       {!hideStatusFilter && (
         <DataTableFacetedFilter
           title="Status"
