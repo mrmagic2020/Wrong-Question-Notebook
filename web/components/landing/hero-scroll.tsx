@@ -83,11 +83,9 @@ export function HeroScroll({ children }: HeroScrollProps) {
       <div className="flex-[1.5] flex flex-col justify-end items-center">
         <div
           ref={indicatorRef}
-          className="flex flex-col items-center gap-2 pb-6 animate-bounce-subtle"
+          className="flex flex-col items-center pb-4 animate-bounce-subtle"
+          aria-hidden="true"
         >
-          <span className="text-xs font-medium text-gray-400 dark:text-gray-500 tracking-wide uppercase">
-            Scroll to explore
-          </span>
           <svg
             className="w-5 h-5 text-gray-400 dark:text-gray-500"
             fill="none"

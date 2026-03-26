@@ -2,6 +2,7 @@
 import { Navigation } from '@/components/navigation';
 import { AnnouncementBanner } from '@/components/announcement-banner';
 import { OnboardingProvider } from '@/components/onboarding/onboarding-provider';
+import { PageTransition } from '@/components/page-transition';
 import { TimezoneSync } from '@/components/timezone-sync';
 import { createClient } from '@/lib/supabase/server';
 import '@/app/globals.css';
@@ -40,7 +41,9 @@ export default async function AppLayout({
       <AnnouncementBanner />
       <Navigation showAppLinks={true} sticky={true} />
       <OnboardingProvider showOnboarding={showOnboarding}>
-        <main className="page-container main-content">{children}</main>
+        <main id="main-content" className="page-container main-content">
+          <PageTransition>{children}</PageTransition>
+        </main>
       </OnboardingProvider>
     </div>
   );

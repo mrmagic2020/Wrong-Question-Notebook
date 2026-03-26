@@ -58,12 +58,12 @@ export function HeroStatCard({
   return (
     <div
       className={cn(
-        'rounded-2xl p-5 bg-gradient-to-br border transition-shadow hover:shadow-md',
+        'rounded-2xl p-5 bg-gradient-to-br border interactive-card min-h-[120px]',
         v.card
       )}
     >
       <div className="flex items-start justify-between">
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
             {label}
           </p>

@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning].
 
 ### Added
 
+- **UI/UX polish pass**: Accessibility improvements (skip-to-content link, ARIA labels, warm focus rings, password visibility toggles), nav active state indicator, page transition animations, richer toast notifications, improved statistics empty states, mobile-friendly comparison table, interactive card hover effects, and an expanded footer
+
 - **Tag Filter Mode Toggle**
   - When 2+ tags are selected, a segmented "Any / All" toggle appears inside the Tags filter dropdown
   - "Any" (default) returns problems matching any selected tag; "All" returns only problems matching every selected tag

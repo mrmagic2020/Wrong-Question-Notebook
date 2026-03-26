@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { ROUTES, ERROR_MESSAGES, CAPTCHA_CONSTANTS } from '@/lib/constants';
-import { LogIn } from 'lucide-react';
+import { LogIn, Eye, EyeOff } from 'lucide-react';
 import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
 
 interface LoginFormProps extends React.ComponentPropsWithoutRef<'div'> {
@@ -21,10 +21,12 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | undefined>(
     undefined
   );
   const [captchaError, setCaptchaError] = useState<string | null>(null);
+  const [captchaReady, setCaptchaReady] = useState(false);
   const captchaRef = useRef<TurnstileInstance>(null);
   const router = useRouter();
 
@@ -96,13 +98,28 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
                 Forgot password?
               </Link>
             </div>
-            <Input
-              id="password"
-              type="password"
-              required
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                required
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(prev => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
           </div>
           {error && <p className="form-error">{error}</p>}
           <div className="flex flex-col items-center gap-1">
@@ -112,6 +129,7 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
               onSuccess={token => {
                 setCaptchaToken(token);
                 setCaptchaError(null);
+                setCaptchaReady(true);
               }}
               onExpire={() => setCaptchaToken(undefined)}
               onError={() => {
@@ -137,8 +155,9 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
           </div>
           <Button
             type="submit"
-            className="w-full btn-cta-primary"
+            className={`w-full btn-cta-primary${captchaReady ? ' captcha-ready-glow' : ''}`}
             disabled={isLoading || !captchaToken}
+            onAnimationEnd={() => setCaptchaReady(false)}
           >
             {isLoading ? 'Logging in...' : 'Login'}
           </Button>
