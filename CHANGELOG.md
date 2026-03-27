@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning].
 
 ### Fixed
 
+- **Client-side search & filter**: Problem search and filtering on the subject page now runs entirely in the browser instead of making API calls, eliminating 500 errors and timeouts caused by expensive server-side tag queries
+
 - **Mobile header layout**: Problem review and problem set detail page headers now stack vertically on narrow screens instead of overflowing horizontally, preventing title truncation and cut-off action buttons
 
 - **Wide-screen layout**: Widened all page containers from `max-w-6xl` (1152px) to `max-w-screen-2xl` (1536px) so the app uses more of the viewport on wide monitors instead of leaving large blank margins
