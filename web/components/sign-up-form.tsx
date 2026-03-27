@@ -34,7 +34,7 @@ export function SignUpForm({
 
   useEffect(() => {
     if (!captchaReady) return;
-    const timer = setTimeout(() => setCaptchaReady(false), 1000);
+    const timer = setTimeout(() => setCaptchaReady(false), 2200);
     return () => clearTimeout(timer);
   }, [captchaReady]);
 
