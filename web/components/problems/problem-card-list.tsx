@@ -35,6 +35,7 @@ interface ProblemCardListProps {
   selectedIds: string[];
   onSelectionChange: (ids: string[]) => void;
   onRowClick: (problem: Problem) => void;
+  getRowHref?: (problem: Problem) => string;
   onEdit?: (problem: Problem) => void;
   onDelete: (problemId: string, problemTitle: string) => void;
   onAddToSet: (problem: Problem) => void;
@@ -49,6 +50,7 @@ export default function ProblemCardList({
   selectedIds,
   onSelectionChange,
   onRowClick,
+  getRowHref,
   onEdit,
   onDelete,
   onAddToSet,
@@ -85,11 +87,23 @@ export default function ProblemCardList({
               isMastered && !isAddToSetMode && !hideStatusStrip && 'opacity-80',
               !isSelectMode && 'cursor-pointer active:bg-muted/50'
             )}
-            onClick={() => {
+            onClick={e => {
               if (isSelectMode) {
                 toggleSelect(problem.id);
+              } else if (
+                getRowHref &&
+                (e.ctrlKey || e.metaKey)
+              ) {
+                e.preventDefault();
+                window.open(getRowHref(problem), '_blank');
               } else {
                 onRowClick(problem);
+              }
+            }}
+            onAuxClick={e => {
+              if (e.button === 1 && getRowHref && !isSelectMode) {
+                e.preventDefault();
+                window.open(getRowHref(problem), '_blank');
               }
             }}
           >

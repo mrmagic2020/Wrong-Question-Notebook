@@ -156,13 +156,17 @@ export default function ProblemSetProblemsTable({
     [updateUrl]
   );
 
+  const getRowHref = useCallback(
+    (problem: Problem) =>
+      `/problem-sets/${problemSetId}/review?problemId=${problem.id}`,
+    [problemSetId]
+  );
+
   const handleRowClick = useCallback(
     (problem: Problem) => {
-      router.push(
-        `/problem-sets/${problemSetId}/review?problemId=${problem.id}`
-      );
+      router.push(getRowHref(problem));
     },
-    [router, problemSetId]
+    [router, getRowHref]
   );
 
   const handleSelectionChange = useCallback((selected: Problem[]) => {
@@ -282,6 +286,7 @@ export default function ProblemSetProblemsTable({
             setSelectedProblems(selected as Problem[]);
           }}
           onRowClick={handleRowClick}
+          getRowHref={getRowHref}
           hideStatusStrip={!isOwner}
           onDelete={
             isOwner && !isSmart
@@ -305,6 +310,7 @@ export default function ProblemSetProblemsTable({
           columns={columns as any}
           data={filteredProblems}
           onRowClick={handleRowClick}
+          getRowHref={getRowHref}
           availableTags={availableTags}
           onTableReady={setTableInstance}
           onSelectionChange={isOwner ? handleSelectionChange : undefined}

@@ -33,6 +33,7 @@ export function DataTable<TData, TValue>({
   onDelete,
   onAddToSet,
   onRowClick,
+  getRowHref,
   onTableReady,
   onSelectionChange,
   resetSelection = false,
@@ -115,10 +116,17 @@ export function DataTable<TData, TValue>({
     }
   }, [columnVisibility, onColumnVisibilityChange]);
 
-  const handleRowClick = (problem: Problem) => {
-    if (onRowClick) {
-      onRowClick(problem);
+  const handleRowClick = (
+    e: React.MouseEvent,
+    problem: Problem
+  ) => {
+    // Ctrl/Cmd+click → open in new tab
+    if (getRowHref && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      window.open(getRowHref(problem), '_blank');
+      return;
     }
+    onRowClick?.(problem);
   };
 
   return (
@@ -160,9 +168,19 @@ export function DataTable<TData, TValue>({
                       ${isInSet && isAddToSetMode ? 'opacity-50 bg-muted/30' : ''}
                       ${problem.status === 'mastered' && !isAddToSetMode && !hideStatusStrip ? 'opacity-80' : ''}
                     `}
-                    onClick={() => {
+                    onClick={e => {
                       if (onRowClick && !isAddToSetMode) {
-                        handleRowClick(problem);
+                        handleRowClick(e, problem);
+                      }
+                    }}
+                    onAuxClick={e => {
+                      if (
+                        e.button === 1 &&
+                        getRowHref &&
+                        !isAddToSetMode
+                      ) {
+                        e.preventDefault();
+                        window.open(getRowHref(problem), '_blank');
                       }
                     }}
                     data-onboarding-target={

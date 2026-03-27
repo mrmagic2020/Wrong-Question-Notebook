@@ -383,14 +383,18 @@ export default function EnhancedProblemsTable({
     setSelectedProblems(selected);
   }, []);
 
+  const getRowHref = useCallback(
+    (problem: Problem) =>
+      `/subjects/${problem.subject_id}/problems/${problem.id}/review`,
+    []
+  );
+
   const handleRowClick = useCallback(
     (problem: Problem) => {
       if (!confirmUnsavedNavigation()) return;
-      router.push(
-        `/subjects/${problem.subject_id}/problems/${problem.id}/review`
-      );
+      router.push(getRowHref(problem));
     },
-    [router]
+    [router, getRowHref]
   );
 
   // Reset the resetSelection flag after it's been triggered
@@ -449,6 +453,7 @@ export default function EnhancedProblemsTable({
             setSelectedProblems(selected);
           }}
           onRowClick={handleRowClick}
+          getRowHref={getRowHref}
           onEdit={onEditProblem ? handleEdit : undefined}
           onDelete={handleDeleteClick}
           onAddToSet={handleAddToSetClick}
@@ -462,6 +467,7 @@ export default function EnhancedProblemsTable({
           onDelete={handleDeleteClick}
           onAddToSet={handleAddToSetClick}
           onRowClick={handleRowClick}
+          getRowHref={getRowHref}
           availableTags={availableTags}
           onTableReady={setTableInstance}
           onSelectionChange={handleSelectionChange}
