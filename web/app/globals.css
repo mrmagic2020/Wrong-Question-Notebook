@@ -717,22 +717,6 @@ html body[data-scroll-locked] {
   }
 }
 
-/* Page Transition */
-@keyframes pageEnter {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.page-enter {
-  animation: pageEnter 0.3s ease-out both;
-}
-
 /* Login button glow */
 @keyframes captchaGlow {
   0% {
@@ -813,7 +797,6 @@ html body[data-scroll-locked] {
   .auth-fade-in,
   .auth-slide-up,
   .auth-icon-entrance,
-  .page-enter,
   .captcha-ready-glow {
     animation: none !important;
     opacity: 1 !important;
