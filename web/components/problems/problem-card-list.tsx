@@ -90,6 +90,8 @@ export default function ProblemCardList({
             onClick={e => {
               if (isSelectMode) {
                 toggleSelect(problem.id);
+              } else if (isAddToSetMode) {
+                // Block navigation in add-to-set mode
               } else if (
                 getRowHref &&
                 (e.ctrlKey || e.metaKey)
@@ -101,7 +103,12 @@ export default function ProblemCardList({
               }
             }}
             onAuxClick={e => {
-              if (e.button === 1 && getRowHref && !isSelectMode) {
+              if (
+                e.button === 1 &&
+                getRowHref &&
+                !isSelectMode &&
+                !isAddToSetMode
+              ) {
                 e.preventDefault();
                 window.open(getRowHref(problem), '_blank', 'noopener,noreferrer');
               }
