@@ -86,7 +86,6 @@ export function SignUpForm({
       );
       setCaptchaToken(undefined);
       captchaRef.current?.reset();
-    } finally {
       setIsLoading(false);
     }
   };

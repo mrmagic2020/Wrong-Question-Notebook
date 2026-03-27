@@ -58,7 +58,6 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
       );
       setCaptchaToken(undefined);
       captchaRef.current?.reset();
-    } finally {
       setIsLoading(false);
     }
   };
