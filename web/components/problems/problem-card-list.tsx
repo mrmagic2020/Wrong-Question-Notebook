@@ -95,7 +95,7 @@ export default function ProblemCardList({
                 (e.ctrlKey || e.metaKey)
               ) {
                 e.preventDefault();
-                window.open(getRowHref(problem), '_blank');
+                window.open(getRowHref(problem), '_blank', 'noopener,noreferrer');
               } else {
                 onRowClick(problem);
               }
@@ -103,7 +103,7 @@ export default function ProblemCardList({
             onAuxClick={e => {
               if (e.button === 1 && getRowHref && !isSelectMode) {
                 e.preventDefault();
-                window.open(getRowHref(problem), '_blank');
+                window.open(getRowHref(problem), '_blank', 'noopener,noreferrer');
               }
             }}
           >

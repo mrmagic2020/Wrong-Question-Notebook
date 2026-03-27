@@ -123,7 +123,7 @@ export function DataTable<TData, TValue>({
     // Ctrl/Cmd+click → open in new tab
     if (getRowHref && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
-      window.open(getRowHref(problem), '_blank');
+      window.open(getRowHref(problem), '_blank', 'noopener,noreferrer');
       return;
     }
     onRowClick?.(problem);
@@ -180,7 +180,7 @@ export function DataTable<TData, TValue>({
                         !isAddToSetMode
                       ) {
                         e.preventDefault();
-                        window.open(getRowHref(problem), '_blank');
+                        window.open(getRowHref(problem), '_blank', 'noopener,noreferrer');
                       }
                     }}
                     data-onboarding-target={
