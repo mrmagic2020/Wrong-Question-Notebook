@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { DataTable } from '@/components/problems/data-table';
 import { columns } from './columns';
@@ -51,8 +51,6 @@ export default function EnhancedProblemsTable({
   const [problems, setProblems] = useState<Problem[]>(initialProblems);
   const [tagsByProblem, setTagsByProblem] = useState(initialTagsByProblem);
   const [error, setError] = useState<string | null>(null);
-  const [isFiltered, setIsFiltered] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
 
   // Search and filter state — initialised from URL params
   const [searchText, setSearchText] = useState(initialFilters.searchText);
@@ -120,10 +118,72 @@ export default function EnhancedProblemsTable({
     problem: null,
   });
 
-  // Convert problems to the format expected by the data table (memoized)
+  // Client-side filtering — no API call needed
+  const filteredProblems = useMemo(() => {
+    const q = searchText.trim().toLowerCase();
+    const hasSearch = q.length > 0;
+    const typeSet = problemTypes.length > 0 ? new Set(problemTypes) : null;
+    const statusSet = statuses.length > 0 ? new Set(statuses) : null;
+    const hasTagFilter = tagIds.length > 0;
+    const tagIdSet = hasTagFilter ? new Set(tagIds) : null;
+
+    return problems.filter(p => {
+      // Text search (title, content, solution_text, tag names)
+      if (hasSearch) {
+        const pTags = tagsByProblem[p.id] || [];
+        const matchTitle = p.title.toLowerCase().includes(q);
+        const matchContent = p.content?.toLowerCase().includes(q);
+        const matchSolution = p.solution_text?.toLowerCase().includes(q);
+        const matchTags = pTags.some(tag =>
+          tag.name.toLowerCase().includes(q)
+        );
+        if (!matchTitle && !matchContent && !matchSolution && !matchTags)
+          return false;
+      }
+
+      // Type filter
+      if (typeSet && !typeSet.has(p.problem_type)) return false;
+
+      // Tag filter
+      if (hasTagFilter && tagIdSet) {
+        const pTagIdSet = new Set(
+          (tagsByProblem[p.id] || []).map(t => t.id)
+        );
+        if (tagFilterMode === 'all') {
+          for (const id of tagIds) {
+            if (!pTagIdSet.has(id)) return false;
+          }
+        } else {
+          let hasAny = false;
+          for (const id of tagIds) {
+            if (pTagIdSet.has(id)) {
+              hasAny = true;
+              break;
+            }
+          }
+          if (!hasAny) return false;
+        }
+      }
+
+      // Status filter
+      if (statusSet && !statusSet.has(p.status)) return false;
+
+      return true;
+    });
+  }, [
+    problems,
+    tagsByProblem,
+    searchText,
+    problemTypes,
+    tagIds,
+    tagFilterMode,
+    statuses,
+  ]);
+
+  // Convert filtered problems to the format expected by the data table
   const tableProblems: Problem[] = useMemo(
     () =>
-      problems.map(problem => ({
+      filteredProblems.map(problem => ({
         id: problem.id,
         title: problem.title,
         content: problem.content || null,
@@ -138,37 +198,17 @@ export default function EnhancedProblemsTable({
         tags: tagsByProblem[problem.id] || [],
         isInSet: problemSetProblemIds.includes(problem.id),
       })),
-    [problems, tagsByProblem, problemSetProblemIds]
+    [filteredProblems, tagsByProblem, problemSetProblemIds]
   );
 
-  // Run initial search if URL had filter params
-  const didMountSearch = useRef(false);
+  // Keep problems in sync with props
   useEffect(() => {
-    if (didMountSearch.current) return;
-    didMountSearch.current = true;
-    const hasUrlFilters =
-      initialFilters.searchText ||
-      initialFilters.problemTypes.length > 0 ||
-      initialFilters.tagIds.length > 0 ||
-      initialFilters.statuses.length > 0;
-    if (hasUrlFilters) {
-      handleSearch(initialFilters);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Only update from props when not in a filtered state
-  useEffect(() => {
-    if (!isFiltered) {
-      setProblems(initialProblems);
-    }
-  }, [initialProblems, isFiltered]);
+    setProblems(initialProblems);
+  }, [initialProblems]);
 
   useEffect(() => {
-    if (!isFiltered) {
-      setTagsByProblem(initialTagsByProblem);
-    }
-  }, [initialTagsByProblem, isFiltered]);
+    setTagsByProblem(initialTagsByProblem);
+  }, [initialTagsByProblem]);
 
   // Track filter state changes for parent
   const hasActiveFilters =
@@ -190,82 +230,13 @@ export default function EnhancedProblemsTable({
     [onEditProblem]
   );
 
-  const handleSearch = async (filters: SearchFilters) => {
-    setError(null);
-    setIsSearching(true);
-
-    // Sync filter state to URL
-    updateUrl(filters);
-
-    // Check if we have any active filters
-    const filtersActive =
-      filters.searchText.trim() !== '' ||
-      filters.problemTypes.length > 0 ||
-      filters.tagIds.length > 0 ||
-      filters.statuses.length > 0;
-
-    setIsFiltered(filtersActive);
-
-    // Track tag filter mode from latest search
-    setTagFilterMode(filters.tagFilterMode);
-
-    // If no active filters, reset to show all problems from initial state
-    if (!filtersActive) {
-      setProblems(initialProblems);
-      setTagsByProblem(initialTagsByProblem);
-      setIsSearching(false);
-      return;
-    }
-
-    try {
-      const params = new URLSearchParams();
-      params.set('subject_id', subjectId);
-
-      if (filters.searchText.trim()) {
-        params.set('search_text', filters.searchText.trim());
-        params.set('search_title', 'true');
-        params.set('search_content', 'true');
-      }
-
-      if (filters.problemTypes.length > 0) {
-        params.set('problem_types', filters.problemTypes.join(','));
-      }
-
-      if (filters.tagIds.length > 0) {
-        params.set('tag_ids', filters.tagIds.join(','));
-        if (filters.tagFilterMode === 'all') {
-          params.set('tag_filter_mode', 'all');
-        }
-      }
-
-      if (filters.statuses.length > 0) {
-        params.set('statuses', filters.statuses.join(','));
-      }
-
-      const response = await fetch(`/api/problems?${params.toString()}`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch problems');
-      }
-
-      // Update problems and tags
-      const newProblems = data.data || [];
-      const newTagsByProblem: Record<string, Tag[]> = {};
-
-      newProblems.forEach((problem: any) => {
-        newTagsByProblem[problem.id] = problem.tags || [];
-      });
-
-      setProblems(newProblems);
-      setTagsByProblem(newTagsByProblem);
-    } catch (err: any) {
-      setError(err.message);
-      console.error('Search error:', err);
-    } finally {
-      setIsSearching(false);
-    }
-  };
+  const handleSearch = useCallback(
+    (filters: SearchFilters) => {
+      // Filtering happens in filteredProblems memo; just sync URL here
+      updateUrl(filters);
+    },
+    [updateUrl]
+  );
 
   const handleDeleteClick = (problemId: string, problemTitle: string) => {
     setDeleteDialog({
@@ -430,14 +401,18 @@ export default function EnhancedProblemsTable({
     setSelectedProblems(selected);
   }, []);
 
+  const getRowHref = useCallback(
+    (problem: Problem) =>
+      `/subjects/${problem.subject_id}/problems/${problem.id}/review`,
+    []
+  );
+
   const handleRowClick = useCallback(
     (problem: Problem) => {
       if (!confirmUnsavedNavigation()) return;
-      router.push(
-        `/subjects/${problem.subject_id}/problems/${problem.id}/review`
-      );
+      router.push(getRowHref(problem));
     },
-    [router]
+    [router, getRowHref]
   );
 
   // Reset the resetSelection flag after it's been triggered
@@ -473,7 +448,6 @@ export default function EnhancedProblemsTable({
         onBulkDelete={handleBulkDeleteClick}
         onBulkDeleteEnabled={!isAddToSetMode}
         onCreateSet={handleCreateSetClick}
-        isSearching={isSearching}
         isAddToSetMode={isAddToSetMode}
         isSelectMode={isSelectMode}
         onSelectModeChange={setIsSelectMode}
@@ -497,6 +471,7 @@ export default function EnhancedProblemsTable({
             setSelectedProblems(selected);
           }}
           onRowClick={handleRowClick}
+          getRowHref={getRowHref}
           onEdit={onEditProblem ? handleEdit : undefined}
           onDelete={handleDeleteClick}
           onAddToSet={handleAddToSetClick}
@@ -510,6 +485,7 @@ export default function EnhancedProblemsTable({
           onDelete={handleDeleteClick}
           onAddToSet={handleAddToSetClick}
           onRowClick={handleRowClick}
+          getRowHref={getRowHref}
           availableTags={availableTags}
           onTableReady={setTableInstance}
           onSelectionChange={handleSelectionChange}

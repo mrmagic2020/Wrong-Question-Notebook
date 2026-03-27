@@ -301,11 +301,11 @@ export default function CompactSearchFilter({
   );
 
   return (
-    <div className="space-y-2">
-      {/* Top row: search + actions */}
+    <div>
+      {/* Search bar + filters + actions — single row */}
       <div className="flex items-center gap-2">
         {/* Search input */}
-        <div className="relative w-full md:w-80 flex-shrink-0">
+        <div className="relative min-w-0 flex-1 md:flex-none md:w-80">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             ref={inputRef}
@@ -372,8 +372,21 @@ export default function CompactSearchFilter({
           </div>
         )}
 
-        {/* Spacer */}
-        <div className="hidden md:block flex-1" />
+        {/* Desktop filters — inline with search bar, scrolls when overflowing */}
+        <div className="hidden md:flex items-center gap-2 flex-1 min-w-0 overflow-x-auto scrollbar-hide">
+          {filterElements}
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearFilters}
+              className="flex-shrink-0"
+            >
+              <X className="h-4 w-4 mr-1" />
+              Clear
+            </Button>
+          )}
+        </div>
 
         {/* Right side: bulk actions, clear, view */}
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -452,17 +465,6 @@ export default function CompactSearchFilter({
             </div>
           )}
         </div>
-      </div>
-
-      {/* Desktop filter row — wraps naturally when many filters are active */}
-      <div className="hidden md:flex items-center gap-2 flex-wrap">
-        {filterElements}
-        {hasActiveFilters && (
-          <Button variant="ghost" size="sm" onClick={clearFilters}>
-            <X className="h-4 w-4 mr-1" />
-            Clear
-          </Button>
-        )}
       </div>
     </div>
   );

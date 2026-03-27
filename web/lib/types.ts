@@ -463,6 +463,7 @@ export interface DataTableProps<TData, TValue> {
   onDelete?: (problemId: string, problemTitle: string) => void;
   onAddToSet?: (problem: Problem) => void;
   onRowClick?: (problem: Problem) => void;
+  getRowHref?: (problem: Problem) => string;
   availableTags?: SimpleTag[];
   onTableReady?: (table: any) => void;
   onSelectionChange?: (selectedProblems: Problem[]) => void;
