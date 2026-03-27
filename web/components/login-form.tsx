@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ROUTES, ERROR_MESSAGES, CAPTCHA_CONSTANTS } from '@/lib/constants';
 import { LogIn, Eye, EyeOff } from 'lucide-react';
 import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
@@ -29,6 +29,12 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
   const [captchaReady, setCaptchaReady] = useState(false);
   const captchaRef = useRef<TurnstileInstance>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    if (!captchaReady) return;
+    const timer = setTimeout(() => setCaptchaReady(false), 1000);
+    return () => clearTimeout(timer);
+  }, [captchaReady]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -157,7 +163,6 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
             type="submit"
             className={`w-full btn-cta-primary${captchaReady ? ' captcha-ready-glow' : ''}`}
             disabled={isLoading || !captchaToken}
-            onAnimationEnd={() => setCaptchaReady(false)}
           >
             {isLoading ? 'Logging in...' : 'Login'}
           </Button>
