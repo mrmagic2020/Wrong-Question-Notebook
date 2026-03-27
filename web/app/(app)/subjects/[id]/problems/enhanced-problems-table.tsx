@@ -120,35 +120,42 @@ export default function EnhancedProblemsTable({
 
   // Client-side filtering — no API call needed
   const filteredProblems = useMemo(() => {
+    const q = searchText.trim().toLowerCase();
+    const hasSearch = q.length > 0;
+    const typeSet = problemTypes.length > 0 ? new Set(problemTypes) : null;
+    const statusSet = statuses.length > 0 ? new Set(statuses) : null;
+    const hasTagFilter = tagIds.length > 0;
+    const tagIdSet = hasTagFilter ? new Set(tagIds) : null;
+
     return problems.filter(p => {
       // Text search (title, content, solution_text, tag names)
-      if (searchText.trim()) {
-        const q = searchText.toLowerCase();
+      if (hasSearch) {
         const pTags = tagsByProblem[p.id] || [];
         const matchTitle = p.title.toLowerCase().includes(q);
         const matchContent = p.content?.toLowerCase().includes(q);
         const matchSolution = p.solution_text?.toLowerCase().includes(q);
-        const matchTags = pTags.some(tag => tag.name.toLowerCase().includes(q));
+        const matchTags = pTags.some(tag =>
+          tag.name.toLowerCase().includes(q)
+        );
         if (!matchTitle && !matchContent && !matchSolution && !matchTags)
           return false;
       }
 
       // Type filter
-      if (problemTypes.length > 0 && !problemTypes.includes(p.problem_type))
-        return false;
+      if (typeSet && !typeSet.has(p.problem_type)) return false;
 
       // Tag filter
-      if (tagIds.length > 0) {
+      if (hasTagFilter && tagIdSet) {
         const pTagIds = (tagsByProblem[p.id] || []).map(t => t.id);
         if (tagFilterMode === 'all') {
           if (!tagIds.every(id => pTagIds.includes(id))) return false;
         } else {
-          if (!tagIds.some(id => pTagIds.includes(id))) return false;
+          if (!pTagIds.some(id => tagIdSet.has(id))) return false;
         }
       }
 
       // Status filter
-      if (statuses.length > 0 && !statuses.includes(p.status)) return false;
+      if (statusSet && !statusSet.has(p.status)) return false;
 
       return true;
     });
