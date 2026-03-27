@@ -10,12 +10,16 @@ interface PageTransitionProps {
 export function PageTransition({ children }: PageTransitionProps) {
   const pathname = usePathname();
   const ref = useRef<HTMLDivElement>(null);
+  const isFirstMount = useRef(true);
 
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
     const el = ref.current;
     if (!el) return;
     el.classList.remove('page-enter');
-    // Force reflow so re-adding the class restarts the animation
     void el.offsetWidth;
     el.classList.add('page-enter');
   }, [pathname]);
