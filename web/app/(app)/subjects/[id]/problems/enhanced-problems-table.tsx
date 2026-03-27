@@ -146,11 +146,22 @@ export default function EnhancedProblemsTable({
 
       // Tag filter
       if (hasTagFilter && tagIdSet) {
-        const pTagIds = (tagsByProblem[p.id] || []).map(t => t.id);
+        const pTagIdSet = new Set(
+          (tagsByProblem[p.id] || []).map(t => t.id)
+        );
         if (tagFilterMode === 'all') {
-          if (!tagIds.every(id => pTagIds.includes(id))) return false;
+          for (const id of tagIds) {
+            if (!pTagIdSet.has(id)) return false;
+          }
         } else {
-          if (!pTagIds.some(id => tagIdSet.has(id))) return false;
+          let hasAny = false;
+          for (const id of tagIds) {
+            if (pTagIdSet.has(id)) {
+              hasAny = true;
+              break;
+            }
+          }
+          if (!hasAny) return false;
         }
       }
 
