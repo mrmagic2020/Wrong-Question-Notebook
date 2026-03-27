@@ -183,10 +183,10 @@ export default function ProblemSetPageClient({
   return (
     <div className="section-container">
       {/* Header */}
-      <div className="page-header flex items-center justify-between">
+      <div className="page-header flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center space-x-4">
           <BackLink onClick={() => router.push('/problem-sets')}>Back</BackLink>
-          <div>
+          <div className="min-w-0">
             <h1 className="page-title">{problemSet.name}</h1>
             {problemSet.isOwner ? (
               <p
@@ -214,7 +214,7 @@ export default function ProblemSetPageClient({
             )}
           </div>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-2">
           {problemSet.is_smart && (
             <Badge
               variant="outline"
