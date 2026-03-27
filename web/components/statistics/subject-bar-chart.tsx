@@ -9,6 +9,7 @@ import {
   Legend,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { SubjectBreakdownRow } from '@/lib/types';
 
@@ -56,12 +57,12 @@ export function SubjectBarChart({ data }: SubjectBarChartProps) {
         <p className="text-sm text-gray-500 dark:text-gray-400">
           No subjects yet
         </p>
-        <a
+        <Link
           href="/subjects"
           className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
         >
           Create a subject &rarr;
-        </a>
+        </Link>
       </div>
     );
   }

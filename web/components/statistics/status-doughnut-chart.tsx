@@ -2,6 +2,7 @@
 
 import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { StatisticsOverview } from '@/lib/types';
 
@@ -55,12 +56,12 @@ export function StatusDoughnutChart({ overview }: StatusDoughnutChartProps) {
         <p className="text-sm text-gray-500 dark:text-gray-400">
           No problems yet
         </p>
-        <a
+        <Link
           href="/subjects"
           className="text-xs text-amber-600 dark:text-amber-400 hover:underline"
         >
           Log your first problem &rarr;
-        </a>
+        </Link>
       </div>
     );
   }
