@@ -6,7 +6,7 @@ import { WLogo } from '@/components/w-logo';
 export function AuthNav() {
   return (
     <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
-      <div className="w-full max-w-6xl flex justify-between items-center p-3 px-6 text-sm">
+      <div className="w-full flex justify-between items-center p-3 px-6 lg:px-10 text-sm">
         <Link
           href="/"
           aria-label="Wrong Question Notebook"

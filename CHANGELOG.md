@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning].
 
 - **UI/UX polish pass**: Accessibility improvements (skip-to-content link, ARIA labels, warm focus rings, password visibility toggles), nav active state indicator, page transition animations, richer toast notifications, improved statistics empty states, mobile-friendly comparison table, interactive card hover effects, and an expanded footer
 
+### Fixed
+
+- **Wide-screen layout**: Widened all page containers from `max-w-6xl` (1152px) to `max-w-screen-2xl` (1536px) so the app uses more of the viewport on wide monitors instead of leaving large blank margins
+
 - **Tag Filter Mode Toggle**
   - When 2+ tags are selected, a segmented "Any / All" toggle appears inside the Tags filter dropdown
   - "Any" (default) returns problems matching any selected tag; "All" returns only problems matching every selected tag

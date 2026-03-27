@@ -68,7 +68,7 @@ export default async function Home() {
 
         {/* Hero Section */}
         <HeroScroll>
-          <div className="max-w-6xl mx-auto w-full grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <div className="max-w-screen-2xl mx-auto w-full grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left side - text */}
             <div className="space-y-6 text-center lg:text-left">
               <FeatureBadge
