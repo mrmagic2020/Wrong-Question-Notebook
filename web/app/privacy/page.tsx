@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function PrivacyPage() {
   return (
-    <main className="landing-page-bg min-h-screen py-12">
+    <main id="main-content" className="landing-page-bg min-h-screen py-12">
       <div className="landing-section-inner max-w-4xl">
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-amber-200/40 dark:border-gray-800/40 p-8 md:p-12">
           <article className="prose prose-sm dark:prose-invert max-w-none prose-headings:font-bold prose-a:text-amber-600 dark:prose-a:text-amber-400 prose-a:no-underline hover:prose-a:underline">
