@@ -139,7 +139,7 @@ All reusable patterns below have corresponding CSS classes in `globals.css`. Use
 ```html
 <section className="landing-section {optional-bg}">
     <div className="landing-section-inner">
-        <!-- max-w-6xl; override to max-w-5xl/3xl if narrower -->
+        <!-- max-w-screen-2xl; override to max-w-5xl/3xl if narrower -->
         <div className="landing-section-header">
             <h2 className="landing-section-title">...</h2>
             <p className="landing-section-subtitle">...</p>
@@ -243,7 +243,7 @@ Defined in `globals.css` under `@layer components`. Use these instead of reinven
 | `ruled-lines`                                            | Notebook ruled-line repeating background                          |
 | `heading-xl` through `heading-xs`                        | Typography scale (app pages)                                      |
 | `text-body-lg`, `text-body`, `text-body-sm`              | Body text scale                                                   |
-| `page-container`                                         | Standard app page width + padding (`max-w-6xl mx-auto px-4 py-6`) |
+| `page-container`                                         | Standard app page width + padding (`max-w-screen-2xl mx-auto px-4 py-6`) |
 | `status-mastered`, `status-wrong`, `status-needs-review` | Problem status badges                                             |
 
 **Landing / marketing page classes:**
@@ -252,7 +252,7 @@ Defined in `globals.css` under `@layer components`. Use these instead of reinven
 | -------------------------- | ------------------------------------------------------------------------ |
 | `landing-page-bg`          | Warm amber-to-rose page gradient with dark mode                          |
 | `landing-section`          | Full-width section with `py-20`                                          |
-| `landing-section-inner`    | Centered content container (`max-w-6xl mx-auto px-6`)                    |
+| `landing-section-inner`    | Centered content container (`max-w-screen-2xl mx-auto px-6`)                    |
 | `landing-section-header`   | Centered header group with bottom margin                                 |
 | `landing-section-title`    | Section heading (`text-3xl md:text-4xl font-bold`) with colors           |
 | `landing-section-subtitle` | Section subtitle (`text-lg`) with muted color and max-width              |

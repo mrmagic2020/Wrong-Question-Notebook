@@ -285,9 +285,9 @@ export default function ProblemReview({
     <div className="space-y-4">
       {/* Sticky Header with gradient */}
       <div className="review-header-sticky">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           {/* Title + metadata */}
-          <div>
+          <div className="min-w-0">
             <h1 className="text-lg font-bold text-gray-900 dark:text-white">
               {problem.title}
             </h1>
@@ -297,11 +297,11 @@ export default function ProblemReview({
           </div>
 
           {/* Actions: inline tags + toggle button + exit/back link */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {/* Tags appear inline to the left of the button when expanded */}
             {problem.tags && problem.tags.length > 0 && (
               <div
-                className={`flex flex-wrap gap-1.5 max-w-md transition-all duration-300 ease-in-out ${
+                className={`flex flex-wrap gap-1.5 max-w-full sm:max-w-md transition-all duration-300 ease-in-out ${
                   tagsExpanded
                     ? 'opacity-100 translate-x-0 max-h-20'
                     : 'opacity-0 -translate-x-2 max-h-0 overflow-hidden'

@@ -7,9 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ROUTES, ERROR_MESSAGES, CAPTCHA_CONSTANTS } from '@/lib/constants';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Eye, EyeOff } from 'lucide-react';
 import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
 
 export function SignUpForm({
@@ -22,12 +22,21 @@ export function SignUpForm({
   const [agreedToPrivacy, setAgreedToPrivacy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showRepeatPassword, setShowRepeatPassword] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | undefined>(
     undefined
   );
   const [captchaError, setCaptchaError] = useState<string | null>(null);
+  const [captchaReady, setCaptchaReady] = useState(false);
   const captchaRef = useRef<TurnstileInstance>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    if (!captchaReady) return;
+    const timer = setTimeout(() => setCaptchaReady(false), 2200);
+    return () => clearTimeout(timer);
+  }, [captchaReady]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,7 +86,6 @@ export function SignUpForm({
       );
       setCaptchaToken(undefined);
       captchaRef.current?.reset();
-    } finally {
       setIsLoading(false);
     }
   };
@@ -115,23 +123,55 @@ export function SignUpForm({
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              required
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                required
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(prev => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="repeat-password">Repeat Password</Label>
-            <Input
-              id="repeat-password"
-              type="password"
-              required
-              value={repeatPassword}
-              onChange={e => setRepeatPassword(e.target.value)}
-            />
+            <div className="relative">
+              <Input
+                id="repeat-password"
+                type={showRepeatPassword ? 'text' : 'password'}
+                required
+                value={repeatPassword}
+                onChange={e => setRepeatPassword(e.target.value)}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowRepeatPassword(prev => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label={
+                  showRepeatPassword ? 'Hide password' : 'Show password'
+                }
+              >
+                {showRepeatPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
           </div>
           <div className="flex items-start gap-2">
             <input
@@ -164,6 +204,7 @@ export function SignUpForm({
               onSuccess={token => {
                 setCaptchaToken(token);
                 setCaptchaError(null);
+                setCaptchaReady(true);
               }}
               onExpire={() => setCaptchaToken(undefined)}
               onError={() => {
@@ -189,7 +230,7 @@ export function SignUpForm({
           </div>
           <Button
             type="submit"
-            className="w-full btn-cta-primary"
+            className={`w-full btn-cta-primary${captchaReady ? ' captcha-ready-glow' : ''}`}
             disabled={isLoading || !captchaToken}
           >
             {isLoading ? 'Creating account...' : 'Sign up'}

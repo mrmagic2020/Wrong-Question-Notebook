@@ -270,7 +270,7 @@ export default function ProblemSetsPageClient({
         {filteredProblemSets.map(problemSet => (
           <Card
             key={problemSet.id}
-            className="flex h-full flex-col hover:shadow-md transition-shadow cursor-pointer"
+            className="flex h-full flex-col interactive-card cursor-pointer"
             onClick={() => router.push(`/problem-sets/${problemSet.id}`)}
           >
             <CardHeader className="card-section-header">

@@ -61,14 +61,14 @@ export default async function Home() {
   })();
 
   return (
-    <main className="landing-page-bg">
+    <main id="main-content" className="landing-page-bg">
       <div className="flex-1 w-full flex flex-col">
         {/* Navigation */}
         <Navigation />
 
         {/* Hero Section */}
         <HeroScroll>
-          <div className="max-w-6xl mx-auto w-full grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <div className="max-w-screen-2xl mx-auto w-full grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left side - text */}
             <div className="space-y-6 text-center lg:text-left">
               <FeatureBadge
@@ -845,27 +845,65 @@ export default async function Home() {
 
         {/* Footer */}
         <footer className="w-full border-t border-amber-200/30 dark:border-stone-800 glass-effect">
-          <div className="landing-section-inner py-8">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-              <div className="flex items-center gap-2">
-                <NotebookPen className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  Wrong Question Notebook
-                </span>
-              </div>
-              <div className="flex items-center gap-4 text-sm">
-                <Link
-                  href="/privacy"
-                  className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  Privacy Policy
-                </Link>
-                <CookiePreferencesTrigger />
-                <p className="text-gray-500 dark:text-gray-400">
-                  &copy; 2025&ndash;2026 MagicWorks. Built with Next.js and
-                  Supabase.
+          <div className="landing-section-inner py-10">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Brand */}
+              <div className="flex flex-col items-center md:items-start gap-2">
+                <div className="flex items-center gap-2">
+                  <NotebookPen className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    Wrong Question Notebook
+                  </span>
+                </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400 text-center md:text-left">
+                  Turn wrong answers into mastered skills.
                 </p>
               </div>
+
+              {/* Product links */}
+              <div className="flex flex-col items-center md:items-start gap-2">
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Product
+                </h4>
+                <div className="flex flex-col items-center md:items-start gap-1.5 text-sm">
+                  <Link
+                    href="/auth/login"
+                    className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/auth/sign-up"
+                    className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+              </div>
+
+              {/* Legal links */}
+              <div className="flex flex-col items-center md:items-start gap-2">
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Legal
+                </h4>
+                <div className="flex flex-col items-center md:items-start gap-1.5 text-sm">
+                  <Link
+                    href="/privacy"
+                    className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                  >
+                    Privacy Policy
+                  </Link>
+                  <CookiePreferencesTrigger />
+                </div>
+              </div>
+            </div>
+
+            {/* Copyright */}
+            <div className="mt-8 pt-6 border-t border-amber-200/20 dark:border-stone-800 text-center">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                &copy; 2025&ndash;2026 MagicWorks. Built with Next.js and
+                Supabase.
+              </p>
             </div>
           </div>
         </footer>

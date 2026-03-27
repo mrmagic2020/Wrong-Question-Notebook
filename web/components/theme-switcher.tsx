@@ -30,7 +30,7 @@ const ThemeSwitcher = () => {
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size={'sm'}>
+        <Button variant="ghost" size={'sm'} aria-label="Toggle theme">
           {theme === 'light' ? (
             <Sun
               key="light"

@@ -2,6 +2,7 @@
 
 import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { StatisticsOverview } from '@/lib/types';
 
@@ -30,10 +31,37 @@ export function StatusDoughnutChart({ overview }: StatusDoughnutChartProps) {
   const total = overview.total_problems;
   if (total === 0) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex flex-col items-center justify-center h-full gap-3">
+        <div className="w-12 h-12 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 flex items-center justify-center">
+          <svg
+            className="w-6 h-6 text-amber-600 dark:text-amber-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.5}
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z"
+            />
+          </svg>
+        </div>
         <p className="text-sm text-gray-500 dark:text-gray-400">
           No problems yet
         </p>
+        <Link
+          href="/subjects"
+          className="text-xs text-amber-600 dark:text-amber-400 hover:underline"
+        >
+          Log your first problem &rarr;
+        </Link>
       </div>
     );
   }

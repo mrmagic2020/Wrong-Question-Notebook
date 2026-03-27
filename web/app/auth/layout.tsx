@@ -8,7 +8,7 @@ export default function AuthLayout({
   return (
     <div className="auth-page-bg">
       <Navigation showAppLinks={false} sticky={true} />
-      {children}
+      <main id="main-content">{children}</main>
     </div>
   );
 }

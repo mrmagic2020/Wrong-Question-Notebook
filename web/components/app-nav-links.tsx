@@ -65,8 +65,9 @@ function NavLink({ href, label }: { href: string; label: string }) {
     <Link
       href={href}
       className={cn(
-        'text-base text-muted-foreground hover:text-foreground transition-colors',
-        active && 'text-foreground font-medium'
+        'text-base text-muted-foreground hover:text-foreground transition-all duration-200 border-b-2 border-transparent pb-0.5 hover:border-amber-300/50 dark:hover:border-amber-700/50',
+        active &&
+          'text-foreground font-medium border-amber-500 dark:border-amber-400 hover:border-amber-500 dark:hover:border-amber-400'
       )}
       aria-current={active ? 'page' : undefined}
     >

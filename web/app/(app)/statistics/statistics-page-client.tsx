@@ -29,7 +29,7 @@ export default function StatisticsPageClient({
       />
 
       {/* Row 1: Hero stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <HeroStatCard
           icon={FileQuestion}
           value={overview.total_problems}
