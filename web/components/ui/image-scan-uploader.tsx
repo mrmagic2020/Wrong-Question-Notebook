@@ -821,8 +821,8 @@ export function ImageScanUploader({
                 )}
               {extractionResult.problem_type === 'extended' &&
                 extractionResult.answer_hint.extended_working && (
-                  <span className="italic">
-                    Working/solution detected (
+                  <span>
+                    Working/solution (
                     {extractionResult.answer_hint.extended_working.length}{' '}
                     chars)
                   </span>
