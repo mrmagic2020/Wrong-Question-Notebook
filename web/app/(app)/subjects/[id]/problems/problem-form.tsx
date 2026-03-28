@@ -246,6 +246,50 @@ export default function ProblemForm({
         setMcqCorrectChoiceId('');
       }
 
+      // Apply answer hint suggestions
+      if (data.answer_hint) {
+        const hint = data.answer_hint;
+
+        if (data.problem_type === 'mcq' && hint.mcq_correct_choice_id) {
+          setMcqCorrectChoiceId(hint.mcq_correct_choice_id);
+        }
+
+        if (data.problem_type === 'short' && hint.short_answer_value) {
+          setUseEnhancedShort(true);
+          if (hint.short_answer_is_numeric) {
+            const numVal = Number(hint.short_answer_value);
+            if (!isNaN(numVal)) {
+              setShortAnswerConfig({
+                mode: 'numeric',
+                numeric_config: {
+                  correct_value: numVal,
+                  tolerance: 0,
+                  unit: '',
+                },
+              });
+            } else {
+              setShortAnswerConfig({
+                mode: 'text',
+                acceptable_answers: [hint.short_answer_value],
+              });
+            }
+          } else {
+            setShortAnswerConfig({
+              mode: 'text',
+              acceptable_answers: [hint.short_answer_value],
+            });
+          }
+        }
+
+        if (data.problem_type === 'extended' && hint.extended_working) {
+          const solutionHtml = convertMathTextToTipTapHtml(
+            hint.extended_working
+          );
+          solutionEditorRef.current?.setContent(solutionHtml);
+          setSolutionText(solutionHtml);
+        }
+      }
+
       if (imageAttachment) {
         const roles: ('problem' | 'solution')[] = [];
         if (imageAttachment.saveAsProblemAsset) roles.push('problem');
