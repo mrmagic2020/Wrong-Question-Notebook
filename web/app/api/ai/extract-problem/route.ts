@@ -25,15 +25,15 @@ const RequestSchema = z.object({
 
 const SYSTEM_PROMPT = `You are an expert at extracting problems from images of test papers, worksheets, and handwritten notes.
 
-IMPORTANT: Your output is a JSON string. All backslashes in LaTeX must be double-escaped (e.g. \\\\frac, \\\\text, \\\\sqrt) so that the parsed JSON produces valid LaTeX with single backslashes.
+IMPORTANT: Math is rendered using KaTeX (a subset of LaTeX). Your output is a JSON string, so all backslashes in KaTeX must be double-escaped (e.g. \\\\frac, \\\\text, \\\\sqrt) so that the parsed JSON produces valid KaTeX with single backslashes.
 
 # Core rules
-1. Extract the problem statement faithfully. Do NOT solve the problem or provide answers.
+1. Extract the problem statement faithfully. Do NOT solve the problem.
 2. Preserve the original language of the problem.
 3. Classify the problem:
    - "mcq" if it has labeled choices (A, B, C, D or similar)
-   - "short" if it expects a brief answer (number, word, short phrase)
-   - "extended" if it requires a longer response, proof, or explanation
+   - "short" if it expects a brief answer (number, word, short phrase) AND the image does NOT show multi-step working out or solution steps
+   - "extended" if it requires a longer response, proof, or explanation, OR if the image shows multi-step working out / solution steps alongside the answer (even if the final answer is a number)
 
 # Title rules
 - Generate a concise, descriptive title (max 50 characters) summarizing the problem topic.
@@ -41,7 +41,7 @@ IMPORTANT: Your output is a JSON string. All backslashes in LaTeX must be double
 - The title MUST NOT contain any math notation ($...$, $$...$$). Use plain-text descriptions instead. For example, use "Quadratic Equation Roots" instead of "Roots of $x^2 + 1 = 0$".
 - Strip any original problem numbers (e.g. "Q3", "Problem 12") from the title.
 
-# Math formatting rules
+# Math formatting rules (KaTeX)
 - Use $...$ for inline math and $$...$$ on its own line for display math (block equations).
 - ALL numeric values, variables, and mathematical expressions MUST be wrapped in inline math $...$. For example: "the mass is $5 \\\\text{kg}$", not "the mass is 5 kg".
 - Use \\\\text{...} inside math delimiters to enclose:
@@ -50,6 +50,12 @@ IMPORTANT: Your output is a JSON string. All backslashes in LaTeX must be double
   - Short textual labels within equations: $v_{\\\\text{max}}$
 - Use display math ($$...$$) for standalone equations, systems of equations, or any expression that benefits from being on its own line.
 - Use inline math ($...$) for values, variables, and short expressions embedded in prose.
+- IMPORTANT: Every $$...$$ block MUST be on its own line, separated from surrounding text by \\n. The parser splits on \\n and requires the entire line to be $$...$$.
+- For a group of related, consecutive equations that should be visually aligned (e.g. a chain of equalities or a derivation without interrupting prose), use \\\\begin{aligned}...\\\\end{aligned} inside a single $$...$$ block. Use & to mark the alignment point and \\\\\\\\ to separate lines:
+  $$\\\\begin{aligned} f(x) &= (x+a)^2 \\\\\\\\ &= x^2 + 2ax + a^2 \\\\end{aligned}$$
+- Do NOT force everything into one giant aligned block. When working out includes prose explanations between equation groups, use separate $$...$$ blocks for each equation group with prose text on its own lines between them. Let the natural structure of the working dictate the formatting.
+- Other supported KaTeX environments: aligned, align, gather, gathered, split, cases, dcases, rcases, matrix, pmatrix, bmatrix, vmatrix, array. Use the most semantically appropriate one (e.g. cases for piecewise functions, pmatrix for matrices).
+- Do NOT put \\\\text{} blocks for prose inside aligned environments. Prose belongs outside $$...$$ blocks as regular text.
 
 # MCQ choice rules
 - Extract each choice with its label (A, B, C, D, etc.) as "id" and the choice content as "text".
@@ -65,6 +71,20 @@ IMPORTANT: Your output is a JSON string. All backslashes in LaTeX must be double
 - When suggest_image_asset is true, do NOT attempt to describe the visual content in text. Simply reference it naturally (e.g. "as shown in the figure" or "from the table above") and extract only the textual parts of the problem.
 - When suggest_image_asset is false, the image is purely text-based and the extracted content is self-contained.
 - Default to false for problems that are entirely text and equations.
+
+# Answer extraction rules (answer_hint)
+If the image shows a visible answer, extract it into the answer_hint field.
+IMPORTANT: Only extract answers that are visually present in the image — do NOT solve the problem yourself.
+
+- For "mcq": If a choice appears circled, ticked, highlighted, or otherwise marked as correct, set mcq_correct_choice_id to the matching choice ID (e.g. "A", "B"). If no choice is visually marked, set it to null.
+- For "short": If a written answer (text or number) is visible, set short_answer_value to that text. short_answer_value MUST be plain text only — no math notation ($...$), no KaTeX. For example: "42", "mitochondria", "3.14". Set short_answer_is_numeric to true if the answer is a pure number. If no answer is visible, set both to null.
+- For "extended": If working out, paragraph responses, or solution steps are visible, transcribe them into extended_working using the same math formatting rules ($...$, $$...$$ on its own line, aligned blocks for related equations, prose between equation groups). If no working is visible, set it to null.
+- IMPORTANT: If the image shows multi-step working out or solution steps (even with a simple numeric final answer), classify as "extended" and use extended_working — do NOT classify as "short".
+- Only populate fields relevant to the detected problem_type.
+- answer_confidence:
+  - "high": a clear visual marker identifies the answer (circled choice, boxed answer, answer key label)
+  - "medium": an answer is present but the marker is ambiguous
+  - "low": no answer is clearly visible — set all type-specific fields to null
 
 # Confidence fields
 Set these honestly:
@@ -124,6 +144,21 @@ const RESPONSE_SCHEMA = {
         },
         required: ['id', 'text'] as const,
       },
+    },
+    answer_hint: {
+      type: 'object' as const,
+      nullable: true,
+      properties: {
+        mcq_correct_choice_id: { type: 'string' as const, nullable: true },
+        short_answer_value: { type: 'string' as const, nullable: true },
+        short_answer_is_numeric: { type: 'boolean' as const, nullable: true },
+        extended_working: { type: 'string' as const, nullable: true },
+        answer_confidence: {
+          type: 'string' as const,
+          enum: ['high', 'medium', 'low'],
+        },
+      },
+      required: ['answer_confidence'] as const,
     },
     suggest_image_asset: { type: 'boolean' as const },
     suggested_tags: {
@@ -348,6 +383,44 @@ async function extractProblem(req: Request) {
     }
 
     extraction.suggested_tags = suggestedTags;
+
+    // Post-process answer_hint: validate consistency and apply confidence gating
+    if (extraction.answer_hint) {
+      const hint = extraction.answer_hint;
+      const type = extraction.problem_type;
+
+      // Confidence gating: drop low-confidence hints for MCQ/short (keep extended)
+      if (hint.answer_confidence === 'low' && type !== 'extended') {
+        extraction.answer_hint = null;
+      } else {
+        // Zero out fields that don't match the problem type
+        if (type !== 'mcq') hint.mcq_correct_choice_id = null;
+        if (type !== 'short') {
+          hint.short_answer_value = null;
+          hint.short_answer_is_numeric = null;
+        }
+        if (type !== 'extended') hint.extended_working = null;
+
+        // Validate MCQ choice ID exists in the extracted choices
+        if (type === 'mcq' && hint.mcq_correct_choice_id) {
+          const validIds = new Set(
+            (extraction.mcq_choices || []).map((c: { id: string }) => c.id)
+          );
+          if (!validIds.has(hint.mcq_correct_choice_id)) {
+            hint.mcq_correct_choice_id = null;
+          }
+        }
+
+        // Null out the entire hint if no data fields remain
+        const hasData =
+          hint.mcq_correct_choice_id ||
+          hint.short_answer_value ||
+          hint.extended_working;
+        if (!hasData) {
+          extraction.answer_hint = null;
+        }
+      }
+    }
 
     return NextResponse.json(
       createApiSuccessResponse({

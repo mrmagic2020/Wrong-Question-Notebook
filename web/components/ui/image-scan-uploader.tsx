@@ -772,7 +772,7 @@ export function ImageScanUploader({
             <span
               className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${confidenceColor(confidence.problem_type_confidence)}`}
             >
-              Type: {confidence.problem_type_confidence}
+              Confidence: {confidence.problem_type_confidence}
             </span>
             <span
               className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${confidenceColor(confidence.content_quality)}`}
@@ -797,9 +797,41 @@ export function ImageScanUploader({
               : extractionResult.problem_type === 'short'
                 ? 'Short Answer'
                 : 'Extended Response'}
-            {extractionResult.mcq_choices &&
+            {extractionResult.problem_type === 'mcq' &&
+              extractionResult.mcq_choices &&
+              extractionResult.mcq_choices.length > 0 &&
               ` (${extractionResult.mcq_choices.length} choices)`}
           </div>
+
+          {/* Answer hint preview */}
+          {extractionResult.answer_hint && (
+            <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+              <span className="font-medium">Answer detected:</span>{' '}
+              {extractionResult.problem_type === 'mcq' &&
+                extractionResult.answer_hint.mcq_correct_choice_id && (
+                  <span>
+                    Choice {extractionResult.answer_hint.mcq_correct_choice_id}
+                  </span>
+                )}
+              {extractionResult.problem_type === 'short' &&
+                extractionResult.answer_hint.short_answer_value && (
+                  <span className="font-mono">
+                    {extractionResult.answer_hint.short_answer_value}
+                  </span>
+                )}
+              {extractionResult.problem_type === 'extended' &&
+                extractionResult.answer_hint.extended_working && (
+                  <span>
+                    Working/solution (
+                    {extractionResult.answer_hint.extended_working.length}{' '}
+                    chars)
+                  </span>
+                )}
+              <p className="mt-1 text-xs italic text-gray-500 dark:text-gray-400">
+                Will be pre-filled as a suggestion. Review after applying.
+              </p>
+            </div>
+          )}
 
           {/* Warnings */}
           {warnings.length > 0 && (

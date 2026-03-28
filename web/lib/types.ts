@@ -255,6 +255,14 @@ export interface SuggestedTags {
   new: { name: string }[];
 }
 
+export interface AnswerHint {
+  mcq_correct_choice_id?: string | null;
+  short_answer_value?: string | null;
+  short_answer_is_numeric?: boolean | null;
+  extended_working?: string | null;
+  answer_confidence: 'high' | 'medium' | 'low';
+}
+
 export interface ExtractedProblemData {
   problem_type: 'mcq' | 'short' | 'extended';
   title: string;
@@ -263,6 +271,7 @@ export interface ExtractedProblemData {
   suggest_image_asset: boolean;
   confidence: ExtractionConfidence;
   suggested_tags?: SuggestedTags;
+  answer_hint?: AnswerHint | null;
 }
 
 // =====================================================
