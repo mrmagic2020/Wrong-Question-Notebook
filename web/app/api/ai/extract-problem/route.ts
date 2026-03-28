@@ -50,10 +50,12 @@ IMPORTANT: Math is rendered using KaTeX (a subset of LaTeX). Your output is a JS
   - Short textual labels within equations: $v_{\\\\text{max}}$
 - Use display math ($$...$$) for standalone equations, systems of equations, or any expression that benefits from being on its own line.
 - Use inline math ($...$) for values, variables, and short expressions embedded in prose.
-- For multi-line equations (e.g. step-by-step working, derivations, systems of equations), use a SINGLE display math block ($$...$$) with \\\\begin{aligned}...\\\\end{aligned}. Use & to mark the alignment point (typically before =) and \\\\\\\\ to separate lines. Example:
+- IMPORTANT: Every $$...$$ block MUST be on its own line, separated from surrounding text by \\n. The parser splits on \\n and requires the entire line to be $$...$$.
+- For a group of related, consecutive equations that should be visually aligned (e.g. a chain of equalities or a derivation without interrupting prose), use \\\\begin{aligned}...\\\\end{aligned} inside a single $$...$$ block. Use & to mark the alignment point and \\\\\\\\ to separate lines:
   $$\\\\begin{aligned} f(x) &= (x+a)^2 \\\\\\\\ &= x^2 + 2ax + a^2 \\\\end{aligned}$$
-  Do NOT output multiple consecutive $$...$$ blocks for related equation steps. Combine them into one aligned block.
-- Other supported multi-line environments: aligned, align, align*, gather, gathered, split, cases, dcases, rcases, matrix, pmatrix, bmatrix, vmatrix, array. Use the most semantically appropriate one (e.g. cases for piecewise functions, pmatrix for matrices).
+- Do NOT force everything into one giant aligned block. When working out includes prose explanations between equation groups, use separate $$...$$ blocks for each equation group with prose text on its own lines between them. Let the natural structure of the working dictate the formatting.
+- Other supported KaTeX environments: aligned, align, gather, gathered, split, cases, dcases, rcases, matrix, pmatrix, bmatrix, vmatrix, array. Use the most semantically appropriate one (e.g. cases for piecewise functions, pmatrix for matrices).
+- Do NOT put \\\\text{} blocks for prose inside aligned environments. Prose belongs outside $$...$$ blocks as regular text.
 
 # MCQ choice rules
 - Extract each choice with its label (A, B, C, D, etc.) as "id" and the choice content as "text".
@@ -76,7 +78,7 @@ IMPORTANT: Only extract answers that are visually present in the image — do NO
 
 - For "mcq": If a choice appears circled, ticked, highlighted, or otherwise marked as correct, set mcq_correct_choice_id to the matching choice ID (e.g. "A", "B"). If no choice is visually marked, set it to null.
 - For "short": If a written answer (text or number) is visible, set short_answer_value to that text. short_answer_value MUST be plain text only — no math notation ($...$), no KaTeX. For example: "42", "mitochondria", "3.14". Set short_answer_is_numeric to true if the answer is a pure number. If no answer is visible, set both to null.
-- For "extended": If working out, paragraph responses, or solution steps are visible, transcribe them into extended_working using the same math formatting rules ($...$, $$...$$, and \\\\begin{aligned} for multi-line equations). If no working is visible, set it to null.
+- For "extended": If working out, paragraph responses, or solution steps are visible, transcribe them into extended_working using the same math formatting rules ($...$, $$...$$ on its own line, aligned blocks for related equations, prose between equation groups). If no working is visible, set it to null.
 - IMPORTANT: If the image shows multi-step working out or solution steps (even with a simple numeric final answer), classify as "extended" and use extended_working — do NOT classify as "short".
 - Only populate fields relevant to the detected problem_type.
 - answer_confidence:
