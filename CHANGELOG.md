@@ -9,7 +9,19 @@ and this project adheres to [Semantic Versioning].
 
 ### Added
 
+- **AI Answer Extraction**: The image extraction feature now detects visible answers (circled MCQ choices, written short answers, worked solutions) and pre-fills them as editable suggestions in the problem form
+  - MCQ: pre-selects the correct choice if visually marked
+  - Short answer: populates text or numeric answer config
+  - Extended: transcribes working out into the solution editor with math support
+  - Answers are always suggestions — user must review before saving
+  - Low-confidence MCQ/short answers are automatically filtered out
+
 - **UI/UX polish pass**: Accessibility improvements (skip-to-content link, ARIA labels, warm focus rings, password visibility toggles), nav active state indicator, page transition animations, richer toast notifications, improved statistics empty states, mobile-friendly comparison table, interactive card hover effects, and an expanded footer
+
+### Changed
+
+- **AI Extraction math formatting**: Multi-line equations now use a single KaTeX `aligned` block instead of multiple separate display math blocks, producing cleaner rendering
+- **AI Extraction classification**: Problems with visible multi-step working are now consistently classified as "extended" instead of sometimes "short", even when the final answer is a number
 
 ### Fixed
 
