@@ -219,3 +219,24 @@ export async function revalidateUserInsights(userId: string): Promise<void> {
 export async function revalidateInsightsPage(): Promise<void> {
   await revalidatePath('/insights');
 }
+
+/**
+ * Revalidate discovery cache (public browse page)
+ */
+export async function revalidateDiscovery(): Promise<void> {
+  await revalidateTag(CACHE_TAGS.DISCOVERY, 'max');
+}
+
+/**
+ * Revalidate sitemap cache (listed public sets)
+ */
+export async function revalidateSitemap(): Promise<void> {
+  await revalidateTag(CACHE_TAGS.SITEMAP, 'max');
+}
+
+/**
+ * Revalidate discovery page path
+ */
+export async function revalidateDiscoverPage(): Promise<void> {
+  await revalidatePath('/discover');
+}

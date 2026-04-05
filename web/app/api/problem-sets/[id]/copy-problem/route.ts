@@ -17,6 +17,7 @@ import {
   revalidateSubjectProblems,
   revalidateUserTags,
   revalidateSubjectTags,
+  revalidateDiscovery,
 } from '@/lib/cache-invalidation';
 import { z } from 'zod';
 
@@ -322,6 +323,15 @@ async function copyProblem(
           ]
         : []),
     ]);
+
+    // Record unique copy on the source problem set (idempotent per user)
+    await serviceClient.rpc('record_problem_set_copy', {
+      p_problem_set_id: id,
+      p_user_id: user.id,
+    });
+
+    // Copy counts affect discovery ranking
+    await revalidateDiscovery();
 
     return NextResponse.json(
       createApiSuccessResponse({

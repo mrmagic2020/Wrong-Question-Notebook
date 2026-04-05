@@ -82,10 +82,57 @@ export interface ProblemSet {
   filter_config?: FilterConfig | null;
   session_config?: SessionConfig | null;
   allow_copying: boolean;
+  is_listed: boolean;
+  discovery_subject: string | null;
+}
+
+// =====================================================
+// Social / Discovery Types
+// =====================================================
+
+export interface ProblemSetStats {
+  view_count: number;
+  unique_view_count: number;
+  like_count: number;
+  copy_count: number;
+  problem_count: number;
+  ranking_score: number;
+}
+
+export interface ProblemSetCard {
+  id: string;
+  name: string;
+  description: string | null;
+  subject_name: string;
+  subject_color: string | null;
+  subject_icon: string | null;
+  problem_count: number;
+  is_smart: boolean;
+  owner: {
+    username: string;
+    display_name: string;
+    avatar_url: string | null;
+  };
+  stats: ProblemSetStats;
+  created_at: string;
+}
+
+export interface UserSocialState {
+  liked: boolean;
+  favourited: boolean;
+}
+
+export interface ProblemSetReport {
+  id: string;
+  problem_set_id: string;
+  reason: string;
+  details: string | null;
+  status: string;
+  created_at: string;
 }
 
 export interface OwnerProfile {
-  username: string | null;
+  username: string;
   first_name: string | null;
   last_name: string | null;
   avatar_url: string | null;
@@ -533,7 +580,11 @@ export interface ProblemSetEditDialogProps {
     sharing_level: ProblemSetSharingLevel;
     shared_with_emails?: string[];
     allow_copying?: boolean;
+    is_listed?: boolean;
+    discovery_subject?: string | null;
+    problem_count?: number;
   };
+  hasUsername?: boolean;
   onSuccess?: () => void;
 }
 
@@ -568,6 +619,11 @@ export interface ProblemsPageClientProps {
 
 export interface ProblemSetsPageClientProps {
   initialProblemSets: ProblemSetWithDetails[];
+  statsMap?: Record<
+    string,
+    { view_count: number; like_count: number; copy_count: number }
+  >;
+  hasUsername?: boolean;
 }
 
 export interface ProblemSetPageClientProps {
@@ -576,6 +632,10 @@ export interface ProblemSetPageClientProps {
   };
   isAuthenticated?: boolean;
   ownerProfile?: OwnerProfile | null;
+  initialStats?: ProblemSetStats | null;
+  initialSocialState?: UserSocialState | null;
+  hasUsername?: boolean;
+  backHref?: string;
 }
 
 // =====================================================

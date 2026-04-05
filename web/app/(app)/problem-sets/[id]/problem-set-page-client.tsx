@@ -31,6 +31,7 @@ import ProblemSetProblemsTable from './problem-set-problems-table';
 import ProblemSetEditDialog from '@/app/(app)/problem-sets/problem-set-edit-dialog';
 import CopyProblemSetDialog from '@/components/copy-problem-set-dialog';
 import { UserProfileCard } from '@/components/user-profile-card';
+import { SocialActionsBar } from '@/components/social-actions-bar';
 import { FilterConfig, SessionConfig } from '@/lib/types';
 import { useReviewSession } from '@/lib/hooks/useReviewSession';
 
@@ -38,6 +39,10 @@ export default function ProblemSetPageClient({
   initialProblemSet,
   isAuthenticated = true,
   ownerProfile,
+  initialStats,
+  initialSocialState,
+  hasUsername = true,
+  backHref = '/problem-sets',
 }: ProblemSetPageClientProps) {
   const router = useRouter();
   const [problemSet, setProblemSet] = useState<
@@ -185,7 +190,7 @@ export default function ProblemSetPageClient({
       {/* Header */}
       <div className="page-header flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center space-x-4">
-          <BackLink onClick={() => router.push('/problem-sets')}>Back</BackLink>
+          <BackLink onClick={() => router.push(backHref)}>Back</BackLink>
           <div className="min-w-0">
             <h1 className="page-title">{problemSet.name}</h1>
             {problemSet.isOwner ? (
@@ -273,6 +278,18 @@ export default function ProblemSetPageClient({
           )}
         </div>
       </div>
+
+      {/* Social Actions (non-private sets) */}
+      {problemSet.sharing_level !== 'private' && (
+        <SocialActionsBar
+          problemSetId={problemSet.id}
+          isPublic
+          isAuthenticated={isAuthenticated}
+          initialStats={initialStats}
+          initialSocialState={initialSocialState}
+          isOwner={problemSet.isOwner}
+        />
+      )}
 
       {/* Description */}
       {problemSet.description && (
@@ -419,7 +436,11 @@ export default function ProblemSetPageClient({
           sharing_level: problemSet.sharing_level,
           shared_with_emails: problemSet.shared_with_emails,
           allow_copying: problemSet.allow_copying,
+          is_listed: problemSet.is_listed,
+          discovery_subject: problemSet.discovery_subject,
+          problem_count: problemSet.problem_count,
         }}
+        hasUsername={hasUsername}
         onSuccess={handleEditSuccess}
       />
 

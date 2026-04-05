@@ -140,6 +140,9 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith('/privacy') &&
     !request.nextUrl.pathname.startsWith('/problem-sets/') &&
     !request.nextUrl.pathname.startsWith('/api/problem-sets/') &&
+    !request.nextUrl.pathname.startsWith('/discover') &&
+    !request.nextUrl.pathname.startsWith('/api/discover') &&
+    !request.nextUrl.pathname.startsWith('/creators/') &&
     !request.nextUrl.pathname.startsWith('/api/files/') &&
     !request.nextUrl.pathname.startsWith('/api/problems/') &&
     !request.nextUrl.pathname.startsWith('/upload/') &&

@@ -11,7 +11,10 @@ import { checkProblemSetAccess } from '@/lib/problem-set-utils';
 import { getFilteredProblems } from '@/lib/review-utils';
 import { FilterConfig } from '@/lib/types';
 import { createServiceClient } from '@/lib/supabase-utils';
-import { revalidateUserProblemSets } from '@/lib/cache-invalidation';
+import {
+  revalidateUserProblemSets,
+  revalidateDiscovery,
+} from '@/lib/cache-invalidation';
 import { z } from 'zod';
 
 const CopyProblemSetBody = z.object({
@@ -384,8 +387,17 @@ async function copyProblemSet(
       );
     }
 
+    // Record unique copy (idempotent per user per set)
+    await serviceClient.rpc('record_problem_set_copy', {
+      p_problem_set_id: id,
+      p_user_id: user.id,
+    });
+
     // Invalidate cache
-    await revalidateUserProblemSets(user.id);
+    await Promise.all([
+      revalidateUserProblemSets(user.id),
+      revalidateDiscovery(),
+    ]);
 
     return NextResponse.json(
       createApiSuccessResponse({

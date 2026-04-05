@@ -7,10 +7,11 @@ interface ProfileAvatarProps {
   firstName?: string | null;
   lastName?: string | null;
   email?: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
 }
 
 const sizeMap = {
+  xs: { px: 20, text: 'text-[9px]' },
   sm: { px: 32, text: 'text-xs' },
   md: { px: 40, text: 'text-sm' },
   lg: { px: 80, text: 'text-xl' },
@@ -57,7 +58,7 @@ export function ProfileAvatar({
           alt="Profile avatar"
           width={px}
           height={px}
-          className="object-cover"
+          className="h-full w-full object-cover"
           unoptimized={src.startsWith('blob:')}
         />
       ) : (

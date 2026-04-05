@@ -13,6 +13,9 @@ import { getProblemSetWithFullData } from '@/lib/problem-set-utils';
 import {
   revalidateUserProblemSets,
   revalidateProblemSet,
+  revalidateProblemSetPage,
+  revalidateDiscovery,
+  revalidateSitemap,
 } from '@/lib/cache-invalidation';
 import { createServiceClient } from '@/lib/supabase-utils';
 
@@ -149,6 +152,26 @@ async function updateProblemSet(
       );
     }
 
+    // Enforce username requirement when listing a set for discovery
+    if (fullUpdateData.is_listed === true) {
+      const serviceClient = createServiceClient();
+      const { data: profile } = await serviceClient
+        .from('user_profiles')
+        .select('username')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.username) {
+        return NextResponse.json(
+          createApiErrorResponse(
+            'You must set a username in your profile before listing a set in Discovery',
+            400
+          ),
+          { status: 400 }
+        );
+      }
+    }
+
     // Update the problem set
     const { data: updatedSet, error: updateError } = await supabase
       .from('problem_sets')
@@ -206,11 +229,19 @@ async function updateProblemSet(
       }
     }
 
-    // Invalidate cache after successful update
-    await Promise.all([
+    // Invalidate cache after successful update (both data cache and path/Router Cache)
+    const cacheInvalidations: Promise<void>[] = [
       revalidateUserProblemSets(user.id),
       revalidateProblemSet(id),
-    ]);
+      revalidateProblemSetPage(id),
+    ];
+
+    // Revalidate discovery/sitemap when listing or sharing level changes
+    if (providedKeys.has('sharing_level') || providedKeys.has('is_listed')) {
+      cacheInvalidations.push(revalidateDiscovery(), revalidateSitemap());
+    }
+
+    await Promise.all(cacheInvalidations);
 
     return NextResponse.json(createApiSuccessResponse(updatedSet));
   } catch (error) {

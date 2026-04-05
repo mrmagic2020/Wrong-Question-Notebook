@@ -23,6 +23,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Copy, Info, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { VALIDATION_CONSTANTS } from '@/lib/constants';
 import { Subject } from '@/lib/types';
 
 interface CopyProblemSetDialogProps {
@@ -80,8 +81,17 @@ export default function CopyProblemSetDialog({
 
     // Create new subject if needed
     if (createNewSubject) {
-      if (!newSubjectName.trim()) {
+      const trimmed = newSubjectName.trim();
+      if (!trimmed) {
         toast.error('Please enter a subject name');
+        return;
+      }
+      if (
+        trimmed.length > VALIDATION_CONSTANTS.STRING_LIMITS.SUBJECT_NAME_MAX
+      ) {
+        toast.error(
+          `Subject name must be at most ${VALIDATION_CONSTANTS.STRING_LIMITS.SUBJECT_NAME_MAX} characters`
+        );
         return;
       }
 
@@ -90,17 +100,22 @@ export default function CopyProblemSetDialog({
         const res = await fetch('/api/subjects', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: newSubjectName.trim() }),
+          body: JSON.stringify({ name: trimmed }),
         });
 
         if (!res.ok) {
-          throw new Error('Failed to create subject');
+          const err = await res.json().catch(() => null);
+          throw new Error(
+            err?.error || err?.message || 'Failed to create subject'
+          );
         }
 
         const data = await res.json();
         subjectId = data.data.id;
-      } catch {
-        toast.error('Failed to create subject');
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : 'Failed to create subject'
+        );
         setIsLoading(false);
         return;
       }
@@ -219,13 +234,26 @@ export default function CopyProblemSetDialog({
             )}
 
             {createNewSubject && (
-              <Input
-                value={newSubjectName}
-                onChange={e => setNewSubjectName(e.target.value)}
-                placeholder="Enter subject name"
-                maxLength={50}
-                autoFocus
-              />
+              <div className="space-y-1">
+                <Input
+                  value={newSubjectName}
+                  onChange={e => setNewSubjectName(e.target.value)}
+                  placeholder="Enter subject name"
+                  maxLength={
+                    VALIDATION_CONSTANTS.STRING_LIMITS.SUBJECT_NAME_MAX
+                  }
+                  autoFocus
+                />
+                {newSubjectName.length >=
+                  VALIDATION_CONSTANTS.STRING_LIMITS.SUBJECT_NAME_MAX - 5 && (
+                  <p
+                    className={`text-xs text-right ${newSubjectName.length >= VALIDATION_CONSTANTS.STRING_LIMITS.SUBJECT_NAME_MAX ? 'text-destructive' : 'text-muted-foreground'}`}
+                  >
+                    {newSubjectName.length}/
+                    {VALIDATION_CONSTANTS.STRING_LIMITS.SUBJECT_NAME_MAX}
+                  </p>
+                )}
+              </div>
             )}
           </div>
 
