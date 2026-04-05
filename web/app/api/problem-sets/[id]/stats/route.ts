@@ -8,6 +8,7 @@ import {
   isValidUuid,
 } from '@/lib/common-utils';
 import { createServiceClient } from '@/lib/supabase-utils';
+import { checkProblemSetAccess } from '@/lib/problem-set-utils';
 
 export const revalidate = 60; // 1 minute
 
@@ -27,6 +28,35 @@ async function getStats(
 
   try {
     const serviceClient = createServiceClient();
+
+    // Verify the problem set exists and user has access
+    const { data: problemSet } = await serviceClient
+      .from('problem_sets')
+      .select('user_id, sharing_level')
+      .eq('id', id)
+      .single();
+
+    if (!problemSet) {
+      return NextResponse.json(
+        createApiErrorResponse('Problem set not found', 404),
+        { status: 404 }
+      );
+    }
+
+    const hasAccess = await checkProblemSetAccess(
+      serviceClient,
+      problemSet,
+      user?.id || null,
+      user?.email || null,
+      id
+    );
+
+    if (!hasAccess) {
+      return NextResponse.json(
+        createApiErrorResponse('Problem set not found', 404),
+        { status: 404 }
+      );
+    }
 
     // Fetch stats (public data)
     const { data: stats } = await serviceClient

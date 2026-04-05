@@ -8,6 +8,7 @@ import {
   isValidUuid,
 } from '@/lib/common-utils';
 import { createServiceClient } from '@/lib/supabase-utils';
+import { checkProblemSetAccess } from '@/lib/problem-set-utils';
 import { createHash } from 'crypto';
 
 async function recordView(
@@ -26,6 +27,29 @@ async function recordView(
 
   try {
     const serviceClient = createServiceClient();
+
+    // Verify the problem set exists and user has access
+    const { data: problemSet } = await serviceClient
+      .from('problem_sets')
+      .select('user_id, sharing_level')
+      .eq('id', id)
+      .single();
+
+    if (!problemSet) {
+      return NextResponse.json(createApiSuccessResponse({ success: true }));
+    }
+
+    const hasAccess = await checkProblemSetAccess(
+      serviceClient,
+      problemSet,
+      user?.id || null,
+      user?.email || null,
+      id
+    );
+
+    if (!hasAccess) {
+      return NextResponse.json(createApiSuccessResponse({ success: true }));
+    }
 
     // Compute viewer hash for deduplication
     let viewerHash: string;

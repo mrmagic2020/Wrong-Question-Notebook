@@ -8,6 +8,7 @@ import {
   isValidUuid,
 } from '@/lib/common-utils';
 import { createServiceClient } from '@/lib/supabase-utils';
+import { checkProblemSetAccess } from '@/lib/problem-set-utils';
 import { revalidateDiscovery } from '@/lib/cache-invalidation';
 
 async function toggleLike(
@@ -29,14 +30,37 @@ async function toggleLike(
   try {
     const serviceClient = createServiceClient();
 
-    // Verify the problem set is non-private (public and limited sets can be liked)
+    // Fetch problem set and verify access
     const { data: problemSet } = await serviceClient
       .from('problem_sets')
-      .select('sharing_level')
+      .select('user_id, sharing_level')
       .eq('id', id)
       .single();
 
-    if (!problemSet || problemSet.sharing_level === 'private') {
+    if (!problemSet) {
+      return NextResponse.json(
+        createApiErrorResponse('Problem set not found', 404),
+        { status: 404 }
+      );
+    }
+
+    const hasAccess = await checkProblemSetAccess(
+      serviceClient,
+      problemSet,
+      user.id,
+      user.email || null,
+      id
+    );
+
+    if (!hasAccess) {
+      return NextResponse.json(
+        createApiErrorResponse('Problem set not found', 404),
+        { status: 404 }
+      );
+    }
+
+    // Private sets can't be liked even by the owner
+    if (problemSet.sharing_level === 'private') {
       return NextResponse.json(
         createApiErrorResponse(
           'Only public or shared problem sets can be liked',

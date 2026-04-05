@@ -7,6 +7,8 @@ import {
   handleAsyncError,
   isValidUuid,
 } from '@/lib/common-utils';
+import { createServiceClient } from '@/lib/supabase-utils';
+import { checkProblemSetAccess } from '@/lib/problem-set-utils';
 
 async function toggleFavourite(
   req: Request,
@@ -25,6 +27,36 @@ async function toggleFavourite(
   }
 
   try {
+    // Verify the problem set exists and user has access
+    const serviceClient = createServiceClient();
+    const { data: problemSet } = await serviceClient
+      .from('problem_sets')
+      .select('user_id, sharing_level')
+      .eq('id', id)
+      .single();
+
+    if (!problemSet) {
+      return NextResponse.json(
+        createApiErrorResponse('Problem set not found', 404),
+        { status: 404 }
+      );
+    }
+
+    const hasAccess = await checkProblemSetAccess(
+      serviceClient,
+      problemSet,
+      user.id,
+      user.email || null,
+      id
+    );
+
+    if (!hasAccess) {
+      return NextResponse.json(
+        createApiErrorResponse('Problem set not found', 404),
+        { status: 404 }
+      );
+    }
+
     // Check if already favourited
     const { data: existing } = await supabase
       .from('problem_set_favourites')

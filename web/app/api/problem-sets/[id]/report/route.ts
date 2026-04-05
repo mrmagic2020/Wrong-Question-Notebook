@@ -7,6 +7,8 @@ import {
   handleAsyncError,
   isValidUuid,
 } from '@/lib/common-utils';
+import { createServiceClient } from '@/lib/supabase-utils';
+import { checkProblemSetAccess } from '@/lib/problem-set-utils';
 import { PROBLEM_SET_CONSTANTS } from '@/lib/constants';
 import { z } from 'zod';
 
@@ -62,6 +64,36 @@ async function reportProblemSet(
   }
 
   try {
+    // Verify the problem set exists and user has access
+    const serviceClient = createServiceClient();
+    const { data: problemSet } = await serviceClient
+      .from('problem_sets')
+      .select('user_id, sharing_level')
+      .eq('id', id)
+      .single();
+
+    if (!problemSet) {
+      return NextResponse.json(
+        createApiErrorResponse('Problem set not found', 404),
+        { status: 404 }
+      );
+    }
+
+    const hasAccess = await checkProblemSetAccess(
+      serviceClient,
+      problemSet,
+      user.id,
+      user.email || null,
+      id
+    );
+
+    if (!hasAccess) {
+      return NextResponse.json(
+        createApiErrorResponse('Problem set not found', 404),
+        { status: 404 }
+      );
+    }
+
     const { error } = await supabase.from('problem_set_reports').insert({
       problem_set_id: id,
       reporter_user_id: user.id,
