@@ -6,8 +6,6 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['lucide-react'],
   },
 
-  allowedDevOrigins: ['192.168.0.18'],
-
   // Image optimization
   images: {
     formats: ['image/webp', 'image/avif'],
