@@ -1,16 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { RichTextDisplay } from '@/components/ui/rich-text-display';
@@ -21,10 +14,14 @@ import {
   Settings,
   Trash2,
   Eye,
+  Heart,
+  Copy,
   Users,
   Globe,
+  Lock,
   Share,
   Sparkles,
+  Bookmark,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProblemSetSharingLevel } from '@/lib/schemas';
@@ -41,13 +38,38 @@ import ResumeSessionDialog from '@/components/review/resume-session-dialog';
 import { ProblemSetWithDetails, ProblemSetsPageClientProps } from '@/lib/types';
 import { useReviewSession } from '@/lib/hooks/useReviewSession';
 
+function formatCount(n: number): string {
+  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
+  return String(n);
+}
+
 export default function ProblemSetsPageClient({
   initialProblemSets,
+  statsMap = {},
+  hasUsername = true,
 }: ProblemSetsPageClientProps) {
   const router = useRouter();
   const [problemSets, setProblemSets] =
     useState<ProblemSetWithDetails[]>(initialProblemSets);
   const [searchText, setSearchText] = useState('');
+  const [tab, setTab] = useState<'my-sets' | 'favourites'>('my-sets');
+  const [favouriteData, setFavouriteData] = useState<{
+    sets: ProblemSetWithDetails[];
+    loaded: boolean;
+    loading: boolean;
+    favSetIds: Set<string>;
+    favStatsMap: Record<
+      string,
+      { view_count: number; like_count: number; copy_count: number }
+    >;
+  }>({
+    sets: [],
+    loaded: false,
+    loading: false,
+    favSetIds: new Set(),
+    favStatsMap: {},
+  });
   const [deleteDialog, setDeleteDialog] = useState<{
     open: boolean;
     problemSetId: string | null;
@@ -75,17 +97,63 @@ export default function ProblemSetsPageClient({
     setResumeDialogOpen,
   } = useReviewSession();
 
-  const filteredProblemSets = useMemo(() => {
-    const q = searchText.trim().toLowerCase();
-    if (!q) return problemSets;
+  // Fetch favourites from API when tab is activated
+  const loadFavourites = useCallback(async () => {
+    if (favouriteData.loaded || favouriteData.loading) return;
+    setFavouriteData(prev => ({ ...prev, loading: true }));
 
-    return problemSets.filter(
+    try {
+      const res = await fetch('/api/problem-sets/favourites');
+      const json = await res.json();
+      if (res.ok && json.data) {
+        const favIds = new Set<string>(json.data.map((s: any) => s.id));
+        const favStats: Record<
+          string,
+          { view_count: number; like_count: number; copy_count: number }
+        > = {};
+        for (const s of json.data) {
+          if (s.stats) favStats[s.id] = s.stats;
+        }
+        setFavouriteData({
+          sets: json.data,
+          loaded: true,
+          loading: false,
+          favSetIds: favIds,
+          favStatsMap: favStats,
+        });
+      } else {
+        setFavouriteData(prev => ({ ...prev, loaded: true, loading: false }));
+      }
+    } catch {
+      setFavouriteData(prev => ({ ...prev, loaded: true, loading: false }));
+    }
+  }, [favouriteData.loaded, favouriteData.loading]);
+
+  useEffect(() => {
+    if (tab === 'favourites') {
+      loadFavourites();
+    }
+  }, [tab, loadFavourites]);
+
+  const filteredProblemSets = useMemo(() => {
+    let sets: ProblemSetWithDetails[];
+
+    if (tab === 'favourites') {
+      sets = favouriteData.sets;
+    } else {
+      sets = problemSets;
+    }
+
+    const q = searchText.trim().toLowerCase();
+    if (!q) return sets;
+
+    return sets.filter(
       problemSet =>
         problemSet.name.toLowerCase().includes(q) ||
         problemSet.description?.toLowerCase().includes(q) ||
         problemSet.subject_name.toLowerCase().includes(q)
     );
-  }, [problemSets, searchText]);
+  }, [problemSets, searchText, tab, favouriteData.sets]);
 
   const handleDeleteClick = (problemSetId: string, problemSetName: string) => {
     setDeleteDialog({
@@ -265,64 +333,132 @@ export default function ProblemSetsPageClient({
         }
       />
 
-      {/* Problem Sets Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProblemSets.map(problemSet => (
-          <Card
-            key={problemSet.id}
-            className="flex h-full flex-col interactive-card cursor-pointer"
-            onClick={() => router.push(`/problem-sets/${problemSet.id}`)}
-          >
-            <CardHeader className="card-section-header">
-              <div className="flex items-start justify-between">
-                <div className="flex-1 min-w-0">
-                  <CardTitle className="card-section-title truncate">
-                    {problemSet.name}
-                  </CardTitle>
-                  <CardDescription className="card-section-description mt-2">
-                    {problemSet.subject_name}
-                  </CardDescription>
-                </div>
-                <div className="flex flex-col gap-1 ml-2">
-                  <Badge variant={getSharingVariant(problemSet.sharing_level)}>
-                    {getSharingIcon(problemSet.sharing_level)}
-                    <span className="ml-1">
-                      {getSharingLabel(problemSet.sharing_level)}
-                    </span>
-                  </Badge>
-                  {problemSet.is_smart && (
-                    <Badge
-                      variant="outline"
-                      className="self-end border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400"
-                    >
-                      <Sparkles className="h-3 w-3 mr-1" />
-                      Smart
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="flex flex-1 flex-col pt-0">
-              {problemSet.description && (
-                <div className="card-section-description mb-4 line-clamp-2">
-                  <RichTextDisplay content={problemSet.description} />
-                </div>
-              )}
+      {/* Tab Switcher */}
+      <div className="flex gap-2">
+        <Button
+          variant={tab === 'my-sets' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setTab('my-sets')}
+          className="rounded-xl"
+        >
+          My Sets
+        </Button>
+        <Button
+          variant={tab === 'favourites' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setTab('favourites')}
+          className="rounded-xl"
+        >
+          <Bookmark className="h-4 w-4 mr-1.5" />
+          Favourites
+        </Button>
+      </div>
 
-              <div className="mt-auto flex items-center justify-between">
-                <div className="card-section-description">
-                  {problemSet.problem_count} problem
-                  {problemSet.problem_count !== 1 ? 's' : ''}
+      {/* Loading state for favourites */}
+      {tab === 'favourites' && favouriteData.loading && (
+        <div className="flex justify-center py-12">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
+        </div>
+      )}
+
+      {/* Problem Sets Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredProblemSets.map(problemSet => {
+          const isPrivate =
+            problemSet.sharing_level === ProblemSetSharingLevel.enum.private;
+          const stats =
+            statsMap[problemSet.id] || favouriteData.favStatsMap[problemSet.id];
+
+          return (
+            <div
+              key={problemSet.id}
+              className="group flex h-[220px] cursor-pointer flex-col rounded-2xl border border-amber-200/40 bg-gradient-to-br from-white to-amber-50/30 p-5 transition-all hover:-translate-y-1 hover:shadow-lg dark:border-gray-700/40 dark:from-gray-800/60 dark:to-gray-800/30"
+              onClick={() => router.push(`/problem-sets/${problemSet.id}`)}
+            >
+              {/* Top: badges, title, description */}
+              <div className="flex-1 min-w-0">
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                    {problemSet.subject_name}
+                  </span>
+                  {problemSet.is_smart && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 px-2 py-0.5 text-xs font-medium text-amber-700 dark:border-amber-700 dark:text-amber-400">
+                      <Sparkles className="h-3 w-3" />
+                      Smart
+                    </span>
+                  )}
+                  <div className="ml-auto flex items-center gap-1.5">
+                    {favouriteData.favSetIds.has(problemSet.id) && (
+                      <Bookmark className="h-3.5 w-3.5 fill-amber-500 text-amber-500 dark:fill-amber-400 dark:text-amber-400" />
+                    )}
+                    {isPrivate ? (
+                      <Lock className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
+                    ) : (
+                      <Badge
+                        variant={getSharingVariant(problemSet.sharing_level)}
+                        className="text-[10px] px-1.5 py-0"
+                      >
+                        {getSharingIcon(problemSet.sharing_level)}
+                        <span className="ml-0.5">
+                          {getSharingLabel(problemSet.sharing_level)}
+                        </span>
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
+                <h3 className="mb-1 truncate text-lg font-semibold text-gray-900 group-hover:text-amber-700 dark:text-white dark:group-hover:text-amber-400">
+                  {problemSet.name}
+                </h3>
+
+                {problemSet.description && (
+                  <div className="line-clamp-2 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+                    <RichTextDisplay content={problemSet.description} />
+                  </div>
+                )}
+              </div>
+
+              {/* Bottom: stats + actions */}
+              <div className="mt-auto flex items-center justify-between pt-3">
+                <div className="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
+                  <span>
+                    {problemSet.problem_count} problem
+                    {problemSet.problem_count !== 1 ? 's' : ''}
+                  </span>
+                  {!isPrivate && stats && (
+                    <>
+                      <span className="flex items-center gap-1">
+                        <Eye className="h-3.5 w-3.5" />
+                        {formatCount(stats.view_count)}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Heart className="h-3.5 w-3.5" />
+                        {formatCount(stats.like_count)}
+                      </span>
+                      {problemSet.allow_copying && (
+                        <span className="flex items-center gap-1">
+                          <Copy className="h-3.5 w-3.5" />
+                          {formatCount(stats.copy_count)}
+                        </span>
+                      )}
+                    </>
+                  )}
+                  {isPrivate && (
+                    <span className="text-gray-400 dark:text-gray-500">
+                      Private
+                    </span>
+                  )}
                 </div>
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
+                      className="h-7 px-2 text-xs text-muted-foreground"
                       onClick={e => e.stopPropagation()}
                     >
-                      Actions
+                      <Settings className="h-3.5 w-3.5" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
@@ -335,15 +471,17 @@ export default function ProblemSetsPageClient({
                       <Eye className="h-4 w-4 mr-2" />
                       View Details
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={e => {
-                        e.stopPropagation();
-                        handleEditClick(problemSet);
-                      }}
-                    >
-                      <Settings className="h-4 w-4 mr-2" />
-                      Edit
-                    </DropdownMenuItem>
+                    {problemSet.isOwner !== false && (
+                      <DropdownMenuItem
+                        onClick={e => {
+                          e.stopPropagation();
+                          handleEditClick(problemSet);
+                        }}
+                      >
+                        <Settings className="h-4 w-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem
                       disabled={sessionLoading === problemSet.id}
                       onClick={e => {
@@ -368,31 +506,51 @@ export default function ProblemSetsPageClient({
                       <Share className="h-4 w-4 mr-2" />
                       Share
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={e => {
-                        e.stopPropagation();
-                        handleDeleteClick(problemSet.id, problemSet.name);
-                      }}
-                      className="text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </DropdownMenuItem>
+                    {problemSet.isOwner !== false && (
+                      <DropdownMenuItem
+                        onClick={e => {
+                          e.stopPropagation();
+                          handleDeleteClick(problemSet.id, problemSet.name);
+                        }}
+                        className="text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-            </CardContent>
-          </Card>
-        ))}
+            </div>
+          );
+        })}
       </div>
 
       {filteredProblemSets.length === 0 && searchText && (
         <div className="text-center py-12">
           <p className="page-description">
-            No problem sets found matching "{searchText}"
+            No problem sets found matching &ldquo;{searchText}&rdquo;
           </p>
         </div>
       )}
+
+      {filteredProblemSets.length === 0 &&
+        !searchText &&
+        tab === 'favourites' &&
+        !favouriteData.loading && (
+          <div className="flex flex-col items-center py-12">
+            <div className="mx-auto w-20 h-20 bg-amber-500/10 dark:bg-amber-500/20 rounded-2xl flex items-center justify-center mb-6">
+              <Bookmark className="h-10 w-10 text-amber-600 dark:text-amber-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              No favourites yet
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 max-w-md text-center">
+              You haven&apos;t favourited any problem sets yet. Browse the
+              Discover page to find sets to save.
+            </p>
+          </div>
+        )}
 
       {/* Delete Confirmation Dialog */}
       <ConfirmationDialog
@@ -412,6 +570,7 @@ export default function ProblemSetsPageClient({
           open={editDialog.open}
           onOpenChange={open => setEditDialog(prev => ({ ...prev, open }))}
           problemSet={editDialog.problemSet}
+          hasUsername={hasUsername}
           onSuccess={() => {
             setTimeout(() => {
               window.location.reload();

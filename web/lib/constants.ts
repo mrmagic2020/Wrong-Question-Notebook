@@ -276,12 +276,40 @@ export const PROBLEM_CONSTANTS = {
 // =====================================================
 // Problem Set Constants
 // =====================================================
+export const DISCOVERY_SUBJECTS = [
+  'Biology',
+  'Business Studies',
+  'Chemistry',
+  'Economics',
+  'English',
+  'Geography',
+  'History',
+  'Languages',
+  'Legal Studies',
+  'Mathematics',
+  'Music',
+  'Physics',
+  'Software Engineering',
+  'Visual Arts',
+  'Other',
+] as const;
+
+export type DiscoverySubject = (typeof DISCOVERY_SUBJECTS)[number];
+
 export const PROBLEM_SET_CONSTANTS = {
   SHARING_LEVELS: {
     PRIVATE: 'private',
     LIMITED: 'limited',
     PUBLIC: 'public',
   },
+  DISCOVERY_PAGE_SIZE: 20,
+  DISCOVERY_MAX_PAGE_SIZE: 50,
+  REPORT_REASONS: [
+    'inappropriate',
+    'spam',
+    'misleading',
+    'other',
+  ] as readonly string[],
 } as const;
 
 // =====================================================

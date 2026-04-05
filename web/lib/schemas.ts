@@ -412,9 +412,14 @@ export const CreateProblemSetDto = z.object({
   allow_copying: z.boolean().default(true),
 });
 
-export const UpdateProblemSetDto = CreateProblemSetDto.partial().omit({
-  subject_id: true,
-});
+export const UpdateProblemSetDto = CreateProblemSetDto.extend({
+  is_listed: z.boolean().optional(),
+  discovery_subject: z.string().nullable().optional(),
+})
+  .partial()
+  .omit({
+    subject_id: true,
+  });
 
 export const AddProblemsToSetDto = z.object({
   problem_ids: z.array(z.uuid()),

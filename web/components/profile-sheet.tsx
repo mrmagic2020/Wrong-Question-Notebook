@@ -237,6 +237,10 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
   }, []);
 
   const handleSave = async () => {
+    if (!username.trim()) {
+      setUsernameError('Username is required');
+      return;
+    }
     if (usernameError || usernameChecking) return;
     setSaving(true);
     setSaveError(null);
@@ -392,7 +396,7 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
             {/* Username */}
             <div className="space-y-1">
               <Label htmlFor="sheet-username" className="text-xs">
-                Username
+                Username <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
                 <Input
@@ -408,7 +412,13 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
                     setUsernameError(null);
                     setFieldErrors(prev => ({ ...prev, username: [] }));
                   }}
-                  onBlur={() => checkUsername(username)}
+                  onBlur={() => {
+                    if (!username.trim()) {
+                      setUsernameError('Username is required');
+                    } else {
+                      checkUsername(username);
+                    }
+                  }}
                   placeholder="Enter username"
                   maxLength={50}
                   className="text-sm pr-8"

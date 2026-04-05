@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { requireUser } from '@/lib/supabase/requireUser';
+import { createServiceClient } from '@/lib/supabase-utils';
 import ProblemSetsPageClient from './problem-sets-page-client';
 import type { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
@@ -117,5 +118,47 @@ async function loadProblemSets() {
 export default async function ProblemSetsPage() {
   const { data } = await loadProblemSets();
 
-  return <ProblemSetsPageClient initialProblemSets={data} />;
+  const { user } = await requireUser();
+  // Fetch social stats for non-private owned sets
+  const nonPrivateIds = data
+    .filter(ps => ps.sharing_level !== 'private')
+    .map(ps => ps.id);
+  const statsMap: Record<
+    string,
+    { view_count: number; like_count: number; copy_count: number }
+  > = {};
+  if (nonPrivateIds.length > 0) {
+    const serviceClient = createServiceClient();
+    const { data: statsRows } = await serviceClient
+      .from('problem_set_stats')
+      .select('problem_set_id, view_count, like_count, copy_count')
+      .in('problem_set_id', nonPrivateIds);
+    for (const row of statsRows || []) {
+      statsMap[row.problem_set_id] = {
+        view_count: row.view_count,
+        like_count: row.like_count,
+        copy_count: row.copy_count,
+      };
+    }
+  }
+
+  // Check if user has a username (for ListedToggle in edit dialog)
+  let hasUsername = false;
+  if (user) {
+    const serviceClient = createServiceClient();
+    const { data: profile } = await serviceClient
+      .from('user_profiles')
+      .select('username')
+      .eq('id', user.id)
+      .single();
+    hasUsername = !!profile?.username;
+  }
+
+  return (
+    <ProblemSetsPageClient
+      initialProblemSets={data}
+      statsMap={statsMap}
+      hasUsername={hasUsername}
+    />
+  );
 }

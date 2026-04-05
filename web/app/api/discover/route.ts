@@ -1,0 +1,230 @@
+import { NextResponse } from 'next/server';
+import { withSecurity } from '@/lib/security-middleware';
+import {
+  createApiErrorResponse,
+  createApiSuccessResponse,
+  handleAsyncError,
+} from '@/lib/common-utils';
+import { createServiceClient } from '@/lib/supabase-utils';
+import { PROBLEM_SET_CONSTANTS } from '@/lib/constants';
+
+export const revalidate = 120; // 2 minutes
+
+type SortOption = 'ranking' | 'newest' | 'most_liked' | 'most_copied';
+
+async function discoverProblemSets(req: Request) {
+  const url = new URL(req.url);
+  const limitParam = parseInt(
+    url.searchParams.get('limit') ||
+      String(PROBLEM_SET_CONSTANTS.DISCOVERY_PAGE_SIZE)
+  );
+  const limit = Math.min(
+    Math.max(1, limitParam),
+    PROBLEM_SET_CONSTANTS.DISCOVERY_MAX_PAGE_SIZE
+  );
+  const cursor = url.searchParams.get('cursor');
+  const q = url.searchParams.get('q')?.trim();
+  const subject = url.searchParams.get('subject')?.trim();
+  const sort = (url.searchParams.get('sort') || 'ranking') as SortOption;
+
+  try {
+    const serviceClient = createServiceClient();
+
+    // Build the base query for listed public sets
+    // Note: user_profiles has no direct FK from problem_sets, so we fetch profiles separately
+    let query = serviceClient
+      .from('problem_sets')
+      .select(
+        `
+        id,
+        user_id,
+        name,
+        description,
+        is_smart,
+        created_at,
+        discovery_subject,
+        problem_set_stats!inner (
+          view_count, unique_view_count, like_count, copy_count,
+          problem_count, ranking_score
+        )
+      `
+      )
+      .eq('sharing_level', 'public')
+      .eq('is_listed', true)
+      .gt('problem_set_stats.problem_count', 0);
+
+    // Full-text search
+    if (q) {
+      query = query.textSearch('fts', q, { type: 'websearch' });
+    }
+
+    // Subject filter (uses curated discovery_subject, not notebook name)
+    if (subject) {
+      query = query.eq('discovery_subject', subject);
+    }
+
+    // PostgREST cannot order parent rows by embedded table columns,
+    // so only 'newest' uses DB-level ordering. Other sorts fetch all
+    // matching rows and sort in JavaScript.
+    if (sort === 'newest') {
+      query = query.order('created_at', { ascending: false });
+      if (cursor) {
+        query = query.lt('created_at', cursor);
+      }
+      query = query.limit(limit + 1);
+    } else {
+      // Fetch all matching rows for JS-based sorting
+      query = query.order('created_at', { ascending: false });
+    }
+
+    const { data: rawSets, error } = await query;
+
+    if (error) {
+      return NextResponse.json(
+        createApiErrorResponse(
+          'Failed to fetch discovery data',
+          500,
+          error.message
+        ),
+        { status: 500 }
+      );
+    }
+
+    let sets = rawSets || [];
+
+    // For stats-based sorts, sort in JavaScript
+    if (sort !== 'newest') {
+      sets.sort((a: any, b: any) => {
+        const statsA = a.problem_set_stats;
+        const statsB = b.problem_set_stats;
+        switch (sort) {
+          case 'most_liked':
+            return (statsB?.like_count || 0) - (statsA?.like_count || 0);
+          case 'most_copied':
+            return (statsB?.copy_count || 0) - (statsA?.copy_count || 0);
+          case 'ranking':
+          default:
+            return (statsB?.ranking_score || 0) - (statsA?.ranking_score || 0);
+        }
+      });
+
+      // Apply cursor-based offset for JS-sorted results
+      if (cursor) {
+        const cursorIdx = sets.findIndex((s: any) => s.id === cursor);
+        if (cursorIdx !== -1) {
+          sets = sets.slice(cursorIdx + 1);
+        }
+      }
+    }
+
+    const hasMore = sets.length > limit;
+    const pageData = hasMore ? sets.slice(0, limit) : sets;
+
+    // Fetch owner profiles separately (no direct FK from problem_sets to user_profiles)
+    const ownerIds = [
+      ...new Set(pageData.map((s: any) => s.user_id).filter(Boolean)),
+    ];
+    const profileMap = new Map<
+      string,
+      {
+        username: string | null;
+        first_name: string | null;
+        last_name: string | null;
+        avatar_url: string | null;
+      }
+    >();
+    if (ownerIds.length > 0) {
+      const { data: profiles } = await serviceClient
+        .from('user_profiles')
+        .select('id, username, first_name, last_name, avatar_url')
+        .in('id', ownerIds);
+      for (const p of profiles || []) {
+        profileMap.set(p.id, p);
+      }
+    }
+
+    // Transform the data into ProblemSetCard format
+    const data = pageData.map((set: any) => {
+      const profile = profileMap.get(set.user_id);
+      const displayName =
+        [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') ||
+        profile?.username ||
+        'Anonymous';
+
+      return {
+        id: set.id,
+        name: set.name,
+        description: set.description,
+        subject_name: set.discovery_subject || 'Other',
+        subject_color: null,
+        subject_icon: null,
+        problem_count: set.problem_set_stats?.problem_count || 0,
+        is_smart: set.is_smart,
+        owner: {
+          username: profile?.username || null,
+          display_name: displayName,
+          avatar_url: profile?.avatar_url || null,
+        },
+        stats: {
+          view_count: set.problem_set_stats?.view_count || 0,
+          unique_view_count: set.problem_set_stats?.unique_view_count || 0,
+          like_count: set.problem_set_stats?.like_count || 0,
+          copy_count: set.problem_set_stats?.copy_count || 0,
+          problem_count: set.problem_set_stats?.problem_count || 0,
+          ranking_score: set.problem_set_stats?.ranking_score || 0,
+        },
+        created_at: set.created_at,
+      };
+    });
+
+    // Determine the next cursor value
+    let nextCursor: string | null = null;
+    if (hasMore && pageData.length > 0) {
+      const lastItem = pageData[pageData.length - 1] as any;
+      if (sort === 'newest') {
+        nextCursor = lastItem.created_at;
+      } else {
+        // For JS-sorted results, use the last item's ID as cursor
+        nextCursor = lastItem.id;
+      }
+    }
+
+    // Fetch distinct discovery subjects with counts (exclude empty sets)
+    const { data: subjectRows } = await serviceClient
+      .from('problem_sets')
+      .select('discovery_subject, problem_set_stats!inner(problem_count)')
+      .eq('sharing_level', 'public')
+      .eq('is_listed', true)
+      .not('discovery_subject', 'is', null)
+      .gt('problem_set_stats.problem_count', 0);
+
+    let subjects: { name: string; count: number }[] = [];
+    if (subjectRows) {
+      const counts = new Map<string, number>();
+      for (const row of subjectRows as any[]) {
+        const name = row.discovery_subject;
+        if (name) counts.set(name, (counts.get(name) || 0) + 1);
+      }
+      subjects = Array.from(counts.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count);
+    }
+
+    return NextResponse.json(
+      createApiSuccessResponse({
+        data,
+        next_cursor: nextCursor,
+        subjects,
+      })
+    );
+  } catch (error) {
+    const { message, status } = handleAsyncError(error);
+    return NextResponse.json(createApiErrorResponse(message, status), {
+      status,
+    });
+  }
+}
+
+export const GET = withSecurity(discoverProblemSets, {
+  rateLimitType: 'readOnly',
+});

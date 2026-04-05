@@ -9,6 +9,37 @@ and this project adheres to [Semantic Versioning].
 
 ### Added
 
+- **Social & Discovery for Problem Sets**: Full social engagement layer for public problem sets
+  - View count tracking with 15-minute dedup window (IP-based for anonymous, user-based for authenticated)
+  - Like/unlike toggle with optimistic UI and animated heart icon
+  - Favourite/bookmark with private per-user storage (tab on Problem Sets page)
+  - Copy count tracking on shared sets
+  - Social actions bar on public set detail pages (views, likes, copies, favourite, share, report)
+  - Report/flag mechanism for inappropriate content (admin-only moderation initially)
+
+- **In-App Discovery Page** (`/discover`): Browse and search listed public problem sets
+  - Ranking algorithm (quality-biased: copies×5, likes×3, views×0.5 with 30-day time decay)
+  - Full-text search using PostgreSQL tsvector with weighted columns (name=A, description=B)
+  - Subject filter chips and sort options (Trending, Newest, Most Liked, Most Copied)
+  - Cursor-based pagination with infinite scroll
+  - Responsive card grid (1→2→3 columns)
+  - Added "Discover" link to main navigation (Globe icon, purple accent)
+
+- **Creator Profiles** (`/creators/[username]`): Public pages for content creators
+  - Profile header with avatar, display name, bio, and aggregate engagement stats
+  - Grid of listed public problem sets using DiscoveryCard component
+  - SEO metadata with OpenGraph tags
+
+- **Listed vs Unlisted Public Sets**: New `is_listed` toggle in problem set edit dialog
+  - Public sets default to listed (opt-out model)
+  - "Show in Discovery" toggle visible when sharing level is public
+  - Username required to list sets in discovery
+
+- **SEO Improvements**
+  - Dynamic sitemap (`app/sitemap.ts`) replacing static `next-sitemap`, including all listed public sets and creator profiles
+  - OpenGraph and Twitter Card metadata on public problem set detail pages
+  - Canonical URLs on public pages
+
 - **AI Answer Extraction**: The image extraction feature now detects visible answers (circled MCQ choices, written short answers, worked solutions) and pre-fills them as editable suggestions in the problem form
   - MCQ: pre-selects the correct choice if visually marked
   - Short answer: populates text or numeric answer config

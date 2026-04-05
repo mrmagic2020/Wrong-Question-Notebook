@@ -29,6 +29,12 @@ export const CACHE_DURATIONS = {
 
   // Insights - 30 minutes (digests are pre-computed daily)
   INSIGHTS: 30 * 60, // 30 minutes
+
+  // Discovery - 2 minutes (public browsing, updated on social actions)
+  DISCOVERY: 2 * 60, // 2 minutes
+
+  // Sitemap - 1 hour (listed sets change infrequently)
+  SITEMAP: 60 * 60, // 1 hour
 } as const;
 
 // Cache tags for organized invalidation
@@ -46,6 +52,8 @@ export const CACHE_TAGS = {
   STATISTICS: 'statistics',
   REVIEW_SCHEDULE: 'review-schedule',
   INSIGHTS: 'insights',
+  DISCOVERY: 'discovery',
+  SITEMAP: 'sitemap',
 
   // User-specific tags (will be combined with user ID)
   USER_SUBJECTS: 'user-subjects',

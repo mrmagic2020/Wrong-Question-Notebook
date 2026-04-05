@@ -27,11 +27,13 @@ import { toast } from 'sonner';
 import { ProblemSetSharingLevel } from '@/lib/schemas';
 import { ProblemSetEditDialogProps } from '@/lib/types';
 import { Switch } from '@/components/ui/switch';
+import { ListedToggle } from '@/components/listed-toggle';
 
 export default function ProblemSetEditDialog({
   open,
   onOpenChange,
   problemSet,
+  hasUsername = true,
   onSuccess,
 }: ProblemSetEditDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
@@ -42,6 +44,8 @@ export default function ProblemSetEditDialog({
       .private as ProblemSetSharingLevel,
     shared_with_emails: [] as string[],
     allow_copying: true,
+    is_listed: true,
+    discovery_subject: null as string | null,
   });
   const [emailInput, setEmailInput] = useState('');
 
@@ -54,6 +58,8 @@ export default function ProblemSetEditDialog({
         sharing_level: problemSet.sharing_level,
         shared_with_emails: problemSet.shared_with_emails || [],
         allow_copying: problemSet.allow_copying ?? true,
+        is_listed: problemSet.is_listed ?? true,
+        discovery_subject: problemSet.discovery_subject ?? null,
       });
     }
   }, [problemSet]);
@@ -74,7 +80,7 @@ export default function ProblemSetEditDialog({
     setIsLoading(true);
 
     try {
-      const payload = {
+      const payload: Record<string, unknown> = {
         name: formData.name.trim(),
         description: formData.description.trim() || '',
         sharing_level: formData.sharing_level,
@@ -84,6 +90,14 @@ export default function ProblemSetEditDialog({
             : undefined,
         allow_copying: formData.allow_copying,
       };
+
+      // Include discovery fields only for public sets
+      if (formData.sharing_level === ProblemSetSharingLevel.enum.public) {
+        payload.is_listed = formData.is_listed;
+        payload.discovery_subject = formData.is_listed
+          ? formData.discovery_subject
+          : null;
+      }
 
       const response = await fetch(`/api/problem-sets/${problemSet.id}`, {
         method: 'PUT',
@@ -168,7 +182,7 @@ export default function ProblemSetEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Problem Set</DialogTitle>
           <DialogDescription>
@@ -285,6 +299,21 @@ export default function ProblemSetEditDialog({
                 }
               />
             </div>
+          )}
+
+          {formData.sharing_level === ProblemSetSharingLevel.enum.public && (
+            <ListedToggle
+              isListed={formData.is_listed}
+              onToggle={listed =>
+                setFormData(prev => ({ ...prev, is_listed: listed }))
+              }
+              discoverySubject={formData.discovery_subject}
+              onSubjectChange={subject =>
+                setFormData(prev => ({ ...prev, discovery_subject: subject }))
+              }
+              hasUsername={hasUsername}
+              problemCount={problemSet.problem_count}
+            />
           )}
 
           <DialogFooter>

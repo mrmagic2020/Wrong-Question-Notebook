@@ -3,7 +3,6 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 Disallow: /api/
-Disallow: /auth/
 
 # Host
 Host: https://wqn.magicworks.app/
