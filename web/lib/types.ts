@@ -109,7 +109,7 @@ export interface ProblemSetCard {
   problem_count: number;
   is_smart: boolean;
   owner: {
-    username: string;
+    username: string | null;
     display_name: string;
     avatar_url: string | null;
   };

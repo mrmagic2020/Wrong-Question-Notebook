@@ -66,7 +66,7 @@ async function loadDiscoveryData() {
           problem_count: set.problem_count || 0,
           is_smart: set.is_smart,
           owner: {
-            username: profile?.username || 'anonymous',
+            username: profile?.username || null,
             display_name: displayName,
             avatar_url: profile?.avatar_url || null,
           },
