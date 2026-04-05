@@ -54,8 +54,16 @@ export function DiscoveryCard({
 
   return (
     <div
+      role="link"
+      tabIndex={0}
       onClick={() => router.push(cardHref)}
-      className="group flex h-[220px] cursor-pointer flex-col rounded-2xl border border-amber-200/40 bg-gradient-to-br from-white to-amber-50/30 p-5 transition-all hover:-translate-y-1 hover:shadow-lg dark:border-gray-700/40 dark:from-gray-800/60 dark:to-gray-800/30"
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          router.push(cardHref);
+        }
+      }}
+      className="group flex h-[220px] cursor-pointer flex-col rounded-2xl border border-amber-200/40 bg-gradient-to-br from-white to-amber-50/30 p-5 transition-all hover:-translate-y-1 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 dark:border-gray-700/40 dark:from-gray-800/60 dark:to-gray-800/30"
     >
       {/* Top: subject badge, title, description (grows to fill) */}
       <div className="flex-1">
