@@ -95,8 +95,26 @@ export function transformProblemSetProblems(problemSetProblems: any[]): any[] {
 }
 
 /**
- * Get a problem set with full data including problems and tags
- * This is a pure data-fetching function - caching should be handled at the call site
+ * Columns to select from problem_sets (excludes `fts` tsvector which is
+ * only needed for full-text search, not for detail page rendering).
+ */
+const PROBLEM_SET_COLUMNS = `
+  id, user_id, subject_id, name, description, sharing_level,
+  created_at, updated_at, is_smart, filter_config, session_config,
+  allow_copying, is_listed, discovery_subject
+`;
+
+/**
+ * Get a problem set with full data including problems and tags.
+ *
+ * Uses a two-query pattern:
+ *  1. Lightweight metadata fetch (no nested problem joins, no fts column)
+ *  2. Targeted problems fetch — smart sets use filter evaluation,
+ *     manual sets query the junction table with nested problem/tag joins
+ *
+ * This avoids the 4-level PostgREST embedded select that generated
+ * expensive lateral subqueries, and skips the empty junction-table
+ * join for smart sets entirely.
  */
 export async function getProblemSetWithFullData(
   supabase: any,
@@ -104,31 +122,14 @@ export async function getProblemSetWithFullData(
   userId: string | null,
   userEmail: string | null
 ) {
-  // Get the problem set with problems and their details
+  // Step 1: Fetch problem set metadata (lightweight — no problem joins)
   const { data: problemSet, error: problemSetError } = await supabase
     .from('problem_sets')
     .select(
       `
-      *,
+      ${PROBLEM_SET_COLUMNS},
       subjects(name),
-      problem_set_problems(
-        problem_id,
-        added_at,
-        problems(
-          id,
-          title,
-          content,
-          problem_type,
-          status,
-          last_reviewed_date,
-          created_at,
-          problem_tag(tags:tag_id(id, name))
-        )
-      ),
-      problem_set_shares(
-        id,
-        shared_with_email
-      )
+      problem_set_shares(id, shared_with_email)
     `
     )
     .eq('id', problemSetId)
@@ -139,7 +140,7 @@ export async function getProblemSetWithFullData(
     return null;
   }
 
-  // Check access permissions
+  // Step 2: Check access permissions
   const hasAccess = await checkProblemSetAccess(
     supabase,
     problemSet,
@@ -152,11 +153,13 @@ export async function getProblemSetWithFullData(
     return null;
   }
 
-  // For smart sets, fetch problems via filter; for manual sets, use junction table
+  // Step 3: Fetch problems separately based on set type
   const isOwner = !!userId && problemSet.user_id === userId;
   const ownerUserId = problemSet.user_id;
   let problems;
+
   if (problemSet.is_smart && problemSet.filter_config) {
+    // Smart sets: filter-based query (junction table is always empty)
     const filterConfig: FilterConfig = {
       tag_ids: problemSet.filter_config.tag_ids ?? [],
       statuses: problemSet.filter_config.statuses ?? [],
@@ -180,7 +183,28 @@ export async function getProblemSetWithFullData(
       added_at: p.created_at, // Smart sets don't have added_at; use created_at
     }));
   } else {
-    problems = transformProblemSetProblems(problemSet.problem_set_problems);
+    // Manual sets: fetch problems via junction table (separate query)
+    const { data: junctionRows, error: problemsError } = await supabase
+      .from('problem_set_problems')
+      .select(
+        `
+        problem_id,
+        added_at,
+        problems(
+          id, title, content, problem_type, status,
+          last_reviewed_date, created_at,
+          problem_tag(tags:tag_id(id, name))
+        )
+      `
+      )
+      .eq('problem_set_id', problemSetId);
+
+    if (problemsError) {
+      console.error('Error loading problem set problems:', problemsError);
+      problems = [];
+    } else {
+      problems = transformProblemSetProblems(junctionRows || []);
+    }
   }
 
   // Transform shared emails
