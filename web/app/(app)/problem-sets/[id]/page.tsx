@@ -190,6 +190,12 @@ export default async function ProblemSetPage({
     hasUsername = !!profile?.username;
   }
 
+  // Sanitize `from` param to prevent open-redirect via external URLs
+  const backHref =
+    from && from.startsWith('/') && !from.startsWith('//')
+      ? from
+      : '/problem-sets';
+
   return (
     <ProblemSetPageClient
       initialProblemSet={problemSet}
@@ -198,7 +204,7 @@ export default async function ProblemSetPage({
       initialStats={stats}
       initialSocialState={socialState}
       hasUsername={hasUsername}
-      backHref={from || '/problem-sets'}
+      backHref={backHref}
     />
   );
 }

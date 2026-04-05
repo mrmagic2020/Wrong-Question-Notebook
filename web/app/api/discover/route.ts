@@ -4,6 +4,7 @@ import {
   createApiErrorResponse,
   createApiSuccessResponse,
   handleAsyncError,
+  isValidUuid,
 } from '@/lib/common-utils';
 import { createServiceClient } from '@/lib/supabase-utils';
 import { PROBLEM_SET_CONSTANTS } from '@/lib/constants';
@@ -21,6 +22,36 @@ function decodeCursor(cursor: string): { value: string; id: string } | null {
   const idx = cursor.lastIndexOf(':');
   if (idx === -1) return null;
   return { value: cursor.slice(0, idx), id: cursor.slice(idx + 1) };
+}
+
+/**
+ * Validate and decode a pagination cursor, ensuring the id is a valid UUID
+ * and the value matches the expected type for the sort mode.
+ * Prevents PostgREST filter injection via crafted cursor strings.
+ */
+function validateCursor(
+  cursor: string,
+  sort: SortOption
+): { value: string; id: string } | null {
+  const parsed = decodeCursor(cursor);
+  if (!parsed) return null;
+
+  if (!isValidUuid(parsed.id)) return null;
+
+  switch (sort) {
+    case 'newest':
+      if (isNaN(Date.parse(parsed.value))) return null;
+      break;
+    case 'most_liked':
+    case 'most_copied':
+    case 'ranking':
+    default:
+      if (isNaN(Number(parsed.value)) || !isFinite(Number(parsed.value)))
+        return null;
+      break;
+  }
+
+  return parsed;
 }
 
 async function discoverProblemSets(req: Request) {
@@ -56,7 +87,7 @@ async function discoverProblemSets(req: Request) {
     }
 
     // Sorting + cursor-based keyset pagination
-    const parsed = cursor ? decodeCursor(cursor) : null;
+    const parsed = cursor ? validateCursor(cursor, sort) : null;
 
     switch (sort) {
       case 'newest':
