@@ -7,7 +7,6 @@ import {
   handleAsyncError,
 } from '@/lib/common-utils';
 import { createServiceClient } from '@/lib/supabase-utils';
-import { checkProblemSetAccess } from '@/lib/problem-set-utils';
 
 async function getFavourites() {
   const { user, supabase } = await requireUser();
@@ -54,20 +53,29 @@ async function getFavourites() {
       );
     }
 
-    // Filter to only sets the user can actually access
-    const accessChecks = await Promise.all(
-      (allSets || []).map(async (ps: any) => {
-        const hasAccess = await checkProblemSetAccess(
-          serviceClient,
-          ps,
-          user.id,
-          user.email || null,
-          ps.id
-        );
-        return { ps, hasAccess };
-      })
-    );
-    const sets = accessChecks.filter(r => r.hasAccess).map(r => r.ps);
+    // Filter to only sets the user can actually access (batched, not N+1)
+    // Prefetch all limited shares for this user in one query
+    const limitedSetIds = (allSets || [])
+      .filter((ps: any) => ps.sharing_level === 'limited')
+      .map((ps: any) => ps.id);
+    const sharedSetIds = new Set<string>();
+    if (limitedSetIds.length > 0) {
+      const { data: shares } = await serviceClient
+        .from('problem_set_shares')
+        .select('problem_set_id')
+        .in('problem_set_id', limitedSetIds)
+        .ilike('shared_with_email', user.email || '');
+      for (const s of shares || []) {
+        sharedSetIds.add(s.problem_set_id);
+      }
+    }
+
+    const sets = (allSets || []).filter((ps: any) => {
+      if (ps.user_id === user.id) return true; // own set
+      if (ps.sharing_level === 'public') return true;
+      if (ps.sharing_level === 'limited') return sharedSetIds.has(ps.id);
+      return false; // private
+    });
 
     // Clean up stale favourites for sets the user can no longer access
     const accessibleIds = new Set(sets.map((s: any) => s.id));

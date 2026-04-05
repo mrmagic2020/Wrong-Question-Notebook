@@ -25,26 +25,16 @@ async function loadDiscoveryData() {
     async () => {
       const serviceClient = createServiceClient();
 
-      // Fetch initial page of listed public sets, ranked by score
+      // Query the flattened view — ranking_score is a direct column, so
+      // DB-level ordering works natively (no JS sort needed)
       const { data: rawSets } = await serviceClient
-        .from('problem_sets')
-        .select(
-          `
-          id, user_id, name, description, is_smart, created_at,
-          discovery_subject,
-          problem_set_stats!inner (
-            view_count, unique_view_count, like_count, copy_count,
-            problem_count, ranking_score
-          )
-        `
-        )
-        .eq('sharing_level', 'public')
-        .eq('is_listed', true)
-        .gt('problem_set_stats.problem_count', 0)
-        .order('created_at', { ascending: false })
+        .from('discoverable_problem_sets')
+        .select('*')
+        .order('ranking_score', { ascending: false })
+        .order('id', { ascending: false })
         .limit(20);
 
-      // Fetch owner profiles separately (no direct FK from problem_sets to user_profiles)
+      // Fetch owner profiles separately (no direct FK to user_profiles)
       const ownerIds = [
         ...new Set((rawSets || []).map((s: any) => s.user_id).filter(Boolean)),
       ];
@@ -73,38 +63,30 @@ async function loadDiscoveryData() {
           subject_name: set.discovery_subject || 'Other',
           subject_color: null,
           subject_icon: null,
-          problem_count: set.problem_set_stats?.problem_count || 0,
+          problem_count: set.problem_count || 0,
           is_smart: set.is_smart,
           owner: {
-            username: profile?.username || null,
+            username: profile?.username || 'anonymous',
             display_name: displayName,
             avatar_url: profile?.avatar_url || null,
           },
           stats: {
-            view_count: set.problem_set_stats?.view_count || 0,
-            unique_view_count: set.problem_set_stats?.unique_view_count || 0,
-            like_count: set.problem_set_stats?.like_count || 0,
-            copy_count: set.problem_set_stats?.copy_count || 0,
-            problem_count: set.problem_set_stats?.problem_count || 0,
-            ranking_score: set.problem_set_stats?.ranking_score || 0,
+            view_count: set.view_count || 0,
+            unique_view_count: set.unique_view_count || 0,
+            like_count: set.like_count || 0,
+            copy_count: set.copy_count || 0,
+            problem_count: set.problem_count || 0,
+            ranking_score: set.ranking_score || 0,
           },
           created_at: set.created_at,
         };
       });
 
-      // Sort by ranking score (descending) since DB can't order by embedded columns
-      sets.sort(
-        (a, b) => (b.stats.ranking_score || 0) - (a.stats.ranking_score || 0)
-      );
-
-      // Fetch distinct discovery subjects (exclude empty sets)
+      // Fetch distinct discovery subjects (uses same view)
       const { data: subjectRows } = await serviceClient
-        .from('problem_sets')
-        .select('discovery_subject, problem_set_stats!inner(problem_count)')
-        .eq('sharing_level', 'public')
-        .eq('is_listed', true)
-        .not('discovery_subject', 'is', null)
-        .gt('problem_set_stats.problem_count', 0);
+        .from('discoverable_problem_sets')
+        .select('discovery_subject')
+        .not('discovery_subject', 'is', null);
 
       const subjectCounts = new Map<string, number>();
       for (const row of (subjectRows || []) as any[]) {

@@ -12,6 +12,17 @@ export const revalidate = 120; // 2 minutes
 
 type SortOption = 'ranking' | 'newest' | 'most_liked' | 'most_copied';
 
+// Cursor format: "value:id" for composite keyset pagination
+function encodeCursor(value: string | number, id: string): string {
+  return `${value}:${id}`;
+}
+
+function decodeCursor(cursor: string): { value: string; id: string } | null {
+  const idx = cursor.lastIndexOf(':');
+  if (idx === -1) return null;
+  return { value: cursor.slice(0, idx), id: cursor.slice(idx + 1) };
+}
+
 async function discoverProblemSets(req: Request) {
   const url = new URL(req.url);
   const limitParam = parseInt(
@@ -30,52 +41,67 @@ async function discoverProblemSets(req: Request) {
   try {
     const serviceClient = createServiceClient();
 
-    // Build the base query for listed public sets
-    // Note: user_profiles has no direct FK from problem_sets, so we fetch profiles separately
-    let query = serviceClient
-      .from('problem_sets')
-      .select(
-        `
-        id,
-        user_id,
-        name,
-        description,
-        is_smart,
-        created_at,
-        discovery_subject,
-        problem_set_stats!inner (
-          view_count, unique_view_count, like_count, copy_count,
-          problem_count, ranking_score
-        )
-      `
-      )
-      .eq('sharing_level', 'public')
-      .eq('is_listed', true)
-      .gt('problem_set_stats.problem_count', 0);
+    // Query the flattened view — all columns are direct, so ordering
+    // and cursor-based pagination work natively in SQL.
+    let query = serviceClient.from('discoverable_problem_sets').select('*');
 
-    // Full-text search
+    // Full-text search (fts is a direct column on the view)
     if (q) {
       query = query.textSearch('fts', q, { type: 'websearch' });
     }
 
-    // Subject filter (uses curated discovery_subject, not notebook name)
+    // Subject filter
     if (subject) {
       query = query.eq('discovery_subject', subject);
     }
 
-    // PostgREST cannot order parent rows by embedded table columns,
-    // so only 'newest' uses DB-level ordering. Other sorts fetch all
-    // matching rows and sort in JavaScript.
-    if (sort === 'newest') {
-      query = query.order('created_at', { ascending: false });
-      if (cursor) {
-        query = query.lt('created_at', cursor);
-      }
-      query = query.limit(limit + 1);
-    } else {
-      // Fetch all matching rows for JS-based sorting
-      query = query.order('created_at', { ascending: false });
+    // Sorting + cursor-based keyset pagination
+    const parsed = cursor ? decodeCursor(cursor) : null;
+
+    switch (sort) {
+      case 'newest':
+        query = query.order('created_at', { ascending: false });
+        if (parsed) {
+          query = query.or(
+            `created_at.lt.${parsed.value},and(created_at.eq.${parsed.value},id.lt.${parsed.id})`
+          );
+        }
+        break;
+      case 'most_liked':
+        query = query
+          .order('like_count', { ascending: false })
+          .order('id', { ascending: false });
+        if (parsed) {
+          query = query.or(
+            `like_count.lt.${parsed.value},and(like_count.eq.${parsed.value},id.lt.${parsed.id})`
+          );
+        }
+        break;
+      case 'most_copied':
+        query = query
+          .order('copy_count', { ascending: false })
+          .order('id', { ascending: false });
+        if (parsed) {
+          query = query.or(
+            `copy_count.lt.${parsed.value},and(copy_count.eq.${parsed.value},id.lt.${parsed.id})`
+          );
+        }
+        break;
+      case 'ranking':
+      default:
+        query = query
+          .order('ranking_score', { ascending: false })
+          .order('id', { ascending: false });
+        if (parsed) {
+          query = query.or(
+            `ranking_score.lt.${parsed.value},and(ranking_score.eq.${parsed.value},id.lt.${parsed.id})`
+          );
+        }
+        break;
     }
+
+    // Fetch one extra to determine if there's a next page
+    query = query.limit(limit + 1);
 
     const { data: rawSets, error } = await query;
 
@@ -90,37 +116,11 @@ async function discoverProblemSets(req: Request) {
       );
     }
 
-    let sets = rawSets || [];
-
-    // For stats-based sorts, sort in JavaScript
-    if (sort !== 'newest') {
-      sets.sort((a: any, b: any) => {
-        const statsA = a.problem_set_stats;
-        const statsB = b.problem_set_stats;
-        switch (sort) {
-          case 'most_liked':
-            return (statsB?.like_count || 0) - (statsA?.like_count || 0);
-          case 'most_copied':
-            return (statsB?.copy_count || 0) - (statsA?.copy_count || 0);
-          case 'ranking':
-          default:
-            return (statsB?.ranking_score || 0) - (statsA?.ranking_score || 0);
-        }
-      });
-
-      // Apply cursor-based offset for JS-sorted results
-      if (cursor) {
-        const cursorIdx = sets.findIndex((s: any) => s.id === cursor);
-        if (cursorIdx !== -1) {
-          sets = sets.slice(cursorIdx + 1);
-        }
-      }
-    }
-
+    const sets = rawSets || [];
     const hasMore = sets.length > limit;
     const pageData = hasMore ? sets.slice(0, limit) : sets;
 
-    // Fetch owner profiles separately (no direct FK from problem_sets to user_profiles)
+    // Fetch owner profiles separately (no direct FK to user_profiles)
     const ownerIds = [
       ...new Set(pageData.map((s: any) => s.user_id).filter(Boolean)),
     ];
@@ -143,7 +143,7 @@ async function discoverProblemSets(req: Request) {
       }
     }
 
-    // Transform the data into ProblemSetCard format
+    // Transform into ProblemSetCard format
     const data = pageData.map((set: any) => {
       const profile = profileMap.get(set.user_id);
       const displayName =
@@ -158,45 +158,51 @@ async function discoverProblemSets(req: Request) {
         subject_name: set.discovery_subject || 'Other',
         subject_color: null,
         subject_icon: null,
-        problem_count: set.problem_set_stats?.problem_count || 0,
+        problem_count: set.problem_count || 0,
         is_smart: set.is_smart,
         owner: {
-          username: profile?.username || null,
+          username: profile?.username || 'anonymous',
           display_name: displayName,
           avatar_url: profile?.avatar_url || null,
         },
         stats: {
-          view_count: set.problem_set_stats?.view_count || 0,
-          unique_view_count: set.problem_set_stats?.unique_view_count || 0,
-          like_count: set.problem_set_stats?.like_count || 0,
-          copy_count: set.problem_set_stats?.copy_count || 0,
-          problem_count: set.problem_set_stats?.problem_count || 0,
-          ranking_score: set.problem_set_stats?.ranking_score || 0,
+          view_count: set.view_count || 0,
+          unique_view_count: set.unique_view_count || 0,
+          like_count: set.like_count || 0,
+          copy_count: set.copy_count || 0,
+          problem_count: set.problem_count || 0,
+          ranking_score: set.ranking_score || 0,
         },
         created_at: set.created_at,
       };
     });
 
-    // Determine the next cursor value
+    // Determine next cursor
     let nextCursor: string | null = null;
     if (hasMore && pageData.length > 0) {
-      const lastItem = pageData[pageData.length - 1] as any;
-      if (sort === 'newest') {
-        nextCursor = lastItem.created_at;
-      } else {
-        // For JS-sorted results, use the last item's ID as cursor
-        nextCursor = lastItem.id;
+      const last = pageData[pageData.length - 1] as any;
+      switch (sort) {
+        case 'newest':
+          nextCursor = encodeCursor(last.created_at, last.id);
+          break;
+        case 'most_liked':
+          nextCursor = encodeCursor(last.like_count, last.id);
+          break;
+        case 'most_copied':
+          nextCursor = encodeCursor(last.copy_count, last.id);
+          break;
+        case 'ranking':
+        default:
+          nextCursor = encodeCursor(last.ranking_score, last.id);
+          break;
       }
     }
 
-    // Fetch distinct discovery subjects with counts (exclude empty sets)
+    // Fetch distinct discovery subjects with counts (uses same view)
     const { data: subjectRows } = await serviceClient
-      .from('problem_sets')
-      .select('discovery_subject, problem_set_stats!inner(problem_count)')
-      .eq('sharing_level', 'public')
-      .eq('is_listed', true)
-      .not('discovery_subject', 'is', null)
-      .gt('problem_set_stats.problem_count', 0);
+      .from('discoverable_problem_sets')
+      .select('discovery_subject')
+      .not('discovery_subject', 'is', null);
 
     let subjects: { name: string; count: number }[] = [];
     if (subjectRows) {
