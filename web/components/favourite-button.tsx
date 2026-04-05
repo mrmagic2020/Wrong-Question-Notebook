@@ -45,7 +45,7 @@ export function FavouriteButton({
         onClick={onToggle}
         disabled={disabled || loading}
         className={cn(
-          'transition-colors',
+          'transition-colors hover:bg-amber-100/60 dark:hover:bg-amber-900/20',
           favourited
             ? 'text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300'
             : 'text-muted-foreground hover:text-amber-600 dark:hover:text-amber-400'

@@ -68,12 +68,14 @@ export function SocialActionsBar({
     <>
       <div className="flex flex-wrap items-center gap-1 rounded-xl bg-amber-50/50 px-2 py-1 dark:bg-gray-800/30">
         {/* View count */}
-        <div className="flex items-center gap-1.5 px-2 py-1 text-muted-foreground">
-          <Eye className="h-4 w-4" />
-          <span className="text-sm tabular-nums">
-            {formatCount(stats.view_count)}
-          </span>
-        </div>
+        <Tooltip content="Views">
+          <div className="flex items-center gap-1.5 px-2 py-1 text-muted-foreground">
+            <Eye className="h-4 w-4" />
+            <span className="text-sm tabular-nums">
+              {formatCount(stats.view_count)}
+            </span>
+          </div>
+        </Tooltip>
 
         <div className="h-4 w-px bg-border" />
 
@@ -89,12 +91,14 @@ export function SocialActionsBar({
         <div className="h-4 w-px bg-border" />
 
         {/* Copy count */}
-        <div className="flex items-center gap-1.5 px-2 py-1 text-muted-foreground">
-          <Copy className="h-4 w-4" />
-          <span className="text-sm tabular-nums">
-            {formatCount(stats.copy_count)}
-          </span>
-        </div>
+        <Tooltip content="Copies">
+          <div className="flex items-center gap-1.5 px-2 py-1 text-muted-foreground">
+            <Copy className="h-4 w-4" />
+            <span className="text-sm tabular-nums">
+              {formatCount(stats.copy_count)}
+            </span>
+          </div>
+        </Tooltip>
 
         <div className="h-4 w-px bg-border" />
 
@@ -114,7 +118,7 @@ export function SocialActionsBar({
             variant="ghost"
             size="sm"
             onClick={handleShare}
-            className="text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:bg-amber-100/60 hover:text-foreground dark:hover:bg-amber-900/20"
           >
             <Share2 className="h-4 w-4" />
           </Button>
@@ -129,7 +133,7 @@ export function SocialActionsBar({
                 variant="ghost"
                 size="sm"
                 onClick={() => setReportOpen(true)}
-                className="text-muted-foreground hover:text-destructive"
+                className="text-muted-foreground hover:bg-amber-100/60 hover:text-destructive dark:hover:bg-amber-900/20"
               >
                 <Flag className="h-4 w-4" />
               </Button>

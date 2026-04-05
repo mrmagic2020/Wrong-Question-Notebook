@@ -188,11 +188,11 @@ export default function ProblemSetPageClient({
   return (
     <div className="section-container">
       {/* Header */}
-      <div className="page-header flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center space-x-4">
+      <div className="page-header flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 flex-1 items-center space-x-4">
           <BackLink onClick={() => router.push(backHref)}>Back</BackLink>
           <div className="min-w-0">
-            <h1 className="page-title">{problemSet.name}</h1>
+            <h1 className="page-title break-words">{problemSet.name}</h1>
             {problemSet.isOwner ? (
               <p
                 className="page-description cursor-pointer hover:underline"
@@ -219,7 +219,7 @@ export default function ProblemSetPageClient({
             )}
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-shrink-0 flex-wrap items-center gap-2">
           {problemSet.is_smart && (
             <Badge
               variant="outline"
