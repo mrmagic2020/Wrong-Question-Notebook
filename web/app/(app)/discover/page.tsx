@@ -82,20 +82,14 @@ async function loadDiscoveryData() {
         };
       });
 
-      // Fetch distinct discovery subjects (uses same view)
-      const { data: subjectRows } = await serviceClient
-        .from('discoverable_problem_sets')
-        .select('discovery_subject')
-        .not('discovery_subject', 'is', null);
+      // Fetch discovery subject counts via DB-side aggregation (GROUP BY)
+      const { data: subjectRows } = await serviceClient.rpc(
+        'get_discovery_subject_counts'
+      );
 
-      const subjectCounts = new Map<string, number>();
-      for (const row of (subjectRows || []) as any[]) {
-        const name = row.discovery_subject;
-        if (name) subjectCounts.set(name, (subjectCounts.get(name) || 0) + 1);
-      }
-      const subjects = Array.from(subjectCounts.entries())
-        .map(([name, count]) => ({ name, count }))
-        .sort((a, b) => b.count - a.count);
+      const subjects = (
+        (subjectRows || []) as { name: string; count: number }[]
+      ).map(row => ({ name: row.name, count: Number(row.count) }));
 
       return { sets, subjects };
     },
