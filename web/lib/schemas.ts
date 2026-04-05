@@ -10,6 +10,7 @@ import {
   ATTEMPT_CONSTANTS,
   SPACED_REPETITION_CONSTANTS,
   ERROR_CATEGORY_VALUES,
+  DISCOVERY_SUBJECTS,
 } from './constants';
 import { sanitizeHtmlContent } from './html-sanitizer';
 import { isValidTimezone } from './timezone-utils';
@@ -414,7 +415,17 @@ export const CreateProblemSetDto = z.object({
 
 export const UpdateProblemSetDto = CreateProblemSetDto.extend({
   is_listed: z.boolean().optional(),
-  discovery_subject: z.string().nullable().optional(),
+  discovery_subject: z
+    .string()
+    .nullable()
+    .optional()
+    .refine(
+      val =>
+        !val ||
+        (DISCOVERY_SUBJECTS as readonly string[]).includes(val),
+      { message: 'Invalid discovery subject' }
+    )
+    .transform(val => val || null),
 })
   .partial()
   .omit({
