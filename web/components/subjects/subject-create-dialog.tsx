@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -32,6 +33,8 @@ export function SubjectCreateDialog({
   existingSubjects,
   onSuccess,
 }: SubjectCreateDialogProps) {
+  const t = useTranslations('Subjects');
+  const tCommon = useTranslations('Common');
   const { data: limitData, isExhausted } = useContentLimit(
     CONTENT_LIMIT_CONSTANTS.RESOURCE_TYPES.SUBJECTS
   );
@@ -66,22 +69,22 @@ export function SubjectCreateDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create New Notebook</DialogTitle>
+          <DialogTitle>{t('createNew')}</DialogTitle>
           {limitData && (
             <ContentLimitIndicator
               current={limitData.current}
               limit={limitData.limit}
-              label="notebooks used"
+              label={t('notebooksUsed')}
             />
           )}
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label>Notebook Name</Label>
+            <Label>{t('notebookName')}</Label>
             <Input
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="e.g. Mathematics"
+              placeholder={t('notebookNamePlaceholder')}
               disabled={busy}
               className="mt-2"
               required
@@ -89,13 +92,13 @@ export function SubjectCreateDialog({
             />
           </div>
           <div>
-            <Label>Icon</Label>
+            <Label>{t('icon')}</Label>
             <div className="mt-2">
               <IconPicker value={icon} onChange={setIcon} disabled={busy} />
             </div>
           </div>
           <div>
-            <Label>Color</Label>
+            <Label>{t('color')}</Label>
             <div className="mt-2">
               <ColorPicker value={color} onChange={setColor} disabled={busy} />
             </div>
@@ -107,15 +110,15 @@ export function SubjectCreateDialog({
               onClick={() => onOpenChange(false)}
               disabled={busy}
             >
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button type="submit" disabled={busy || isExhausted}>
               {busy && <Spinner />}
               {busy
-                ? 'Creating...'
+                ? t('creating')
                 : isExhausted
-                  ? 'Notebook limit reached'
-                  : 'Create Notebook'}
+                  ? t('notebookLimitReached')
+                  : t('createNew')}
             </Button>
           </div>
         </form>

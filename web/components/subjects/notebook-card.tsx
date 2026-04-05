@@ -21,6 +21,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { ReviewDueButton } from './review-due-button';
+import { useTranslations } from 'next-intl';
 
 interface NotebookCardProps {
   subject: SubjectWithMetadata;
@@ -63,6 +64,7 @@ export function NotebookCard({
   className,
   style,
 }: NotebookCardProps) {
+  const t = useTranslations('Subjects');
   const color = subject.color || SUBJECT_CONSTANTS.DEFAULT_COLOR;
   const safeColor =
     color in SUBJECT_CONSTANTS.COLOR_GRADIENTS
@@ -124,7 +126,7 @@ export function NotebookCard({
                   onEdit();
                 }}
               >
-                <Pencil className="mr-2 h-4 w-4" /> Edit
+                <Pencil className="mr-2 h-4 w-4" /> {t('edit')}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={e => {
@@ -132,7 +134,7 @@ export function NotebookCard({
                   onManageTags();
                 }}
               >
-                <Tags className="mr-2 h-4 w-4" /> Manage Tags
+                <Tags className="mr-2 h-4 w-4" /> {t('manageTags')}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={e => {
@@ -141,7 +143,7 @@ export function NotebookCard({
                 }}
                 className="text-destructive focus:text-destructive"
               >
-                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                <Trash2 className="mr-2 h-4 w-4" /> {t('delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -156,7 +158,7 @@ export function NotebookCard({
           <div className="flex items-center gap-2">
             <FileText className={cn('w-4 h-4', colorClasses.iconColor)} />
             <span className="text-gray-600 dark:text-gray-400">
-              {problemCount} {problemCount === 1 ? 'problem' : 'problems'}
+              {t('problemCount', { count: problemCount })}
             </span>
           </div>
           {dueCount > 0 && onReviewDue && (
@@ -172,7 +174,7 @@ export function NotebookCard({
           <div className="flex items-center gap-2">
             <Calendar className={cn('w-4 h-4', colorClasses.iconColor)} />
             <span className="text-gray-500 dark:text-gray-500 text-xs">
-              Created {formattedCreatedAt}
+              {t('created', { relativeTime: formattedCreatedAt })}
             </span>
           </div>
         )}
@@ -180,7 +182,7 @@ export function NotebookCard({
         {formattedLastActivity && (
           <div className="pt-2 border-t border-current/10">
             <span className="text-xs text-gray-500 dark:text-gray-500">
-              Last reviewed {formattedLastActivity}
+              {t('lastReviewed', { relativeTime: formattedLastActivity })}
             </span>
           </div>
         )}

@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,6 +19,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Sparkles, Loader2, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import { FilterConfig, SessionConfig, SimpleTag } from '@/lib/types';
+import { apiUrl } from '@/lib/api-utils';
 
 interface EditSmartSetDialogProps {
   open: boolean;
@@ -42,6 +44,9 @@ export default function EditSmartSetDialog({
   filterConfig,
   sessionConfig,
 }: EditSmartSetDialogProps) {
+  const t = useTranslations('Review');
+  const tCommon = useTranslations('Common');
+
   const [isLoading, setIsLoading] = useState(false);
   const [availableTags, setAvailableTags] = useState<SimpleTag[]>([]);
   const [filterCount, setFilterCount] = useState<number | null>(null);
@@ -83,7 +88,7 @@ export default function EditSmartSetDialog({
     if (!open || !subjectId) return;
     async function loadTags() {
       try {
-        const res = await fetch(`/api/tags?subject_id=${subjectId}`);
+        const res = await fetch(apiUrl(`/api/tags?subject_id=${subjectId}`));
         if (res.ok) {
           const data = await res.json();
           setAvailableTags(data.data || []);
@@ -99,7 +104,7 @@ export default function EditSmartSetDialog({
   const fetchCount = useCallback(async () => {
     setCountLoading(true);
     try {
-      const res = await fetch('/api/problems/filter-count', {
+      const res = await fetch(apiUrl('/api/problems/filter-count'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -168,13 +173,13 @@ export default function EditSmartSetDialog({
     e.preventDefault();
 
     if (!formData.name.trim()) {
-      toast.error('Please enter a name');
+      toast.error(t('enterNameError'));
       return;
     }
 
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/problem-sets/${problemSetId}`, {
+      const res = await fetch(apiUrl(`/api/problem-sets/${problemSetId}`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -197,14 +202,14 @@ export default function EditSmartSetDialog({
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || 'Failed to update smart set');
+        throw new Error(err.message || t('failedUpdateSmartSet'));
       }
 
-      toast.success('Smart set settings updated');
+      toast.success(t('smartSetUpdated'));
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to update');
+      toast.error(error instanceof Error ? error.message : t('failedToUpdate'));
     } finally {
       setIsLoading(false);
     }
@@ -216,17 +221,15 @@ export default function EditSmartSetDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5 text-amber-500" />
-            Edit Smart Set Settings
+            {t('editSmartSetTitle')}
           </DialogTitle>
-          <DialogDescription>
-            Update filter criteria and session settings for this smart set.
-          </DialogDescription>
+          <DialogDescription>{t('editSmartSetDesc')}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Name */}
           <div className="space-y-2">
-            <Label htmlFor="edit-smart-name">Name *</Label>
+            <Label htmlFor="edit-smart-name">{t('nameRequired')}</Label>
             <Input
               id="edit-smart-name"
               value={formData.name}
@@ -240,7 +243,7 @@ export default function EditSmartSetDialog({
 
           {/* Subject (read-only) */}
           <div className="space-y-2">
-            <Label>Subject</Label>
+            <Label>{t('subject')}</Label>
             <div className="rounded-md border bg-muted/50 px-3 py-2 text-sm">
               {subjectName}
             </div>
@@ -248,18 +251,18 @@ export default function EditSmartSetDialog({
 
           {/* Status filter */}
           <div className="space-y-2">
-            <Label>Status Filter</Label>
+            <Label>{t('statusFilter')}</Label>
             <div className="flex flex-wrap gap-2">
               {[
-                { value: 'wrong', label: 'Wrong', color: 'destructive' },
+                { value: 'wrong', label: t('wrong'), color: 'destructive' },
                 {
                   value: 'needs_review',
-                  label: 'Needs Review',
+                  label: t('needsReview'),
                   color: 'default',
                 },
                 {
                   value: 'mastered',
-                  label: 'Mastered',
+                  label: t('mastered'),
                   color: 'secondary',
                 },
               ].map(status => (
@@ -278,18 +281,18 @@ export default function EditSmartSetDialog({
               ))}
             </div>
             <p className="text-xs text-muted-foreground">
-              Leave empty to include all statuses
+              {t('leaveEmptyAll')}
             </p>
           </div>
 
           {/* Problem type filter */}
           <div className="space-y-2">
-            <Label>Problem Type</Label>
+            <Label>{t('problemType')}</Label>
             <div className="flex flex-wrap gap-2">
               {[
-                { value: 'mcq', label: 'MCQ' },
-                { value: 'short', label: 'Short Answer' },
-                { value: 'extended', label: 'Extended' },
+                { value: 'mcq', label: t('mcq') },
+                { value: 'short', label: t('shortAnswerType') },
+                { value: 'extended', label: t('extended') },
               ].map(type => (
                 <Badge
                   key={type.value}
@@ -306,14 +309,14 @@ export default function EditSmartSetDialog({
               ))}
             </div>
             <p className="text-xs text-muted-foreground">
-              Leave empty to include all types
+              {t('leaveEmptyTypes')}
             </p>
           </div>
 
           {/* Tag filter */}
           {availableTags.length > 0 && (
             <div className="space-y-2">
-              <Label>Tags</Label>
+              <Label>{t('tagsFilter')}</Label>
               <div className="flex flex-wrap gap-2">
                 {availableTags.map(tag => (
                   <Badge
@@ -333,10 +336,10 @@ export default function EditSmartSetDialog({
 
           {/* Review date filter */}
           <div className="space-y-3">
-            <Label>Review Date Filter</Label>
+            <Label>{t('reviewDateFilter')}</Label>
             <div className="flex items-center gap-3">
               <span className="text-sm text-muted-foreground">
-                Not reviewed in
+                {t('notReviewedIn')}
               </span>
               <Input
                 type="number"
@@ -353,7 +356,7 @@ export default function EditSmartSetDialog({
                 }
                 placeholder="--"
               />
-              <span className="text-sm text-muted-foreground">days</span>
+              <span className="text-sm text-muted-foreground">{t('days')}</span>
             </div>
             <div className="flex items-center gap-2">
               <Checkbox
@@ -370,7 +373,7 @@ export default function EditSmartSetDialog({
                 htmlFor="edit-include-never"
                 className="text-sm font-normal"
               >
-                Include never-reviewed problems
+                {t('includeNeverReviewed')}
               </Label>
             </div>
           </div>
@@ -385,19 +388,19 @@ export default function EditSmartSetDialog({
               )}
               <span className="text-sm font-medium text-amber-800 dark:text-amber-300">
                 {filterCount !== null
-                  ? `${filterCount} problem${filterCount !== 1 ? 's' : ''} match your filters`
-                  : 'Loading...'}
+                  ? t('matchingProblems', { count: filterCount })
+                  : t('loading')}
               </span>
             </div>
           </div>
 
           {/* Session settings */}
           <div className="space-y-3 border-t pt-4">
-            <Label className="text-base">Session Settings</Label>
+            <Label className="text-base">{t('sessionSettings')}</Label>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label htmlFor="edit-randomize" className="font-normal">
-                  Randomize order
+                  {t('randomizeOrder')}
                 </Label>
                 <Switch
                   id="edit-randomize"
@@ -409,7 +412,7 @@ export default function EditSmartSetDialog({
               </div>
               <div className="flex items-center justify-between">
                 <Label htmlFor="edit-auto-advance" className="font-normal">
-                  Auto-advance after marking
+                  {t('autoAdvance')}
                 </Label>
                 <Switch
                   id="edit-auto-advance"
@@ -421,7 +424,7 @@ export default function EditSmartSetDialog({
               </div>
               <div className="flex items-center gap-3">
                 <Label htmlFor="edit-session-size" className="font-normal">
-                  Session size
+                  {t('sessionSize')}
                 </Label>
                 <Input
                   id="edit-session-size"
@@ -438,10 +441,10 @@ export default function EditSmartSetDialog({
                         : null,
                     }))
                   }
-                  placeholder="All"
+                  placeholder={t('all')}
                 />
                 <span className="text-sm text-muted-foreground">
-                  problems (leave empty for all)
+                  {t('problemsOptional')}
                 </span>
               </div>
             </div>
@@ -454,10 +457,10 @@ export default function EditSmartSetDialog({
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Saving...' : 'Save Changes'}
+              {isLoading ? t('saving') : t('saveChanges')}
             </Button>
           </DialogFooter>
         </form>

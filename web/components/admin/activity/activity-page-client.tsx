@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { UserActivityLogType } from '@/lib/schemas';
 
@@ -34,6 +35,8 @@ export function ActivityPageClient({
   initialActivities,
   initialTotalCount,
 }: ActivityPageClientProps) {
+  const t = useTranslations('Admin');
+  const tCommon = useTranslations('Common');
   const [activities, setActivities] =
     useState<ActivityWithProfile[]>(initialActivities);
   const [totalCount, setTotalCount] = useState(initialTotalCount);
@@ -63,7 +66,7 @@ export function ActivityPageClient({
         setActivities(data.activities);
         setTotalCount(data.total_count);
       } catch {
-        toast.error('Failed to fetch activity');
+        toast.error(t('failedToFetchActivity'));
       } finally {
         setLoading(false);
       }
@@ -98,10 +101,10 @@ export function ActivityPageClient({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Activity Log
+            {t('activity')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Browse platform-wide activity
+            {t('monitorActivity')}
           </p>
         </div>
         <Button
@@ -111,7 +114,7 @@ export function ActivityPageClient({
           onClick={() => setShowFilters(!showFilters)}
         >
           <Filter className="h-4 w-4" />
-          Filters
+          {tCommon('filter')}
           {hasFilters && <span className="w-2 h-2 rounded-full bg-amber-500" />}
         </Button>
       </div>
@@ -122,10 +125,10 @@ export function ActivityPageClient({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 block">
-                Action
+                {t('action')}
               </label>
               <Input
-                placeholder="e.g. login, create_problem"
+                placeholder={t('filterByAction')}
                 value={actionFilter}
                 onChange={e => setActionFilter(e.target.value)}
                 className="rounded-xl"
@@ -133,7 +136,7 @@ export function ActivityPageClient({
             </div>
             <div>
               <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 block">
-                From Date
+                {t('fromDate')}
               </label>
               <Input
                 type="date"
@@ -144,7 +147,7 @@ export function ActivityPageClient({
             </div>
             <div>
               <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 block">
-                To Date
+                {t('toDate')}
               </label>
               <Input
                 type="date"
@@ -160,7 +163,7 @@ export function ActivityPageClient({
               className="rounded-xl"
               onClick={handleApplyFilters}
             >
-              Apply Filters
+              {t('applyFilters')}
             </Button>
             {hasFilters && (
               <Button
@@ -170,7 +173,7 @@ export function ActivityPageClient({
                 onClick={handleClearFilters}
               >
                 <X className="h-3 w-3 mr-1" />
-                Clear
+                {tCommon('clear')}
               </Button>
             )}
           </div>
@@ -183,10 +186,12 @@ export function ActivityPageClient({
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead>User</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead className="hidden md:table-cell">Resource</TableHead>
-                <TableHead>Timestamp</TableHead>
+                <TableHead>{tCommon('user')}</TableHead>
+                <TableHead>{t('action')}</TableHead>
+                <TableHead className="hidden md:table-cell">
+                  {tCommon('resource')}
+                </TableHead>
+                <TableHead>{tCommon('timestamp')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -194,7 +199,7 @@ export function ActivityPageClient({
                 <TableRow>
                   <TableCell colSpan={4} className="text-center py-8">
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Loading...
+                      {tCommon('loading')}
                     </p>
                   </TableCell>
                 </TableRow>
@@ -202,7 +207,7 @@ export function ActivityPageClient({
                 <TableRow>
                   <TableCell colSpan={4} className="text-center py-8">
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      No activity found
+                      {t('noActivityFound')}
                     </p>
                   </TableCell>
                 </TableRow>
@@ -214,7 +219,7 @@ export function ActivityPageClient({
                     [profile?.first_name, profile?.last_name]
                       .filter(Boolean)
                       .join(' ') ||
-                    'Unknown';
+                    t('unknown');
 
                   return (
                     <TableRow

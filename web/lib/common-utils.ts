@@ -81,31 +81,25 @@ export function formatRelativeTime(dateString: string): string {
 
 export function getColumnDisplayName(columnId: string): string {
   const displayNames: Record<string, string> = {
-    select: 'Select',
-    title: 'Title',
-    problem_type: 'Problem Type',
-    tags: 'Tags',
-    status: 'Status',
-    created_at: 'Date Created',
-    updated_at: 'Updated',
-    last_reviewed_date: 'Last Reviewed',
-    actions: 'Actions',
+    select: 'selectColumn',
+    title: 'titleColumn',
+    problem_type: 'problemTypeColumn',
+    tags: 'tagsColumn',
+    status: 'statusColumn',
+    created_at: 'dateCreatedColumn',
+    updated_at: 'updatedColumn',
+    last_reviewed_date: 'lastReviewedColumn',
+    actions: 'actionsColumn',
   };
 
-  return (
-    displayNames[columnId] ||
-    columnId
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ')
-  );
+  return displayNames[columnId] || columnId;
 }
 
 export function getProblemTypeDisplayName(type: string): string {
   const displayNames: Record<string, string> = {
-    mcq: 'Multiple Choice',
-    short: 'Short Answer',
-    extended: 'Extended Response',
+    mcq: 'multipleChoiceType',
+    short: 'shortAnswerType',
+    extended: 'extendedResponseType',
   };
 
   return displayNames[type] || type;
@@ -113,9 +107,9 @@ export function getProblemTypeDisplayName(type: string): string {
 
 export function getProblemStatusDisplayName(status: string): string {
   const displayNames: Record<string, string> = {
-    wrong: 'Wrong',
-    needs_review: 'Needs Review',
-    mastered: 'Mastered',
+    wrong: 'wrongStatus',
+    needs_review: 'needsReviewStatus',
+    mastered: 'masteredStatus',
   };
 
   return displayNames[status] || status;

@@ -1,23 +1,29 @@
 import { COOKIE_CONSENT_CONSTANTS } from '@/lib/constants';
+import { getTranslations } from 'next-intl/server';
+import type { Metadata } from 'next';
 
-export const metadata = {
-  title: 'Privacy Policy | Wrong Question Notebook',
-  description:
-    'Learn about how Wrong Question Notebook collects, uses, and protects your data.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('Privacy');
+  return {
+    title: `${t('title')} – Wrong Question Notebook`,
+    description:
+      'Learn about how Wrong Question Notebook collects, uses, and protects your data.',
+  };
+}
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const t = await getTranslations('Privacy');
   return (
     <main id="main-content" className="landing-page-bg min-h-screen py-12">
       <div className="landing-section-inner max-w-4xl">
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-amber-200/40 dark:border-gray-800/40 p-8 md:p-12">
           <article className="prose prose-sm dark:prose-invert max-w-none prose-headings:font-bold prose-a:text-amber-600 dark:prose-a:text-amber-400 prose-a:no-underline hover:prose-a:underline">
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-              Privacy Policy
+              {t('title')}
             </h1>
 
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              <strong>Last updated: February 21, 2026</strong>
+              <strong>{t('lastUpdated')}: February 21, 2026</strong>
             </p>
 
             <p className="text-gray-600 dark:text-gray-400 mb-4">

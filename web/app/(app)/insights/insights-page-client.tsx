@@ -20,6 +20,7 @@ import { PageHeader } from '@/components/page-header';
 import { HeroStatCard } from '@/components/statistics/hero-stat-card';
 import type { ActivitySummary, InsightDigest, TopicCluster } from '@/lib/types';
 import { SUBJECT_CONSTANTS, INSIGHT_CONSTANTS } from '@/lib/constants';
+import { apiUrl } from '@/lib/api-utils';
 
 interface InsightsPageClientProps {
   initialDigest: InsightDigest | null;
@@ -70,7 +71,7 @@ export default function InsightsPageClient({
       }
 
       try {
-        const res = await fetch('/api/insights/status');
+        const res = await fetch(apiUrl('/api/insights/status'));
         const json = await res.json();
         const data = json.data ?? json;
 
@@ -114,7 +115,9 @@ export default function InsightsPageClient({
     setHasInsufficientData(false);
     setActivityProgress(null);
     try {
-      const res = await fetch('/api/insights/generate', { method: 'POST' });
+      const res = await fetch(apiUrl('/api/insights/generate'), {
+        method: 'POST',
+      });
       const json = await res.json();
 
       if (!res.ok && res.status !== 202) {

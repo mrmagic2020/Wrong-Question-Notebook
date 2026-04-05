@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,6 +13,7 @@ import CauseSelector from '@/components/reflection/cause-selector';
 import { ProblemStatus } from '@/lib/schemas';
 import { cn } from '@/lib/utils';
 import { ATTEMPT_CONSTANTS } from '@/lib/constants';
+import { apiUrl } from '@/lib/api-utils';
 import {
   XCircle,
   AlertCircle,
@@ -91,6 +93,9 @@ export default function AttemptStatusForm({
   initialSavedState,
   disabled,
 }: AttemptStatusFormProps) {
+  const t = useTranslations('Review');
+  const tCommon = useTranslations('Common');
+
   const [selectedStatus, setSelectedStatus] = useState<ProblemStatus | null>(
     initialSavedState?.selectedStatus ?? null
   );
@@ -219,16 +224,16 @@ export default function AttemptStatusForm({
         if (!autoMark && response) {
           patchBody.submitted_answer = response;
         }
-        const res = await fetch(`/api/attempts/${patchId}`, {
+        const res = await fetch(apiUrl(`/api/attempts/${patchId}`), {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(patchBody),
         });
-        if (!res.ok) throw new Error('Failed to save assessment');
+        if (!res.ok) throw new Error(t('failedSaveAssessment'));
         resultAttemptId = patchId;
       } else {
         // POST new attempt (non-auto-mark or no existing attempt)
-        const res = await fetch('/api/attempts', {
+        const res = await fetch(apiUrl('/api/attempts'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -244,7 +249,7 @@ export default function AttemptStatusForm({
             reflection_notes: notes || undefined,
           }),
         });
-        if (!res.ok) throw new Error('Failed to save assessment');
+        if (!res.ok) throw new Error(t('failedSaveAssessment'));
         const result = await res.json();
         resultAttemptId = result.data.id;
       }
@@ -259,7 +264,7 @@ export default function AttemptStatusForm({
           selectedStatus === 'needs_review' ? needsReviewIsCorrect : null,
       });
     } catch {
-      toast.error('Failed to save assessment. Please try again.');
+      toast.error(t('failedToSaveAssessment'));
     } finally {
       setIsSaving(false);
     }
@@ -270,11 +275,9 @@ export default function AttemptStatusForm({
     return (
       <div className="opacity-50 pointer-events-none">
         <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-100 mb-2">
-          Assessment
+          {t('assessment')}
         </h3>
-        <p className="text-xs text-muted-foreground">
-          Submit your answer first
-        </p>
+        <p className="text-xs text-muted-foreground">{t('submitFirst')}</p>
         <div className="space-y-1.5 mt-2">
           {statusOptions.map(option => {
             const Icon = option.icon;
@@ -302,7 +305,7 @@ export default function AttemptStatusForm({
     return (
       <div>
         <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-100 mb-2">
-          Assessment
+          {t('assessment')}
         </h3>
         <div
           className={cn(
@@ -311,19 +314,19 @@ export default function AttemptStatusForm({
           )}
         >
           <SavedIcon className="h-4 w-4 flex-shrink-0" />
-          <span>{savedOption.label}</span>
+          <span>{t(savedState.selectedStatus)}</span>
         </div>
         {savedState.selectedStatus === 'needs_review' &&
           showNeedsReviewSubOption && (
             <p className="text-xs text-muted-foreground mt-0.5">
               {needsReviewIsCorrect
-                ? 'Correct, but unsure'
-                : 'Wrong, but close'}
+                ? t('correctButUnsure')
+                : t('wrongButClose')}
             </p>
           )}
         {cause && (
           <p className="text-xs text-muted-foreground mt-1.5">
-            Cause:{' '}
+            {t('cause')}:{' '}
             {(effectiveIsCorrect
               ? ATTEMPT_CONSTANTS.CAUSE_CATEGORIES.CORRECT
               : ATTEMPT_CONSTANTS.CAUSE_CATEGORIES.INCORRECT
@@ -332,7 +335,7 @@ export default function AttemptStatusForm({
         )}
         {notes && (
           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-            Notes: {notes}
+            {t('notes')}: {notes}
           </p>
         )}
         {!disabled && (
@@ -343,7 +346,7 @@ export default function AttemptStatusForm({
             onClick={() => setIsEditing(true)}
           >
             <Pencil className="w-3 h-3" />
-            Edit
+            {tCommon('edit')}
           </Button>
         )}
       </div>
@@ -354,7 +357,7 @@ export default function AttemptStatusForm({
   return (
     <div>
       <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-100 mb-2">
-        Assessment
+        {t('assessment')}
       </h3>
       <div className="space-y-1.5">
         {availableOptions.map(option => {
@@ -373,7 +376,7 @@ export default function AttemptStatusForm({
               )}
             >
               <Icon className="h-4 w-4 flex-shrink-0" />
-              <span>{option.label}</span>
+              <span>{t(option.value)}</span>
             </button>
           );
         })}
@@ -383,7 +386,7 @@ export default function AttemptStatusForm({
       {showNeedsReviewSubOption && (
         <div className="mt-1.5 space-y-1">
           <p className="text-xs font-medium text-yellow-700 dark:text-yellow-300">
-            How did it go?
+            {t('howDidItGo')}
           </p>
           <div className="grid grid-cols-2 gap-1.5">
             <button
@@ -397,7 +400,7 @@ export default function AttemptStatusForm({
                   : 'border-border bg-background hover:bg-green-50 dark:hover:bg-green-950/10 hover:border-green-200 dark:hover:border-green-900/30'
               )}
             >
-              Correct, but unsure
+              {t('correctButUnsure')}
             </button>
             <button
               type="button"
@@ -410,15 +413,14 @@ export default function AttemptStatusForm({
                   : 'border-border bg-background hover:bg-red-50 dark:hover:bg-red-950/10 hover:border-red-200 dark:hover:border-red-900/30'
               )}
             >
-              Wrong, but close
+              {t('wrongButClose')}
             </button>
           </div>
         </div>
       )}
 
       <p className="text-xs text-muted-foreground mt-2 text-center">
-        Current:{' '}
-        <span className="font-medium">{currentStatus.replace('_', ' ')}</span>
+        {t('currentStatus', { status: currentStatus.replace('_', ' ') })}
       </p>
 
       {/* Collapsible details */}
@@ -430,7 +432,7 @@ export default function AttemptStatusForm({
               detailsOpen && 'rotate-90'
             )}
           />
-          Details (optional)
+          {t('detailsOptional')}
         </CollapsibleTrigger>
         <CollapsibleContent className="pt-3 space-y-3">
           {/* Response textarea — non-auto-mark only */}
@@ -438,7 +440,7 @@ export default function AttemptStatusForm({
             <div className="space-y-1">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                  Your response
+                  {t('yourResponse')}
                 </label>
                 <span
                   className={cn(
@@ -455,7 +457,7 @@ export default function AttemptStatusForm({
                 value={response}
                 onChange={e => setResponse(e.target.value)}
                 maxLength={RESPONSE_MAX}
-                placeholder="What did you answer?"
+                placeholder={t('whatDidYouAnswer')}
                 className="h-16 resize-none text-sm"
               />
             </div>
@@ -474,7 +476,7 @@ export default function AttemptStatusForm({
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                Notes
+                {t('notes')}
               </label>
               <span
                 className={cn(
@@ -491,7 +493,7 @@ export default function AttemptStatusForm({
               value={notes}
               onChange={e => setNotes(e.target.value)}
               maxLength={NOTES_MAX}
-              placeholder="What will you do differently next time?"
+              placeholder={t('notesPlaceholder')}
               className="h-16 resize-none text-sm"
             />
           </div>
@@ -508,7 +510,7 @@ export default function AttemptStatusForm({
         {isSaving ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
-          'Save Assessment'
+          t('saveAssessment')
         )}
       </Button>
     </div>

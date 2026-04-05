@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { BookPlus, MoreHorizontal } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -58,6 +59,8 @@ export default function ProblemCardList({
   hideStatusStrip = false,
   onCopyToNotebook,
 }: ProblemCardListProps) {
+  const t = useTranslations('CommonUtils');
+  const tCommon = useTranslations('Common');
   const [visibleCount, setVisibleCount] = useState<number>(ITEMS_PER_PAGE);
 
   const visibleProblems = problems.slice(0, visibleCount);
@@ -182,19 +185,21 @@ export default function ProblemCardList({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuLabel>
+                          {t('actionsColumn')}
+                        </DropdownMenuLabel>
                         <DropdownMenuItem
                           onClick={async e => {
                             e.stopPropagation();
                             try {
                               await navigator.clipboard.writeText(problem.id);
-                              toast.success('Problem ID copied');
+                              toast.success(t('copyProblemId'));
                             } catch {
-                              toast.error('Failed to copy');
+                              toast.error(tCommon('copyFailed'));
                             }
                           }}
                         >
-                          Copy problem ID
+                          {t('copyProblemId')}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         {!isAddToSetMode && (
@@ -203,7 +208,7 @@ export default function ProblemCardList({
                               href={`/subjects/${problem.subject_id}/problems/${problem.id}/review`}
                               onClick={e => e.stopPropagation()}
                             >
-                              Review problem
+                              {t('reviewProblem')}
                             </Link>
                           </DropdownMenuItem>
                         )}
@@ -215,7 +220,7 @@ export default function ProblemCardList({
                             }}
                           >
                             <BookPlus className="h-4 w-4 mr-2" />
-                            Add to Notebook
+                            {t('addToNotebook')}
                           </DropdownMenuItem>
                         )}
                         {!isAddToSetMode && (
@@ -225,7 +230,7 @@ export default function ProblemCardList({
                               onAddToSet(problem);
                             }}
                           >
-                            Add to set
+                            {t('addToSet')}
                           </DropdownMenuItem>
                         )}
                         {!isAddToSetMode && onEdit && (
@@ -235,7 +240,7 @@ export default function ProblemCardList({
                               onEdit(problem);
                             }}
                           >
-                            Edit problem
+                            {t('editProblem')}
                           </DropdownMenuItem>
                         )}
                         {!isAddToSetMode && (
@@ -246,7 +251,7 @@ export default function ProblemCardList({
                             }}
                             className="text-destructive"
                           >
-                            Delete problem
+                            {t('deleteProblem')}
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
@@ -263,8 +268,10 @@ export default function ProblemCardList({
       {problems.length > 0 && (
         <div className="flex flex-col items-center gap-1 pt-2">
           <span className="text-xs text-muted-foreground">
-            Showing {Math.min(visibleCount, problems.length)} of{' '}
-            {problems.length}
+            {t('showingOf', {
+              showing: Math.min(visibleCount, problems.length),
+              total: problems.length,
+            })}
           </span>
           {hasMore && (
             <Button
@@ -272,7 +279,7 @@ export default function ProblemCardList({
               size="sm"
               onClick={() => setVisibleCount(prev => prev + ITEMS_PER_PAGE)}
             >
-              Show more
+              {tCommon('showMore')}
             </Button>
           )}
         </div>
@@ -280,7 +287,7 @@ export default function ProblemCardList({
 
       {problems.length === 0 && (
         <div className="text-center py-8 text-muted-foreground text-sm">
-          No results.
+          {tCommon('noResults')}
         </div>
       )}
     </div>

@@ -19,6 +19,7 @@ import { BackLink } from '@/components/back-link';
 import { PageHeader } from '@/components/page-header';
 import type { InsightDigest, TopicCluster } from '@/lib/types';
 import { SUBJECT_CONSTANTS } from '@/lib/constants';
+import { apiUrl } from '@/lib/api-utils';
 
 interface ReviewSessionSummary {
   id: string;
@@ -79,7 +80,7 @@ export default function SubjectInsightsClient({
   async function handleReview(problemIds: string[], clusterLabel: string) {
     setReviewingCluster(clusterLabel);
     try {
-      const res = await fetch('/api/review-sessions/start-insights', {
+      const res = await fetch(apiUrl('/api/review-sessions/start-insights'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

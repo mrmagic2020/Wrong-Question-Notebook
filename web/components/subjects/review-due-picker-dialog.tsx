@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -14,6 +15,7 @@ import { Brain, Loader2, Play, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SPACED_REPETITION_CONSTANTS } from '@/lib/constants';
 import { toast } from 'sonner';
+import { apiUrl } from '@/lib/api-utils';
 
 interface ReviewDuePickerDialogProps {
   open: boolean;
@@ -39,6 +41,7 @@ export function ReviewDuePickerDialog({
   subjectName,
   dueCount,
 }: ReviewDuePickerDialogProps) {
+  const t = useTranslations('Subjects');
   const router = useRouter();
   const [selectedSize, setSelectedSize] = useState<number | null>(null);
   const [starting, setStarting] = useState(false);
@@ -104,7 +107,7 @@ export function ReviewDuePickerDialog({
       if (!res.ok) throw new Error('Failed to discard session');
       setActiveSession(null);
     } catch {
-      toast.error('Failed to discard session');
+      toast.error(t('failedToDiscard'));
     } finally {
       setDiscarding(false);
     }
@@ -114,7 +117,7 @@ export function ReviewDuePickerDialog({
     const size = Math.min(selectedSize ?? dueCount, maxSize);
     setStarting(true);
     try {
-      const res = await fetch('/api/review-sessions/start-spaced', {
+      const res = await fetch(apiUrl('/api/review-sessions/start-spaced'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -131,7 +134,7 @@ export function ReviewDuePickerDialog({
       onOpenChange(false);
       router.push(`/subjects/${subjectId}/review-due?sessionId=${sessionId}`);
     } catch (e: any) {
-      toast.error(e.message || 'Failed to start review session');
+      toast.error(e.message || t('failedToStart'));
       setStarting(false);
     }
   };
@@ -142,11 +145,10 @@ export function ReviewDuePickerDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Brain className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-            Spaced Review
+            {t('spacedReview')}
           </DialogTitle>
           <DialogDescription>
-            {subjectName} &middot; {dueCount}{' '}
-            {dueCount === 1 ? 'problem' : 'problems'} due
+            {subjectName} &middot; {t('problemDue', { count: dueCount })}
           </DialogDescription>
         </DialogHeader>
 
@@ -158,11 +160,13 @@ export function ReviewDuePickerDialog({
           <div className="space-y-4 pt-2">
             <div className="rounded-xl border border-amber-200/50 dark:border-amber-800/40 bg-amber-50/80 dark:bg-amber-900/20 px-4 py-3">
               <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
-                You have an unfinished review session
+                {t('unfinishedSession')}
               </p>
               <p className="text-sm text-amber-700/80 dark:text-amber-400/70 mt-1">
-                {activeSession.progress.completed} of{' '}
-                {activeSession.progress.total} problems completed
+                {t('completedOf', {
+                  completed: activeSession.progress.completed,
+                  total: activeSession.progress.total,
+                })}
               </p>
             </div>
 
@@ -171,7 +175,7 @@ export function ReviewDuePickerDialog({
               className="w-full bg-amber-600 hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800 text-white rounded-xl"
             >
               <Play className="h-4 w-4 mr-2" />
-              Resume Session
+              {t('resumeSession')}
             </Button>
             <Button
               variant="outline"
@@ -184,13 +188,13 @@ export function ReviewDuePickerDialog({
               ) : (
                 <Trash2 className="h-4 w-4 mr-2" />
               )}
-              Discard &amp; Start New
+              {t('discardStartNew')}
             </Button>
           </div>
         ) : (
           <div className="space-y-4 pt-2">
             <p className="text-sm text-muted-foreground">
-              How many problems would you like to review?
+              {t('howManyProblems')}
             </p>
 
             <div className="flex flex-wrap gap-2">
@@ -219,7 +223,7 @@ export function ReviewDuePickerDialog({
                     'bg-amber-600 text-white border-amber-600 hover:bg-amber-700 hover:text-white dark:bg-amber-700 dark:border-amber-700'
                 )}
               >
-                All ({dueCount})
+                {t('allProblems', { count: dueCount })}
               </Button>
             </div>
 
@@ -231,11 +235,13 @@ export function ReviewDuePickerDialog({
               {starting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Starting...
+                  {t('starting')}
                 </>
               ) : (
                 <>
-                  Start Review ({Math.min(selectedSize ?? dueCount, maxSize)})
+                  {t('startReview', {
+                    size: Math.min(selectedSize ?? dueCount, maxSize),
+                  })}
                 </>
               )}
             </Button>

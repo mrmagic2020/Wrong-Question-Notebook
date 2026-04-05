@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -39,6 +40,8 @@ export default function ResumeSessionDialog({
   onStartNew,
   isLoading,
 }: ResumeSessionDialogProps) {
+  const t = useTranslations('Review');
+
   const total = session.session_state.problem_ids.length;
   const completed = session.session_state.completed_problem_ids.length;
   const skipped = session.session_state.skipped_problem_ids.length;
@@ -48,10 +51,11 @@ export default function ResumeSessionDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[420px]">
         <DialogHeader>
-          <DialogTitle>Resume Session?</DialogTitle>
+          <DialogTitle>{t('resumeSessionTitle')}</DialogTitle>
           <DialogDescription>
-            You have an incomplete review session from{' '}
-            {formatRelativeTime(session.last_activity_at)}.
+            {t('resumeSessionDesc', {
+              relativeTime: formatRelativeTime(session.last_activity_at),
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -59,15 +63,21 @@ export default function ResumeSessionDialog({
           <div className="grid grid-cols-3 gap-3 text-center">
             <div>
               <div className="text-lg font-bold">{completed}</div>
-              <div className="text-xs text-muted-foreground">Completed</div>
+              <div className="text-xs text-muted-foreground">
+                {t('completed')}
+              </div>
             </div>
             <div>
               <div className="text-lg font-bold text-yellow-600">{skipped}</div>
-              <div className="text-xs text-muted-foreground">Skipped</div>
+              <div className="text-xs text-muted-foreground">
+                {t('skipped')}
+              </div>
             </div>
             <div>
               <div className="text-lg font-bold text-blue-600">{remaining}</div>
-              <div className="text-xs text-muted-foreground">Remaining</div>
+              <div className="text-xs text-muted-foreground">
+                {t('remaining')}
+              </div>
             </div>
           </div>
           <div className="w-full bg-muted rounded-full h-2 mt-2">
@@ -79,7 +89,7 @@ export default function ResumeSessionDialog({
             />
           </div>
           <p className="text-xs text-muted-foreground text-center">
-            {completed + skipped} / {total} problems attempted
+            {t('problemsAttempted', { completed: completed + skipped, total })}
           </p>
         </div>
 
@@ -91,7 +101,7 @@ export default function ResumeSessionDialog({
             className="w-full sm:w-auto"
           >
             <RefreshCw className="h-4 w-4 mr-2" />
-            Start New Session
+            {t('startNewSession')}
           </Button>
           <Button
             onClick={() => onResume(session.id)}
@@ -99,7 +109,7 @@ export default function ResumeSessionDialog({
             className="w-full sm:w-auto"
           >
             <PlayCircle className="h-4 w-4 mr-2" />
-            Resume Session
+            {t('resumeSession')}
           </Button>
         </DialogFooter>
       </DialogContent>

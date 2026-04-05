@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -30,6 +31,8 @@ export function SubjectEditDialog({
   subject,
   onSuccess,
 }: SubjectEditDialogProps) {
+  const t = useTranslations('Subjects');
+  const tCommon = useTranslations('Common');
   const [name, setName] = useState(subject.name);
   const [color, setColor] = useState(
     subject.color || SUBJECT_CONSTANTS.DEFAULT_COLOR
@@ -50,7 +53,7 @@ export function SubjectEditDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      toast.error('Subject name is required');
+      toast.error(t('nameRequired'));
       return;
     }
 
@@ -64,11 +67,11 @@ export function SubjectEditDialog({
       if (!res.ok) throw new Error('Failed to update');
 
       const result = await res.json();
-      toast.success('Subject updated');
+      toast.success(t('subjectUpdated'));
       onSuccess(result.data);
       onOpenChange(false);
     } catch {
-      toast.error('Failed to update subject');
+      toast.error(t('failedToUpdate'));
     } finally {
       setBusy(false);
     }
@@ -78,11 +81,11 @@ export function SubjectEditDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit Subject</DialogTitle>
+          <DialogTitle>{t('editSubject')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label>Subject Name</Label>
+            <Label>{t('subjectName')}</Label>
             <Input
               value={name}
               onChange={e => setName(e.target.value)}
@@ -92,13 +95,13 @@ export function SubjectEditDialog({
             />
           </div>
           <div>
-            <Label>Icon</Label>
+            <Label>{t('icon')}</Label>
             <div className="mt-2">
               <IconPicker value={icon} onChange={setIcon} disabled={busy} />
             </div>
           </div>
           <div>
-            <Label>Color</Label>
+            <Label>{t('color')}</Label>
             <div className="mt-2">
               <ColorPicker value={color} onChange={setColor} disabled={busy} />
             </div>
@@ -110,11 +113,11 @@ export function SubjectEditDialog({
               onClick={() => onOpenChange(false)}
               disabled={busy}
             >
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button type="submit" disabled={busy}>
               {busy && <Spinner />}
-              {busy ? 'Saving...' : 'Save'}
+              {busy ? t('saving') : tCommon('save')}
             </Button>
           </div>
         </form>

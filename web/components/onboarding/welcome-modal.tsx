@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -23,6 +24,7 @@ interface WelcomeModalProps {
 }
 
 export function WelcomeModal({ open, onClose }: WelcomeModalProps) {
+  const t = useTranslations('Onboarding');
   const [step, setStep] = useState<1 | 2>(1);
 
   const handleClose = () => {
@@ -43,11 +45,10 @@ export function WelcomeModal({ open, onClose }: WelcomeModalProps) {
             </div>
             <div className="space-y-2">
               <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white">
-                Welcome to Wrong Question Notebook!
+                {t('welcomeTitle')}
               </DialogTitle>
               <DialogDescription className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                Log the problems you get wrong, review them over time, and track
-                your mastery. Let&apos;s get you started.
+                {t('welcomeDesc')}
               </DialogDescription>
             </div>
             <DialogFooter className="flex-row justify-center gap-3 sm:justify-center">
@@ -56,14 +57,14 @@ export function WelcomeModal({ open, onClose }: WelcomeModalProps) {
                 onClick={handleClose}
                 className="text-gray-500"
               >
-                Skip
+                {t('skip')}
               </Button>
               <Button
                 autoFocus
                 onClick={() => setStep(2)}
                 className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl px-6"
               >
-                Next
+                {t('next')}
                 <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </DialogFooter>
@@ -72,10 +73,10 @@ export function WelcomeModal({ open, onClose }: WelcomeModalProps) {
           <div className="p-8 space-y-6">
             <div className="text-center space-y-2">
               <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white">
-                How It Works
+                {t('howItWorks')}
               </DialogTitle>
               <DialogDescription className="text-sm text-gray-500 dark:text-gray-400">
-                Three simple steps to master your learning
+                {t('threeSteps')}
               </DialogDescription>
             </div>
 
@@ -86,10 +87,10 @@ export function WelcomeModal({ open, onClose }: WelcomeModalProps) {
                 </div>
                 <div>
                   <p className="font-semibold text-gray-900 dark:text-white">
-                    Create a Subject
+                    {t('createSubject')}
                   </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Organize by topic — Math, Physics, or anything you study
+                    {t('createSubjectDesc')}
                   </p>
                 </div>
               </div>
@@ -100,10 +101,10 @@ export function WelcomeModal({ open, onClose }: WelcomeModalProps) {
                 </div>
                 <div>
                   <p className="font-semibold text-gray-900 dark:text-white">
-                    Log Problems
+                    {t('logProblems')}
                   </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Add problems you got wrong with solutions and tags
+                    {t('logProblemsDesc')}
                   </p>
                 </div>
               </div>
@@ -114,10 +115,10 @@ export function WelcomeModal({ open, onClose }: WelcomeModalProps) {
                 </div>
                 <div>
                   <p className="font-semibold text-gray-900 dark:text-white">
-                    Review & Master
+                    {t('reviewMaster')}
                   </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Revisit problems and track your progress to mastery
+                    {t('reviewMasterDesc')}
                   </p>
                 </div>
               </div>
@@ -129,14 +130,14 @@ export function WelcomeModal({ open, onClose }: WelcomeModalProps) {
                 onClick={handleClose}
                 className="text-gray-500"
               >
-                Skip
+                {t('skip')}
               </Button>
               <Button
                 autoFocus
                 onClick={handleClose}
                 className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl px-6"
               >
-                Let&apos;s go!
+                {t('letsGo')}
               </Button>
             </DialogFooter>
           </div>

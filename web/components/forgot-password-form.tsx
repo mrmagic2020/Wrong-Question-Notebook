@@ -10,11 +10,13 @@ import { useRef, useState } from 'react';
 import { ERROR_MESSAGES, CAPTCHA_CONSTANTS } from '@/lib/constants';
 import { KeyRound, Mail } from 'lucide-react';
 import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
+import { useTranslations } from 'next-intl';
 
 export function ForgotPasswordForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<'div'>) {
+  const t = useTranslations('Auth');
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -63,19 +65,18 @@ export function ForgotPasswordForm({
 
           {/* Title */}
           <div className="text-center mb-6 space-y-2">
-            <h1 className="auth-title">Check your email</h1>
-            <p className="auth-subtitle">Password reset instructions sent</p>
+            <h1 className="auth-title">{t('checkYourEmailSuccess')}</h1>
+            <p className="auth-subtitle">{t('resetInstructionsSent')}</p>
           </div>
 
           {/* Message */}
           <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-6">
-            If you registered using your email and password, you will receive a
-            password reset email.
+            {t('resetDescription')}
           </p>
 
           {/* Back to Login */}
           <Button asChild className="w-full btn-cta">
-            <Link href="/auth/login">Back to Login</Link>
+            <Link href="/auth/login">{t('login')}</Link>
           </Button>
         </div>
       ) : (
@@ -89,10 +90,8 @@ export function ForgotPasswordForm({
 
           {/* Title */}
           <div className="text-center mb-6 space-y-2">
-            <h1 className="auth-title">Reset your password</h1>
-            <p className="auth-subtitle">
-              Enter your email and we&apos;ll send you a reset link
-            </p>
+            <h1 className="auth-title">{t('resetYourPassword')}</h1>
+            <p className="auth-subtitle">{t('enterEmailReset')}</p>
           </div>
 
           {/* Form */}
@@ -101,11 +100,11 @@ export function ForgotPasswordForm({
             className="auth-slide-up space-y-4"
           >
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('email')}</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="m@example.com"
+                placeholder={t('emailPlaceholder')}
                 required
                 value={email}
                 onChange={e => setEmail(e.target.value)}
@@ -123,7 +122,7 @@ export function ForgotPasswordForm({
                 onExpire={() => setCaptchaToken(undefined)}
                 onError={() => {
                   setCaptchaToken(undefined);
-                  setCaptchaError('Security verification failed.');
+                  setCaptchaError(t('securityVerificationFailed'));
                 }}
               />
               {captchaError && (
@@ -137,7 +136,7 @@ export function ForgotPasswordForm({
                       captchaRef.current?.reset();
                     }}
                   >
-                    Try again
+                    {t('tryAgain')}
                   </button>
                 </p>
               )}
@@ -147,15 +146,15 @@ export function ForgotPasswordForm({
               className="w-full btn-cta-primary"
               disabled={isLoading || !captchaToken}
             >
-              {isLoading ? 'Sending...' : 'Send reset email'}
+              {isLoading ? t('sending') : t('sendResetEmail')}
             </Button>
           </form>
 
           {/* Links */}
           <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-            Remember your password?{' '}
+            {t('rememberPassword')}{' '}
             <Link href="/auth/login" className="auth-link-rose underline">
-              Login
+              {t('login')}
             </Link>
           </div>
         </div>

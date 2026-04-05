@@ -57,6 +57,7 @@ import {
 } from '@/components/ui/image-scan-uploader';
 import { convertMathTextToTipTapHtml } from '@/lib/math-to-tiptap';
 import { uploadFiles } from '@/lib/storage/client';
+import { apiUrl } from '@/lib/api-utils';
 import { PenLine, Plus, ScanLine } from 'lucide-react';
 
 export default function ProblemForm({
@@ -102,7 +103,7 @@ export default function ProblemForm({
       setTags(transformSimpleTagsToTags(availableTags));
     } else {
       // Fallback to client-side fetching if no tags provided
-      fetch(`/api/tags?subject_id=${subjectId}`)
+      fetch(apiUrl(`/api/tags?subject_id=${subjectId}`))
         .then(r => r.json())
         .then(j => setTags(j.data ?? []))
         .catch(() => {});
@@ -141,7 +142,7 @@ export default function ProblemForm({
 
     setCreatingTag(true);
     try {
-      const res = await fetch('/api/tags', {
+      const res = await fetch(apiUrl('/api/tags'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subject_id: subjectId, name: trimmed }),
@@ -214,7 +215,7 @@ export default function ProblemForm({
     useState<ExtractionQuota | null>(null);
   useEffect(() => {
     if (isEditMode) return;
-    fetch('/api/ai/extract-problem/quota')
+    fetch(apiUrl('/api/ai/extract-problem/quota'))
       .then(res => res.json())
       .then(json => {
         if (json.data) setExtractionQuota(json.data);
@@ -621,7 +622,7 @@ export default function ProblemForm({
             continue;
           }
           try {
-            const res = await fetch('/api/tags', {
+            const res = await fetch(apiUrl('/api/tags'), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ subject_id: subjectId, name: tagName }),
@@ -813,7 +814,7 @@ export default function ProblemForm({
           );
         } else {
           // Fallback to fetch with keepalive
-          await fetch(`/api/problems/${uuidToCleanup}/cleanup`, {
+          await fetch(apiUrl(`/api/problems/${uuidToCleanup}/cleanup`), {
             method: 'DELETE',
             keepalive: true,
           });

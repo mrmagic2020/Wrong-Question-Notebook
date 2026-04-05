@@ -4,18 +4,22 @@ import { ThemeProvider } from 'next-themes';
 import { Toaster } from '@/components/ui/sonner';
 import { ConsentProvider } from '@/components/cookie-consent/consent-provider';
 import { ConditionalAnalytics } from '@/components/cookie-consent/conditional-analytics';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getTranslations } from 'next-intl/server';
 import './globals.css';
 
 const defaultUrl = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
   ? `https://${process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}`
   : 'http://localhost:3000';
 
-export const metadata: Metadata = {
-  metadataBase: new URL(defaultUrl),
-  title: 'Wrong Question Notebook – Master Your Learning',
-  description:
-    'Organize problems by subject, track your progress, and build your knowledge systematically',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('Metadata');
+  return {
+    metadataBase: new URL(defaultUrl),
+    title: `${t('siteName')} – ${t('siteDescription')}`,
+    description: t('siteFullDescription'),
+  };
+}
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -23,16 +27,19 @@ const geistSans = Geist({
   subsets: ['latin'],
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const t = await getTranslations('Common');
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body className={`${geistSans.className} antialiased`}>
         <a href="#main-content" className="skip-link">
-          Skip to main content
+          {t('skipToMainContent')}
         </a>
         <ThemeProvider
           attribute="class"
@@ -40,10 +47,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <ConsentProvider>
-            {children}
-            <ConditionalAnalytics />
-          </ConsentProvider>
+          <NextIntlClientProvider locale={locale}>
+            <ConsentProvider>
+              {children}
+              <ConditionalAnalytics />
+            </ConsentProvider>
+          </NextIntlClientProvider>
         </ThemeProvider>
         <Toaster />
         <script

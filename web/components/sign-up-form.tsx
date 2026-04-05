@@ -11,11 +11,14 @@ import { useEffect, useRef, useState } from 'react';
 import { ROUTES, ERROR_MESSAGES, CAPTCHA_CONSTANTS } from '@/lib/constants';
 import { UserPlus, Eye, EyeOff } from 'lucide-react';
 import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
+import { useTranslations } from 'next-intl';
+import { apiUrl } from '@/lib/api-utils';
 
 export function SignUpForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<'div'>) {
+  const t = useTranslations('Auth');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
@@ -45,13 +48,13 @@ export function SignUpForm({
     setError(null);
 
     if (!agreedToPrivacy) {
-      setError('You must agree to the Privacy Policy to create an account.');
+      setError(t('privacyPolicyRequired'));
       setIsLoading(false);
       return;
     }
 
     if (password !== repeatPassword) {
-      setError('Passwords do not match');
+      setError(t('passwordsDoNotMatch'));
       setIsLoading(false);
       return;
     }
@@ -71,7 +74,7 @@ export function SignUpForm({
       if (signUpData?.user) {
         const detectedTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
         if (detectedTz) {
-          fetch('/api/profile', {
+          fetch(apiUrl('/api/profile'), {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ timezone: detectedTz }),
@@ -102,27 +105,25 @@ export function SignUpForm({
 
         {/* Title */}
         <div className="text-center mb-6 space-y-2">
-          <h1 className="auth-title">Create your notebook</h1>
-          <p className="auth-subtitle">
-            Start organizing your learning journey
-          </p>
+          <h1 className="auth-title">{t('createYourNotebook')}</h1>
+          <p className="auth-subtitle">{t('startYourJourney')}</p>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSignUp} className="auth-slide-up space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t('email')}</Label>
             <Input
               id="email"
               type="email"
-              placeholder="m@example.com"
+              placeholder={t('emailPlaceholder')}
               required
               value={email}
               onChange={e => setEmail(e.target.value)}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t('password')}</Label>
             <div className="relative">
               <Input
                 id="password"
@@ -136,7 +137,9 @@ export function SignUpForm({
                 type="button"
                 onClick={() => setShowPassword(prev => !prev)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={
+                  showPassword ? t('hidePassword') : t('showPassword')
+                }
               >
                 {showPassword ? (
                   <EyeOff className="h-4 w-4" />
@@ -147,7 +150,7 @@ export function SignUpForm({
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="repeat-password">Repeat Password</Label>
+            <Label htmlFor="repeat-password">{t('repeatPassword')}</Label>
             <div className="relative">
               <Input
                 id="repeat-password"
@@ -162,7 +165,7 @@ export function SignUpForm({
                 onClick={() => setShowRepeatPassword(prev => !prev)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 aria-label={
-                  showRepeatPassword ? 'Hide password' : 'Show password'
+                  showRepeatPassword ? t('hidePassword') : t('showPassword')
                 }
               >
                 {showRepeatPassword ? (
@@ -185,15 +188,10 @@ export function SignUpForm({
               htmlFor="privacy-policy"
               className="text-sm text-gray-600 dark:text-gray-400"
             >
-              I have read and agree to the{' '}
-              <a
-                href="/privacy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="auth-link underline"
-              >
-                Privacy Policy
-              </a>
+              {t('privacyPolicyAgreement')}{' '}
+              <Link href="/privacy" className="auth-link underline">
+                {t('privacyPolicy')}
+              </Link>
             </label>
           </div>
           {error && <p className="form-error">{error}</p>}
@@ -209,7 +207,7 @@ export function SignUpForm({
               onExpire={() => setCaptchaToken(undefined)}
               onError={() => {
                 setCaptchaToken(undefined);
-                setCaptchaError('Security verification failed.');
+                setCaptchaError(t('securityVerificationFailed'));
               }}
             />
             {captchaError && (
@@ -223,7 +221,7 @@ export function SignUpForm({
                     captchaRef.current?.reset();
                   }}
                 >
-                  Try again
+                  {t('tryAgain')}
                 </button>
               </p>
             )}
@@ -233,15 +231,15 @@ export function SignUpForm({
             className={`w-full btn-cta-primary${captchaReady ? ' captcha-ready-glow' : ''}`}
             disabled={isLoading || !captchaToken}
           >
-            {isLoading ? 'Creating account...' : 'Sign up'}
+            {isLoading ? t('creatingAccount') : t('signUp')}
           </Button>
         </form>
 
         {/* Links */}
         <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-          Already have an account?{' '}
+          {t('alreadyHaveAccount')}{' '}
           <Link href="/auth/login" className="auth-link underline">
-            Login
+            {t('login')}
           </Link>
         </div>
       </div>

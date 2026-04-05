@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Info, AlertTriangle, CheckCircle, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { apiUrl } from '@/lib/api-utils';
 
 type AnnouncementType = 'info' | 'warning' | 'success';
 
@@ -21,27 +23,27 @@ interface AnnouncementEditorProps {
 
 const typeOptions: {
   value: AnnouncementType;
-  label: string;
+  labelKey: string;
   icon: typeof Info;
   color: string;
 }[] = [
   {
     value: 'info',
-    label: 'Info',
+    labelKey: 'info',
     icon: Info,
     color:
       'text-blue-600 dark:text-blue-400 bg-blue-500/10 dark:bg-blue-500/20 border-blue-200/50 dark:border-blue-800/40',
   },
   {
     value: 'warning',
-    label: 'Warning',
+    labelKey: 'warning',
     icon: AlertTriangle,
     color:
       'text-amber-600 dark:text-amber-400 bg-amber-500/10 dark:bg-amber-500/20 border-amber-200/50 dark:border-amber-800/40',
   },
   {
     value: 'success',
-    label: 'Success',
+    labelKey: 'success',
     icon: CheckCircle,
     color:
       'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/20 border-emerald-200/50 dark:border-emerald-800/40',
@@ -57,6 +59,7 @@ const previewStyles: Record<AnnouncementType, string> = {
 };
 
 export function AnnouncementEditor({ initial }: AnnouncementEditorProps) {
+  const t = useTranslations('Admin');
   const [enabled, setEnabled] = useState(initial?.enabled ?? false);
   const [message, setMessage] = useState(initial?.message ?? '');
   const [type, setType] = useState<AnnouncementType>(initial?.type ?? 'info');
@@ -65,7 +68,7 @@ export function AnnouncementEditor({ initial }: AnnouncementEditorProps) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await fetch('/api/admin/settings/site_announcement', {
+      const res = await fetch(apiUrl('/api/admin/settings/site_announcement'), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -74,12 +77,12 @@ export function AnnouncementEditor({ initial }: AnnouncementEditorProps) {
       });
       if (!res.ok) {
         const err = await res.json();
-        toast.error(err.error || 'Failed to save');
+        toast.error(err.error || t('errorSavingAnnouncement'));
         return;
       }
-      toast.success('Announcement saved');
+      toast.success(t('announcementSaved'));
     } catch {
-      toast.error('Error saving announcement');
+      toast.error(t('errorSavingAnnouncement'));
     } finally {
       setSaving(false);
     }
@@ -90,10 +93,10 @@ export function AnnouncementEditor({ initial }: AnnouncementEditorProps) {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Announcements
+          {t('announcementsTitle')}
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Manage the site-wide announcement banner
+          {t('announcementDesc')}
         </p>
       </div>
 
@@ -102,10 +105,10 @@ export function AnnouncementEditor({ initial }: AnnouncementEditorProps) {
         <div className="flex items-center justify-between">
           <div>
             <Label className="text-base font-medium text-gray-900 dark:text-white">
-              Enable Banner
+              {t('enableBanner')}
             </Label>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Show the announcement banner across the app
+              {t('showBannerDesc')}
             </p>
           </div>
           <Switch checked={enabled} onCheckedChange={setEnabled} />
@@ -114,7 +117,7 @@ export function AnnouncementEditor({ initial }: AnnouncementEditorProps) {
         {/* Type Selector */}
         <div>
           <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-            Banner Type
+            {t('bannerType')}
           </Label>
           <div className="flex gap-2">
             {typeOptions.map(opt => (
@@ -130,7 +133,7 @@ export function AnnouncementEditor({ initial }: AnnouncementEditorProps) {
                 )}
               >
                 <opt.icon className="h-4 w-4" />
-                {opt.label}
+                {t(opt.labelKey)}
               </button>
             ))}
           </div>
@@ -139,12 +142,12 @@ export function AnnouncementEditor({ initial }: AnnouncementEditorProps) {
         {/* Message */}
         <div>
           <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-            Message
+            {t('message')}
           </Label>
           <Textarea
             value={message}
             onChange={e => setMessage(e.target.value)}
-            placeholder="Enter your announcement message..."
+            placeholder={t('enterAnnouncement')}
             rows={3}
             className="rounded-xl"
           />
@@ -154,7 +157,7 @@ export function AnnouncementEditor({ initial }: AnnouncementEditorProps) {
         {message && (
           <div>
             <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-              Preview
+              {t('preview')}
             </Label>
             <div
               className={cn(
@@ -174,7 +177,7 @@ export function AnnouncementEditor({ initial }: AnnouncementEditorProps) {
           className="rounded-xl gap-2"
         >
           <Save className="h-4 w-4" />
-          {saving ? 'Saving...' : 'Save Announcement'}
+          {saving ? t('saving') : t('saveAnnouncement')}
         </Button>
       </div>
     </div>
