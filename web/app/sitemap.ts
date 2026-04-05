@@ -11,7 +11,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       // Fetch all listed public problem sets
       const { data: publicSets } = await supabase
         .from('problem_sets')
-        .select('id, updated_at')
+        .select('id, user_id, updated_at')
         .eq('sharing_level', 'public')
         .eq('is_listed', true)
         .order('updated_at', { ascending: false })
@@ -24,18 +24,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.6,
       }));
 
-      // Fetch distinct creators from listed public sets
-      const { data: creatorRows } = await supabase
-        .from('problem_sets')
-        .select('user_profiles!inner (username)')
-        .eq('sharing_level', 'public')
-        .eq('is_listed', true)
-        .not('user_profiles.username', 'is', null);
-
+      // Fetch creator usernames for listed public sets
+      // No direct FK from problem_sets to user_profiles, so collect user_ids then query profiles
+      const ownerIds = [
+        ...new Set(
+          (publicSets || []).map((s: any) => s.user_id).filter(Boolean)
+        ),
+      ];
       const creatorUsernames = new Set<string>();
-      for (const row of (creatorRows || []) as any[]) {
-        if (row.user_profiles?.username) {
-          creatorUsernames.add(row.user_profiles.username);
+      if (ownerIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('user_profiles')
+          .select('username')
+          .in('id', ownerIds)
+          .not('username', 'is', null);
+        for (const p of profiles || []) {
+          if (p.username) creatorUsernames.add(p.username);
         }
       }
 
