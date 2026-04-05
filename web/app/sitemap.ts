@@ -3,6 +3,10 @@ import { createServiceClient } from '@/lib/supabase-utils';
 import { unstable_cache } from 'next/cache';
 import { CACHE_TAGS, CACHE_DURATIONS } from '@/lib/cache-config';
 
+const BASE_URL = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}`
+  : 'https://wqn.magicworks.app';
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const getCachedSitemap = unstable_cache(
     async () => {
@@ -18,7 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .limit(5000);
 
       const setUrls: MetadataRoute.Sitemap = (publicSets || []).map(set => ({
-        url: `https://wqn.magicworks.app/problem-sets/${set.id}`,
+        url: `${BASE_URL}/problem-sets/${set.id}`,
         lastModified: new Date(set.updated_at),
         changeFrequency: 'weekly' as const,
         priority: 0.6,
@@ -46,27 +50,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const creatorUrls: MetadataRoute.Sitemap = Array.from(
         creatorUsernames
       ).map(username => ({
-        url: `https://wqn.magicworks.app/creators/${username}`,
+        url: `${BASE_URL}/creators/${username}`,
         changeFrequency: 'weekly' as const,
         priority: 0.5,
       }));
 
       return [
         {
-          url: 'https://wqn.magicworks.app',
-          lastModified: new Date(),
+          url: BASE_URL,
           changeFrequency: 'monthly' as const,
           priority: 1.0,
         },
         {
-          url: 'https://wqn.magicworks.app/discover',
-          lastModified: new Date(),
+          url: `${BASE_URL}/discover`,
           changeFrequency: 'daily' as const,
           priority: 0.9,
         },
         {
-          url: 'https://wqn.magicworks.app/privacy',
-          lastModified: new Date(),
+          url: `${BASE_URL}/privacy`,
           changeFrequency: 'monthly' as const,
           priority: 0.3,
         },

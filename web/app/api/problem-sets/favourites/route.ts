@@ -59,12 +59,13 @@ async function getFavourites() {
       .filter((ps: any) => ps.sharing_level === 'limited')
       .map((ps: any) => ps.id);
     const sharedSetIds = new Set<string>();
-    if (limitedSetIds.length > 0) {
+    const userEmail = user.email?.trim();
+    if (limitedSetIds.length > 0 && userEmail) {
       const { data: shares } = await serviceClient
         .from('problem_set_shares')
         .select('problem_set_id')
         .in('problem_set_id', limitedSetIds)
-        .ilike('shared_with_email', user.email || '');
+        .ilike('shared_with_email', userEmail);
       for (const s of shares || []) {
         sharedSetIds.add(s.problem_set_id);
       }

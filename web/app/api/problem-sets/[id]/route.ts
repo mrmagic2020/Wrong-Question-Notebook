@@ -236,8 +236,12 @@ async function updateProblemSet(
       revalidateProblemSetPage(id),
     ];
 
-    // Revalidate discovery/sitemap when listing or sharing level changes
-    if (providedKeys.has('sharing_level') || providedKeys.has('is_listed')) {
+    // Revalidate discovery/sitemap when discoverability-related fields change
+    if (
+      providedKeys.has('sharing_level') ||
+      providedKeys.has('is_listed') ||
+      providedKeys.has('discovery_subject')
+    ) {
       cacheInvalidations.push(revalidateDiscovery(), revalidateSitemap());
     }
 
