@@ -283,7 +283,7 @@ export default function ProblemSetPageClient({
       {problemSet.sharing_level !== 'private' && (
         <SocialActionsBar
           problemSetId={problemSet.id}
-          isPublic
+          isShared
           isAuthenticated={isAuthenticated}
           initialStats={initialStats}
           initialSocialState={initialSocialState}

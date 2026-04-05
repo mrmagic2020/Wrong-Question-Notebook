@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -371,10 +370,18 @@ export default function ProblemSetsPageClient({
             statsMap[problemSet.id] || favouriteData.favStatsMap[problemSet.id];
 
           return (
-            <Link
+            <div
               key={problemSet.id}
-              href={`/problem-sets/${problemSet.id}`}
-              className="group flex h-[220px] flex-col rounded-2xl border border-amber-200/40 bg-gradient-to-br from-white to-amber-50/30 p-5 transition-all hover:-translate-y-1 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 dark:border-gray-700/40 dark:from-gray-800/60 dark:to-gray-800/30"
+              role="link"
+              tabIndex={0}
+              className="group flex h-[220px] cursor-pointer flex-col rounded-2xl border border-amber-200/40 bg-gradient-to-br from-white to-amber-50/30 p-5 transition-all hover:-translate-y-1 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 dark:border-gray-700/40 dark:from-gray-800/60 dark:to-gray-800/30"
+              onClick={() => router.push(`/problem-sets/${problemSet.id}`)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  router.push(`/problem-sets/${problemSet.id}`);
+                }
+              }}
             >
               {/* Top: badges, title, description */}
               <div className="flex-1 min-w-0">
@@ -522,7 +529,7 @@ export default function ProblemSetsPageClient({
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-            </Link>
+            </div>
           );
         })}
       </div>

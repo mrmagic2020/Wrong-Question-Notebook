@@ -13,7 +13,7 @@ import { ReportDialog } from './report-dialog';
 
 interface SocialActionsBarProps {
   problemSetId: string;
-  isPublic: boolean;
+  isShared: boolean;
   isAuthenticated: boolean;
   initialStats?: ProblemSetStats | null;
   initialSocialState?: UserSocialState | null;
@@ -28,7 +28,7 @@ function formatCount(n: number): string {
 
 export function SocialActionsBar({
   problemSetId,
-  isPublic,
+  isShared,
   isAuthenticated,
   initialStats,
   initialSocialState,
@@ -47,7 +47,7 @@ export function SocialActionsBar({
     initialStats,
     initialSocialState,
     isAuthenticated,
-    trackView: isPublic,
+    trackView: isShared,
   });
 
   const [reportOpen, setReportOpen] = useState(false);
@@ -62,7 +62,7 @@ export function SocialActionsBar({
     }
   };
 
-  if (!isPublic) return null;
+  if (!isShared) return null;
 
   return (
     <>
