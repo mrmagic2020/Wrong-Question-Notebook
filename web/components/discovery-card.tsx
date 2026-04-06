@@ -47,8 +47,16 @@ export function DiscoveryCard({
   const cardHref = `/problem-sets/${set.id}?from=${encodeURIComponent(fromHref)}`;
 
   return (
-    <Link
-      href={cardHref}
+    <div
+      role="link"
+      tabIndex={0}
+      onClick={() => router.push(cardHref)}
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          router.push(cardHref);
+        }
+      }}
       className="group flex h-[220px] cursor-pointer flex-col rounded-2xl border border-amber-200/40 bg-gradient-to-br from-white to-amber-50/30 p-5 transition-all hover:-translate-y-1 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 dark:border-gray-700/40 dark:from-gray-800/60 dark:to-gray-800/30"
     >
       {/* Top: subject badge, title, description (grows to fill) */}
@@ -84,25 +92,13 @@ export function DiscoveryCard({
             size="xs"
           />
           {set.owner.username ? (
-            <span
-              role="link"
-              tabIndex={0}
-              onClick={e => {
-                e.preventDefault();
-                e.stopPropagation();
-                router.push(`/creators/${set.owner.username}`);
-              }}
-              onKeyDown={e => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  router.push(`/creators/${set.owner.username}`);
-                }
-              }}
-              className="cursor-pointer text-xs text-gray-500 hover:text-amber-600 dark:text-gray-400 dark:hover:text-amber-400 transition-colors"
+            <Link
+              href={`/creators/${set.owner.username}`}
+              onClick={e => e.stopPropagation()}
+              className="text-xs text-gray-500 hover:text-amber-600 dark:text-gray-400 dark:hover:text-amber-400 transition-colors"
             >
               @{set.owner.username}
-            </span>
+            </Link>
           ) : (
             <span className="text-xs text-gray-500 dark:text-gray-400">
               {set.owner.display_name}
@@ -129,6 +125,6 @@ export function DiscoveryCard({
           </span>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
