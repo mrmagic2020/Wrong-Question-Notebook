@@ -23,6 +23,7 @@ export default function ProblemsPageClient({
   availableTags,
 }: ProblemsPageClientProps) {
   const t = useTranslations('Problems');
+  const tCommon = useTranslations('Common');
   const [problems, setProblems] = useState(initialProblems);
   const [tagsByProblem, setTagsByProblem] = useState(initialTagsByProblem);
   const { refreshChecklistStatus } = useOnboarding();
@@ -235,8 +236,8 @@ export default function ProblemsPageClient({
         isOpen={switchDialog.open}
         title={t('discardUnsavedTitle')}
         message={t('discardUnsavedDesc')}
-        confirmText={t('discardAndEdit')}
-        cancelText={t('keepEditing')}
+        confirmText={tCommon('discardAndEdit')}
+        cancelText={tCommon('keepEditing')}
         onConfirm={handleConfirmSwitch}
         onCancel={() => setSwitchDialog({ open: false, pendingProblem: null })}
         variant="destructive"
