@@ -23,6 +23,7 @@ import type { LucideIcon } from 'lucide-react';
 import { formatBytes } from '@/lib/format-utils';
 import { CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
 import type { ContentLimitResult } from '@/lib/content-limits';
+import { useTranslations } from 'next-intl';
 
 interface QuotaCheckResult {
   allowed: boolean;
@@ -74,10 +75,12 @@ function ProgressBar({ current, limit }: { current: number; limit: number }) {
 }
 
 function ContentLimitRow({ item }: { item: ContentLimitResult }) {
+  const t = useTranslations('Usage');
   const [expanded, setExpanded] = useState(false);
   const Icon = CONTENT_LIMIT_ICONS[item.resource_type] ?? FileText;
-  const label =
-    CONTENT_LIMIT_CONSTANTS.LABELS[item.resource_type] ?? item.resource_type;
+  const label = t.has(`limits.${item.resource_type}` as any) 
+    ? t(`limits.${item.resource_type}` as any) 
+    : item.resource_type;
   const isStorage = item.resource_type === 'storage_bytes';
   const hasPerSubject = item.per_subject && item.per_subject.length > 0;
 
@@ -109,8 +112,8 @@ function ContentLimitRow({ item }: { item: ContentLimitResult }) {
               onClick={() => setExpanded(!expanded)}
               aria-label={
                 expanded
-                  ? 'Hide per-notebook breakdown'
-                  : 'Show per-notebook breakdown'
+                  ? t('hideBreakdown')
+                  : t('showBreakdown')
               }
               aria-expanded={expanded}
               aria-controls={`breakdown-${item.resource_type}`}
@@ -126,7 +129,7 @@ function ContentLimitRow({ item }: { item: ContentLimitResult }) {
       <ProgressBar current={item.current} limit={item.limit} />
       {hasPerSubject && !expanded && highestSubject && (
         <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          Highest: {highestSubject.subject_name} ({highestSubject.current})
+          {t('highest')}: {highestSubject.subject_name} ({highestSubject.current})
         </p>
       )}
       {hasPerSubject && expanded && (
@@ -158,6 +161,7 @@ function QuotaRow({
   label: string;
   quota: QuotaCheckResult;
 }) {
+  const t = useTranslations('Usage');
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -168,7 +172,7 @@ function QuotaRow({
           </span>
         </div>
         <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-          {quota.current_usage} / {quota.daily_limit} today
+          {quota.current_usage} / {quota.daily_limit} {t('today')}
         </span>
       </div>
       <ProgressBar current={quota.current_usage} limit={quota.daily_limit} />
@@ -180,6 +184,7 @@ export function UsageLimitsDialog({
   open,
   onOpenChange,
 }: UsageLimitsDialogProps) {
+  const t = useTranslations('Usage');
   const [data, setData] = useState<UsageData | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -206,7 +211,7 @@ export function UsageLimitsDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-            Usage & Limits
+            {t('title')}
           </DialogTitle>
         </DialogHeader>
 
@@ -219,7 +224,7 @@ export function UsageLimitsDialog({
             {/* Content Limits */}
             <div>
               <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                Content Limits
+                {t('contentLimits')}
               </h3>
               <div className="space-y-4">
                 {data.content_limits.map(item => (
@@ -234,17 +239,17 @@ export function UsageLimitsDialog({
             {/* Daily Quotas */}
             <div>
               <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                Daily Quotas
+                {t('dailyQuotas')}
               </h3>
               <div className="space-y-4">
                 <QuotaRow
                   icon={Zap}
-                  label="AI Extraction"
+                  label={t('aiExtraction')}
                   quota={data.daily_quotas.ai_extraction}
                 />
                 <QuotaRow
                   icon={Brain}
-                  label="AI Categorisation"
+                  label={t('aiCategorisation')}
                   quota={data.daily_quotas.ai_categorisation}
                 />
               </div>

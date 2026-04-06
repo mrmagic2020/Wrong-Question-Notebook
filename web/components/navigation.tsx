@@ -4,6 +4,7 @@ import { ThemeSwitcher } from '@/components/theme-switcher';
 import { WLogo } from '@/components/w-logo';
 import { hasEnvVars } from '@/lib/server-utils';
 import { AppNavLinks } from '@/components/app-nav-links';
+import { useTranslations } from 'next-intl';
 
 interface NavigationProps {
   showAppLinks?: boolean;
@@ -17,6 +18,7 @@ export function Navigation({
   sticky = false,
 }: NavigationProps) {
   const stickyClass = sticky ? 'sticky top-0 z-50' : '';
+  const t = useTranslations('Common');
 
   return (
     <nav
@@ -26,14 +28,14 @@ export function Navigation({
         <div className="flex min-w-0 items-center gap-4">
           <Link
             href="/"
-            aria-label="Wrong Question Notebook"
+            aria-label={t('appName')}
             className="group flex items-baseline gap-0 text-lg font-bold tracking-tight text-foreground"
           >
             <WLogo className="h-7 w-7 text-amber-600 dark:text-amber-400 self-center shrink-0 transition-transform group-hover:scale-110" />
             <span className="hidden sm:inline text-lg -ml-0.5">
-              rong Question Notebook
+              {t('logoText')}
             </span>
-            <span className="sm:hidden text-lg -ml-0.5">QN</span>
+            <span className="sm:hidden text-lg -ml-0.5">{t('logoShortText')}</span>
           </Link>
 
           {showAppLinks ? <AppNavLinks /> : null}

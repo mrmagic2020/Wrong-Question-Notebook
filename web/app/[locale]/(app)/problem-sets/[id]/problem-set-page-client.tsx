@@ -132,13 +132,13 @@ export default function ProblemSetPageClient({
   const getSharingLabel = (sharingLevel: ProblemSetSharingLevel) => {
     switch (sharingLevel) {
       case ProblemSetSharingLevel.enum.private:
-        return tProblemSets('private');
+        return t('private');
       case ProblemSetSharingLevel.enum.limited:
-        return tProblemSets('limited');
+        return t('limited');
       case ProblemSetSharingLevel.enum.public:
-        return tProblemSets('public');
+        return t('public');
       default:
-        return tProblemSets('private');
+        return t('private');
     }
   };
 
@@ -208,7 +208,7 @@ export default function ProblemSetPageClient({
                 {ownerProfile && (
                   <>
                     <span className="text-muted-foreground/40">|</span>
-                    <span>{tProblemSets('sharedBy')}</span>
+                    <span>{t('sharedBy')}</span>
                     <UserProfileCard profile={ownerProfile} />
                   </>
                 )}
@@ -223,7 +223,7 @@ export default function ProblemSetPageClient({
               className="border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400"
             >
               <Sparkles className="h-3 w-3 mr-1" />
-              {tProblemSets('smart')}
+              {t('smart')}
             </Badge>
           )}
           <Badge variant={getSharingVariant(problemSet.sharing_level)}>
@@ -241,7 +241,7 @@ export default function ProblemSetPageClient({
           {problemSet.is_smart && problemSet.isOwner && (
             <Button variant="outline" onClick={() => setEditSmartDialog(true)}>
               <Sparkles className="h-4 w-4 mr-2" />
-              {tProblemSets('filters')}
+              {t('filters')}
             </Button>
           )}
           {/* Copy to My Library (non-owners, when allowed) */}
@@ -250,7 +250,7 @@ export default function ProblemSetPageClient({
             problemSet.allow_copying && (
               <Button variant="outline" onClick={() => setCopyDialog(true)}>
                 <Copy className="h-4 w-4 mr-2" />
-                {tProblemSets('copyToMyLibrary')}
+                {t('copyToMyLibrary')}
               </Button>
             )}
           {isAuthenticated ? (
@@ -259,7 +259,7 @@ export default function ProblemSetPageClient({
               disabled={!!sessionLoading}
             >
               <Play className="h-4 w-4 mr-2" />
-              {sessionLoading ? tProblemSets('starting') : tProblemSets('startReview')}
+              {sessionLoading ? t('starting') : t('startReview')}
             </Button>
           ) : (
             <Button
@@ -270,7 +270,7 @@ export default function ProblemSetPageClient({
               }
             >
               <LogIn className="h-4 w-4 mr-2" />
-              {tProblemSets('loginToReview')}
+              {t('loginToReview')}
             </Button>
           )}
         </div>
@@ -337,7 +337,7 @@ export default function ProblemSetPageClient({
         <div className="flex items-center mb-4">
           <Button onClick={handleAddProblems} variant="outline">
             <Plus className="h-4 w-4 mr-2" />
-            {tProblemSets('addProblems')}
+            {t('addProblems')}
           </Button>
         </div>
       )}
@@ -351,19 +351,19 @@ export default function ProblemSetPageClient({
                 <Plus className="h-12 w-12 text-muted-foreground" />
               </div>
               <h3 className="text-lg font-semibold mb-2">
-                {tProblemSets('noProblemsInSet')}
+                {t('noProblemsInSet')}
               </h3>
               <p className="text-muted-foreground mb-6">
                 {problemSet.is_smart
-                  ? tProblemSets('noProblemsMatchFilter')
+                  ? t('noProblemsMatchFilter')
                   : problemSet.isOwner
-                    ? tProblemSets('addProblemsHint')
-                    : tProblemSets('problemSetEmpty')}
+                    ? t('addProblemsHint')
+                    : t('problemSetEmpty')}
               </p>
               {problemSet.isOwner && !problemSet.is_smart && (
                 <Button onClick={handleAddProblems}>
                   <Plus className="h-4 w-4 mr-2" />
-                  {tProblemSets('addProblems')}
+                  {t('addProblems')}
                 </Button>
               )}
             </div>

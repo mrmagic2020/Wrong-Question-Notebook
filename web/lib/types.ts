@@ -601,7 +601,6 @@ export type TableMeta = {
   onAddToSet?: (problem: Problem) => void;
   onEdit?: (problem: Problem) => void;
   onDelete?: (problemId: string, problemTitle: string) => void;
-  t?: (key: string) => string;
 };
 
 export type ProblemFormProps = {

@@ -12,6 +12,7 @@ import { Bar } from 'react-chartjs-2';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { SubjectBreakdownRow } from '@/lib/types';
+import { useTranslations } from 'next-intl';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
@@ -20,6 +21,7 @@ interface SubjectBarChartProps {
 }
 
 export function SubjectBarChart({ data }: SubjectBarChartProps) {
+  const t = useTranslations('Statistics');
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
@@ -55,13 +57,13 @@ export function SubjectBarChart({ data }: SubjectBarChartProps) {
           </svg>
         </div>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          No subjects yet
+          {t('noSubjectsYet')}
         </p>
         <Link
           href="/subjects"
           className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
         >
-          Create a subject &rarr;
+          {t('createSubjectLink')}
         </Link>
       </div>
     );
@@ -73,19 +75,19 @@ export function SubjectBarChart({ data }: SubjectBarChartProps) {
     labels,
     datasets: [
       {
-        label: 'Wrong',
+        label: t('chartWrong'),
         data: data.map(d => d.wrong),
         backgroundColor: isDark ? '#fb923c' : '#f97316',
         borderRadius: 4,
       },
       {
-        label: 'Needs Review',
+        label: t('chartNeedsReview'),
         data: data.map(d => d.needs_review),
         backgroundColor: isDark ? '#fbbf24' : '#f59e0b',
         borderRadius: 4,
       },
       {
-        label: 'Mastered',
+        label: t('chartMastered'),
         data: data.map(d => d.mastered),
         backgroundColor: isDark ? '#34d399' : '#10b981',
         borderRadius: 4,

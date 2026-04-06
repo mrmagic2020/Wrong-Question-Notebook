@@ -20,7 +20,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
-import { useTranslations } from '@/lib/i18n';
+import { useTranslations } from 'next-intl';
 
 // Helper function to get status badge styling with custom colors
 const getStatusBadgeStyle = (status: string): string => {
@@ -49,6 +49,13 @@ interface DataTableFacetedFilterProps<TData, TValue> {
   children?: React.ReactNode;
 }
 
+export function DataTableFacetedFilter<TData, TValue>({
+  column,
+  title,
+  options,
+  selectedValues: externalSelectedValues,
+  onSelectedValuesChange,
+  children,
 }: DataTableFacetedFilterProps<TData, TValue>) {
   const t = useTranslations('CommonUtils');
   const facets = column?.getFacetedUniqueValues();

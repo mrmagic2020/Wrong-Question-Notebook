@@ -14,6 +14,7 @@ export default function AddProblemsToSetClient({
   problemSetProblemIds,
 }: AddProblemsToSetClientProps) {
   const t = useTranslations('ProblemSets');
+  const router = useRouter();
 
   return (
     <div className="container mx-auto py-6 space-y-6">

@@ -36,7 +36,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useLatestRef } from '@/lib/hooks/use-latest-ref';
 import { Kbd } from '@/components/ui/kbd';
 import { SearchFilters, SimpleTag, TagFilterMode } from '@/lib/types';
-import { useTranslations } from '@/lib/i18n';
+import { useTranslations } from 'next-intl';
 
 interface CompactSearchFilterProps {
   onSearch: (filters: SearchFilters) => void;

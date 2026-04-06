@@ -6,13 +6,13 @@ import {
   buildHeatmapGrid,
   getHeatmapMonthLabels,
 } from '@/lib/statistics-utils';
+import { useTranslations, useFormatter } from 'next-intl';
 
 interface ActivityHeatmapProps {
   data: ActivityDay[];
   timezone?: string;
 }
 
-const DAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
 const CELL_SIZE = 12;
 const CELL_GAP = 3;
 
@@ -33,10 +33,23 @@ const INTENSITY_COLORS_DARK = [
 ];
 
 export function ActivityHeatmap({ data, timezone }: ActivityHeatmapProps) {
+  const t = useTranslations('Statistics');
+  const format = useFormatter();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDark, setIsDark] = useState(false);
   const grid = buildHeatmapGrid(data, 26, timezone);
-  const monthLabels = getHeatmapMonthLabels(grid);
+  const monthLabelsData = getHeatmapMonthLabels(grid);
+
+  // Reconstruct month labels using locale-aware formatter
+  const monthLabels = monthLabelsData.map(m => {
+    const d = new Date(2024, m.monthIndex, 1);
+    return {
+      label: format.dateTime(d, { month: 'short' }),
+      colStart: m.colStart
+    };
+  });
+  
+  const DAY_LABELS = ['', t('dayMon'), '', t('dayWed'), '', t('dayFri'), ''];
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -66,7 +79,7 @@ export function ActivityHeatmap({ data, timezone }: ActivityHeatmapProps) {
       <div className="stats-bento-card">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
-            Activity
+            {t('activity')}
           </h3>
         </div>
         <div className="flex flex-col items-center justify-center py-6 gap-3">
@@ -87,10 +100,10 @@ export function ActivityHeatmap({ data, timezone }: ActivityHeatmapProps) {
             </svg>
           </div>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            No activity yet
+            {t('noActivityYet')}
           </p>
           <p className="text-xs text-gray-400 dark:text-gray-500">
-            Complete a review session to start tracking
+            {t('startTracking')}
           </p>
         </div>
       </div>
@@ -101,11 +114,10 @@ export function ActivityHeatmap({ data, timezone }: ActivityHeatmapProps) {
     <div className="stats-bento-card">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
-          Activity
+          {t('activity')}
         </h3>
         <p className="text-xs text-gray-500 dark:text-gray-400">
-          {totalActivity} action{totalActivity !== 1 ? 's' : ''} in the last 6
-          months
+          {t('actionsInPeriod', { count: totalActivity })}
         </p>
       </div>
 
@@ -199,7 +211,7 @@ export function ActivityHeatmap({ data, timezone }: ActivityHeatmapProps) {
                       title={
                         cell.intensity === -1
                           ? ''
-                          : `${cell.date}: ${cell.count} action${cell.count !== 1 ? 's' : ''}`
+                          : t('cellTooltip', { date: cell.date, count: cell.count })
                       }
                     />
                   ))}
@@ -213,7 +225,7 @@ export function ActivityHeatmap({ data, timezone }: ActivityHeatmapProps) {
       {/* Legend */}
       <div className="flex items-center gap-1.5 mt-3 justify-end">
         <span className="text-[10px] text-gray-400 dark:text-gray-500">
-          Less
+          {t('lessActivity')}
         </span>
         {[0, 1, 2, 3, 4].map(level => (
           <div
@@ -227,7 +239,7 @@ export function ActivityHeatmap({ data, timezone }: ActivityHeatmapProps) {
           />
         ))}
         <span className="text-[10px] text-gray-400 dark:text-gray-500">
-          More
+          {t('moreActivity')}
         </span>
       </div>
     </div>

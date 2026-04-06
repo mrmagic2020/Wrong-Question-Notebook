@@ -477,7 +477,7 @@ export default function EnhancedProblemsTable({
           onColumnVisibilityChange={handleColumnVisibilityChange}
           columnVisibilityStorageKey={`problems-table-column-visibility-${subjectId}`}
           isAddToSetMode={isAddToSetMode}
-          meta={{ t }}
+          meta={{}}
         />
       )}
 

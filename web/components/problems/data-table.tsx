@@ -11,7 +11,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { useColumnVisibility } from '@/lib/hooks/useColumnVisibility';
+import { useTranslations } from 'next-intl';
 
 import {
   Table,
@@ -26,19 +26,7 @@ import { Problem, DataTableProps } from '@/lib/types';
 import { ProblemStatus } from '@/lib/schemas';
 import { getStatusBorderColor } from '@/lib/common-utils';
 
-const FALLBACK_T = (key: string) => {
-  const fallbacks: Record<string, string> = {
-    noResults: 'No results.',
-    rowsPerPage: 'Rows per page',
-    selected: 'selected',
-    row: 'row',
-    rows: 'rows',
-    page: 'Page',
-    of: 'of',
-  };
-  return fallbacks[key] ?? key;
-};
-
+import { useColumnVisibility } from '@/lib/hooks/useColumnVisibility';
 export function DataTable<TData, TValue>({
   columns,
   data,
@@ -56,6 +44,7 @@ export function DataTable<TData, TValue>({
   hideStatusStrip = false,
   meta: externalMeta,
 }: DataTableProps<TData, TValue>) {
+  const t = useTranslations('DataTable');
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -214,7 +203,7 @@ export function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  {FALLBACK_T('noResults')}
+                  {t('noResults')}
                 </TableCell>
               </TableRow>
             )}
@@ -225,14 +214,14 @@ export function DataTable<TData, TValue>({
       {/* Pagination */}
       <div className="flex items-center justify-between space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{' '}
-          {table.getFilteredRowModel().rows.length}{' '}
-          {table.getFilteredRowModel().rows.length === 1 ? FALLBACK_T('row') : FALLBACK_T('rows')}{' '}
-          {FALLBACK_T('selected')}.
+          {t('selectedRowsInfo', {
+            selectedCount: table.getFilteredSelectedRowModel().rows.length,
+            totalCount: table.getFilteredRowModel().rows.length
+          })}
         </div>
         <div className="flex items-center space-x-6 lg:space-x-8">
           <div className="flex items-center space-x-2">
-            <p className="text-sm font-medium">{FALLBACK_T('rowsPerPage')}</p>
+            <p className="text-sm font-medium">{t('rowsPerPage')}</p>
             <select
               value={table.getState().pagination.pageSize}
               onChange={e => {
@@ -248,8 +237,10 @@ export function DataTable<TData, TValue>({
             </select>
           </div>
           <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-            {FALLBACK_T('page')} {table.getState().pagination.pageIndex + 1} {FALLBACK_T('of')}{' '}
-            {table.getPageCount()}
+            {t('pageInfo', {
+              pageIndex: table.getState().pagination.pageIndex + 1,
+              pageCount: table.getPageCount()
+            })}
           </div>
           <div className="flex items-center space-x-2">
             <Button
@@ -258,7 +249,7 @@ export function DataTable<TData, TValue>({
               onClick={() => table.setPageIndex(0)}
               disabled={!table.getCanPreviousPage()}
             >
-              <span className="sr-only">Go to first page</span>
+              <span className="sr-only">{t('firstPage')}</span>
               {'<<'}
             </Button>
             <Button
@@ -267,7 +258,7 @@ export function DataTable<TData, TValue>({
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
             >
-              <span className="sr-only">Go to previous page</span>
+              <span className="sr-only">{t('previousPage')}</span>
               {'<'}
             </Button>
             <Button
@@ -276,7 +267,7 @@ export function DataTable<TData, TValue>({
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
             >
-              <span className="sr-only">Go to next page</span>
+              <span className="sr-only">{t('nextPage')}</span>
               {'>'}
             </Button>
             <Button
@@ -285,7 +276,7 @@ export function DataTable<TData, TValue>({
               onClick={() => table.setPageIndex(table.getPageCount() - 1)}
               disabled={!table.getCanNextPage()}
             >
-              <span className="sr-only">Go to last page</span>
+              <span className="sr-only">{t('lastPage')}</span>
               {'>>'}
             </Button>
           </div>
