@@ -56,7 +56,8 @@ async function recordView(
     if (user) {
       viewerHash = createHash('sha256').update(user.id).digest('hex');
     } else {
-      const ip = req.headers.get('x-forwarded-for') || 'unknown';
+      const forwardedFor = req.headers.get('x-forwarded-for') || 'unknown';
+      const ip = forwardedFor.split(',')[0].trim();
       const ua = req.headers.get('user-agent') || 'unknown';
       viewerHash = createHash('sha256').update(`${ip}:${ua}`).digest('hex');
     }
