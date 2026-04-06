@@ -129,4 +129,7 @@ async function reportProblemSet(
   }
 }
 
-export const POST = withSecurity(reportProblemSet, { rateLimitType: 'api' });
+export const POST = withSecurity(reportProblemSet, {
+  rateLimitType: 'custom',
+  customRateLimit: { windowMs: 60 * 60 * 1000, maxRequests: 10 },
+});
