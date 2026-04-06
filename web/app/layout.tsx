@@ -4,7 +4,6 @@ import { ThemeProvider } from 'next-themes';
 import { Toaster } from '@/components/ui/sonner';
 import { ConsentProvider } from '@/components/cookie-consent/consent-provider';
 import { ConditionalAnalytics } from '@/components/cookie-consent/conditional-analytics';
-import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getTranslations } from 'next-intl/server';
 import './globals.css';
 
@@ -47,12 +46,10 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <NextIntlClientProvider locale={locale}>
-            <ConsentProvider>
-              {children}
-              <ConditionalAnalytics />
-            </ConsentProvider>
-          </NextIntlClientProvider>
+          <ConsentProvider>
+            {children}
+            <ConditionalAnalytics />
+          </ConsentProvider>
         </ThemeProvider>
         <Toaster />
         <script

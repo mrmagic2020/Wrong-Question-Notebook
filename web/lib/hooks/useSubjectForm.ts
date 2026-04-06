@@ -58,13 +58,6 @@ export function useSubjectForm({
       return;
     }
 
-    console.log('[useSubjectForm] Submitting:', {
-      name: name.trim(),
-      color,
-      icon,
-    });
-    console.log('[useSubjectForm] API URL:', apiUrl('/api/subjects'));
-
     // Cancel any existing in-flight request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -81,18 +74,14 @@ export function useSubjectForm({
         signal: abortController.signal,
       });
 
-      console.log('[useSubjectForm] Response status:', res.status);
-
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        console.error('[useSubjectForm] API error:', errorData);
         throw new Error(
           `HTTP ${res.status}: ${errorData.error?.message || res.statusText}`
         );
       }
 
       const result = await res.json();
-      console.log('[useSubjectForm] Success:', result);
 
       if (resetOnSuccess) {
         resetForm();
@@ -104,18 +93,15 @@ export function useSubjectForm({
 
       return result.data;
     } catch (err: unknown) {
-      console.error('[useSubjectForm] Catch error:', err);
       // Ignore abort errors - they happen when user navigates away or closes dialog
       if (err instanceof Error) {
         // AbortError is thrown when fetch is cancelled by AbortController
         if (err.name === 'AbortError') {
-          console.log('[useSubjectForm] AbortError ignored');
           return;
         }
         // TypeError with 'Failed to fetch' message usually means network error or CORS issue
         // This can happen if the request is cancelled due to page navigation
         if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
-          console.log('[useSubjectForm] Failed to fetch ignored');
           return;
         }
         toast.error('Failed to create subject: ' + err.message);
