@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { useRef, useState } from 'react';
 import { ERROR_MESSAGES, CAPTCHA_CONSTANTS } from '@/lib/constants';
 import { KeyRound, Mail } from 'lucide-react';

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { DataTable } from '@/components/problems/data-table';
 import CompactSearchFilter from '@/components/problems/compact-search-filter';
 import ProblemCardList from '@/components/problems/problem-card-list';

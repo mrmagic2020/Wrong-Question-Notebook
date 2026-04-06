@@ -1,7 +1,7 @@
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent } from '@/components/ui/card';
 import { createClient } from '@/lib/supabase/server';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 
 export default async function ProblemsChooser() {
   const supabase = await createClient();

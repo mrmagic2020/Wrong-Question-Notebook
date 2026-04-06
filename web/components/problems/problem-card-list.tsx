@@ -25,7 +25,7 @@ import {
   getStatusBorderColor,
 } from '@/lib/common-utils';
 import { PROBLEM_CONSTANTS } from '@/lib/constants';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { toast } from 'sonner';
 
 const ITEMS_PER_PAGE = PROBLEM_CONSTANTS.MOBILE_CARD_LIST_PAGE_SIZE;

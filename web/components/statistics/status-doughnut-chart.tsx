@@ -2,7 +2,7 @@
 
 import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { useEffect, useState } from 'react';
 import { StatisticsOverview } from '@/lib/types';
 import { useTranslations } from 'next-intl';

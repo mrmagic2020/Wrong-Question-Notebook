@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Navigation } from '@/components/navigation';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import {
   ArrowRight,
   Award,

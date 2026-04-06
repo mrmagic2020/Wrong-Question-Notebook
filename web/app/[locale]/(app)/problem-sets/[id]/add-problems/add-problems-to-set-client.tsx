@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { BackLink } from '@/components/back-link';
 import EnhancedProblemsTable from '../../../subjects/[id]/problems/enhanced-problems-table';

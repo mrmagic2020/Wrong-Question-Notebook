@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import type { Metadata } from 'next';
 import { AlertCircle } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';

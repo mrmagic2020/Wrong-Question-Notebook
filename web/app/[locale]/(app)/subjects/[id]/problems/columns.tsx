@@ -20,7 +20,7 @@ import {
   getStatusBadgeStyle,
   formatDisplayDate,
 } from '@/lib/common-utils';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { toast } from 'sonner';
 import { Problem, TableMeta } from '@/lib/types';
 

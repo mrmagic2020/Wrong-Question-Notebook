@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { ProfileButton } from '@/components/profile-button';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { WLogo } from '@/components/w-logo';

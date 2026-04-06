@@ -8,7 +8,7 @@ import { ContentLimitIndicator } from '@/components/ui/content-limit-indicator';
 import { useContentLimit } from '@/lib/hooks/useContentLimit';
 import { CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
 import { formatBytes } from '@/lib/format-utils';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 
 interface FileAsset {
   path: string;
