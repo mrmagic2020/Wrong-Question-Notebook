@@ -497,9 +497,9 @@ describe('stripHtml', () => {
     );
   });
 
-  it('should strip nested tags', () => {
+  it('should strip nested tags and insert spaces between blocks', () => {
     expect(stripHtml('<div><p>a</p><ul><li>b</li><li>c</li></ul></div>')).toBe(
-      'abc'
+      'a b c'
     );
   });
 

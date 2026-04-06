@@ -420,9 +420,7 @@ export const UpdateProblemSetDto = CreateProblemSetDto.extend({
     .nullable()
     .optional()
     .refine(
-      val =>
-        !val ||
-        (DISCOVERY_SUBJECTS as readonly string[]).includes(val),
+      val => !val || (DISCOVERY_SUBJECTS as readonly string[]).includes(val),
       { message: 'Invalid discovery subject' }
     )
     .transform(val => val || null),

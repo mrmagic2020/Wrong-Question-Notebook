@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Eye, Heart, Copy } from 'lucide-react';
 import { ProfileAvatar } from '@/components/profile-avatar';
 import type { ProblemSetCard } from '@/lib/types';
+import { stripHtml } from '@/lib/html-sanitizer';
 import { cn } from '@/lib/utils';
 
 // Color mapping for subject badges
@@ -24,13 +25,6 @@ function formatCount(n: number): string {
   if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
   if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
   return String(n);
-}
-
-function stripHtml(html: string): string {
-  return html
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
 }
 
 interface DiscoveryCardProps {

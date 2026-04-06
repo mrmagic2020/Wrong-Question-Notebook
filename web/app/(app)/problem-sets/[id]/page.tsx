@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { requireUser } from '@/lib/supabase/requireUser';
 import { getProblemSetWithFullData } from '@/lib/problem-set-utils';
 import { createServiceClient } from '@/lib/supabase-utils';
+import { stripHtml } from '@/lib/html-sanitizer';
 import ProblemSetPageClient from './problem-set-page-client';
 import { unstable_cache } from 'next/cache';
 import {
@@ -11,13 +12,6 @@ import {
   createProblemSetCacheTag,
   createUserCacheTag,
 } from '@/lib/cache-config';
-
-function stripHtml(html: string): string {
-  return html
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
 
 export async function generateMetadata({
   params,
@@ -31,9 +25,14 @@ export async function generateMetadata({
     return { title: 'Problem Set Not Found – Wrong Question Notebook' };
   }
 
-  const description = problemSet.description
-    ? stripHtml(problemSet.description).substring(0, 160)
-    : `${problemSet.problem_count} problems in ${problemSet.subject_name}`;
+  const stripped = problemSet.description
+    ? stripHtml(problemSet.description)
+    : '';
+  const description =
+    stripped.length > 160
+      ? stripped.substring(0, 160) + '...'
+      : stripped ||
+        `${problemSet.problem_count} problems in ${problemSet.subject_name}`;
 
   return {
     title: `${problemSet.name} – Wrong Question Notebook`,

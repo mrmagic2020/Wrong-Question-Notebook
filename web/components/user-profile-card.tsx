@@ -48,9 +48,7 @@ export function UserProfileCard({ profile }: UserProfileCardProps) {
             lastName={profile.last_name}
             size="sm"
           />
-          <span className="font-medium">
-            @{profile.username}
-          </span>
+          <span className="font-medium">@{profile.username}</span>
         </Link>
       </HoverCardTrigger>
       <HoverCardContent className="w-72 rounded-2xl border-amber-200/40 dark:border-amber-800/30">

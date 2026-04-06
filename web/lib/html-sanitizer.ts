@@ -123,11 +123,20 @@ export function stripHtml(html: string): string {
     return '';
   }
 
-  return sanitizeHtml(html, {
+  // Insert spaces before block-level closing tags so content from adjacent
+  // blocks doesn't merge (e.g. "<p>Foo</p><p>Bar</p>" → "Foo Bar" not "FooBar")
+  const spaced = html.replace(
+    /<\/(p|div|li|br|h[1-6]|blockquote|tr)>/gi,
+    ' </$1>'
+  );
+
+  return sanitizeHtml(spaced, {
     allowedTags: [],
     allowedAttributes: {},
     disallowedTagsMode: 'discard',
-  });
+  })
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 // ---------------------------------------------------------------------------
