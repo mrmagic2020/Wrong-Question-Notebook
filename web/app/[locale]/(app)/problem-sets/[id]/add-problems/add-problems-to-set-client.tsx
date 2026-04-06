@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { BackLink } from '@/components/back-link';
-import EnhancedProblemsTable from '@/app/(app)/subjects/[id]/problems/enhanced-problems-table';
+import EnhancedProblemsTable from '../../../subjects/[id]/problems/enhanced-problems-table';
 import { AddProblemsToSetClientProps } from '@/lib/types';
 
 export default function AddProblemsToSetClient({

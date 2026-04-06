@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { ProblemStatus } from '@/lib/schemas';
 import ProblemReview, {
   AttemptState,
-} from '@/app/(app)/subjects/[id]/problems/[problemId]/review/problem-review';
+} from '../../../subjects/[id]/problems/[problemId]/review/problem-review';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Problem } from '@/lib/types';
 import { formatDuration } from '@/lib/common-utils';

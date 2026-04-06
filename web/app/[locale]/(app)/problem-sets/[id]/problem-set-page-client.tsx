@@ -29,7 +29,7 @@ import ResumeSessionDialog from '@/components/review/resume-session-dialog';
 import EditSmartSetDialog from '@/components/review/edit-smart-set-dialog';
 import SmartFilterCriteriaDisplay from '@/components/review/smart-filter-display';
 import ProblemSetProblemsTable from './problem-set-problems-table';
-import ProblemSetEditDialog from '@/app/(app)/problem-sets/problem-set-edit-dialog';
+import ProblemSetEditDialog from '../problem-set-edit-dialog';
 import CopyProblemSetDialog from '@/components/copy-problem-set-dialog';
 import { UserProfileCard } from '@/components/user-profile-card';
 import { FilterConfig, SessionConfig } from '@/lib/types';

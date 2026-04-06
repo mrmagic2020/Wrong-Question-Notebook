@@ -18,24 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
-
-const FALLBACK_T = (key: string) => {
-  const fallbacks: Record<string, string> = {
-    addToProblemSet: 'Add to Problem Set',
-    selectProblemSet: 'Select a problem set',
-    problemSet: 'Problem Set',
-    addToSet: 'Add to Set',
-    adding: 'Adding...',
-    noProblemSetsForSubject: 'No problem sets found for this subject. Create a problem set first.',
-    problemAlreadyInAllSets: 'This problem is already in all available problem sets.',
-    pleaseSelectProblemSet: 'Please select a problem set',
-    invalidProblem: 'Invalid problem',
-    failedToAddProblemToSet: 'Failed to add problem to set',
-    problemAddedToSetSuccessfully: 'Problem added to set successfully',
-    cancel: 'Cancel',
-  };
-  return fallbacks[key] || key;
-};
+import { useTranslations } from 'next-intl';
 
 interface ProblemSet {
   id: string;
@@ -49,7 +32,6 @@ interface AddToSetDialogProps {
   problemId: string;
   subjectId: string;
   onSuccess?: () => void;
-  t?: (key: string) => string;
 }
 
 export default function AddToSetDialog({
@@ -58,8 +40,8 @@ export default function AddToSetDialog({
   problemId,
   subjectId,
   onSuccess,
-  t = FALLBACK_T,
 }: AddToSetDialogProps) {
+  const t = useTranslations('ProblemSets');
   const [isLoading, setIsLoading] = useState(false);
   const [problemSets, setProblemSets] = useState<ProblemSet[]>([]);
   const [selectedSetId, setSelectedSetId] = useState<string>('');

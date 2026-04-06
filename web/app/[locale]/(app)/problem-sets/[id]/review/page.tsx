@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { requireUser } from '@/lib/supabase/requireUser';
 import { notFound, redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import ProblemReview from '@/app/(app)/subjects/[id]/problems/[problemId]/review/problem-review';
+import ProblemReview from '../../../subjects/[id]/problems/[problemId]/review/problem-review';
 import SessionReviewClient from './session-review-client';
 import { BackLink } from '@/components/back-link';
 import { getFilteredProblems } from '@/lib/review-utils';

@@ -35,7 +35,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
-import ProblemSetEditDialog from '@/app/(app)/problem-sets/problem-set-edit-dialog';
+import ProblemSetEditDialog from './problem-set-edit-dialog';
 import CreateSmartSetDialog from '@/components/review/create-smart-set-dialog';
 import ResumeSessionDialog from '@/components/review/resume-session-dialog';
 import { ProblemSetWithDetails, ProblemSetsPageClientProps } from '@/lib/types';

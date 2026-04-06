@@ -28,13 +28,6 @@ interface FileManagerProps {
   disabled?: boolean;
 }
 
-const FALLBACK_T = (key: string) => {
-  const fallbacks: Record<string, string> = {
-    storageUsed: 'storage used',
-  };
-  return fallbacks[key] ?? key;
-};
-
 export default function FileManager({
   role,
   problemId,
@@ -246,7 +239,7 @@ export default function FileManager({
         <ContentLimitIndicator
           current={storageLimit.current}
           limit={storageLimit.limit}
-          label={t('storageUsed') || FALLBACK_T('storageUsed')}
+          label={t('storageUsed')}
           formatValue={formatBytes}
         />
       )}
