@@ -57,49 +57,52 @@ async function toggleFavourite(
       );
     }
 
-    // Check if already favourited
-    const { data: existing } = await supabase
+    // Toggle: try delete first, insert if nothing was removed.
+    // This avoids the read-then-write race where two concurrent requests
+    // both observe "not favourited" and both attempt INSERT.
+    const { data: deleted, error: deleteError } = await supabase
       .from('problem_set_favourites')
-      .select('user_id')
+      .delete()
       .eq('user_id', user.id)
       .eq('problem_set_id', id)
-      .maybeSingle();
+      .select('user_id');
 
-    if (existing) {
-      // Unfavourite
-      const { error } = await supabase
-        .from('problem_set_favourites')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('problem_set_id', id);
-
-      if (error) {
-        return NextResponse.json(
-          createApiErrorResponse(
-            'Failed to remove favourite',
-            500,
-            error.message
-          ),
-          { status: 500 }
-        );
-      }
-
-      return NextResponse.json(createApiSuccessResponse({ favourited: false }));
-    } else {
-      // Favourite
-      const { error } = await supabase
-        .from('problem_set_favourites')
-        .insert({ user_id: user.id, problem_set_id: id });
-
-      if (error) {
-        return NextResponse.json(
-          createApiErrorResponse('Failed to add favourite', 500, error.message),
-          { status: 500 }
-        );
-      }
-
-      return NextResponse.json(createApiSuccessResponse({ favourited: true }));
+    if (deleteError) {
+      return NextResponse.json(
+        createApiErrorResponse(
+          'Failed to toggle favourite',
+          500,
+          deleteError.message
+        ),
+        { status: 500 }
+      );
     }
+
+    if (deleted && deleted.length > 0) {
+      // Row existed and was removed — now unfavourited
+      return NextResponse.json(createApiSuccessResponse({ favourited: false }));
+    }
+
+    // No row existed — insert to favourite
+    const { error: insertError } = await supabase
+      .from('problem_set_favourites')
+      .upsert(
+        { user_id: user.id, problem_set_id: id },
+        { onConflict: 'user_id,problem_set_id', ignoreDuplicates: true }
+      );
+
+    if (insertError) {
+      return NextResponse.json(
+        createApiErrorResponse(
+          'Failed to add favourite',
+          500,
+          insertError.message
+        ),
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(createApiSuccessResponse({ favourited: true }));
   } catch (error) {
     const { message, status } = handleAsyncError(error);
     return NextResponse.json(createApiErrorResponse(message, status), {
