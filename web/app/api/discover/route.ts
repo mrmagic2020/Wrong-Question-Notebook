@@ -9,8 +9,6 @@ import {
 import { createServiceClient } from '@/lib/supabase-utils';
 import { PROBLEM_SET_CONSTANTS } from '@/lib/constants';
 
-export const revalidate = 120; // 2 minutes
-
 type SortOption = 'ranking' | 'newest' | 'most_liked' | 'most_copied';
 
 // Cursor format: "value:id" for composite keyset pagination

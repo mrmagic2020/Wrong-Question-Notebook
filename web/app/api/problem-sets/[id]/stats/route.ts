@@ -10,8 +10,6 @@ import {
 import { createServiceClient } from '@/lib/supabase-utils';
 import { checkProblemSetAccess } from '@/lib/problem-set-utils';
 
-export const revalidate = 60; // 1 minute
-
 async function getStats(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
