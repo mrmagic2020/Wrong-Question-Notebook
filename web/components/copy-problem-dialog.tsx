@@ -138,14 +138,14 @@ export default function CopyProblemDialog({
       );
 
       if (!res.ok) {
-        let errorMessage = 'Failed to add problem';
-        try {
-          const error = await res.json();
-          errorMessage = error.message || errorMessage;
-        } catch {
-          errorMessage = res.statusText || errorMessage;
+        const body = await res.json().catch(() => null);
+        if (res.status === 403 && body?.details?.resource_type) {
+          const d = body.details;
+          throw new Error(
+            `Limit reached: ${d.current}/${d.limit} problems in this subject`
+          );
         }
-        throw new Error(errorMessage);
+        throw new Error(body?.error || 'Failed to add problem');
       }
 
       const data = await res.json();

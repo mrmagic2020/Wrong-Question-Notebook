@@ -19,6 +19,8 @@ import {
   revalidateSubjectTags,
   revalidateDiscovery,
 } from '@/lib/cache-invalidation';
+import { checkContentLimit } from '@/lib/content-limits';
+import { CONTENT_LIMIT_CONSTANTS, ERROR_MESSAGES } from '@/lib/constants';
 import { z } from 'zod';
 
 const CopyProblemBody = z.object({
@@ -257,6 +259,23 @@ async function copyProblem(
         }
       }
       tagCount = Object.keys(tagMapping).length;
+    }
+
+    // Check content limit before inserting
+    const problemLimit = await checkContentLimit(
+      user.id,
+      CONTENT_LIMIT_CONSTANTS.RESOURCE_TYPES.PROBLEMS_PER_SUBJECT,
+      { subjectId: target_subject_id }
+    );
+    if (!problemLimit.allowed) {
+      return NextResponse.json(
+        createApiErrorResponse(
+          ERROR_MESSAGES.CONTENT_LIMIT_REACHED,
+          403,
+          problemLimit
+        ),
+        { status: 403 }
+      );
     }
 
     // Insert the copied problem

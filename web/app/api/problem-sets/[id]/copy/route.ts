@@ -15,6 +15,8 @@ import {
   revalidateUserProblemSets,
   revalidateDiscovery,
 } from '@/lib/cache-invalidation';
+import { checkContentLimit } from '@/lib/content-limits';
+import { CONTENT_LIMIT_CONSTANTS, ERROR_MESSAGES } from '@/lib/constants';
 import { z } from 'zod';
 
 const CopyProblemSetBody = z.object({
@@ -171,6 +173,41 @@ async function copyProblemSet(
       return NextResponse.json(
         createApiErrorResponse('No problems to copy', 400),
         { status: 400 }
+      );
+    }
+
+    // Check content limits before proceeding with inserts
+    const [problemSetLimit, problemLimit] = await Promise.all([
+      checkContentLimit(
+        user.id,
+        CONTENT_LIMIT_CONSTANTS.RESOURCE_TYPES.PROBLEM_SETS
+      ),
+      checkContentLimit(
+        user.id,
+        CONTENT_LIMIT_CONSTANTS.RESOURCE_TYPES.PROBLEMS_PER_SUBJECT,
+        { subjectId: target_subject_id }
+      ),
+    ]);
+
+    if (!problemSetLimit.allowed) {
+      return NextResponse.json(
+        createApiErrorResponse(
+          ERROR_MESSAGES.CONTENT_LIMIT_REACHED,
+          403,
+          problemSetLimit
+        ),
+        { status: 403 }
+      );
+    }
+
+    if (problemLimit.remaining < sourceProblems.length) {
+      return NextResponse.json(
+        createApiErrorResponse(ERROR_MESSAGES.CONTENT_LIMIT_REACHED, 403, {
+          ...problemLimit,
+          allowed: false,
+          copy_count: sourceProblems.length,
+        }),
+        { status: 403 }
       );
     }
 

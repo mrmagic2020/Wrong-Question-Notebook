@@ -138,14 +138,16 @@ export default function CopyProblemSetDialog({
       });
 
       if (!res.ok) {
-        let errorMessage = 'Failed to copy problem set';
-        try {
-          const error = await res.json();
-          errorMessage = error.message || errorMessage;
-        } catch {
-          errorMessage = res.statusText || errorMessage;
+        const body = await res.json().catch(() => null);
+        if (res.status === 403 && body?.details?.resource_type) {
+          const d = body.details;
+          const msg =
+            d.resource_type === 'problems_per_subject'
+              ? `Limit reached: ${d.current}/${d.limit} problems in this subject${d.copy_count ? ` (trying to copy ${d.copy_count})` : ''}`
+              : `Limit reached: ${d.current}/${d.limit} problem sets`;
+          throw new Error(msg);
         }
-        throw new Error(errorMessage);
+        throw new Error(body?.error || 'Failed to copy problem set');
       }
 
       const data = await res.json();
