@@ -66,9 +66,7 @@ export default function SpacedReviewClient({
       const res = await fetch(`/api/review-sessions/${sessionId}`);
       if (res.status === 410) {
         // All problems deleted — session was auto-closed
-        toast.error(
-          'All problems in this session were deleted. The session has been closed.'
-        );
+        toast.error(t('sessionProblemsDeleted'));
         router.push(`/subjects/${subjectId}/problems`);
         return;
       }
@@ -77,7 +75,7 @@ export default function SpacedReviewClient({
       setSessionData(data.data);
       setCurrentIndex(data.data.session.session_state.current_index || 0);
     } catch {
-      toast.error('Failed to load review session');
+      toast.error(t('failedToLoadReviewSession'));
       router.push(`/subjects/${subjectId}/problems`);
     } finally {
       setLoading(false);
@@ -256,7 +254,7 @@ export default function SpacedReviewClient({
         `/subjects/${subjectId}/review-due/summary?sessionId=${sessionId}`
       );
     } catch {
-      toast.error('Failed to complete session');
+      toast.error(t('failedToCompleteSession'));
     }
   };
 

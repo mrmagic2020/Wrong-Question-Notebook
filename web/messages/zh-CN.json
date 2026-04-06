@@ -642,7 +642,10 @@
     "sessionPaused": "会话已暂停",
     "started": "开始时间：",
     "finished": "完成时间：",
-    "sessionTime": "会话时长"
+    "sessionTime": "会话时长",
+    "failedToLoadReviewSession": "加载复习会话失败",
+    "failedToCompleteSession": "完成会话失败",
+    "sessionProblemsDeleted": "此会话中的所有题目已被删除，会话已关闭。"
   },
   "Statistics": {
     "title": "统计",

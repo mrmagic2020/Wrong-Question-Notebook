@@ -49,7 +49,7 @@ export default function SubjectRow({
 
   async function save() {
     if (!name.trim()) {
-      setErr('Name cannot be empty');
+      setErr(tSubjects('nameCannotBeEmpty'));
       return;
     }
 
@@ -72,11 +72,11 @@ export default function SubjectRow({
       }
 
       setEditing(false);
-      toast.success('Subject renamed successfully');
+      toast.success(tSubjects('subjectRenamedSuccessfully'));
       router.refresh();
     } catch (e: any) {
       setErr(e.message);
-      toast.error('Failed to rename subject');
+      toast.error(tSubjects('failedToRenameSubject'));
     } finally {
       setRenaming(false);
     }
@@ -85,9 +85,9 @@ export default function SubjectRow({
   const handleRemove = () => {
     if (showConfirmation) {
       showConfirmation({
-        title: 'Delete Subject',
-        message: `Are you sure you want to delete "${subject.name}"? This action cannot be undone.`,
-        confirmText: 'Delete',
+        title: tSubjects('deleteSubject'),
+        message: tSubjects('confirmDeleteSubject', { name: subject.name }),
+        confirmText: t('delete'),
         variant: 'destructive',
         onConfirm: async () => {
           setDeleting(true);
@@ -105,11 +105,11 @@ export default function SubjectRow({
               onSubjectDeleted(subject.id);
             }
 
-            toast.success('Subject deleted successfully');
+            toast.success(tSubjects('subjectDeletedSuccessfully'));
             router.refresh();
           } catch (e: any) {
             setErr(e.message);
-            toast.error('Failed to delete subject');
+            toast.error(tSubjects('failedToDeleteSubject'));
           } finally {
             setDeleting(false);
           }
@@ -119,7 +119,7 @@ export default function SubjectRow({
       // Fallback to browser confirm if showConfirmation is not available
       if (
         confirm(
-          `Are you sure you want to delete "${subject.name}"? This action cannot be undone.`
+          tSubjects('confirmDeleteSubject', { name: subject.name })
         )
       ) {
         setDeleting(true);
@@ -137,12 +137,12 @@ export default function SubjectRow({
               onSubjectDeleted(subject.id);
             }
 
-            toast.success('Subject deleted successfully');
+            toast.success(tSubjects('subjectDeletedSuccessfully'));
             router.refresh();
           })
           .catch((e: any) => {
             setErr(e.message);
-            toast.error('Failed to delete subject');
+            toast.error(tSubjects('failedToDeleteSubject'));
           })
           .finally(() => {
             setDeleting(false);

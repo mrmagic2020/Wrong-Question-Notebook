@@ -642,7 +642,10 @@
     "started": "Started:",
     "finished": "Finished:",
     "sessionTime": "Session Time",
-    "optional": "Optional"
+    "optional": "Optional",
+    "failedToLoadReviewSession": "Failed to load review session",
+    "failedToCompleteSession": "Failed to complete session",
+    "sessionProblemsDeleted": "All problems in this session were deleted. The session has been closed."
   },
   "Statistics": {
     "title": "Statistics",

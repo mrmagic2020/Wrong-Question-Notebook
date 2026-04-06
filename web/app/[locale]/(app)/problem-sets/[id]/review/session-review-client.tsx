@@ -72,9 +72,7 @@ export default function SessionReviewClient({
     try {
       const res = await fetch(`/api/review-sessions/${sessionId}`);
       if (res.status === 410) {
-        toast.error(
-          'All problems in this session were deleted. The session has been closed.'
-        );
+        toast.error(t('sessionProblemsDeleted'));
         router.push(`/problem-sets/${problemSetId}`);
         return;
       }
@@ -83,7 +81,7 @@ export default function SessionReviewClient({
       setSessionData(data.data);
       setCurrentIndex(data.data.session.session_state.current_index || 0);
     } catch {
-      toast.error('Failed to load review session');
+      toast.error(t('failedToLoadReviewSession'));
       router.push(`/problem-sets/${problemSetId}`);
     } finally {
       setLoading(false);
@@ -283,7 +281,7 @@ export default function SessionReviewClient({
         `/problem-sets/${problemSetId}/summary?sessionId=${sessionId}`
       );
     } catch {
-      toast.error('Failed to complete session');
+      toast.error(t('failedToCompleteSession'));
     }
   };
 
