@@ -46,6 +46,8 @@ export function useSocialActions({
   );
   const [likeLoading, setLikeLoading] = useState(false);
   const [favouriteLoading, setFavouriteLoading] = useState(false);
+  const likeInFlight = useRef(false);
+  const favouriteInFlight = useRef(false);
   const viewTracked = useRef(false);
   const statsFetched = useRef(false);
 
@@ -83,15 +85,18 @@ export function useSocialActions({
   }, [problemSetId, trackView]);
 
   const toggleLike = useCallback(async () => {
-    if (!isAuthenticated || likeLoading) return;
+    if (!isAuthenticated || likeInFlight.current) return;
+    likeInFlight.current = true;
 
-    // Optimistic update
+    // Optimistic update (clamp at 0 to handle stale/missing stats)
     const prevLiked = liked;
     const prevCount = stats.like_count;
     setLiked(!liked);
     setStats(prev => ({
       ...prev,
-      like_count: liked ? prev.like_count - 1 : prev.like_count + 1,
+      like_count: liked
+        ? Math.max(0, prev.like_count - 1)
+        : prev.like_count + 1,
     }));
     setLikeLoading(true);
 
@@ -114,12 +119,14 @@ export function useSocialActions({
       setLiked(prevLiked);
       setStats(prev => ({ ...prev, like_count: prevCount }));
     } finally {
+      likeInFlight.current = false;
       setLikeLoading(false);
     }
-  }, [problemSetId, liked, stats.like_count, isAuthenticated, likeLoading]);
+  }, [problemSetId, liked, stats.like_count, isAuthenticated]);
 
   const toggleFavourite = useCallback(async () => {
-    if (!isAuthenticated || favouriteLoading) return;
+    if (!isAuthenticated || favouriteInFlight.current) return;
+    favouriteInFlight.current = true;
 
     // Optimistic update
     const prevFavourited = favourited;
@@ -140,9 +147,10 @@ export function useSocialActions({
     } catch {
       setFavourited(prevFavourited);
     } finally {
+      favouriteInFlight.current = false;
       setFavouriteLoading(false);
     }
-  }, [problemSetId, favourited, isAuthenticated, favouriteLoading]);
+  }, [problemSetId, favourited, isAuthenticated]);
 
   return {
     stats,
