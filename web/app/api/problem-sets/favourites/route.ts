@@ -39,7 +39,11 @@ async function getFavourites() {
     const serviceClient = createServiceClient();
     const { data: allSets, error: setsError } = await serviceClient
       .from('problem_sets')
-      .select('*, subjects(name)')
+      .select(
+        `id, user_id, name, description, sharing_level, is_smart,
+         allow_copying, is_listed, discovery_subject,
+         created_at, updated_at, subjects(name)`
+      )
       .in('id', favIds);
 
     if (setsError) {
