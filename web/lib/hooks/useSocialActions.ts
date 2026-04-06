@@ -88,16 +88,19 @@ export function useSocialActions({
     if (!isAuthenticated || likeInFlight.current) return;
     likeInFlight.current = true;
 
-    // Optimistic update (clamp at 0 to handle stale/missing stats)
+    // Capture pre-update count for rollback via functional updater
+    let snapshotCount = 0;
     const prevLiked = liked;
-    const prevCount = stats.like_count;
     setLiked(!liked);
-    setStats(prev => ({
-      ...prev,
-      like_count: liked
-        ? Math.max(0, prev.like_count - 1)
-        : prev.like_count + 1,
-    }));
+    setStats(prev => {
+      snapshotCount = prev.like_count;
+      return {
+        ...prev,
+        like_count: liked
+          ? Math.max(0, prev.like_count - 1)
+          : prev.like_count + 1,
+      };
+    });
     setLikeLoading(true);
 
     try {
@@ -110,19 +113,17 @@ export function useSocialActions({
         setLiked(json.data.liked);
         setStats(prev => ({ ...prev, like_count: json.data.like_count }));
       } else {
-        // Rollback
         setLiked(prevLiked);
-        setStats(prev => ({ ...prev, like_count: prevCount }));
+        setStats(prev => ({ ...prev, like_count: snapshotCount }));
       }
     } catch {
-      // Rollback
       setLiked(prevLiked);
-      setStats(prev => ({ ...prev, like_count: prevCount }));
+      setStats(prev => ({ ...prev, like_count: snapshotCount }));
     } finally {
       likeInFlight.current = false;
       setLikeLoading(false);
     }
-  }, [problemSetId, liked, stats.like_count, isAuthenticated]);
+  }, [problemSetId, liked, isAuthenticated]);
 
   const toggleFavourite = useCallback(async () => {
     if (!isAuthenticated || favouriteInFlight.current) return;
