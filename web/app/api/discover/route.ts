@@ -39,6 +39,7 @@ function validateCursor(
   switch (sort) {
     case 'newest':
       if (isNaN(Date.parse(parsed.value))) return null;
+      parsed.value = new Date(parsed.value).toISOString();
       break;
     case 'most_liked':
     case 'most_copied':
