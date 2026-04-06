@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { BackLink } from '@/components/back-link';
@@ -55,6 +56,8 @@ export default function SummaryClient({
   problemSetName,
   subjectName,
 }: SummaryClientProps) {
+  const t = useTranslations('Review');
+  const tProblemSets = useTranslations('ProblemSets');
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<ReviewSessionSummary | null>(null);
@@ -137,9 +140,9 @@ export default function SummaryClient({
   if (!summary) {
     return (
       <div className="section-container text-center py-12">
-        <p className="text-muted-foreground mb-4">Failed to load summary.</p>
+        <p className="text-muted-foreground mb-4">{t('failedToLoadSummary')}</p>
         <BackLink onClick={() => router.push(`/problem-sets/${problemSetId}`)}>
-          Back to Problem Set
+          {tProblemSets('backToSet')}
         </BackLink>
       </div>
     );
@@ -147,19 +150,19 @@ export default function SummaryClient({
 
   const pieData = [
     {
-      label: 'Mastered',
+      label: t('mastered'),
       value: summary.status_counts.mastered,
       colorLight: '#34d399', // emerald-400 - vibrant but warm
       colorDark: '#059669', // emerald-600 - rich green for dark mode
     },
     {
-      label: 'Needs Review',
+      label: t('needsReview'),
       value: summary.status_counts.needs_review,
       colorLight: '#fbbf24', // amber-400 - warm, bright yellow
       colorDark: '#d97706', // amber-600 - rich amber for dark mode
     },
     {
-      label: 'Wrong',
+      label: tProblemSets('wrong'),
       value: summary.status_counts.wrong,
       colorLight: '#fb923c', // orange-400 - warm orange (not harsh red)
       colorDark: '#ea580c', // orange-600 - rich orange for dark mode
@@ -171,7 +174,7 @@ export default function SummaryClient({
       {/* Header */}
       <div className="page-header">
         <h1 className="page-title">
-          <span className="text-gradient-warm">Review Complete</span>
+          <span className="text-gradient-warm">{t('reviewComplete')}</span>
         </h1>
         <p className="page-description">
           {problemSetName} &middot; {subjectName}
@@ -201,7 +204,7 @@ export default function SummaryClient({
                     {summary.status_counts.mastered}
                   </div>
                   <p className="text-sm text-green-600/80 dark:text-green-400/80">
-                    Mastered
+                    {t('mastered')}
                   </p>
                 </div>
               </div>
@@ -221,7 +224,7 @@ export default function SummaryClient({
                     {summary.status_counts.needs_review}
                   </div>
                   <p className="text-sm text-yellow-600/80 dark:text-yellow-400/80">
-                    Needs Review
+                    {t('needsReview')}
                   </p>
                 </div>
               </div>
@@ -241,7 +244,7 @@ export default function SummaryClient({
                     {summary.status_counts.wrong}
                   </div>
                   <p className="text-sm text-red-600/80 dark:text-red-400/80">
-                    Wrong
+                    {tProblemSets('wrong')}
                   </p>
                 </div>
               </div>
@@ -256,7 +259,7 @@ export default function SummaryClient({
         <Card className="card-section">
           <CardContent className="pt-5 pb-5 text-center">
             <div className="text-2xl font-bold">{summary.total_problems}</div>
-            <p className="text-xs text-muted-foreground">Total Problems</p>
+            <p className="text-xs text-muted-foreground">{tProblemSets('totalProblems')}</p>
           </CardContent>
         </Card>
 
@@ -265,7 +268,7 @@ export default function SummaryClient({
             <div className="text-2xl font-bold text-primary">
               {summary.completed_count}
             </div>
-            <p className="text-xs text-muted-foreground">Completed</p>
+            <p className="text-xs text-muted-foreground">{t('completed')}</p>
           </CardContent>
         </Card>
 
@@ -275,7 +278,7 @@ export default function SummaryClient({
               {summary.skipped_count}
             </div>
             <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-              <SkipForward className="h-3 w-3" /> Skipped
+              <SkipForward className="h-3 w-3" /> {t('skippedProblems')}
             </p>
           </CardContent>
         </Card>
@@ -286,7 +289,7 @@ export default function SummaryClient({
               <Clock className="h-5 w-5" />
               {formatDuration(summary.elapsed_ms)}
             </div>
-            <p className="text-xs text-muted-foreground">Session Time</p>
+            <p className="text-xs text-muted-foreground">{t('sessionTime')}</p>
           </CardContent>
         </Card>
       </div>
@@ -294,17 +297,17 @@ export default function SummaryClient({
       {/* Timestamps */}
       <div className="text-sm text-muted-foreground text-center space-y-1">
         {summary.started_at && (
-          <p>Started: {formatDisplayDateTime(summary.started_at)}</p>
+          <p>{t('started')}: {formatDisplayDateTime(summary.started_at)}</p>
         )}
         {summary.completed_at && (
-          <p>Completed: {formatDisplayDateTime(summary.completed_at)}</p>
+          <p>{t('finished')}: {formatDisplayDateTime(summary.completed_at)}</p>
         )}
       </div>
 
       {/* Actions */}
       <div className="flex justify-center">
         <BackLink onClick={() => router.push(`/problem-sets/${problemSetId}`)}>
-          Back to Problem Set
+          {tProblemSets('backToSet')}
         </BackLink>
       </div>
     </div>

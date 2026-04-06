@@ -50,9 +50,11 @@ function TagCapsules({ tags }: { tags: { id: string; name: string }[] }) {
 function DataTableColumnHeader({
   column,
   title,
+  t,
 }: {
   column: any;
   title: string;
+  t: (key: string) => string;
 }) {
   return (
     <DropdownMenu modal={false}>
@@ -65,264 +67,285 @@ function DataTableColumnHeader({
       <DropdownMenuContent align="start">
         <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
           <ArrowUpDown className="mr-2 h-4 w-4" />
-          Asc
+          {t('asc')}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
           <ArrowUpDown className="mr-2 h-4 w-4" />
-          Desc
+          {t('desc')}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
           <EyeOff className="mr-2 h-4 w-4" />
-          Hide
+          {t('hide')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
 
-export const columns: ColumnDef<Problem>[] = [
-  {
-    id: 'select',
-    header: ({ table }) => {
-      const isAddToSetMode =
-        (table.options.meta as TableMeta)?.isAddToSetMode || false;
-      const selectableRows = table.getRowModel().rows.filter(row => {
-        const problem = row.original as Problem;
-        return !(isAddToSetMode && problem.isInSet);
-      });
+export function createColumns(
+  t: (key: string) => string
+): ColumnDef<Problem>[] {
+  return [
+    {
+      id: 'select',
+      header: ({ table }) => {
+        const isAddToSetMode =
+          (table.options.meta as TableMeta)?.isAddToSetMode || false;
+        const selectableRows = table.getRowModel().rows.filter(row => {
+          const problem = row.original as Problem;
+          return !(isAddToSetMode && problem.isInSet);
+        });
 
-      return (
-        <Checkbox
-          checked={
-            selectableRows.length > 0 &&
-            (selectableRows.every(row => row.getIsSelected()) ||
-              (selectableRows.some(row => row.getIsSelected()) &&
-                'indeterminate'))
-          }
-          onCheckedChange={value => {
-            selectableRows.forEach(row => row.toggleSelected(!!value));
-          }}
-          aria-label="Select all"
-        />
-      );
-    },
-    cell: ({ row, table }) => {
-      const problem = row.original as Problem;
-      const isAddToSetMode =
-        (table.options.meta as TableMeta)?.isAddToSetMode || false;
-      const isDisabled = isAddToSetMode && problem.isInSet;
-
-      return (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={value => !isDisabled && row.toggleSelected(!!value)}
-          onClick={e => {
-            e.stopPropagation();
-            if (isDisabled) {
-              e.preventDefault();
+        return (
+          <Checkbox
+            checked={
+              selectableRows.length > 0 &&
+              (selectableRows.every(row => row.getIsSelected()) ||
+                (selectableRows.some(row => row.getIsSelected()) &&
+                  'indeterminate'))
             }
-          }}
-          disabled={isDisabled}
-          aria-label="Select row"
-        />
-      );
-    },
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: 'title',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Title" />
-    ),
-    cell: ({ row }) => {
-      const title = row.getValue('title') as string;
-      return (
-        <div
-          className="max-w-[32rem] truncate text-foreground px-2"
-          title={title}
-        >
-          {title}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: 'problem_type',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Type" />
-    ),
-    cell: ({ row }) => {
-      const type = row.getValue('problem_type') as ProblemType;
-      return (
-        <div className="px-2">
-          <Badge variant="outline">{getProblemTypeDisplayName(type)}</Badge>
-        </div>
-      );
-    },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
-    },
-  },
-  {
-    accessorKey: 'tags',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Tags" />
-    ),
-    cell: ({ row }) => {
-      const tags = row.getValue('tags') as { id: string; name: string }[];
-      return (
-        <div className="px-2">
-          <TagCapsules tags={tags || []} />
-        </div>
-      );
-    },
-    filterFn: (row, id, value) => {
-      const tags = row.getValue(id) as { id: string; name: string }[];
-      if (!tags || !value.length) return true;
-      return value.some((tagId: string) => tags.some(tag => tag.id === tagId));
-    },
-  },
-  {
-    accessorKey: 'status',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Status" />
-    ),
-    cell: ({ row }) => {
-      const status = row.getValue('status') as ProblemStatus;
-      return (
-        <div className="px-2">
-          <Badge
-            variant="outline"
-            className={`${getStatusBadgeStyle(status)} font-medium`}
-          >
-            {getProblemStatusDisplayName(status)}
-          </Badge>
-        </div>
-      );
-    },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
-    },
-  },
-  {
-    accessorKey: 'created_at',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Date Created" />
-    ),
-    cell: ({ row }) => {
-      const createdAt = row.getValue('created_at') as string;
-      return (
-        <div className="text-sm text-muted-foreground px-2">
-          {formatDisplayDate(createdAt)}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: 'last_reviewed_date',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Last Reviewed" />
-    ),
-    cell: ({ row }) => {
-      const lastReviewedDate = row.getValue('last_reviewed_date') as string;
-      return (
-        <div className="text-sm text-muted-foreground px-2">
-          {lastReviewedDate ? formatDisplayDate(lastReviewedDate) : '—'}
-        </div>
-      );
-    },
-  },
-  {
-    id: 'actions',
-    header: 'Actions',
-    cell: ({ row, table }) => {
-      const problem = row.original;
-      const meta = table.options.meta as TableMeta;
+            onCheckedChange={value => {
+              selectableRows.forEach(row => row.toggleSelected(!!value));
+            }}
+            aria-label="Select all"
+          />
+        );
+      },
+      cell: ({ row, table }) => {
+        const problem = row.original as Problem;
+        const isAddToSetMode =
+          (table.options.meta as TableMeta)?.isAddToSetMode || false;
+        const isDisabled = isAddToSetMode && problem.isInSet;
 
-      return (
-        <div className="px-2">
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="h-8 w-8 p-0"
-                onClick={e => e.stopPropagation()}
-              >
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={async e => {
-                  e.stopPropagation();
-                  try {
-                    await navigator.clipboard.writeText(problem.id);
-                    toast.success('Problem ID copied to clipboard');
-                  } catch {
-                    toast.error('Failed to copy problem ID');
-                  }
-                }}
-              >
-                Copy problem ID
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              {!meta?.isAddToSetMode && (
-                <DropdownMenuItem asChild>
-                  <Link
-                    href={`/subjects/${problem.subject_id}/problems/${problem.id}/review`}
-                    onClick={e => e.stopPropagation()}
-                  >
-                    Review problem
-                  </Link>
-                </DropdownMenuItem>
-              )}
-              {!meta?.isAddToSetMode && (
-                <DropdownMenuItem
-                  onClick={e => {
-                    e.stopPropagation();
-                    if (meta?.onAddToSet) {
-                      meta.onAddToSet(problem);
-                    }
-                  }}
-                >
-                  Add to set
-                </DropdownMenuItem>
-              )}
-              {!meta?.isAddToSetMode && meta?.onEdit && (
-                <DropdownMenuItem
-                  onClick={e => {
-                    e.stopPropagation();
-                    if (meta?.onEdit) {
-                      meta.onEdit(problem);
-                    }
-                  }}
-                >
-                  Edit problem
-                </DropdownMenuItem>
-              )}
-              {!meta?.isAddToSetMode && meta?.onDelete && (
-                <DropdownMenuItem
-                  onClick={e => {
-                    e.stopPropagation();
-                    if (meta?.onDelete) {
-                      meta.onDelete(problem.id, problem.title);
-                    }
-                  }}
-                  className="text-destructive"
-                >
-                  Delete problem
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
+        return (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={value =>
+              !isDisabled && row.toggleSelected(!!value)
+            }
+            onClick={e => {
+              e.stopPropagation();
+              if (isDisabled) {
+                e.preventDefault();
+              }
+            }}
+            disabled={isDisabled}
+            aria-label="Select row"
+          />
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
     },
-    enableSorting: false,
-    enableHiding: false,
-  },
-];
+    {
+      accessorKey: 'title',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('titleColumn')} t={t} />
+      ),
+      cell: ({ row }) => {
+        const title = row.getValue('title') as string;
+        return (
+          <div
+            className="max-w-[32rem] truncate text-foreground px-2"
+            title={title}
+          >
+            {title}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'problem_type',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('type')} t={t} />
+      ),
+      cell: ({ row }) => {
+        const type = row.getValue('problem_type') as ProblemType;
+        return (
+          <div className="px-2">
+            <Badge variant="outline">
+              {t(getProblemTypeDisplayName(type))}
+            </Badge>
+          </div>
+        );
+      },
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
+      },
+    },
+    {
+      accessorKey: 'tags',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('tagsColumn')} t={t} />
+      ),
+      cell: ({ row }) => {
+        const tags = row.getValue('tags') as { id: string; name: string }[];
+        return (
+          <div className="px-2">
+            <TagCapsules tags={tags || []} />
+          </div>
+        );
+      },
+      filterFn: (row, id, value) => {
+        const tags = row.getValue(id) as { id: string; name: string }[];
+        if (!tags || !value.length) return true;
+        return value.some((tagId: string) =>
+          tags.some(tag => tag.id === tagId)
+        );
+      },
+    },
+    {
+      accessorKey: 'status',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('status')} t={t} />
+      ),
+      cell: ({ row }) => {
+        const status = row.getValue('status') as ProblemStatus;
+        return (
+          <div className="px-2">
+            <Badge
+              variant="outline"
+              className={`${getStatusBadgeStyle(status)} font-medium`}
+            >
+              {t(getProblemStatusDisplayName(status))}
+            </Badge>
+          </div>
+        );
+      },
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
+      },
+    },
+    {
+      accessorKey: 'created_at',
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title={t('dateCreatedColumn')}
+          t={t}
+        />
+      ),
+      cell: ({ row }) => {
+        const createdAt = row.getValue('created_at') as string;
+        return (
+          <div className="text-sm text-muted-foreground px-2">
+            {formatDisplayDate(createdAt)}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'last_reviewed_date',
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title={t('lastReviewedColumn')}
+          t={t}
+        />
+      ),
+      cell: ({ row }) => {
+        const lastReviewedDate = row.getValue('last_reviewed_date') as string;
+        return (
+          <div className="text-sm text-muted-foreground px-2">
+            {lastReviewedDate ? formatDisplayDate(lastReviewedDate) : '—'}
+          </div>
+        );
+      },
+    },
+    {
+      id: 'actions',
+      header: t('actionsColumn'),
+      cell: ({ row, table }) => {
+        const problem = row.original;
+        const meta = table.options.meta as TableMeta;
+
+        return (
+          <div className="px-2">
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="h-8 w-8 p-0"
+                  onClick={e => e.stopPropagation()}
+                >
+                  <span className="sr-only">{t('openMenu')}</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>{t('actionsColumn')}</DropdownMenuLabel>
+                <DropdownMenuItem
+                  onClick={async e => {
+                    e.stopPropagation();
+                    try {
+                      await navigator.clipboard.writeText(problem.id);
+                      toast.success(t('problemIdCopied'));
+                    } catch {
+                      toast.error(t('failedToCopyId'));
+                    }
+                  }}
+                >
+                  {t('copyProblemId')}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {!meta?.isAddToSetMode && (
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href={`/subjects/${problem.subject_id}/problems/${problem.id}/review`}
+                      onClick={e => e.stopPropagation()}
+                    >
+                      {t('reviewProblem')}
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                {!meta?.isAddToSetMode && (
+                  <DropdownMenuItem
+                    onClick={e => {
+                      e.stopPropagation();
+                      if (meta?.onAddToSet) {
+                        meta.onAddToSet(problem);
+                      }
+                    }}
+                  >
+                    {t('addToSet')}
+                  </DropdownMenuItem>
+                )}
+                {!meta?.isAddToSetMode && meta?.onEdit && (
+                  <DropdownMenuItem
+                    onClick={e => {
+                      e.stopPropagation();
+                      if (meta?.onEdit) {
+                        meta.onEdit(problem);
+                      }
+                    }}
+                  >
+                    {t('editProblem')}
+                  </DropdownMenuItem>
+                )}
+                {!meta?.isAddToSetMode && meta?.onDelete && (
+                  <DropdownMenuItem
+                    onClick={e => {
+                      e.stopPropagation();
+                      if (meta?.onDelete) {
+                        meta.onDelete(problem.id, problem.title);
+                      }
+                    }}
+                    className="text-destructive"
+                  >
+                    {t('deleteProblem')}
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+  ];
+}
+
+// Default export for backwards compatibility (returns empty array - should be called with t)
+export const columns: ColumnDef<Problem>[] = [];

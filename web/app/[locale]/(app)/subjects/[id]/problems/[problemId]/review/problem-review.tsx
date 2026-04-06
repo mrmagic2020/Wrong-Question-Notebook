@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { BackLink } from '@/components/back-link';
 import { ProblemType, ProblemStatus } from '@/lib/schemas';
@@ -112,6 +113,9 @@ export default function ProblemReview({
   copyProblemSetId,
   isAuthenticated = true,
 }: ProblemReviewProps) {
+  const tProblemSets = useTranslations('ProblemSets');
+  const tProblems = useTranslations('Problems');
+  const t = useTranslations('Common');
   const router = useRouter();
   const { refreshChecklistStatus } = useOnboarding();
   const [userAnswer, setUserAnswer] = useState<any>('');
@@ -318,19 +322,19 @@ export default function ProblemReview({
               </div>
             )}
             {problem.tags && problem.tags.length > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setTagsExpanded(!tagsExpanded)}
-              >
-                <Tag className="h-4 w-4" aria-label="Toggle tags visibility" />
-                Tags
-              </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setTagsExpanded(!tagsExpanded)}
+            >
+              <Tag className="h-4 w-4" aria-label="Toggle tags visibility" />
+              {t('tags')}
+            </Button>
             )}
             {showExitButton && onExitSession && (
               <Button variant="ghost" size="sm" onClick={onExitSession}>
                 <LogOut className="h-4 w-4 mr-1" />
-                Exit Session
+                {tProblemSets('exitSession')}
               </Button>
             )}
             {!showExitButton && (
@@ -341,7 +345,7 @@ export default function ProblemReview({
                     : `/subjects/${subject.id}/problems`
                 }
               >
-                {isProblemSetMode ? 'Back to Problem Set' : 'Back to Problems'}
+                {isProblemSetMode ? tProblemSets('backToSet') : tProblems('backToProblems')}
               </BackLink>
             )}
           </div>
@@ -361,7 +365,7 @@ export default function ProblemReview({
                   <BookOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 </div>
                 <h2 className="text-base font-semibold text-blue-900 dark:text-blue-100">
-                  Problem
+                  {tProblems('problem')}
                 </h2>
               </div>
               {problem.content && (
@@ -381,15 +385,14 @@ export default function ProblemReview({
                   <PencilLine className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 </div>
                 <h2 className="text-base font-semibold text-blue-900 dark:text-blue-100">
-                  Your Answer
+                  {tProblems('yourAnswer')}
                 </h2>
               </div>
 
               {!problem.auto_mark && (
                 <div className="ml-10 mb-4 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-md">
                   <p className="text-sm text-blue-800 dark:text-blue-200">
-                    This problem requires manual review. Enter your answer below
-                    and click "View Solution" to check your work.
+                    {tProblems('manualReviewRequired')}
                   </p>
                 </div>
               )}
@@ -429,10 +432,10 @@ export default function ProblemReview({
                       }
                     >
                       {isSubmitting
-                        ? 'Submitting...'
+                        ? t('submitting')
                         : submittedAnswer !== null && isCorrect === false
-                          ? 'Resubmit Answer'
-                          : 'Submit Answer'}
+                          ? tProblems('resubmitAnswer')
+                          : tProblems('submitAnswer')}
                     </Button>
                   )}
 
@@ -443,7 +446,7 @@ export default function ProblemReview({
                         onClick={() => setShowSolution(true)}
                         className="bg-green-600 dark:bg-green-700 text-white hover:bg-green-700 dark:hover:bg-green-600"
                       >
-                        View Solution
+                        {tProblems('viewSolution')}
                       </Button>
                     )}
                 </div>
@@ -466,13 +469,13 @@ export default function ProblemReview({
                       <span
                         className={`font-medium ${isCorrect ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}`}
                       >
-                        {isCorrect ? 'Correct!' : 'Incorrect'}
+                        {isCorrect ? tProblems('correct') : tProblems('incorrect')}
                       </span>
                     </div>
                     {problem.answer_config?.type === 'mcq' ? (
                       <>
                         <p className="text-sm text-muted-foreground mt-1">
-                          Your choice:{' '}
+                          {tProblems('yourChoice')}{' '}
                           {(() => {
                             const config =
                               problem.answer_config as MCQAnswerConfig;
@@ -492,12 +495,12 @@ export default function ProblemReview({
                       </>
                     ) : (
                       <p className="text-sm text-muted-foreground mt-1">
-                        Your answer: {JSON.stringify(submittedAnswer)}
+                        {tProblems('yourAnswerPrefix')} {JSON.stringify(submittedAnswer)}
                       </p>
                     )}
                     {!isCorrect && problem.auto_mark && (
                       <p className="text-sm text-red-600 dark:text-red-400 mt-2">
-                        You can try again with a different answer.
+                        {tProblems('tryAgain')}
                       </p>
                     )}
                   </div>
@@ -565,7 +568,7 @@ export default function ProblemReview({
                 }}
               >
                 <BookPlus className="h-4 w-4 mr-2" />
-                {isAuthenticated ? 'Add to Notebook' : 'Sign up to Save'}
+                {isAuthenticated ? tProblems('addToNotebook') : tProblems('signUpToSave')}
               </Button>
             </div>
           )}
@@ -582,7 +585,7 @@ export default function ProblemReview({
             !hideNavigation && (
               <div className="review-section-rose">
                 <div className="text-xs text-muted-foreground mb-2 text-center">
-                  Problem {currentIndex + 1} of {allProblems.length}
+                  {tProblems('problemOf', { current: currentIndex + 1, total: allProblems.length })}
                 </div>
                 <div className="flex gap-2">
                   <Button

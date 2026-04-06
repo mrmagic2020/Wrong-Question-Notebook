@@ -2,9 +2,12 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { AssetPreviewProps } from '@/lib/types';
 
 export default function AssetPreview({ asset }: AssetPreviewProps) {
+  const t = useTranslations('Problems');
+  const tCommon = useTranslations('Common');
   const [imageError, setImageError] = useState(false);
   const getFileUrl = (path: string) => {
     // Construct the URL for the file
@@ -25,14 +28,14 @@ export default function AssetPreview({ asset }: AssetPreviewProps) {
       return (
         <div className="border border-border rounded-lg overflow-hidden">
           <div className="p-4 text-center text-muted-foreground bg-muted">
-            <p className="text-sm">Image preview unavailable</p>
+            <p className="text-sm">{t('imagePreviewUnavailable')}</p>
             <a
               href={getFileUrl(asset.path)}
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary underline text-sm hover:text-primary/80 transition-colors"
             >
-              View image
+              {tCommon('view')}
             </a>
           </div>
           <div className="p-2 bg-muted border-t border-border">
@@ -67,7 +70,7 @@ export default function AssetPreview({ asset }: AssetPreviewProps) {
           <p className="text-xs text-muted-foreground truncate">
             {getFileName(asset.path)}
           </p>
-          <p className="text-xs text-primary mt-1">Click to view full size</p>
+          <p className="text-xs text-primary mt-1">{tCommon('clickToViewFullSize', { defaultValue: 'Click to view full size' })}</p>
         </div>
       </div>
     );
@@ -87,7 +90,7 @@ export default function AssetPreview({ asset }: AssetPreviewProps) {
               <p className="text-sm font-medium text-foreground truncate">
                 {getFileName(asset.path)}
               </p>
-              <p className="text-xs text-muted-foreground">PDF Document</p>
+              <p className="text-xs text-muted-foreground">{t('pdfDocument')}</p>
             </div>
           </div>
           <a
@@ -96,7 +99,7 @@ export default function AssetPreview({ asset }: AssetPreviewProps) {
             rel="noopener noreferrer"
             className="px-3 py-1 bg-primary text-primary-foreground text-xs rounded hover:bg-primary/90 transition-colors"
           >
-            View PDF
+            {tCommon('view')}
           </a>
         </div>
       </div>
@@ -115,7 +118,7 @@ export default function AssetPreview({ asset }: AssetPreviewProps) {
             <p className="text-sm font-medium text-foreground truncate">
               {getFileName(asset.path)}
             </p>
-            <p className="text-xs text-muted-foreground">File</p>
+            <p className="text-xs text-muted-foreground">{tCommon('file')}</p>
           </div>
         </div>
         <a
@@ -124,7 +127,7 @@ export default function AssetPreview({ asset }: AssetPreviewProps) {
           rel="noopener noreferrer"
           className="px-3 py-1 bg-secondary text-secondary-foreground text-xs rounded hover:bg-secondary/80 transition-colors"
         >
-          View File
+          {tCommon('view')}
         </a>
       </div>
     </div>

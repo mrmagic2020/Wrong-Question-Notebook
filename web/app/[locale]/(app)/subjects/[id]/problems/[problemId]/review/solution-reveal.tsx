@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { RichTextDisplay } from '@/components/ui/rich-text-display';
 import MathText from '@/components/ui/math-text';
+import { useTranslations } from 'next-intl';
 import { SolutionRevealProps } from '@/lib/types';
 import type {
   MCQAnswerConfig,
@@ -15,6 +16,7 @@ function StructuredAnswerDisplay({
 }: {
   answerConfig: NonNullable<SolutionRevealProps['answerConfig']>;
 }) {
+  const t = useTranslations('Problems');
   if (answerConfig.type === 'mcq') {
     const config = answerConfig as MCQAnswerConfig;
     const correctChoice = config.choices.find(
@@ -59,7 +61,7 @@ function StructuredAnswerDisplay({
       return (
         <div className="space-y-1">
           <p className="text-sm text-green-700 dark:text-green-300 mb-1">
-            Acceptable answers:
+            {t('acceptableAnswers')}:
           </p>
           <div className="flex flex-wrap gap-2">
             {config.acceptable_answers.map((answer, i) => (
@@ -100,6 +102,7 @@ export default function SolutionReveal({
   onToggle,
   wrapperClassName,
 }: SolutionRevealProps) {
+  const t = useTranslations('Problems');
   const hasStructuredAnswer = !!answerConfig;
   const hasCorrectAnswer =
     hasStructuredAnswer ||
@@ -117,11 +120,11 @@ export default function SolutionReveal({
     >
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-base font-semibold text-green-900 dark:text-green-100">
-          Solution
+          {t('solutionTitle')}
         </h2>
         {hasSolution && (
           <Button onClick={onToggle} variant="secondary">
-            {isRevealed ? 'Hide Solution' : 'Reveal Solution'}
+            {isRevealed ? t('hideSolution') : t('revealSolution')}
           </Button>
         )}
       </div>
@@ -131,7 +134,7 @@ export default function SolutionReveal({
           <div className="w-16 h-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
             <span className="text-2xl">📝</span>
           </div>
-          <p className="text-sm">No solution provided for this problem</p>
+          <p className="text-sm">{t('noSolutionProvided')}</p>
         </div>
       ) : isRevealed ? (
         <div className="space-y-4">
@@ -140,7 +143,7 @@ export default function SolutionReveal({
             (correctAnswer !== undefined && correctAnswer !== null)) && (
             <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-md p-4">
               <h3 className="font-medium text-green-800 dark:text-green-200 mb-2">
-                Correct Answer
+                {t('correctAnswer')}
               </h3>
               <div className="text-green-700 dark:text-green-300">
                 {hasStructuredAnswer ? (
@@ -170,7 +173,7 @@ export default function SolutionReveal({
       ) : (
         <div className="text-center py-8 text-muted-foreground">
           <p className="text-sm">
-            Click "Reveal Solution" to view the solution
+            {t('clickToRevealSolution')}
           </p>
         </div>
       )}

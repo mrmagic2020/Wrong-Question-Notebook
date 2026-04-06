@@ -469,6 +469,7 @@ export default function AttemptStatusForm({
               value={cause}
               onChange={setCause}
               isCorrect={effectiveIsCorrect}
+              t={t}
             />
           )}
 

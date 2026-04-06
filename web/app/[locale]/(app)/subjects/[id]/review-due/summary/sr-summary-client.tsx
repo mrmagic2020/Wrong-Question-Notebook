@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent } from '@/components/ui/card';
 import { BackLink } from '@/components/back-link';
 import {
@@ -54,6 +55,9 @@ export default function SRSummaryClient({
   subjectName,
   sessionId,
 }: SRSummaryClientProps) {
+  const t = useTranslations('Review');
+  const tSubjects = useTranslations('Subjects');
+  const tProblems = useTranslations('Problems');
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<ReviewSessionSummary | null>(null);
@@ -133,11 +137,11 @@ export default function SRSummaryClient({
   if (!summary) {
     return (
       <div className="section-container text-center py-12">
-        <p className="text-muted-foreground mb-4">Failed to load summary.</p>
+        <p className="text-muted-foreground mb-4">{t('failedToLoadSummary')}</p>
         <BackLink
           onClick={() => router.push(`/subjects/${subjectId}/problems`)}
         >
-          Back to Problems
+          {tProblems('backToProblems')}
         </BackLink>
       </div>
     );
@@ -145,19 +149,19 @@ export default function SRSummaryClient({
 
   const pieData = [
     {
-      label: 'Mastered',
+      label: t('mastered'),
       value: summary.status_counts.mastered,
       colorLight: '#34d399',
       colorDark: '#059669',
     },
     {
-      label: 'Needs Review',
+      label: t('needsReview'),
       value: summary.status_counts.needs_review,
       colorLight: '#fbbf24',
       colorDark: '#d97706',
     },
     {
-      label: 'Wrong',
+      label: t('wrong'),
       value: summary.status_counts.wrong,
       colorLight: '#fb923c',
       colorDark: '#ea580c',
@@ -170,9 +174,9 @@ export default function SRSummaryClient({
       <div className="page-header">
         <h1 className="page-title flex items-center gap-2">
           <Brain className="h-7 w-7 text-amber-600 dark:text-amber-400" />
-          <span className="text-gradient-warm">Review Complete</span>
+          <span className="text-gradient-warm">{t('reviewComplete')}</span>
         </h1>
-        <p className="page-description">Spaced Review &middot; {subjectName}</p>
+        <p className="page-description">{t('spacedReviewTitle')} &middot; {subjectName}</p>
       </div>
 
       {/* Main content: pie chart + status cards */}
@@ -197,7 +201,7 @@ export default function SRSummaryClient({
                     {summary.status_counts.mastered}
                   </div>
                   <p className="text-sm text-green-600/80 dark:text-green-400/80">
-                    Mastered
+                    {t('mastered')}
                   </p>
                 </div>
               </div>
@@ -216,7 +220,7 @@ export default function SRSummaryClient({
                     {summary.status_counts.needs_review}
                   </div>
                   <p className="text-sm text-yellow-600/80 dark:text-yellow-400/80">
-                    Needs Review
+                    {t('needsReview')}
                   </p>
                 </div>
               </div>
@@ -235,7 +239,7 @@ export default function SRSummaryClient({
                     {summary.status_counts.wrong}
                   </div>
                   <p className="text-sm text-red-600/80 dark:text-red-400/80">
-                    Wrong
+                    {t('wrong')}
                   </p>
                 </div>
               </div>
@@ -250,7 +254,7 @@ export default function SRSummaryClient({
         <Card className="card-section">
           <CardContent className="pt-5 pb-5 text-center">
             <div className="text-2xl font-bold">{summary.total_problems}</div>
-            <p className="text-xs text-muted-foreground">Total Problems</p>
+            <p className="text-xs text-muted-foreground">{t('totalProblems')}</p>
           </CardContent>
         </Card>
 
@@ -259,7 +263,7 @@ export default function SRSummaryClient({
             <div className="text-2xl font-bold text-primary">
               {summary.completed_count}
             </div>
-            <p className="text-xs text-muted-foreground">Completed</p>
+            <p className="text-xs text-muted-foreground">{t('completed')}</p>
           </CardContent>
         </Card>
 
@@ -269,7 +273,7 @@ export default function SRSummaryClient({
               {summary.skipped_count}
             </div>
             <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-              <SkipForward className="h-3 w-3" /> Skipped
+              <SkipForward className="h-3 w-3" /> {t('skippedProblems')}
             </p>
           </CardContent>
         </Card>
@@ -280,7 +284,7 @@ export default function SRSummaryClient({
               <Clock className="h-5 w-5" />
               {formatDuration(summary.elapsed_ms)}
             </div>
-            <p className="text-xs text-muted-foreground">Session Time</p>
+            <p className="text-xs text-muted-foreground">{t('sessionTime')}</p>
           </CardContent>
         </Card>
       </div>
@@ -288,10 +292,10 @@ export default function SRSummaryClient({
       {/* Timestamps */}
       <div className="text-sm text-muted-foreground text-center space-y-1">
         {summary.started_at && (
-          <p>Started: {formatDisplayDateTime(summary.started_at)}</p>
+          <p>{t('started')}: {formatDisplayDateTime(summary.started_at)}</p>
         )}
         {summary.completed_at && (
-          <p>Completed: {formatDisplayDateTime(summary.completed_at)}</p>
+          <p>{t('finished')}: {formatDisplayDateTime(summary.completed_at)}</p>
         )}
       </div>
 
@@ -300,7 +304,7 @@ export default function SRSummaryClient({
         <BackLink
           onClick={() => router.push(`/subjects/${subjectId}/problems`)}
         >
-          Back to Problems
+          {tProblems('backToProblems')}
         </BackLink>
       </div>
     </div>

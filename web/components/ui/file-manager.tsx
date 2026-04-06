@@ -28,6 +28,13 @@ interface FileManagerProps {
   disabled?: boolean;
 }
 
+const FALLBACK_T = (key: string) => {
+  const fallbacks: Record<string, string> = {
+    storageUsed: 'storage used',
+  };
+  return fallbacks[key] ?? key;
+};
+
 export default function FileManager({
   role,
   problemId,
@@ -39,6 +46,7 @@ export default function FileManager({
   disabled = false,
 }: FileManagerProps) {
   const t = useTranslations('CommonUtils');
+  const tErrors = useTranslations('CommonUtils');
   const [files, setFiles] = useState<FileAsset[]>(initialFiles);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -111,23 +119,19 @@ export default function FileManager({
 
     // Check if component is disabled
     if (disabled) {
-      setError('File upload is disabled. Please expand the form first.');
+      setError(tErrors('fileUploadDisabled'));
       return;
     }
 
     // Check storage limit
     if (storageLimitExhausted) {
-      setError(
-        'Storage limit reached. Delete existing files or contact support.'
-      );
+      setError(tErrors('storageLimitReached'));
       return;
     }
 
     // Validate problemId before attempting upload
     if (!problemId || problemId.trim() === '' || problemId === 'disabled') {
-      setError(
-        'Cannot upload files: Problem ID is not available. Please expand the form first.'
-      );
+      setError(tErrors('cannotUploadFiles'));
       return;
     }
 
@@ -145,7 +149,7 @@ export default function FileManager({
 
     if (oversizedFiles.length > 0) {
       setError(
-        `Files too large: ${oversizedFiles.join(', ')}. Maximum file size is 10MB.`
+        tErrors('fileTooLarge', { files: oversizedFiles.join(', '), maxSize: '10MB' })
       );
       return;
     }
@@ -183,7 +187,7 @@ export default function FileManager({
       // Update database in edit mode
       await updateDatabaseAssets(finalFiles);
     } catch (err: any) {
-      setError(err.message ?? 'Upload failed');
+      setError(tErrors('uploadFailed'));
 
       // Remove failed uploading files - keep only the original files
       updateFiles(currentFiles);
@@ -220,7 +224,7 @@ export default function FileManager({
       // Update database in edit mode
       await updateDatabaseAssets(updatedFiles);
     } catch (err: any) {
-      setError(err.message ?? 'Failed to delete file');
+      setError(tErrors('failedToDeleteFile'));
     }
   };
 
@@ -242,7 +246,7 @@ export default function FileManager({
         <ContentLimitIndicator
           current={storageLimit.current}
           limit={storageLimit.limit}
-          label="storage used"
+          label={t('storageUsed') || FALLBACK_T('storageUsed')}
           formatValue={formatBytes}
         />
       )}
@@ -286,7 +290,7 @@ export default function FileManager({
           <div className="text-sm text-gray-600 dark:text-gray-400">
             {storageLimitExhausted ? (
               <span className="font-medium text-rose-600 dark:text-rose-400">
-                Storage limit reached
+                {t('storageLimitReached')}
               </span>
             ) : disabled ? (
               <span className="font-medium text-gray-400 dark:text-gray-500">
@@ -423,7 +427,7 @@ export default function FileManager({
                         size="sm"
                         onClick={() => onInsertImage(file.path, file.name)}
                         className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300"
-                        title="Insert image into editor"
+                        title={t('insertImageIntoEditor')}
                       >
                         {t('insert')}
                       </Button>

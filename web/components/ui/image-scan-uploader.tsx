@@ -16,6 +16,7 @@ import {
   RefreshCw,
   Timer,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -102,6 +103,7 @@ function ImageAssetToggles({
   saveAsSolutionAsset,
   onSolutionAssetChange,
   hint,
+  t,
 }: {
   idPrefix: string;
   saveAsProblemAsset: boolean;
@@ -109,11 +111,12 @@ function ImageAssetToggles({
   saveAsSolutionAsset: boolean;
   onSolutionAssetChange: (v: boolean) => void;
   hint?: string;
+  t: (key: string) => string;
 }) {
   return (
     <div className="flex items-center gap-4 rounded-xl border border-amber-200/40 bg-amber-50/30 px-3 py-2 dark:border-amber-800/30 dark:bg-amber-950/20">
       <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-        Save image as:
+        {t('saveImageAs')}
       </span>
       <div className="flex items-center gap-1.5">
         <Switch
@@ -126,7 +129,7 @@ function ImageAssetToggles({
           htmlFor={`${idPrefix}-problem-asset`}
           className="cursor-pointer text-xs text-gray-600 dark:text-gray-400"
         >
-          Problem asset
+          {t('problemAsset')}
         </Label>
       </div>
       <div className="flex items-center gap-1.5">
@@ -140,7 +143,7 @@ function ImageAssetToggles({
           htmlFor={`${idPrefix}-solution-asset`}
           className="cursor-pointer text-xs text-gray-600 dark:text-gray-400"
         >
-          Solution asset
+          {t('solutionAsset')}
         </Label>
       </div>
       {hint && (
@@ -159,6 +162,7 @@ export function ImageScanUploader({
   quota,
   onQuotaChange,
 }: ImageScanUploaderProps) {
+  const t = useTranslations('ImageScan');
   const [state, setState] = useState<UploaderState>('initial');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -211,11 +215,11 @@ export function ImageScanUploader({
   const validateAndSetFile = useCallback(
     (file: File) => {
       if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-        toast.error('Please upload a JPEG, PNG, WebP, or GIF image.');
+        toast.error(t('imageRequired'));
         return;
       }
       if (file.size > MAX_SIZE) {
-        toast.error('Image is too large. Maximum size is 5MB.');
+        toast.error(t('imageTooLarge'));
         return;
       }
 
@@ -230,7 +234,7 @@ export function ImageScanUploader({
       };
       reader.readAsDataURL(file);
     },
-    [stopListening]
+    [stopListening, t]
   );
 
   // Clipboard paste handler — active in initial state
@@ -297,10 +301,10 @@ export function ImageScanUploader({
 
         validateAndSetFile(file);
       } catch (err: any) {
-        toast.error(err.message || 'Failed to load image from phone');
+        toast.error(err.message || t('failedToExtractProblem'));
       }
     },
-    [validateAndSetFile]
+    [validateAndSetFile, t]
   );
 
   // Start QR session + Realtime subscription
@@ -467,12 +471,12 @@ export function ImageScanUploader({
       }
       setState('result');
     } catch (err: any) {
-      setError(err.message || 'Something went wrong');
-      toast.error(err.message || 'Failed to extract problem from image');
+      setError(err.message || t('somethingWentWrong'));
+      toast.error(err.message || t('failedToExtractProblem'));
     } finally {
       setIsExtracting(false);
     }
-  }, [imageFile, imagePreview, onQuotaChange, subjectId]);
+  }, [imageFile, imagePreview, onQuotaChange, subjectId, t]);
 
   const reset = useCallback(() => {
     stopListening();
@@ -500,7 +504,7 @@ export function ImageScanUploader({
             : 'text-gray-500 dark:text-gray-400'
       }`}
     >
-      {quota.used} of {quota.limit} daily extractions used
+      {t('dailyExtractionsUsed', { used: quota.used, limit: quota.limit })}
     </p>
   ) : null;
 
@@ -556,10 +560,10 @@ export function ImageScanUploader({
             </div>
             <div>
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Drop, paste, or browse
+                {t('dropPasteOrBrowse')}
               </p>
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                JPEG, PNG, WebP, GIF &le; 5 MB
+                {t('imageFormats')}
               </p>
             </div>
           </div>
@@ -570,7 +574,7 @@ export function ImageScanUploader({
               <div className="flex flex-col items-center justify-center gap-1.5">
                 <div className="h-full w-px bg-gray-200/60 dark:bg-gray-700/40" />
                 <span className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                  or
+                  {t('or')}
                 </span>
                 <div className="h-full w-px bg-gray-200/60 dark:bg-gray-700/40" />
               </div>
@@ -603,7 +607,7 @@ export function ImageScanUploader({
                         className="flex items-center gap-1 text-xs font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
                       >
                         <RefreshCw className="h-3 w-3" />
-                        Refresh code
+                        {t('refreshCode')}
                       </button>
                     ) : (
                       <div className="flex items-center justify-center gap-1 text-[10px] text-gray-400 dark:text-gray-500">
@@ -621,7 +625,7 @@ export function ImageScanUploader({
                       onClick={createQrSession}
                       className="text-xs font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
                     >
-                      Generate QR
+                      {t('generateQR')}
                     </button>
                   </div>
                 )}
@@ -632,19 +636,19 @@ export function ImageScanUploader({
                     <span className="font-semibold text-gray-400 dark:text-gray-500">
                       1.
                     </span>
-                    Scan the code with your phone camera
+                    {t('scanWithPhone')}
                   </li>
                   <li className="flex gap-1.5">
                     <span className="font-semibold text-gray-400 dark:text-gray-500">
                       2.
                     </span>
-                    Take a photo of the problem
+                    {t('takePhoto')}
                   </li>
                   <li className="flex gap-1.5">
                     <span className="font-semibold text-gray-400 dark:text-gray-500">
                       3.
                     </span>
-                    It appears here automatically
+                    {t('appearsAutomatically')}
                   </li>
                 </ol>
               </div>
@@ -665,7 +669,7 @@ export function ImageScanUploader({
             }}
             className="text-muted-foreground"
           >
-            Cancel
+            {t('cancel')}
           </Button>
         </div>
       </div>
@@ -711,6 +715,7 @@ export function ImageScanUploader({
           onProblemAssetChange={setSaveAsProblemAsset}
           saveAsSolutionAsset={saveAsSolutionAsset}
           onSolutionAssetChange={setSaveAsSolutionAsset}
+          t={t}
         />
         <div className="flex items-center justify-between">
           <div>{quotaIndicator}</div>
@@ -724,7 +729,7 @@ export function ImageScanUploader({
               className="text-muted-foreground"
             >
               <X className="mr-1 h-4 w-4" />
-              Remove
+              {t('remove')}
             </Button>
             <Button
               type="button"
@@ -735,14 +740,14 @@ export function ImageScanUploader({
               {isExtracting ? (
                 <>
                   <Spinner />
-                  Extracting...
+                  {t('extracting')}
                 </>
               ) : quotaExhausted ? (
-                'Daily limit reached'
+                t('dailyLimitReached')
               ) : (
                 <>
                   <Sparkles className="mr-1 h-4 w-4" />
-                  Extract
+                  {t('extract')}
                 </>
               )}
             </Button>
@@ -757,13 +762,27 @@ export function ImageScanUploader({
     const { confidence } = extractionResult;
     const warnings = confidence.warnings || [];
 
+    const problemTypeLabel =
+      extractionResult.problem_type === 'mcq'
+        ? t('multipleChoiceType')
+        : extractionResult.problem_type === 'short'
+          ? t('shortAnswerType')
+          : t('extendedResponseType');
+
+    const choicesCountLabel =
+      extractionResult.problem_type === 'mcq' &&
+      extractionResult.mcq_choices &&
+      extractionResult.mcq_choices.length > 0
+        ? t('choicesCount', { count: extractionResult.mcq_choices.length })
+        : '';
+
     return (
       <div className="space-y-3">
         <div className="rounded-2xl border border-emerald-200/40 bg-gradient-to-br from-emerald-50 to-emerald-100/50 p-4 dark:border-emerald-800/30 dark:from-emerald-950/40 dark:to-emerald-900/20">
           <div className="mb-3 flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
             <span className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
-              Problem extracted
+              {t('problemExtracted')}
             </span>
           </div>
 
@@ -772,45 +791,38 @@ export function ImageScanUploader({
             <span
               className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${confidenceColor(confidence.problem_type_confidence)}`}
             >
-              Confidence: {confidence.problem_type_confidence}
+              {t('confidence', { level: confidence.problem_type_confidence })}
             </span>
             <span
               className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${confidenceColor(confidence.content_quality)}`}
             >
-              Quality: {confidence.content_quality.replace('_', ' ')}
+              {t('quality', { level: confidence.content_quality.replace('_', ' ') })}
             </span>
             {confidence.has_math && (
               <span className="inline-flex items-center rounded-full border border-blue-200/50 bg-blue-100/80 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:border-blue-800/40 dark:bg-blue-900/30 dark:text-blue-300">
-                Contains equations
+                {t('containsEquations')}
               </span>
             )}
           </div>
 
           {/* Preview of extracted content */}
           <div className="mb-2 text-sm text-gray-700 dark:text-gray-300">
-            <span className="font-medium">Title:</span> {extractionResult.title}
+            <span className="font-medium">{t('title')}</span> {extractionResult.title}
           </div>
           <div className="text-sm text-gray-700 dark:text-gray-300">
-            <span className="font-medium">Type:</span>{' '}
-            {extractionResult.problem_type === 'mcq'
-              ? 'Multiple Choice'
-              : extractionResult.problem_type === 'short'
-                ? 'Short Answer'
-                : 'Extended Response'}
-            {extractionResult.problem_type === 'mcq' &&
-              extractionResult.mcq_choices &&
-              extractionResult.mcq_choices.length > 0 &&
-              ` (${extractionResult.mcq_choices.length} choices)`}
+            <span className="font-medium">{t('type')}</span>{' '}
+            {problemTypeLabel}
+            {choicesCountLabel}
           </div>
 
           {/* Answer hint preview */}
           {extractionResult.answer_hint && (
             <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-              <span className="font-medium">Answer detected:</span>{' '}
+              <span className="font-medium">{t('answerDetected')}</span>{' '}
               {extractionResult.problem_type === 'mcq' &&
                 extractionResult.answer_hint.mcq_correct_choice_id && (
                   <span>
-                    Choice {extractionResult.answer_hint.mcq_correct_choice_id}
+                    {t('choiceLabel', { id: extractionResult.answer_hint.mcq_correct_choice_id })}
                   </span>
                 )}
               {extractionResult.problem_type === 'short' &&
@@ -822,13 +834,11 @@ export function ImageScanUploader({
               {extractionResult.problem_type === 'extended' &&
                 extractionResult.answer_hint.extended_working && (
                   <span>
-                    Working/solution (
-                    {extractionResult.answer_hint.extended_working.length}{' '}
-                    chars)
+                    {t('workingSolution', { count: extractionResult.answer_hint.extended_working.length })}
                   </span>
                 )}
               <p className="mt-1 text-xs italic text-gray-500 dark:text-gray-400">
-                Will be pre-filled as a suggestion. Review after applying.
+                {t('willBePrefilledAsSuggestion')}
               </p>
             </div>
           )}
@@ -853,7 +863,7 @@ export function ImageScanUploader({
               extractionResult.suggested_tags.new.length > 0) && (
               <div className="mt-3 space-y-1.5">
                 <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                  Suggested tags
+                  {t('suggestedTags')}
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   {extractionResult.suggested_tags.existing.map(tag => (
@@ -871,7 +881,7 @@ export function ImageScanUploader({
                     >
                       {tag.name}
                       <span className="text-[10px] font-normal opacity-70">
-                        new
+                        {t('new')}
                       </span>
                     </span>
                   ))}
@@ -886,9 +896,10 @@ export function ImageScanUploader({
           onProblemAssetChange={setSaveAsProblemAsset}
           saveAsSolutionAsset={saveAsSolutionAsset}
           onSolutionAssetChange={setSaveAsSolutionAsset}
+          t={t}
           hint={
             extractionResult.suggest_image_asset
-              ? 'Visual content detected'
+              ? t('visualContentDetected')
               : undefined
           }
         />
@@ -901,7 +912,7 @@ export function ImageScanUploader({
             onClick={reset}
             className="text-muted-foreground"
           >
-            Try again
+            {t('tryAgain')}
           </Button>
           <Button
             type="button"
@@ -919,7 +930,7 @@ export function ImageScanUploader({
             }}
           >
             <CheckCircle2 className="mr-1 h-4 w-4" />
-            Use this extraction
+            {t('useThisExtraction')}
           </Button>
         </div>
       </div>

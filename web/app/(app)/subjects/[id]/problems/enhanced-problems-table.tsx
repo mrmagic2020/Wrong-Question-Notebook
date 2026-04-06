@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { DataTable } from '@/components/problems/data-table';
-import { columns } from './columns';
+import { createColumns } from './columns';
 import CompactSearchFilter from '@/components/problems/compact-search-filter';
 import { ProblemStatus, ProblemType } from '@/lib/schemas';
 import { toast } from 'sonner';
@@ -21,6 +21,32 @@ import { useIsMobile } from '@/lib/hooks/useMediaQuery';
 import { useFilterParams } from '@/lib/hooks/useFilterParams';
 import { confirmUnsavedNavigation } from '@/lib/hooks/useUnsavedChanges';
 import ProblemCardList from '@/components/problems/problem-card-list';
+
+const FALLBACK_T = (key: string, params?: Record<string, string | number>) => {
+  const fallbacks: Record<string, string> = {
+    'deleteProblemTitle': 'Delete Problem',
+    'deleteProblemMessage': 'Are you sure you want to delete "{title}"? This action cannot be undone.',
+    'deleteProblemsTitle': 'Delete Problems',
+    'deleteProblemsMessage': 'Are you sure you want to delete {count} problem(s)? This action cannot be undone.',
+    'delete': 'Delete',
+    'deleteAll': 'Delete All',
+    'cancel': 'Cancel',
+    'noProblemSelectedForDeletion': 'No problem selected for deletion',
+    'problemDeletedSuccessfully': 'Problem deleted successfully',
+    'problemsDeletedSuccessfully': '{count} problem(s) deleted successfully',
+    'failedToDeleteProblem': 'Failed to delete problem: {error}',
+    'addedProblemsToSet': 'Added {count} problem(s) to the set',
+    'failedToAddProblemsToSet': 'Failed to add problems to set',
+  };
+
+  let text = fallbacks[key] || key;
+  if (params) {
+    Object.entries(params).forEach(([k, v]) => {
+      text = text.replace(`{${k}}`, String(v));
+    });
+  }
+  return text;
+};
 
 export default function EnhancedProblemsTable({
   initialProblems,
@@ -244,7 +270,7 @@ export default function EnhancedProblemsTable({
 
   const handleConfirmDelete = async () => {
     if (!deleteDialog.problemId) {
-      toast.error('No problem selected for deletion');
+      toast.error(FALLBACK_T('noProblemSelectedForDeletion'));
       return;
     }
 
@@ -254,12 +280,12 @@ export default function EnhancedProblemsTable({
       });
 
       if (!response.ok) {
-        let errorMessage = 'Failed to delete problem';
+        let errorMessage = FALLBACK_T('failedToDeleteProblem', { error: '' });
         try {
           const error = await response.json();
-          errorMessage = error.message || errorMessage;
+          errorMessage = FALLBACK_T('failedToDeleteProblem', { error: error.message || response.statusText });
         } catch {
-          errorMessage = response.statusText || errorMessage;
+          errorMessage = FALLBACK_T('failedToDeleteProblem', { error: response.statusText });
         }
         throw new Error(errorMessage);
       }
@@ -275,10 +301,10 @@ export default function EnhancedProblemsTable({
         onProblemDeleted(deleteDialog.problemId);
       }
 
-      toast.success('Problem deleted successfully');
+      toast.success(FALLBACK_T('problemDeletedSuccessfully'));
     } catch (err: any) {
       setError(err.message);
-      toast.error(`Failed to delete problem: ${err.message}`);
+      toast.error(err.message);
       console.error('Delete error:', err);
     } finally {
       setDeleteDialog({ open: false, problemId: null, problemTitle: '' });
@@ -318,7 +344,7 @@ export default function EnhancedProblemsTable({
           throw new Error(errorMessage);
         }
 
-        toast.success(`Added ${problemIds.length} problem(s) to the set`);
+        toast.success(FALLBACK_T('addedProblemsToSet', { count: problemIds.length }));
 
         setSelectedProblems([]);
         setResetSelection(true);
@@ -331,7 +357,7 @@ export default function EnhancedProblemsTable({
         toast.error(
           error instanceof Error
             ? error.message
-            : 'Failed to add problems to set'
+            : FALLBACK_T('failedToAddProblemsToSet')
         );
       }
     } else {
@@ -382,11 +408,11 @@ export default function EnhancedProblemsTable({
       setSelectedProblems([]);
       setResetSelection(true);
       toast.success(
-        `Successfully deleted ${problemIds.length} problem${problemIds.length !== 1 ? 's' : ''}`
+        FALLBACK_T('problemsDeletedSuccessfully', { count: problemIds.length })
       );
     } catch (err: any) {
       setError(err.message);
-      toast.error(`Failed to delete problems: ${err.message}`);
+      toast.error(FALLBACK_T('failedToDeleteProblem', { error: err.message }));
       console.error('Bulk delete error:', err);
     } finally {
       setBulkDeleteDialog({ open: false, problemIds: [], count: 0 });
@@ -475,7 +501,7 @@ export default function EnhancedProblemsTable({
         />
       ) : (
         <DataTable
-          columns={columns}
+          columns={createColumns()}
           data={tableProblems}
           onEdit={onEditProblem ? handleEdit : undefined}
           onDelete={handleDeleteClick}
@@ -495,10 +521,10 @@ export default function EnhancedProblemsTable({
       {/* Individual Delete Confirmation Dialog */}
       <ConfirmationDialog
         isOpen={deleteDialog.open}
-        title="Delete Problem"
-        message={`Are you sure you want to delete "${deleteDialog.problemTitle}"? This action cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
+        title={FALLBACK_T('deleteProblemTitle')}
+        message={FALLBACK_T('deleteProblemMessage', { title: deleteDialog.problemTitle })}
+        confirmText={FALLBACK_T('delete')}
+        cancelText={FALLBACK_T('cancel')}
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteDialog(prev => ({ ...prev, open: false }))}
         variant="destructive"
@@ -507,10 +533,10 @@ export default function EnhancedProblemsTable({
       {/* Bulk Delete Confirmation Dialog */}
       <ConfirmationDialog
         isOpen={bulkDeleteDialog.open}
-        title="Delete Problems"
-        message={`Are you sure you want to delete ${bulkDeleteDialog.count} problem${bulkDeleteDialog.count !== 1 ? 's' : ''}? This action cannot be undone.`}
-        confirmText="Delete All"
-        cancelText="Cancel"
+        title={FALLBACK_T('deleteProblemsTitle')}
+        message={FALLBACK_T('deleteProblemsMessage', { count: bulkDeleteDialog.count })}
+        confirmText={FALLBACK_T('deleteAll')}
+        cancelText={FALLBACK_T('cancel')}
         onConfirm={handleConfirmBulkDelete}
         onCancel={() => setBulkDeleteDialog(prev => ({ ...prev, open: false }))}
         variant="destructive"

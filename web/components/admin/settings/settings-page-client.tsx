@@ -168,7 +168,7 @@ export function SettingsPageClient({ settings }: SettingsPageClientProps) {
         if (key === 'site_announcement') return null;
         return (
           <div className="space-y-2">
-            <Label>Raw Value (JSON)</Label>
+            <Label>{t('rawValue')} (JSON)</Label>
             <Textarea
               value={JSON.stringify(val, null, 2)}
               onChange={e => {

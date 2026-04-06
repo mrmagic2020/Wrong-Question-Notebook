@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -34,6 +35,7 @@ export default function ProblemSetEditDialog({
   problemSet,
   onSuccess,
 }: ProblemSetEditDialogProps) {
+  const t = useTranslations('problemSets');
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -170,35 +172,35 @@ export default function ProblemSetEditDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Edit Problem Set</DialogTitle>
+          <DialogTitle>{t('problemSets.editProblemSet')}</DialogTitle>
           <DialogDescription>
-            Update the problem set details and sharing settings.
+            {t('problemSets.updateDescription')}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Name *</Label>
+            <Label htmlFor="name">{t('nameLabel') || 'Name *'}</Label>
             <Input
               id="name"
               value={formData.name}
               onChange={e =>
                 setFormData(prev => ({ ...prev, name: e.target.value }))
               }
-              placeholder="Enter problem set name"
+              placeholder={t('namePlaceholder')}
               maxLength={50}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t('descriptionLabel') || 'Description'}</Label>
             <RichTextEditor
               initialContent={formData.description}
               onChange={content =>
                 setFormData(prev => ({ ...prev, description: content }))
               }
-              placeholder="Enter problem set description..."
+              placeholder={t('descriptionPlaceholder')}
               height="300px"
               minHeight="200px"
               maxHeight="400px"
@@ -208,7 +210,7 @@ export default function ProblemSetEditDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="sharing">Sharing</Label>
+            <Label htmlFor="sharing">{t('sharingLabel') || 'Sharing'}</Label>
             <Select
               value={formData.sharing_level}
               onValueChange={value =>
@@ -234,7 +236,7 @@ export default function ProblemSetEditDialog({
 
           {formData.sharing_level === ProblemSetSharingLevel.enum.limited && (
             <div className="space-y-2">
-              <Label htmlFor="emails">Share with</Label>
+              <Label htmlFor="emails">{t('shareWithLabel') || 'Share with'}</Label>
               <div className="flex gap-2">
                 <Input
                   id="emails"
@@ -242,7 +244,7 @@ export default function ProblemSetEditDialog({
                   value={emailInput}
                   onChange={e => setEmailInput(e.target.value)}
                   onKeyDown={handleKeyPress}
-                  placeholder="Enter email address"
+                  placeholder={t('emailPlaceholder')}
                 />
                 <Button type="button" onClick={addEmail} size="sm">
                   <Plus className="h-4 w-4" />

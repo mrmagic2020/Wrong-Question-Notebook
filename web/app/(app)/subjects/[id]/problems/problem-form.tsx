@@ -60,6 +60,56 @@ import { uploadFiles } from '@/lib/storage/client';
 import { apiUrl } from '@/lib/api-utils';
 import { PenLine, Plus, ScanLine } from 'lucide-react';
 
+const FALLBACK_T = (key: string) => {
+  const fallbacks: Record<string, string> = {
+    wrongStatus: 'Wrong',
+    needsReviewStatus: 'Needs Review',
+    masteredStatus: 'Mastered',
+    multipleChoiceType: 'Multiple Choice',
+    shortAnswerType: 'Short Answer',
+    extendedResponseType: 'Extended Response',
+    type: 'Type',
+    status: 'Status',
+    answerMode: 'Answer mode',
+    // UI labels
+    writeManually: 'Write manually',
+    scanFromImage: 'Scan from image',
+    editProblem: 'Edit Problem',
+    addProblem: 'Add a Problem',
+    cancel: 'Cancel',
+    title: 'Title',
+    titlePlaceholder: 'Short descriptive title for the problem',
+    content: 'Content',
+    contentPlaceholder: 'Describe the problem with rich formatting, math equations, and more...',
+    problemAssets: 'Problem assets',
+    problemSettings: 'Problem Settings',
+    autoMark: 'Auto Mark',
+    autoMarkExtendedNote: '(not available for extended response)',
+    answerConfiguration: 'Answer Configuration',
+    mode: 'Mode',
+    useChoicePicker: 'Use choice picker',
+    randomizeChoices: 'Randomize choices during review',
+    correctChoice: 'Correct choice',
+    correctChoicePlaceholder: 'e.g. A, B, α, etc.',
+    advancedMode: 'Advanced Mode',
+    correctText: 'Correct text',
+    correctTextPlaceholder: 'Short expected answer',
+    solution: 'Solution',
+    solutionText: 'Solution (text)',
+    solutionPlaceholder: 'What did you do wrong? What did you learn from it?',
+    solutionAssets: 'Solution assets',
+    tags: 'Tags',
+    selected: 'selected',
+    noTags: 'No tags yet. Create one below.',
+    newTagPlaceholder: 'New tag name',
+    add: 'Add',
+    updating: 'Updating...',
+    adding: 'Adding...',
+    updateProblem: 'Update problem',
+  };
+  return fallbacks[key] ?? key;
+};
+
 export default function ProblemForm({
   subjectId,
   availableTags = [],
@@ -882,7 +932,7 @@ export default function ProblemForm({
               className="border-dashed text-muted-foreground hover:border-amber-400/50 dark:hover:border-amber-500/50 hover:bg-amber-50/50 dark:hover:bg-amber-950/20 hover:text-amber-900 dark:hover:text-amber-100 justify-center transition-colors py-6"
             >
               <PenLine className="h-4 w-4 mr-2" />
-              Write manually
+              {FALLBACK_T('writeManually')}
             </Button>
             <Button
               type="button"
@@ -892,7 +942,7 @@ export default function ProblemForm({
             >
               <div className="flex items-center">
                 <ScanLine className="h-4 w-4 mr-2" />
-                Scan from image
+                {FALLBACK_T('scanFromImage')}
               </div>
             </Button>
           </div>
@@ -930,7 +980,7 @@ export default function ProblemForm({
       {(isEditMode || (alwaysExpanded && !isEditMode)) && (
         <div className="flex items-center justify-between">
           <h3 className="heading-xs">
-            {isEditMode ? 'Edit Problem' : 'Add a Problem'}
+            {isEditMode ? FALLBACK_T('editProblem') : FALLBACK_T('addProblem')}
           </h3>
           <Button
             type="button"
@@ -939,19 +989,19 @@ export default function ProblemForm({
             onClick={() => onCancel?.()}
             className="text-muted-foreground hover:text-foreground"
           >
-            Cancel
+            {FALLBACK_T('cancel')}
           </Button>
         </div>
       )}
 
       {/* title */}
       <div className="form-row">
-        <label className="form-label">Title</label>
+        <label className="form-label">{FALLBACK_T('title')}</label>
         <div className="flex-1 relative">
           <Input
             type="text"
             className="form-input w-full"
-            placeholder="Short descriptive title for the problem"
+            placeholder={FALLBACK_T('titlePlaceholder')}
             value={title}
             onChange={e => setTitle(e.target.value)}
             maxLength={VALIDATION_CONSTANTS.STRING_LIMITS.TITLE_MAX}
@@ -983,19 +1033,19 @@ export default function ProblemForm({
         >
           <AccordionTrigger className="hover:no-underline py-3">
             <span className="text-sm font-semibold text-gray-800 dark:text-gray-300">
-              Content <span className="text-red-500">*</span>
+              {FALLBACK_T('content')} <span className="text-red-500">*</span>
             </span>
           </AccordionTrigger>
           <AccordionContent className="space-y-4">
             <div className="form-row-start">
-              <label className="form-label pt-2">Content</label>
+              <label className="form-label pt-2">{FALLBACK_T('content')}</label>
               <div className="flex-1 relative">
                 <RichTextEditor
                   key={`content-${editorKey}`}
                   ref={contentEditorRef}
                   initialContent={content}
                   onChange={setContent}
-                  placeholder="Describe the problem with rich formatting, math equations, and more..."
+                  placeholder={FALLBACK_T('contentPlaceholder')}
                   height="200px"
                   maxHeight="500px"
                   disabled={isSubmitting}
@@ -1005,7 +1055,7 @@ export default function ProblemForm({
               </div>
             </div>
             <div className="form-row-start">
-              <label className="form-label pt-2">Problem assets</label>
+              <label className="form-label pt-2">{FALLBACK_T('problemAssets')}</label>
               <div className="flex-1">
                 <FileManager
                   role="problem"
@@ -1030,13 +1080,13 @@ export default function ProblemForm({
         >
           <AccordionTrigger className="hover:no-underline py-3">
             <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">
-              Problem Settings <span className="text-red-500">*</span>
+              {FALLBACK_T('problemSettings')} <span className="text-red-500">*</span>
             </span>
           </AccordionTrigger>
           <AccordionContent>
             <div className="form-section">
               <div className="form-row">
-                <label className="form-label">Type</label>
+                <label className="form-label">{FALLBACK_T('type')}</label>
                 <Select
                   value={problemType}
                   onValueChange={value => setProblemType(value as ProblemType)}
@@ -1047,7 +1097,7 @@ export default function ProblemForm({
                   <SelectContent>
                     {PROBLEM_TYPE_VALUES.map(type => (
                       <SelectItem key={type} value={type}>
-                        {getProblemTypeDisplayName(type)}
+                        {FALLBACK_T(getProblemTypeDisplayName(type))}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -1055,7 +1105,7 @@ export default function ProblemForm({
               </div>
 
               <div className="form-row">
-                <label className="form-label">Status</label>
+                <label className="form-label">{FALLBACK_T('status')}</label>
                 <Select
                   value={status}
                   onValueChange={value => setStatus(value as any)}
@@ -1065,13 +1115,13 @@ export default function ProblemForm({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="needs_review">
-                      <StatusBadge status="needs_review" />
+                      <StatusBadge status="needs_review" t={FALLBACK_T} />
                     </SelectItem>
                     <SelectItem value="wrong">
-                      <StatusBadge status="wrong" />
+                      <StatusBadge status="wrong" t={FALLBACK_T} />
                     </SelectItem>
                     <SelectItem value="mastered">
-                      <StatusBadge status="mastered" />
+                      <StatusBadge status="mastered" t={FALLBACK_T} />
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -1089,10 +1139,10 @@ export default function ProblemForm({
                     htmlFor="auto-mark-switch"
                     className={`text-sm cursor-pointer ${isAutoMarkDisabled ? 'text-muted-foreground' : ''}`}
                   >
-                    Auto Mark
+                    {FALLBACK_T('autoMark')}
                     {isAutoMarkDisabled && (
                       <span className="text-body-sm text-muted-foreground ml-1">
-                        (not available for extended response)
+                        {FALLBACK_T('autoMarkExtendedNote')}
                       </span>
                     )}
                   </Label>
@@ -1110,13 +1160,13 @@ export default function ProblemForm({
           >
             <AccordionTrigger className="hover:no-underline py-3">
               <span className="text-sm font-semibold text-blue-800 dark:text-blue-300">
-                Answer Configuration
+                {FALLBACK_T('answerConfiguration')}
               </span>
             </AccordionTrigger>
             <AccordionContent>
               <div className="form-section">
                 <div className="form-row">
-                  <span className="form-label">Mode</span>
+                  <span className="form-label">{FALLBACK_T('mode')}</span>
                   <div className="flex items-center gap-2">
                     <Switch
                       id="enhanced-mcq-switch"
@@ -1127,7 +1177,7 @@ export default function ProblemForm({
                       htmlFor="enhanced-mcq-switch"
                       className="text-sm cursor-pointer"
                     >
-                      Use choice picker
+                      {FALLBACK_T('useChoicePicker')}
                     </Label>
                   </div>
                 </div>
@@ -1146,7 +1196,7 @@ export default function ProblemForm({
                         htmlFor="randomize-choices-switch"
                         className="text-sm cursor-pointer"
                       >
-                        Randomize choices during review
+                        {FALLBACK_T('randomizeChoices')}
                       </Label>
                     </div>
                   </div>
@@ -1162,10 +1212,10 @@ export default function ProblemForm({
                   />
                 ) : (
                   <div className="form-row">
-                    <label className="form-label">Correct choice</label>
+                    <label className="form-label">{FALLBACK_T('correctChoice')}</label>
                     <Input
                       className="form-input w-32"
-                      placeholder="e.g. A, B, α, etc."
+                      placeholder={FALLBACK_T('correctChoicePlaceholder')}
                       value={mcqChoice}
                       maxLength={
                         VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX
@@ -1187,7 +1237,7 @@ export default function ProblemForm({
           >
             <AccordionTrigger className="hover:no-underline py-3">
               <span className="text-sm font-semibold text-rose-800 dark:text-rose-300">
-                Answer Configuration
+                {FALLBACK_T('answerConfiguration')}
               </span>
             </AccordionTrigger>
             <AccordionContent>
@@ -1203,7 +1253,7 @@ export default function ProblemForm({
                       htmlFor="enhanced-short-switch"
                       className="text-sm cursor-pointer"
                     >
-                      Advanced Mode
+                      {FALLBACK_T('advancedMode')}
                     </Label>
                   </div>
                 </div>
@@ -1216,10 +1266,10 @@ export default function ProblemForm({
                   />
                 ) : (
                   <div className="form-row">
-                    <label className="form-label">Correct text</label>
+                    <label className="form-label">{FALLBACK_T('correctText')}</label>
                     <Input
                       className="form-input"
-                      placeholder="Short expected answer"
+                      placeholder={FALLBACK_T('correctTextPlaceholder')}
                       value={shortText}
                       maxLength={
                         VALIDATION_CONSTANTS.STRING_LIMITS.TEXT_BODY_MAX
@@ -1240,20 +1290,20 @@ export default function ProblemForm({
           <AccordionTrigger className="hover:no-underline py-3">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-green-800 dark:text-green-300">
-                Solution
+                {FALLBACK_T('solution')}
               </span>
             </div>
           </AccordionTrigger>
           <AccordionContent className="space-y-4">
             <div className="form-row-start">
-              <label className="form-label pt-2">Solution (text)</label>
+              <label className="form-label pt-2">{FALLBACK_T('solutionText')}</label>
               <div className="flex-1 relative">
                 <RichTextEditor
                   key={`solution-${editorKey}`}
                   ref={solutionEditorRef}
                   initialContent={solutionText}
                   onChange={setSolutionText}
-                  placeholder="What did you do wrong? What did you learn from it?"
+                  placeholder={FALLBACK_T('solutionPlaceholder')}
                   height="200px"
                   maxHeight="500px"
                   disabled={isSubmitting}
@@ -1263,7 +1313,7 @@ export default function ProblemForm({
               </div>
             </div>
             <div className="form-row-start">
-              <label className="form-label pt-2">Solution assets</label>
+              <label className="form-label pt-2">{FALLBACK_T('solutionAssets')}</label>
               <div className="flex-1">
                 <FileManager
                   role="solution"
@@ -1289,7 +1339,7 @@ export default function ProblemForm({
           <AccordionTrigger className="hover:no-underline py-3">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-gray-800 dark:text-gray-300">
-                Tags
+                {FALLBACK_T('tags')}
               </span>
               {(() => {
                 const selectedPendingCount = pendingNewTags.filter(
@@ -1299,7 +1349,7 @@ export default function ProblemForm({
                 return (
                   total > 0 && (
                     <span className="text-xs text-amber-600 dark:text-amber-400">
-                      {total} selected
+                      {total} {FALLBACK_T('selected')}
                       {selectedPendingCount > 0 &&
                         ` (${selectedPendingCount} new)`}
                     </span>
@@ -1331,7 +1381,7 @@ export default function ProblemForm({
                   })
                 ) : (
                   <p className="text-body-sm text-muted-foreground">
-                    No tags yet. Create one below.
+                    {FALLBACK_T('noTags')}
                   </p>
                 )}
               </div>
@@ -1369,7 +1419,7 @@ export default function ProblemForm({
               )}
               <div className="flex items-center gap-2 border-t border-gray-200/40 dark:border-gray-700/30 pt-3">
                 <Input
-                  placeholder="New tag name"
+                  placeholder={FALLBACK_T('newTagPlaceholder')}
                   value={newTagName}
                   onChange={e => setNewTagName(e.target.value)}
                   onKeyDown={e => {
@@ -1389,7 +1439,7 @@ export default function ProblemForm({
                   disabled={creatingTag || !newTagName.trim()}
                 >
                   {creatingTag ? <Spinner /> : <Plus className="h-3.5 w-3.5" />}
-                  Add
+                  {FALLBACK_T('add')}
                 </Button>
               </div>
             </div>
@@ -1402,11 +1452,11 @@ export default function ProblemForm({
           {isSubmitting && <Spinner />}
           {isSubmitting
             ? isEditMode
-              ? 'Updating...'
-              : 'Adding...'
+              ? FALLBACK_T('updating')
+              : FALLBACK_T('adding')
             : isEditMode
-              ? 'Update problem'
-              : 'Add problem'}
+              ? FALLBACK_T('updateProblem')
+              : FALLBACK_T('addProblem')}
         </Button>
         {!isEditMode && (
           <Button
@@ -1426,7 +1476,7 @@ export default function ProblemForm({
             }}
             disabled={isSubmitting}
           >
-            Cancel
+            {FALLBACK_T('cancel')}
           </Button>
         )}
       </div>

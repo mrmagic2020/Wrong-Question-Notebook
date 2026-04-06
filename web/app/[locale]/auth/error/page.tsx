@@ -2,10 +2,19 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { AlertCircle } from 'lucide-react';
+import { getTranslations } from 'next-intl/server';
 
-export const metadata: Metadata = {
-  title: 'Auth Error – Wrong Question Notebook',
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'Auth' });
+  return {
+    title: t('somethingWentWrong'),
+  };
+}
 
 export default async function Page({
   searchParams,
@@ -13,6 +22,7 @@ export default async function Page({
   searchParams: Promise<{ error: string }>;
 }) {
   const params = await searchParams;
+  const t = await getTranslations('Auth');
 
   return (
     <div className="auth-page-container">
@@ -28,9 +38,9 @@ export default async function Page({
 
             {/* Title */}
             <div className="text-center mb-6 space-y-2">
-              <h1 className="auth-title">Something went wrong</h1>
+              <h1 className="auth-title">{t('somethingWentWrong')}</h1>
               <p className="auth-subtitle">
-                We encountered an error while processing your request
+                {t('errorEncountered')}
               </p>
             </div>
 
@@ -38,21 +48,21 @@ export default async function Page({
             <div className="auth-slide-up space-y-6">
               {params?.error ? (
                 <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-                  Error code: <span className="font-mono">{params.error}</span>
+                  {t('errorCode')} <span className="font-mono">{params.error}</span>
                 </p>
               ) : (
                 <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-                  An unspecified error occurred.
+                  {t('unspecifiedError')}
                 </p>
               )}
 
               {/* Action buttons */}
               <div className="space-y-3">
                 <Button asChild className="w-full btn-cta-primary">
-                  <Link href="/auth/login">Try Login Again</Link>
+                  <Link href="/auth/login">{t('tryLoginAgain')}</Link>
                 </Button>
                 <Button asChild variant="outline" className="w-full btn-cta">
-                  <Link href="/">Back to Home</Link>
+                  <Link href="/">{t('backToHome')}</Link>
                 </Button>
               </div>
             </div>

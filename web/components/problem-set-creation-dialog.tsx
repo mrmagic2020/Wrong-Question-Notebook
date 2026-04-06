@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -45,6 +46,7 @@ export default function ProblemSetCreationDialog({
   selectedProblemIds,
   onSuccess,
 }: ProblemSetCreationDialogProps) {
+  const t = useTranslations('CommonUtils');
   const router = useRouter();
   const { data: limitData, isExhausted } = useContentLimit(
     CONTENT_LIMIT_CONSTANTS.RESOURCE_TYPES.PROBLEM_SETS
@@ -64,17 +66,17 @@ export default function ProblemSetCreationDialog({
     e.preventDefault();
 
     if (!formData.name.trim()) {
-      toast.error('Please enter a name for the problem set');
+      toast.error(t('pleaseEnterNameForProblemSet'));
       return;
     }
 
     if (selectedProblemIds.length === 0) {
-      toast.error('Please select at least one problem');
+      toast.error(t('pleaseSelectAtLeastOneProblem'));
       return;
     }
 
     if (!subjectId) {
-      toast.error('Invalid subject');
+      toast.error(t('invalidSubject'));
       return;
     }
 
@@ -103,7 +105,7 @@ export default function ProblemSetCreationDialog({
       });
 
       if (!response.ok) {
-        let errorMessage = 'Failed to create problem set';
+        let errorMessage = t('failedToCreate');
         try {
           const error = await response.json();
           errorMessage = error.message || errorMessage;
@@ -114,7 +116,7 @@ export default function ProblemSetCreationDialog({
       }
 
       const result = await response.json();
-      toast.success('Problem set created successfully');
+      toast.success(t('problemSetCreatedSuccessfully'));
 
       // Reset form
       setFormData({
@@ -137,7 +139,7 @@ export default function ProblemSetCreationDialog({
     } catch (error) {
       console.error('Error creating problem set:', error);
       toast.error(
-        error instanceof Error ? error.message : 'Failed to create problem set'
+        error instanceof Error ? error.message : t('failedToCreate')
       );
     } finally {
       setIsLoading(false);
@@ -149,12 +151,12 @@ export default function ProblemSetCreationDialog({
     if (!email) return;
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      toast.error('Please enter a valid email address');
+      toast.error(t('enterValidEmail'));
       return;
     }
 
     if (formData.shared_with_emails.includes(email)) {
-      toast.error('This email is already added');
+      toast.error(t('emailAlreadyAdded'));
       return;
     }
 
@@ -188,43 +190,45 @@ export default function ProblemSetCreationDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Create Problem Set</DialogTitle>
+          <DialogTitle>{t('createProblemSetTitle')}</DialogTitle>
           <DialogDescription>
-            Create a new problem set with {selectedProblemIds.length} selected
-            problem{selectedProblemIds.length !== 1 ? 's' : ''}.
+            {t('createProblemSetDesc', {
+              count: selectedProblemIds.length,
+              plural: selectedProblemIds.length !== 1 ? '' : '',
+            })}
           </DialogDescription>
           {limitData && (
             <ContentLimitIndicator
               current={limitData.current}
               limit={limitData.limit}
-              label="problem sets used"
+              label={t('problemSetsUsed')}
             />
           )}
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Name *</Label>
+            <Label htmlFor="name">{t('name')} *</Label>
             <Input
               id="name"
               value={formData.name}
               onChange={e =>
                 setFormData(prev => ({ ...prev, name: e.target.value }))
               }
-              placeholder="Enter problem set name"
+              placeholder={t('enterNameForProblemSet')}
               maxLength={50}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t('description')}</Label>
             <RichTextEditor
               initialContent={formData.description}
               onChange={content =>
                 setFormData(prev => ({ ...prev, description: content }))
               }
-              placeholder="Enter problem set description (optional)"
+              placeholder={t('enterProblemSetDescription')}
               height="300px"
               minHeight="200px"
               maxHeight="400px"
@@ -234,7 +238,7 @@ export default function ProblemSetCreationDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="sharing">Sharing</Label>
+            <Label htmlFor="sharing">{t('sharing')}</Label>
             <Select
               value={formData.sharing_level}
               onValueChange={value =>
@@ -246,13 +250,13 @@ export default function ProblemSetCreationDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ProblemSetSharingLevel.enum.private}>
-                  Private - Only you can view
+                  {t('privateLabel')}
                 </SelectItem>
                 <SelectItem value={ProblemSetSharingLevel.enum.limited}>
-                  Limited - Share with specific people
+                  {t('limitedLabel')}
                 </SelectItem>
                 <SelectItem value={ProblemSetSharingLevel.enum.public}>
-                  Public - Anyone with the link can view
+                  {t('publicLabel')}
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -260,7 +264,7 @@ export default function ProblemSetCreationDialog({
 
           {formData.sharing_level === ProblemSetSharingLevel.enum.limited && (
             <div className="space-y-2">
-              <Label htmlFor="emails">Share with</Label>
+              <Label htmlFor="emails">{t('shareWith')}</Label>
               <div className="flex gap-2">
                 <Input
                   id="emails"
@@ -268,7 +272,7 @@ export default function ProblemSetCreationDialog({
                   value={emailInput}
                   onChange={e => setEmailInput(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Enter email address"
+                  placeholder={t('enterEmailAddress')}
                 />
                 <Button type="button" onClick={addEmail} size="sm">
                   <Plus className="h-4 w-4" />
@@ -301,7 +305,7 @@ export default function ProblemSetCreationDialog({
           {formData.sharing_level !== ProblemSetSharingLevel.enum.private && (
             <div className="flex items-center justify-between">
               <Label htmlFor="allow-copying" className="text-sm">
-                Allow others to copy this set
+                {t('allowOthersToCopy')}
               </Label>
               <Switch
                 id="allow-copying"
@@ -320,14 +324,14 @@ export default function ProblemSetCreationDialog({
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button type="submit" disabled={isLoading || isExhausted}>
               {isLoading
-                ? 'Creating...'
+                ? t('creating')
                 : isExhausted
-                  ? 'Problem set limit reached'
-                  : 'Create Problem Set'}
+                  ? t('problemSetLimitReached')
+                  : t('createProblemSet')}
             </Button>
           </DialogFooter>
         </form>

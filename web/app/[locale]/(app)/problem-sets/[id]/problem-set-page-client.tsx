@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -39,6 +40,7 @@ export default function ProblemSetPageClient({
   isAuthenticated = true,
   ownerProfile,
 }: ProblemSetPageClientProps) {
+  const t = useTranslations('ProblemSets');
   const router = useRouter();
   const [problemSet, setProblemSet] = useState<
     ProblemSetWithDetails & { problems: ProblemInSet[] }
@@ -130,13 +132,13 @@ export default function ProblemSetPageClient({
   const getSharingLabel = (sharingLevel: ProblemSetSharingLevel) => {
     switch (sharingLevel) {
       case ProblemSetSharingLevel.enum.private:
-        return 'Private';
+        return tProblemSets('private');
       case ProblemSetSharingLevel.enum.limited:
-        return 'Limited';
+        return tProblemSets('limited');
       case ProblemSetSharingLevel.enum.public:
-        return 'Public';
+        return tProblemSets('public');
       default:
-        return 'Private';
+        return tProblemSets('private');
     }
   };
 
@@ -185,7 +187,7 @@ export default function ProblemSetPageClient({
       {/* Header */}
       <div className="page-header flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center space-x-4">
-          <BackLink onClick={() => router.push('/problem-sets')}>Back</BackLink>
+          <BackLink onClick={() => router.push('/problem-sets')}>{t('back')}</BackLink>
           <div className="min-w-0">
             <h1 className="page-title">{problemSet.name}</h1>
             {problemSet.isOwner ? (
@@ -206,7 +208,7 @@ export default function ProblemSetPageClient({
                 {ownerProfile && (
                   <>
                     <span className="text-muted-foreground/40">|</span>
-                    <span>Shared by</span>
+                    <span>{tProblemSets('sharedBy')}</span>
                     <UserProfileCard profile={ownerProfile} />
                   </>
                 )}
@@ -221,7 +223,7 @@ export default function ProblemSetPageClient({
               className="border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400"
             >
               <Sparkles className="h-3 w-3 mr-1" />
-              Smart
+              {tProblemSets('smart')}
             </Badge>
           )}
           <Badge variant={getSharingVariant(problemSet.sharing_level)}>
@@ -233,13 +235,13 @@ export default function ProblemSetPageClient({
           {problemSet.isOwner && (
             <Button variant="outline" onClick={() => setEditDialog(true)}>
               <Settings className="h-4 w-4 mr-2" />
-              Edit
+              {t('edit')}
             </Button>
           )}
           {problemSet.is_smart && problemSet.isOwner && (
             <Button variant="outline" onClick={() => setEditSmartDialog(true)}>
               <Sparkles className="h-4 w-4 mr-2" />
-              Filters
+              {tProblemSets('filters')}
             </Button>
           )}
           {/* Copy to My Library (non-owners, when allowed) */}
@@ -248,7 +250,7 @@ export default function ProblemSetPageClient({
             problemSet.allow_copying && (
               <Button variant="outline" onClick={() => setCopyDialog(true)}>
                 <Copy className="h-4 w-4 mr-2" />
-                Copy to My Library
+                {tProblemSets('copyToMyLibrary')}
               </Button>
             )}
           {isAuthenticated ? (
@@ -257,7 +259,7 @@ export default function ProblemSetPageClient({
               disabled={!!sessionLoading}
             >
               <Play className="h-4 w-4 mr-2" />
-              {sessionLoading ? 'Starting...' : 'Start Review'}
+              {sessionLoading ? tProblemSets('starting') : tProblemSets('startReview')}
             </Button>
           ) : (
             <Button
@@ -268,7 +270,7 @@ export default function ProblemSetPageClient({
               }
             >
               <LogIn className="h-4 w-4 mr-2" />
-              Log in to Review
+              {tProblemSets('loginToReview')}
             </Button>
           )}
         </div>
@@ -291,7 +293,7 @@ export default function ProblemSetPageClient({
               <div className="text-2xl font-bold">
                 {progressLoading ? '...' : progress.total_problems}
               </div>
-              <p className="text-xs text-muted-foreground">Total Problems</p>
+              <p className="text-xs text-muted-foreground">{t('totalProblems')}</p>
             </CardContent>
           </Card>
           <Card className="card-section">
@@ -299,7 +301,7 @@ export default function ProblemSetPageClient({
               <div className="text-2xl font-bold text-destructive">
                 {progressLoading ? '...' : progress.wrong_count}
               </div>
-              <p className="text-xs text-muted-foreground">Wrong</p>
+              <p className="text-xs text-muted-foreground">{t('wrong')}</p>
             </CardContent>
           </Card>
           <Card className="card-section">
@@ -307,7 +309,7 @@ export default function ProblemSetPageClient({
               <div className="text-2xl font-bold text-yellow-600">
                 {progressLoading ? '...' : progress.needs_review_count}
               </div>
-              <p className="text-xs text-muted-foreground">Needs Review</p>
+              <p className="text-xs text-muted-foreground">{t('needsReview')}</p>
             </CardContent>
           </Card>
           <Card className="card-section">
@@ -315,7 +317,7 @@ export default function ProblemSetPageClient({
               <div className="text-2xl font-bold text-green-600">
                 {progressLoading ? '...' : progress.mastered_count}
               </div>
-              <p className="text-xs text-muted-foreground">Mastered</p>
+              <p className="text-xs text-muted-foreground">{t('mastered')}</p>
             </CardContent>
           </Card>
         </div>
@@ -335,7 +337,7 @@ export default function ProblemSetPageClient({
         <div className="flex items-center mb-4">
           <Button onClick={handleAddProblems} variant="outline">
             <Plus className="h-4 w-4 mr-2" />
-            Add Problems
+            {tProblemSets('addProblems')}
           </Button>
         </div>
       )}
@@ -349,19 +351,19 @@ export default function ProblemSetPageClient({
                 <Plus className="h-12 w-12 text-muted-foreground" />
               </div>
               <h3 className="text-lg font-semibold mb-2">
-                No problems in this set
+                {tProblemSets('noProblemsInSet')}
               </h3>
               <p className="text-muted-foreground mb-6">
                 {problemSet.is_smart
-                  ? 'No problems match the current filter criteria. Try editing the smart set settings.'
+                  ? tProblemSets('noProblemsMatchFilter')
                   : problemSet.isOwner
-                    ? 'Add problems to this set to get started with reviews.'
-                    : 'This problem set is empty.'}
+                    ? tProblemSets('addProblemsHint')
+                    : tProblemSets('problemSetEmpty')}
               </p>
               {problemSet.isOwner && !problemSet.is_smart && (
                 <Button onClick={handleAddProblems}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Problems
+                  {tProblemSets('addProblems')}
                 </Button>
               )}
             </div>

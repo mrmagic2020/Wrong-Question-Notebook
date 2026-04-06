@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { Spinner } from '@/components/ui/spinner';
@@ -17,6 +18,8 @@ export default function SubjectRow({
   showConfirmation,
 }: SubjectRowProps) {
   const router = useRouter();
+  const t = useTranslations('CommonUtils');
+  const tSubjects = useTranslations('Subjects');
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(subject.name);
   const [renaming, setRenaming] = useState(false);
@@ -159,7 +162,7 @@ export default function SubjectRow({
               onChange={e => setName(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={renaming}
-              placeholder="Enter subject name"
+              placeholder={t('enterSubjectNamePlaceholder')}
             />
           </Tooltip>
         ) : (
@@ -193,10 +196,10 @@ export default function SubjectRow({
           ) : (
             <>
               <Button asChild variant="outline" className="">
-                <Link href={`/subjects/${subject.id}/problems`}>Problems</Link>
+                <Link href={`/subjects/${subject.id}/problems`}>{tSubjects('problemsCount').split(' ')[0]}</Link>
               </Button>
               <Button asChild variant="outline" className="">
-                <Link href={`/subjects/${subject.id}/tags`}>Tags</Link>
+                <Link href={`/subjects/${subject.id}/tags`}>{tSubjects('tags')}</Link>
               </Button>
               <Tooltip content="Click to rename this subject (Enter to save, Escape to cancel)">
                 <Button

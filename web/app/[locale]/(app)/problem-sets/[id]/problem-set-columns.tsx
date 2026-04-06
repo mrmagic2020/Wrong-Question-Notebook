@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown, MoreHorizontal, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -60,9 +61,11 @@ function TagCapsules({ tags }: { tags: { id: string; name: string }[] }) {
 function DataTableColumnHeader({
   column,
   title,
+  t,
 }: {
   column: any;
   title: string;
+  t: (key: string) => string;
 }) {
   return (
     <DropdownMenu modal={false}>
@@ -75,16 +78,16 @@ function DataTableColumnHeader({
       <DropdownMenuContent align="start">
         <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
           <ArrowUpDown className="mr-2 h-4 w-4" />
-          Asc
+          {t('asc')}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
           <ArrowUpDown className="mr-2 h-4 w-4" />
-          Desc
+          {t('desc')}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
           <EyeOff className="mr-2 h-4 w-4" />
-          Hide
+          {t('hide')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -92,10 +95,10 @@ function DataTableColumnHeader({
 }
 
 // Shared columns (used by both owner and viewer)
-const titleColumn: ColumnDef<ProblemInSet> = {
+const titleColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
   accessorKey: 'title',
   header: ({ column }) => (
-    <DataTableColumnHeader column={column} title="Title" />
+    <DataTableColumnHeader column={column} title={t('titleColumn')} t={t} />
   ),
   cell: ({ row }) => {
     const title = row.getValue('title') as string;
@@ -108,30 +111,30 @@ const titleColumn: ColumnDef<ProblemInSet> = {
       </div>
     );
   },
-};
+});
 
-const typeColumn: ColumnDef<ProblemInSet> = {
+const typeColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
   accessorKey: 'problem_type',
   header: ({ column }) => (
-    <DataTableColumnHeader column={column} title="Type" />
+    <DataTableColumnHeader column={column} title={t('problemTypeColumn')} t={t} />
   ),
   cell: ({ row }) => {
     const type = row.getValue('problem_type') as ProblemType;
     return (
       <div className="px-2">
-        <Badge variant="outline">{getProblemTypeDisplayName(type)}</Badge>
+        <Badge variant="outline">{t(getProblemTypeDisplayName(type))}</Badge>
       </div>
     );
   },
   filterFn: (row, id, value) => {
     return value.includes(row.getValue(id));
   },
-};
+});
 
-const tagsColumn: ColumnDef<ProblemInSet> = {
+const tagsColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
   accessorKey: 'tags',
   header: ({ column }) => (
-    <DataTableColumnHeader column={column} title="Tags" />
+    <DataTableColumnHeader column={column} title={t('tagsColumn')} t={t} />
   ),
   cell: ({ row }) => {
     const tags = row.getValue('tags') as { id: string; name: string }[];
@@ -146,12 +149,12 @@ const tagsColumn: ColumnDef<ProblemInSet> = {
     if (!tags || !value.length) return true;
     return value.some((tagId: string) => tags.some(tag => tag.id === tagId));
   },
-};
+});
 
-const createdAtColumn: ColumnDef<ProblemInSet> = {
+const createdAtColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
   accessorKey: 'created_at',
   header: ({ column }) => (
-    <DataTableColumnHeader column={column} title="Date Created" />
+    <DataTableColumnHeader column={column} title={t('dateCreatedColumn')} t={t} />
   ),
   cell: ({ row }) => {
     const createdAt = row.getValue('created_at') as string;
@@ -161,7 +164,7 @@ const createdAtColumn: ColumnDef<ProblemInSet> = {
       </div>
     );
   },
-};
+});
 
 // Owner-only columns
 const selectColumn: ColumnDef<ProblemInSet> = {
@@ -189,10 +192,10 @@ const selectColumn: ColumnDef<ProblemInSet> = {
   enableHiding: false,
 };
 
-const statusColumn: ColumnDef<ProblemInSet> = {
+const statusColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
   accessorKey: 'status',
   header: ({ column }) => (
-    <DataTableColumnHeader column={column} title="Status" />
+    <DataTableColumnHeader column={column} title={t('statusColumn')} t={t} />
   ),
   cell: ({ row }) => {
     const status = row.getValue('status') as ProblemStatus;
@@ -202,7 +205,7 @@ const statusColumn: ColumnDef<ProblemInSet> = {
           variant="outline"
           className={`${getStatusBadgeStyle(status)} font-medium`}
         >
-          {getProblemStatusDisplayName(status)}
+          {t(getProblemStatusDisplayName(status))}
         </Badge>
       </div>
     );
@@ -210,12 +213,12 @@ const statusColumn: ColumnDef<ProblemInSet> = {
   filterFn: (row, id, value) => {
     return value.includes(row.getValue(id));
   },
-};
+});
 
-const lastReviewedColumn: ColumnDef<ProblemInSet> = {
+const lastReviewedColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
   accessorKey: 'last_reviewed_date',
   header: ({ column }) => (
-    <DataTableColumnHeader column={column} title="Last Reviewed" />
+    <DataTableColumnHeader column={column} title={t('lastReviewedColumn')} t={t} />
   ),
   cell: ({ row }) => {
     const lastReviewedDate = row.getValue('last_reviewed_date') as string;
@@ -225,12 +228,12 @@ const lastReviewedColumn: ColumnDef<ProblemInSet> = {
       </div>
     );
   },
-};
+});
 
 // Actions column for owners
-const ownerActionsColumn: ColumnDef<ProblemInSet> = {
+const ownerActionsColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
   id: 'actions',
-  header: 'Actions',
+  header: t('actionsColumn'),
   cell: ({ row, table }) => {
     const problem = row.original;
     const meta = table.options.meta as ProblemSetTableMeta;
@@ -244,24 +247,24 @@ const ownerActionsColumn: ColumnDef<ProblemInSet> = {
               className="h-8 w-8 p-0"
               onClick={e => e.stopPropagation()}
             >
-              <span className="sr-only">Open menu</span>
+              <span className="sr-only">{t('openMenu')}</span>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuLabel>{t('actionsColumn')}</DropdownMenuLabel>
             <DropdownMenuItem
               onClick={async e => {
                 e.stopPropagation();
                 try {
                   await navigator.clipboard.writeText(problem.id);
-                  toast.success('Problem ID copied');
+                  toast.success(t('problemIdCopied'));
                 } catch {
-                  toast.error('Failed to copy');
+                  toast.error(t('copyFailed'));
                 }
               }}
             >
-              Copy problem ID
+              {t('copyProblemId')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -270,7 +273,7 @@ const ownerActionsColumn: ColumnDef<ProblemInSet> = {
                 window.location.href = `/problem-sets/${meta.problemSetId}/review?problemId=${problem.id}`;
               }}
             >
-              Review problem
+              {t('reviewProblem')}
             </DropdownMenuItem>
             {meta.isOwner && !meta.isSmart && (
               <DropdownMenuItem
@@ -280,7 +283,7 @@ const ownerActionsColumn: ColumnDef<ProblemInSet> = {
                 }}
                 className="text-destructive"
               >
-                Remove from set
+                {t('removeFromSet')}
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>
@@ -290,15 +293,17 @@ const ownerActionsColumn: ColumnDef<ProblemInSet> = {
   },
   enableSorting: false,
   enableHiding: false,
-};
+});
 
 // Extracted viewer actions cell component (needs useState for dialog)
 function ViewerActionsCell({
   problem,
   meta,
+  t,
 }: {
   problem: ProblemInSet;
   meta: ProblemSetTableMeta;
+  t: (key: string) => string;
 }) {
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
   const showCopyAction =
@@ -309,23 +314,23 @@ function ViewerActionsCell({
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">{t('openMenu')}</span>
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuLabel>{t('actionsColumn')}</DropdownMenuLabel>
           <DropdownMenuItem
             onClick={async () => {
               try {
                 await navigator.clipboard.writeText(problem.id);
-                toast.success('Problem ID copied');
+                toast.success(t('problemIdCopied'));
               } catch {
-                toast.error('Failed to copy');
+                toast.error(t('copyFailed'));
               }
             }}
           >
-            Copy problem ID
+            {t('copyProblemId')}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -333,11 +338,11 @@ function ViewerActionsCell({
               window.location.href = `/problem-sets/${meta.problemSetId}/review?problemId=${problem.id}`;
             }}
           >
-            Review problem
+            {t('reviewProblem')}
           </DropdownMenuItem>
           {showCopyAction && (
             <DropdownMenuItem onClick={() => setCopyDialogOpen(true)}>
-              Add to Notebook
+              {t('addToNotebook')}
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>
@@ -356,33 +361,42 @@ function ViewerActionsCell({
 }
 
 // Actions column for viewers
-const viewerActionsColumn: ColumnDef<ProblemInSet> = {
+const viewerActionsColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
   id: 'actions',
-  header: 'Actions',
+  header: t('actionsColumn'),
   cell: ({ row, table }) => {
     const problem = row.original;
     const meta = table.options.meta as ProblemSetTableMeta;
-    return <ViewerActionsCell problem={problem} meta={meta} />;
+    return <ViewerActionsCell problem={problem} meta={meta} t={t} />;
   },
   enableSorting: false,
   enableHiding: false,
-};
+});
 
-export const ownerColumns: ColumnDef<ProblemInSet>[] = [
-  selectColumn,
-  titleColumn,
-  typeColumn,
-  tagsColumn,
-  statusColumn,
-  createdAtColumn,
-  lastReviewedColumn,
-  ownerActionsColumn,
-];
+// Factory functions that create columns with translations
+export function createOwnerColumns(t: (key: string) => string): ColumnDef<ProblemInSet>[] {
+  return [
+    selectColumn,
+    titleColumn(t),
+    typeColumn(t),
+    tagsColumn(t),
+    statusColumn(t),
+    createdAtColumn(t),
+    lastReviewedColumn(t),
+    ownerActionsColumn(t),
+  ];
+}
 
-export const viewerColumns: ColumnDef<ProblemInSet>[] = [
-  titleColumn,
-  typeColumn,
-  tagsColumn,
-  createdAtColumn,
-  viewerActionsColumn,
-];
+export function createViewerColumns(t: (key: string) => string): ColumnDef<ProblemInSet>[] {
+  return [
+    titleColumn(t),
+    typeColumn(t),
+    tagsColumn(t),
+    createdAtColumn(t),
+    viewerActionsColumn(t),
+  ];
+}
+
+// Default exports for backwards compatibility
+export const ownerColumns: ColumnDef<ProblemInSet>[] = [];
+export const viewerColumns: ColumnDef<ProblemInSet>[] = [];

@@ -1037,7 +1037,7 @@ export default function ProblemForm({
           <AccordionContent>
             <div className="form-section">
               <div className="form-row">
-                <label className="form-label">Type</label>
+                <label className="form-label">{tCommon('type')}</label>
                 <Select
                   value={problemType}
                   onValueChange={value => setProblemType(value as ProblemType)}
@@ -1056,7 +1056,7 @@ export default function ProblemForm({
               </div>
 
               <div className="form-row">
-                <label className="form-label">Status</label>
+                <label className="form-label">{tCommon('status')}</label>
                 <Select
                   value={status}
                   onValueChange={value => setStatus(value as any)}
@@ -1066,13 +1066,13 @@ export default function ProblemForm({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="needs_review">
-                      <StatusBadge status="needs_review" />
+                      <StatusBadge status="needs_review" t={tCommon} />
                     </SelectItem>
                     <SelectItem value="wrong">
-                      <StatusBadge status="wrong" />
+                      <StatusBadge status="wrong" t={tCommon} />
                     </SelectItem>
                     <SelectItem value="mastered">
-                      <StatusBadge status="mastered" />
+                      <StatusBadge status="mastered" t={tCommon} />
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -1090,7 +1090,7 @@ export default function ProblemForm({
                     htmlFor="auto-mark-switch"
                     className={`text-sm cursor-pointer ${isAutoMarkDisabled ? 'text-muted-foreground' : ''}`}
                   >
-                    Auto Mark
+                    {tCommon('autoMark')}
                     {isAutoMarkDisabled && (
                       <span className="text-body-sm text-muted-foreground ml-1">
                         {t('autoMarkNotAvailable')}
@@ -1117,7 +1117,7 @@ export default function ProblemForm({
             <AccordionContent>
               <div className="form-section">
                 <div className="form-row">
-                  <span className="form-label">Mode</span>
+                  <span className="form-label">{tCommon('answerMode')}</span>
                   <div className="flex items-center gap-2">
                     <Switch
                       id="enhanced-mcq-switch"
@@ -1241,7 +1241,7 @@ export default function ProblemForm({
           <AccordionTrigger className="hover:no-underline py-3">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-green-800 dark:text-green-300">
-                Solution
+                {tProblems('solution')}
               </span>
             </div>
           </AccordionTrigger>
@@ -1292,7 +1292,7 @@ export default function ProblemForm({
           <AccordionTrigger className="hover:no-underline py-3">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-gray-800 dark:text-gray-300">
-                Tags
+                {tCommon('tags')}
               </span>
               {(() => {
                 const selectedPendingCount = pendingNewTags.filter(

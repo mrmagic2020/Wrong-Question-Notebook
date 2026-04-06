@@ -19,6 +19,24 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 
+const FALLBACK_T = (key: string) => {
+  const fallbacks: Record<string, string> = {
+    addToProblemSet: 'Add to Problem Set',
+    selectProblemSet: 'Select a problem set',
+    problemSet: 'Problem Set',
+    addToSet: 'Add to Set',
+    adding: 'Adding...',
+    noProblemSetsForSubject: 'No problem sets found for this subject. Create a problem set first.',
+    problemAlreadyInAllSets: 'This problem is already in all available problem sets.',
+    pleaseSelectProblemSet: 'Please select a problem set',
+    invalidProblem: 'Invalid problem',
+    failedToAddProblemToSet: 'Failed to add problem to set',
+    problemAddedToSetSuccessfully: 'Problem added to set successfully',
+    cancel: 'Cancel',
+  };
+  return fallbacks[key] || key;
+};
+
 interface ProblemSet {
   id: string;
   name: string;
@@ -31,6 +49,7 @@ interface AddToSetDialogProps {
   problemId: string;
   subjectId: string;
   onSuccess?: () => void;
+  t?: (key: string) => string;
 }
 
 export default function AddToSetDialog({
@@ -39,6 +58,7 @@ export default function AddToSetDialog({
   problemId,
   subjectId,
   onSuccess,
+  t = FALLBACK_T,
 }: AddToSetDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [problemSets, setProblemSets] = useState<ProblemSet[]>([]);
@@ -94,12 +114,12 @@ export default function AddToSetDialog({
     e.preventDefault();
 
     if (!selectedSetId) {
-      toast.error('Please select a problem set');
+      toast.error(t('pleaseSelectProblemSet'));
       return;
     }
 
     if (!problemId) {
-      toast.error('Invalid problem');
+      toast.error(t('invalidProblem'));
       return;
     }
 
@@ -118,7 +138,7 @@ export default function AddToSetDialog({
       );
 
       if (!response.ok) {
-        let errorMessage = 'Failed to add problem to set';
+        let errorMessage = t('failedToAddProblemToSet');
         try {
           const error = await response.json();
           errorMessage = error.message || errorMessage;
@@ -129,7 +149,7 @@ export default function AddToSetDialog({
         throw new Error(errorMessage);
       }
 
-      toast.success('Problem added to set successfully');
+      toast.success(t('problemAddedToSetSuccessfully'));
       onOpenChange(false);
       setSelectedSetId('');
 
@@ -139,7 +159,7 @@ export default function AddToSetDialog({
     } catch (error) {
       console.error('Error adding problem to set:', error);
       toast.error(
-        error instanceof Error ? error.message : 'Failed to add problem to set'
+        error instanceof Error ? error.message : t('failedToAddProblemToSet')
       );
     } finally {
       setIsLoading(false);
@@ -150,18 +170,18 @@ export default function AddToSetDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
-          <DialogTitle>Add to Problem Set</DialogTitle>
+          <DialogTitle>{t('addToProblemSet')}</DialogTitle>
           <DialogDescription>
-            Select a problem set to add this problem to.
+            {t('selectProblemSet')}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Problem Set</label>
+            <label className="text-sm font-medium">{t('problemSet')}</label>
             <Select value={selectedSetId} onValueChange={setSelectedSetId}>
               <SelectTrigger>
-                <SelectValue placeholder="Select a problem set" />
+                <SelectValue placeholder={t('selectProblemSet')} />
               </SelectTrigger>
               <SelectContent>
                 {problemSets
@@ -182,8 +202,8 @@ export default function AddToSetDialog({
           ).length === 0 && (
             <p className="text-sm text-muted-foreground">
               {problemSets.length === 0
-                ? 'No problem sets found for this subject. Create a problem set first.'
-                : 'This problem is already in all available problem sets.'}
+                ? t('noProblemSetsForSubject')
+                : t('problemAlreadyInAllSets')}
             </p>
           )}
 
@@ -194,7 +214,7 @@ export default function AddToSetDialog({
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
-              Cancel
+              {t('Common.cancel')}
             </Button>
             <Button
               type="submit"
@@ -206,7 +226,7 @@ export default function AddToSetDialog({
                 ).length === 0
               }
             >
-              {isLoading ? 'Adding...' : 'Add to Set'}
+              {isLoading ? t('adding') : t('addToSet')}
             </Button>
           </DialogFooter>
         </form>

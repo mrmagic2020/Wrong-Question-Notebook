@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -34,6 +35,7 @@ export default function ProblemSetEditDialog({
   problemSet,
   onSuccess,
 }: ProblemSetEditDialogProps) {
+  const t = useTranslations('ProblemSets');
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -62,12 +64,12 @@ export default function ProblemSetEditDialog({
     e.preventDefault();
 
     if (!formData.name.trim()) {
-      toast.error('Please enter a name for the problem set');
+      toast.error(t('enterName'));
       return;
     }
 
     if (!problemSet?.id) {
-      toast.error('Invalid problem set');
+      toast.error(t('invalidProblemSet'));
       return;
     }
 
@@ -94,7 +96,7 @@ export default function ProblemSetEditDialog({
       });
 
       if (!response.ok) {
-        let errorMessage = 'Failed to update problem set';
+        let errorMessage = t('failedToUpdate');
         try {
           const error = await response.json();
           errorMessage = error.message || errorMessage;
@@ -104,7 +106,7 @@ export default function ProblemSetEditDialog({
         throw new Error(errorMessage);
       }
 
-      toast.success('Problem set updated successfully');
+      toast.success(t('problemSetUpdated'));
       onOpenChange(false);
 
       if (onSuccess) {
@@ -113,7 +115,7 @@ export default function ProblemSetEditDialog({
     } catch (error) {
       console.error('Error updating problem set:', error);
       toast.error(
-        error instanceof Error ? error.message : 'Failed to update problem set'
+        error instanceof Error ? error.message : t('failedToUpdate')
       );
     } finally {
       setIsLoading(false);
@@ -131,7 +133,7 @@ export default function ProblemSetEditDialog({
 
     for (const email of emails) {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        toast.error('Please enter a valid email address');
+        toast.error(t('enterValidEmail'));
         return;
       }
 
@@ -170,35 +172,35 @@ export default function ProblemSetEditDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Edit Problem Set</DialogTitle>
+          <DialogTitle>{t('editProblemSet')}</DialogTitle>
           <DialogDescription>
-            Update the problem set details and sharing settings.
+            {t('editProblemSetDesc')}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Name *</Label>
+            <Label htmlFor="name">{t('name')} *</Label>
             <Input
               id="name"
               value={formData.name}
               onChange={e =>
                 setFormData(prev => ({ ...prev, name: e.target.value }))
               }
-              placeholder="Enter problem set name"
+              placeholder={t('namePlaceholder')}
               maxLength={50}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t('description')}</Label>
             <RichTextEditor
               initialContent={formData.description}
               onChange={content =>
                 setFormData(prev => ({ ...prev, description: content }))
               }
-              placeholder="Enter problem set description..."
+              placeholder={t('descriptionPlaceholder')}
               height="300px"
               minHeight="200px"
               maxHeight="400px"
@@ -208,7 +210,7 @@ export default function ProblemSetEditDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="sharing">Sharing</Label>
+            <Label htmlFor="sharing">{t('sharing')}</Label>
             <Select
               value={formData.sharing_level}
               onValueChange={value =>
@@ -220,13 +222,13 @@ export default function ProblemSetEditDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ProblemSetSharingLevel.enum.private}>
-                  Private - Only you can view
+                  {t('private')} - {t('privateDesc')}
                 </SelectItem>
                 <SelectItem value={ProblemSetSharingLevel.enum.limited}>
-                  Limited - Share with specific people
+                  {t('limited')} - {t('limitedDesc')}
                 </SelectItem>
                 <SelectItem value={ProblemSetSharingLevel.enum.public}>
-                  Public - Anyone with the link can view
+                  {t('public')} - {t('publicDesc')}
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -234,7 +236,7 @@ export default function ProblemSetEditDialog({
 
           {formData.sharing_level === ProblemSetSharingLevel.enum.limited && (
             <div className="space-y-2">
-              <Label htmlFor="emails">Share with</Label>
+              <Label htmlFor="emails">{t('shareWith')}</Label>
               <div className="flex gap-2">
                 <Input
                   id="emails"
@@ -242,7 +244,7 @@ export default function ProblemSetEditDialog({
                   value={emailInput}
                   onChange={e => setEmailInput(e.target.value)}
                   onKeyDown={handleKeyPress}
-                  placeholder="Enter email address"
+                  placeholder={t('emailPlaceholder')}
                 />
                 <Button type="button" onClick={addEmail} size="sm">
                   <Plus className="h-4 w-4" />
@@ -275,7 +277,7 @@ export default function ProblemSetEditDialog({
           {formData.sharing_level !== ProblemSetSharingLevel.enum.private && (
             <div className="flex items-center justify-between">
               <Label htmlFor="allow-copying" className="text-sm">
-                Allow others to copy this set
+                {t('allowCopy')}
               </Label>
               <Switch
                 id="allow-copying"
@@ -294,10 +296,10 @@ export default function ProblemSetEditDialog({
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Updating...' : 'Update Problem Set'}
+              {isLoading ? t('updating') : t('updateProblemSet')}
             </Button>
           </DialogFooter>
         </form>

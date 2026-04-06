@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -39,6 +40,7 @@ export default function ProblemSetPageClient({
   isAuthenticated = true,
   ownerProfile,
 }: ProblemSetPageClientProps) {
+  const t = useTranslations('ProblemSets');
   const router = useRouter();
   const [problemSet, setProblemSet] = useState<
     ProblemSetWithDetails & { problems: ProblemInSet[] }
@@ -291,7 +293,7 @@ export default function ProblemSetPageClient({
               <div className="text-2xl font-bold">
                 {progressLoading ? '...' : progress.total_problems}
               </div>
-              <p className="text-xs text-muted-foreground">Total Problems</p>
+              <p className="text-xs text-muted-foreground">{t('totalProblems')}</p>
             </CardContent>
           </Card>
           <Card className="card-section">

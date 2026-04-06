@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { BackLink } from '@/components/back-link';
 import { ProblemType, ProblemStatus } from '@/lib/schemas';

@@ -1,8 +1,11 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Problem } from '@/lib/types';
 
 export default function StatsStrip({ problems }: { problems: Problem[] }) {
+  const t = useTranslations('CommonUtils');
+
   if (problems.length === 0) return null;
 
   const totalCount = problems.length;
@@ -26,7 +29,7 @@ export default function StatsStrip({ problems }: { problems: Problem[] }) {
             {totalCount}
           </span>
           <span className="text-sm text-muted-foreground">
-            {totalCount === 1 ? 'problem' : 'problems'}
+            {t('problem', { count: totalCount })}
           </span>
         </div>
 
@@ -59,7 +62,9 @@ export default function StatsStrip({ problems }: { problems: Problem[] }) {
           <span className="text-2xl font-bold text-green-600 dark:text-green-400">
             {masteryPercentage}%
           </span>
-          <span className="text-sm text-muted-foreground">mastered</span>
+          <span className="text-sm text-muted-foreground">
+            {t('masteredLabel')}
+          </span>
         </div>
       </div>
     </div>

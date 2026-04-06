@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { UserProfileType, UserRoleType } from '@/lib/schemas';
 import { formatDisplayDate } from '@/lib/common-utils';
 import { Badge } from '@/components/ui/badge';
@@ -43,6 +44,7 @@ const roleColors = {
 };
 
 export function UserManagementTable({ users }: UserManagementTableProps) {
+  const t = useTranslations('Admin');
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [deletingUsers, setDeletingUsers] = useState<Set<string>>(new Set());
 
@@ -55,13 +57,13 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
       });
 
       if (response.ok) {
-        window.location.reload(); // Refresh to show updated data
+        window.location.reload();
       } else {
         const error = await response.json();
-        alert(`Failed to update role: ${error.error}`);
+        alert(`${t('errorUpdatingRole')}: ${error.error}`);
       }
     } catch {
-      alert('Error updating user role');
+      alert(t('errorUpdatingUserRole'));
     }
   };
 
@@ -72,19 +74,19 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
       });
 
       if (response.ok) {
-        window.location.reload(); // Refresh to show updated data
+        window.location.reload();
       } else {
         const error = await response.json();
-        alert(`Failed to toggle user status: ${error.error}`);
+        alert(`${t('errorTogglingStatus')}: ${error.error}`);
       }
     } catch {
-      alert('Error toggling user status');
+      alert(t('errorTogglingUserStatus'));
     }
   };
 
   const handleDeleteUser = async (userId: string, username: string) => {
     const confirmed = window.confirm(
-      `Are you sure you want to permanently delete user "${username}"? This will delete all their data including subjects, problems, files, and cannot be undone.`
+      t('confirmDeleteUser', { username })
     );
 
     if (!confirmed) return;
@@ -97,13 +99,13 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
       });
 
       if (response.ok) {
-        window.location.reload(); // Refresh to show updated data
+        window.location.reload();
       } else {
         const error = await response.json();
-        alert(`Failed to delete user: ${error.error}`);
+        alert(`${t('errorDeletingUser')}: ${error.error}`);
       }
     } catch {
-      alert('Error deleting user');
+      alert(t('errorDeleting'));
     } finally {
       setDeletingUsers(prev => {
         const newSet = new Set(prev);
@@ -127,12 +129,12 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          {users.length} users total
+          {t('usersTotal', { count: users.length })}
         </p>
         {selectedUsers.size > 0 && (
           <div className="flex gap-2">
             <Button variant="outline" size="sm">
-              Bulk Actions ({selectedUsers.size})
+              {t('bulkActions', { count: selectedUsers.size })}
             </Button>
           </div>
         )}
@@ -155,11 +157,11 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
                   }}
                 />
               </TableHead>
-              <TableHead>User</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Last Login</TableHead>
-              <TableHead>Created</TableHead>
+              <TableHead>{t('user')}</TableHead>
+              <TableHead>{t('role')}</TableHead>
+              <TableHead>{t('status')}</TableHead>
+              <TableHead>{t('lastLogin')}</TableHead>
+              <TableHead>{t('created')}</TableHead>
               <TableHead className="w-12"></TableHead>
             </TableRow>
           </TableHeader>
@@ -191,7 +193,7 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
                       <p className="font-medium">
                         {user.username ||
                           `${user.first_name || ''} ${user.last_name || ''}`.trim() ||
-                          'No name'}
+                          t('noName')}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {user.id.slice(0, 8)}...
@@ -212,12 +214,12 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
                     {user.is_active ? (
                       <>
                         <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span className="text-green-700">Active</span>
+                        <span className="text-green-700">{t('active')}</span>
                       </>
                     ) : (
                       <>
                         <Ban className="h-4 w-4 text-red-500" />
-                        <span className="text-red-700">Inactive</span>
+                        <span className="text-red-700">{t('inactive')}</span>
                       </>
                     )}
                   </div>
@@ -225,7 +227,7 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
                 <TableCell className="text-sm text-muted-foreground">
                   {user.last_login_at
                     ? formatDisplayDate(user.last_login_at)
-                    : 'Never'}
+                    : t('never')}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
                   {formatDisplayDate(user.created_at)}
@@ -240,11 +242,11 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem>
                         <Eye className="h-4 w-4 mr-2" />
-                        View Details
+                        {t('viewDetails')}
                       </DropdownMenuItem>
                       <DropdownMenuItem>
                         <Edit className="h-4 w-4 mr-2" />
-                        Edit Profile
+                        {t('editProfile')}
                       </DropdownMenuItem>
                       {user.user_role !== 'super_admin' && (
                         <DropdownMenuItem
@@ -253,12 +255,12 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
                           {user.is_active ? (
                             <>
                               <Ban className="h-4 w-4 mr-2" />
-                              Deactivate
+                              {t('deactivate')}
                             </>
                           ) : (
                             <>
                               <CheckCircle className="h-4 w-4 mr-2" />
-                              Activate
+                              {t('activate')}
                             </>
                           )}
                         </DropdownMenuItem>
@@ -270,17 +272,17 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
                               handleRoleChange(user.id, 'moderator')
                             }
                           >
-                            Make Moderator
+                            {t('makeModerator')}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleRoleChange(user.id, 'admin')}
                           >
-                            Make Admin
+                            {t('makeAdmin')}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleRoleChange(user.id, 'user')}
                           >
-                            Make Regular User
+                            {t('makeRegularUser')}
                           </DropdownMenuItem>
                         </>
                       )}
@@ -289,7 +291,7 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
                           onClick={() =>
                             handleDeleteUser(
                               user.id,
-                              user.username || 'Unknown User'
+                              user.username || t('noName')
                             )
                           }
                           className="text-red-600 focus:text-red-600"
@@ -297,8 +299,8 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           {deletingUsers.has(user.id)
-                            ? 'Deleting...'
-                            : 'Delete User'}
+                            ? t('deleting')
+                            : t('deleteUser')}
                         </DropdownMenuItem>
                       )}
                     </DropdownMenuContent>

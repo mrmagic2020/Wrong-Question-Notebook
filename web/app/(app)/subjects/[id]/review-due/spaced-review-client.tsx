@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Clock, LogOut, Loader2, Play } from 'lucide-react';
 import { toast } from 'sonner';
@@ -40,6 +41,7 @@ export default function SpacedReviewClient({
   subjectName,
   sessionId,
 }: SpacedReviewClientProps) {
+  const t = useTranslations('Review');
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
@@ -301,15 +303,15 @@ export default function SpacedReviewClient({
   if (!currentProblem) {
     return (
       <div className="section-container text-center py-12">
-        <h2 className="text-xl font-bold mb-2">Problem not found</h2>
+        <h2 className="text-xl font-bold mb-2">{t('problemNotFound')}</h2>
         <p className="text-muted-foreground mb-4">
-          The current problem could not be loaded.
+          {t('problemNotFoundDesc')}
         </p>
         <Button
           variant="outline"
           onClick={() => router.push(`/subjects/${subjectId}/problems`)}
         >
-          Back to Problems
+          {t('backToProblems')}
         </Button>
       </div>
     );
@@ -378,10 +380,10 @@ export default function SpacedReviewClient({
           isOpen={exitDialogOpen}
           onCancel={() => setExitDialogOpen(false)}
           onConfirm={handleExitSession}
-          title="Exit Review Session"
-          message="Your progress will be saved. You can resume this session later."
-          confirmText="Exit"
-          cancelText="Continue Reviewing"
+          title={t('exitReview')}
+          message={t('reviewSessionWillBeSaved')}
+          confirmText={t('exit')}
+          cancelText={t('continueReviewing')}
         />
       </div>
 
@@ -390,7 +392,7 @@ export default function SpacedReviewClient({
         <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-background/60">
           <div className="flex flex-col items-center gap-6 p-8 rounded-2xl bg-card border border-border shadow-lg max-w-sm w-full mx-4">
             <h2 className="text-2xl font-bold text-foreground">
-              Session Paused
+              {t('sessionPaused')}
             </h2>
             <div className="flex items-center gap-2 text-muted-foreground">
               <Clock className="h-5 w-5" />
@@ -404,7 +406,7 @@ export default function SpacedReviewClient({
                 className="w-full bg-amber-600 hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800 text-white"
               >
                 <Play className="h-4 w-4 mr-2" />
-                Continue Reviewing
+                {t('continueReviewing')}
               </Button>
               <Button
                 variant="outline"
@@ -412,7 +414,7 @@ export default function SpacedReviewClient({
                 className="w-full"
               >
                 <LogOut className="h-4 w-4 mr-2" />
-                Leave Session
+                {t('leaveSession')}
               </Button>
             </div>
           </div>

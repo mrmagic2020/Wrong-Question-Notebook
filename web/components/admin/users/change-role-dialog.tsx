@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import {
   AlertDialog,
@@ -15,11 +16,11 @@ import { Label } from '@/components/ui/label';
 import { UserRoleType } from '@/lib/schemas';
 import { UserRoleBadge } from './user-role-badge';
 
-const roles: { value: UserRoleType; label: string }[] = [
-  { value: 'user', label: 'User' },
-  { value: 'moderator', label: 'Moderator' },
-  { value: 'admin', label: 'Admin' },
-  { value: 'super_admin', label: 'Super Admin' },
+const roles: { value: UserRoleType; labelKey: string }[] = [
+  { value: 'user', labelKey: 'user' },
+  { value: 'moderator', labelKey: 'moderator' },
+  { value: 'admin', labelKey: 'admin' },
+  { value: 'super_admin', labelKey: 'superAdmin' },
 ];
 
 interface ChangeRoleDialogProps {
@@ -39,17 +40,16 @@ export function ChangeRoleDialog({
   onConfirm,
   loading,
 }: ChangeRoleDialogProps) {
+  const t = useTranslations('Admin');
   const [selectedRole, setSelectedRole] = useState<UserRoleType>(currentRole);
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Change User Role</AlertDialogTitle>
+          <AlertDialogTitle>{t('changeRoleTitle')}</AlertDialogTitle>
           <AlertDialogDescription>
-            Change the role for{' '}
-            <span className="font-semibold text-foreground">{username}</span>.
-            This will affect their permissions immediately.
+            {t('changeRoleDesc', { username })}. {t('changeRoleAffects')}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="py-4 space-y-3">
@@ -69,19 +69,19 @@ export function ChangeRoleDialog({
               <UserRoleBadge role={role.value} />
               {role.value === currentRole && (
                 <span className="text-xs text-gray-500 dark:text-gray-400 ml-auto">
-                  Current
+                  {t('current')}
                 </span>
               )}
             </Label>
           ))}
         </div>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={loading}>{t('cancel')}</AlertDialogCancel>
           <AlertDialogAction
             onClick={() => onConfirm(selectedRole)}
             disabled={loading || selectedRole === currentRole}
           >
-            {loading ? 'Saving...' : 'Change Role'}
+            {loading ? t('saving') : t('changeRole')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

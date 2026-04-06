@@ -4,6 +4,7 @@ import { useState, useLayoutEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import MathText from '@/components/ui/math-text';
+import { useTranslations } from 'next-intl';
 import { AnswerInputProps } from '@/lib/types';
 import type { MCQAnswerConfig, MCQChoice } from '@/lib/types';
 
@@ -16,6 +17,7 @@ export default function AnswerInput({
   disabled = false,
   hideChoiceIds = false,
 }: AnswerInputProps) {
+  const t = useTranslations('Problems');
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey && onSubmit && !disabled) {
       e.preventDefault();
@@ -129,7 +131,7 @@ export default function AnswerInput({
             onChange={e => onChange(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={disabled}
-            placeholder="Type your answer here..."
+            placeholder={t('typeYourAnswer')}
           />
         </div>
       );
@@ -143,7 +145,7 @@ export default function AnswerInput({
             onChange={e => onChange(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={disabled}
-            placeholder="Type your answer here..."
+            placeholder={t('typeYourAnswer')}
           />
         </div>
       );
@@ -156,7 +158,7 @@ export default function AnswerInput({
             onChange={e => onChange(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={disabled}
-            placeholder="Write your detailed response here..."
+            placeholder={t('writeResponse')}
             rows={6}
             className="w-full px-3 py-2 border border-input bg-background text-foreground placeholder:text-muted-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed resize-vertical"
           />

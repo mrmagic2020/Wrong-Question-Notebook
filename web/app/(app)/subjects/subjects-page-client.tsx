@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { NotebookCard } from '@/components/subjects/notebook-card';
 import { PlaceholderNotebookCard } from '@/components/subjects/placeholder-notebook-card';
 import { SubjectEditDialog } from '@/components/subjects/subject-edit-dialog';
@@ -24,6 +25,8 @@ export default function SubjectsPageClient({
 }: {
   initialSubjects: SubjectWithMetadata[];
 }) {
+  const t = useTranslations('CommonUtils');
+  const tSubjects = useTranslations('Subjects');
   const router = useRouter();
   const [subjects, setSubjects] = useState(initialSubjects);
   const [query, setQuery] = useState('');
@@ -111,8 +114,8 @@ export default function SubjectsPageClient({
     <>
       <div className="section-container">
         <PageHeader
-          title="Your Notebook Shelf"
-          description="Organize your learning by subject. Each notebook holds the problems you're working on."
+          title={t('title')}
+          description={t('subtitle')}
           actions={
             subjects.length > 0 ? (
               <div className="relative w-full sm:w-80">
@@ -121,7 +124,7 @@ export default function SubjectsPageClient({
                   ref={searchInputRef}
                   value={query}
                   onChange={e => setQuery(e.target.value)}
-                  placeholder="Search notebooks..."
+                  placeholder={t('searchPlaceholder')}
                   className="pl-10"
                 />
               </div>
@@ -135,7 +138,7 @@ export default function SubjectsPageClient({
               <BookMarked className="mx-auto h-12 w-12 text-amber-600 dark:text-amber-400" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold">Your shelf is empty</h3>
+              <h3 className="text-lg font-semibold">{t('emptyTitle')}</h3>
               <p className="text-sm text-muted-foreground max-w-md">
                 Click the placeholder card below to create your first notebook.
                 Try "Mathematics", "Physics", or "Computer Science".
@@ -157,7 +160,7 @@ export default function SubjectsPageClient({
               <Search className="h-8 w-8 text-muted-foreground" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold">No matches</h3>
+              <h3 className="text-lg font-semibold">{t('noMatchesTitle')}</h3>
               <p className="text-sm text-muted-foreground">
                 No notebooks match "{query.trim()}".
               </p>

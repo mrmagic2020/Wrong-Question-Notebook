@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -42,6 +43,7 @@ export default function CopyProblemSetDialog({
   problemCount,
   isSmart,
 }: CopyProblemSetDialogProps) {
+  const t = useTranslations('CommonUtils');
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -64,7 +66,7 @@ export default function CopyProblemSetDialog({
           setSubjects(data.data || []);
         }
       } catch (error) {
-        console.error('Failed to fetch subjects:', error);
+        console.error(t('failedToFetchSubjects'), error);
       } finally {
         setLoadingSubjects(false);
       }
@@ -81,7 +83,7 @@ export default function CopyProblemSetDialog({
     // Create new subject if needed
     if (createNewSubject) {
       if (!newSubjectName.trim()) {
-        toast.error('Please enter a subject name');
+        toast.error(t('pleaseEnterSubjectName'));
         return;
       }
 
@@ -94,20 +96,20 @@ export default function CopyProblemSetDialog({
         });
 
         if (!res.ok) {
-          throw new Error('Failed to create subject');
+          throw new Error(t('failedToCreateSubject'));
         }
 
         const data = await res.json();
         subjectId = data.data.id;
       } catch {
-        toast.error('Failed to create subject');
+        toast.error(t('failedToCreateSubject'));
         setIsLoading(false);
         return;
       }
     }
 
     if (!subjectId) {
-      toast.error('Please select a target subject');
+      toast.error(t('pleaseSelectTargetSubject'));
       return;
     }
 
@@ -123,7 +125,7 @@ export default function CopyProblemSetDialog({
       });
 
       if (!res.ok) {
-        let errorMessage = 'Failed to copy problem set';
+        let errorMessage = t('failedToCopySet');
         try {
           const error = await res.json();
           errorMessage = error.message || errorMessage;
@@ -137,13 +139,16 @@ export default function CopyProblemSetDialog({
       const result = data.data;
 
       toast.success(
-        `Copied ${result.problem_count} problems${result.tag_count > 0 ? ` and ${result.tag_count} tags` : ''}`
+        t(result.tag_count > 0 ? 'copiedProblemsAndTags' : 'copied', {
+          problems: result.problem_count,
+          tags: result.tag_count > 0 ? ` and ${result.tag_count} tags` : '',
+        })
       );
       onOpenChange(false);
       router.push(`/problem-sets/${result.problem_set_id}`);
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : 'Failed to copy problem set'
+        error instanceof Error ? error.message : t('failedToCopySet')
       );
     } finally {
       setIsLoading(false);
@@ -156,10 +161,10 @@ export default function CopyProblemSetDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Copy className="h-5 w-5" />
-            Copy to My Library
+            {t('copyToMyLibrary')}
           </DialogTitle>
           <DialogDescription>
-            Create a copy of this problem set in your account.
+            {t('createCopyInAccount')}
           </DialogDescription>
         </DialogHeader>
 
@@ -168,7 +173,7 @@ export default function CopyProblemSetDialog({
           <div className="rounded-lg border p-3 bg-muted/30 space-y-1">
             <p className="text-sm font-medium">{problemSetName}</p>
             <p className="text-xs text-muted-foreground">
-              {problemCount} problem{problemCount !== 1 ? 's' : ''}
+              {t('problemsCount', { count: problemCount, plural: problemCount !== 1 ? 's' : '' })}
             </p>
           </div>
 
@@ -177,19 +182,18 @@ export default function CopyProblemSetDialog({
             <div className="flex items-start gap-2 rounded-lg border border-amber-200/50 dark:border-amber-800/40 bg-amber-50/80 dark:bg-amber-900/20 p-3">
               <Info className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
               <p className="text-xs text-amber-800 dark:text-amber-300">
-                This smart set will be copied as a manual set with{' '}
-                {problemCount} problems currently matching the filters.
+                {t('smartSetCopiedAsManual', { count: problemCount })}
               </p>
             </div>
           )}
 
           {/* Subject picker */}
           <div className="space-y-2">
-            <Label>Target Subject</Label>
+            <Label>{t('targetSubject')}</Label>
             {loadingSubjects ? (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Loading subjects...
+                {t('loadingSubjects')}
               </div>
             ) : (
               <Select
@@ -205,7 +209,7 @@ export default function CopyProblemSetDialog({
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a subject" />
+                  <SelectValue placeholder={t('selectSubject')} />
                 </SelectTrigger>
                 <SelectContent>
                   {subjects.map(subject => (
@@ -213,7 +217,7 @@ export default function CopyProblemSetDialog({
                       {subject.name}
                     </SelectItem>
                   ))}
-                  <SelectItem value="__new__">+ Create new subject</SelectItem>
+                  <SelectItem value="__new__">{t('createNewSubject')}</SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -222,7 +226,7 @@ export default function CopyProblemSetDialog({
               <Input
                 value={newSubjectName}
                 onChange={e => setNewSubjectName(e.target.value)}
-                placeholder="Enter subject name"
+                placeholder={t('enterSubjectName')}
                 maxLength={50}
                 autoFocus
               />
@@ -233,7 +237,7 @@ export default function CopyProblemSetDialog({
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <Label htmlFor="copy-tags" className="text-sm">
-                Copy tags to target subject
+                {t('copyTagsToTargetSubject')}
               </Label>
               <Switch
                 id="copy-tags"
@@ -243,8 +247,8 @@ export default function CopyProblemSetDialog({
             </div>
             <p className="text-xs text-muted-foreground">
               {copyTags
-                ? "Tags that don't exist in the target subject will be created"
-                : 'Tags will be dropped from copied problems'}
+                ? t('tagsNotInTargetWillBeCreated')
+                : t('tagsWillBeDropped')}
             </p>
           </div>
 
@@ -255,18 +259,18 @@ export default function CopyProblemSetDialog({
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Copying...
+                  {t('copying')}
                 </>
               ) : (
                 <>
                   <Copy className="h-4 w-4 mr-2" />
-                  Copy
+                  {t('copyToMyLibrary')}
                 </>
               )}
             </Button>

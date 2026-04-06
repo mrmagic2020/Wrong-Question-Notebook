@@ -26,6 +26,19 @@ import { Problem, DataTableProps } from '@/lib/types';
 import { ProblemStatus } from '@/lib/schemas';
 import { getStatusBorderColor } from '@/lib/common-utils';
 
+const FALLBACK_T = (key: string) => {
+  const fallbacks: Record<string, string> = {
+    noResults: 'No results.',
+    rowsPerPage: 'Rows per page',
+    selected: 'selected',
+    row: 'row',
+    rows: 'rows',
+    page: 'Page',
+    of: 'of',
+  };
+  return fallbacks[key] ?? key;
+};
+
 export function DataTable<TData, TValue>({
   columns,
   data,
@@ -201,7 +214,7 @@ export function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  {FALLBACK_T('noResults')}
                 </TableCell>
               </TableRow>
             )}
@@ -214,12 +227,12 @@ export function DataTable<TData, TValue>({
         <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} of{' '}
           {table.getFilteredRowModel().rows.length}{' '}
-          {table.getFilteredRowModel().rows.length === 1 ? 'row' : 'rows'}{' '}
-          selected.
+          {table.getFilteredRowModel().rows.length === 1 ? FALLBACK_T('row') : FALLBACK_T('rows')}{' '}
+          {FALLBACK_T('selected')}.
         </div>
         <div className="flex items-center space-x-6 lg:space-x-8">
           <div className="flex items-center space-x-2">
-            <p className="text-sm font-medium">Rows per page</p>
+            <p className="text-sm font-medium">{FALLBACK_T('rowsPerPage')}</p>
             <select
               value={table.getState().pagination.pageSize}
               onChange={e => {
@@ -235,7 +248,7 @@ export function DataTable<TData, TValue>({
             </select>
           </div>
           <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-            Page {table.getState().pagination.pageIndex + 1} of{' '}
+            {FALLBACK_T('page')} {table.getState().pagination.pageIndex + 1} {FALLBACK_T('of')}{' '}
             {table.getPageCount()}
           </div>
           <div className="flex items-center space-x-2">

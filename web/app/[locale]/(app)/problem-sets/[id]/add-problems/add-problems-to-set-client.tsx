@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { BackLink } from '@/components/back-link';
 import EnhancedProblemsTable from '@/app/(app)/subjects/[id]/problems/enhanced-problems-table';
 import { AddProblemsToSetClientProps } from '@/lib/types';
@@ -12,6 +13,7 @@ export default function AddProblemsToSetClient({
   availableTags,
   problemSetProblemIds,
 }: AddProblemsToSetClientProps) {
+  const t = useTranslations('ProblemSets');
   const router = useRouter();
 
   return (
@@ -19,7 +21,7 @@ export default function AddProblemsToSetClient({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Add Problems to Set</h1>
+          <h1 className="text-2xl font-bold">{t('addProblemsToSet')}</h1>
           <p className="text-muted-foreground">
             Add problems from <strong>{problemSet.subject_name}</strong> to{' '}
             <strong>&quot;{problemSet.name}&quot;</strong>

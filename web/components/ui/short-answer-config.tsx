@@ -210,7 +210,7 @@ export function ShortAnswerConfig({
                       },
                     })
                   }
-                  placeholder="e.g. 3.14"
+                  placeholder={t('numericValuePlaceholder')}
                   disabled={disabled}
                   className="w-32"
                 />
@@ -234,7 +234,7 @@ export function ShortAnswerConfig({
                       },
                     })
                   }
-                  placeholder="e.g. 0.01"
+                  placeholder={t('tolerancePlaceholder')}
                   disabled={disabled}
                   className="w-32"
                 />
@@ -254,7 +254,7 @@ export function ShortAnswerConfig({
                       },
                     })
                   }
-                  placeholder="e.g. m, kg"
+                  placeholder={t('unitPlaceholder')}
                   maxLength={NUMERIC.MAX_UNIT_LENGTH}
                   disabled={disabled}
                   className="w-28"

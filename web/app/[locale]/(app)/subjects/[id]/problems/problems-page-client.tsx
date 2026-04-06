@@ -12,6 +12,7 @@ import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { useContentLimit } from '@/lib/hooks/useContentLimit';
 import { CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 type FormMode = 'closed' | 'create-manual' | 'create-scan' | 'edit';
 
@@ -21,6 +22,7 @@ export default function ProblemsPageClient({
   subjectId,
   availableTags,
 }: ProblemsPageClientProps) {
+  const t = useTranslations('Problems');
   const [problems, setProblems] = useState(initialProblems);
   const [tagsByProblem, setTagsByProblem] = useState(initialTagsByProblem);
   const { refreshChecklistStatus } = useOnboarding();
@@ -231,10 +233,10 @@ export default function ProblemsPageClient({
       {/* Switch from create to edit confirmation */}
       <ConfirmationDialog
         isOpen={switchDialog.open}
-        title="Discard unsaved problem?"
-        message="You have an unsaved problem. Switching to edit will discard it."
-        confirmText="Discard & Edit"
-        cancelText="Keep editing"
+        title={t('discardUnsavedTitle')}
+        message={t('discardUnsavedDesc')}
+        confirmText={t('discardAndEdit')}
+        cancelText={t('keepEditing')}
         onConfirm={handleConfirmSwitch}
         onCancel={() => setSwitchDialog({ open: false, pendingProblem: null })}
         variant="destructive"

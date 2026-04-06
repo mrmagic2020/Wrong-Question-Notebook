@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { DataTable } from '@/components/problems/data-table';
-import { columns } from './columns';
+import { createColumns } from './columns';
 import CompactSearchFilter from '@/components/problems/compact-search-filter';
 import { ProblemStatus, ProblemType } from '@/lib/schemas';
 import { toast } from 'sonner';
@@ -47,6 +48,7 @@ export default function EnhancedProblemsTable({
 }) {
   const router = useRouter();
   const isMobile = useIsMobile();
+  const t = useTranslations('CommonUtils');
   const { initialFilters, updateUrl } = useFilterParams();
   const [problems, setProblems] = useState<Problem[]>(initialProblems);
   const [tagsByProblem, setTagsByProblem] = useState(initialTagsByProblem);
@@ -236,7 +238,7 @@ export default function EnhancedProblemsTable({
 
   const handleConfirmDelete = async () => {
     if (!deleteDialog.problemId) {
-      toast.error('No problem selected for deletion');
+      toast.error(t('noProblemSelectedForDeletion'));
       return;
     }
 
@@ -246,12 +248,12 @@ export default function EnhancedProblemsTable({
       });
 
       if (!response.ok) {
-        let errorMessage = 'Failed to delete problem';
+        let errorMessage = t('failedToDeleteProblem', { error: '' });
         try {
           const error = await response.json();
-          errorMessage = error.message || errorMessage;
+          errorMessage = t('failedToDeleteProblem', { error: error.message || response.statusText });
         } catch {
-          errorMessage = response.statusText || errorMessage;
+          errorMessage = t('failedToDeleteProblem', { error: response.statusText });
         }
         throw new Error(errorMessage);
       }
@@ -267,10 +269,10 @@ export default function EnhancedProblemsTable({
         onProblemDeleted(deleteDialog.problemId);
       }
 
-      toast.success('Problem deleted successfully');
+      toast.success(t('problemDeletedSuccessfully'));
     } catch (err: any) {
       setError(err.message);
-      toast.error(`Failed to delete problem: ${err.message}`);
+      toast.error(err.message);
     } finally {
       setDeleteDialog({ open: false, problemId: null, problemTitle: '' });
     }
@@ -309,7 +311,7 @@ export default function EnhancedProblemsTable({
           throw new Error(errorMessage);
         }
 
-        toast.success(`Added ${problemIds.length} problem(s) to the set`);
+        toast.success(t('addedProblemsToSet', { count: problemIds.length }));
 
         setSelectedProblems([]);
         setResetSelection(true);
@@ -322,7 +324,7 @@ export default function EnhancedProblemsTable({
         toast.error(
           error instanceof Error
             ? error.message
-            : 'Failed to add problems to set'
+            : t('failedToAddProblemsToSet')
         );
       }
     } else {
@@ -373,11 +375,11 @@ export default function EnhancedProblemsTable({
       setSelectedProblems([]);
       setResetSelection(true);
       toast.success(
-        `Successfully deleted ${problemIds.length} problem${problemIds.length !== 1 ? 's' : ''}`
+        t('problemsDeletedSuccessfully', { count: problemIds.length })
       );
     } catch (err: any) {
       setError(err.message);
-      toast.error(`Failed to delete problems: ${err.message}`);
+      toast.error(t('failedToDeleteProblem', { error: err.message }));
     } finally {
       setBulkDeleteDialog({ open: false, problemIds: [], count: 0 });
     }
@@ -461,7 +463,7 @@ export default function EnhancedProblemsTable({
         />
       ) : (
         <DataTable
-          columns={columns}
+          columns={createColumns(t)}
           data={tableProblems}
           onEdit={onEditProblem ? handleEdit : undefined}
           onDelete={handleDeleteClick}
@@ -475,15 +477,16 @@ export default function EnhancedProblemsTable({
           onColumnVisibilityChange={handleColumnVisibilityChange}
           columnVisibilityStorageKey={`problems-table-column-visibility-${subjectId}`}
           isAddToSetMode={isAddToSetMode}
+          meta={{ t }}
         />
       )}
 
       <ConfirmationDialog
         isOpen={deleteDialog.open}
-        title="Delete Problem"
-        message={`Are you sure you want to delete "${deleteDialog.problemTitle}"? This action cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
+        title={t('deleteProblemTitle')}
+        message={t('deleteProblemMessage', { title: deleteDialog.problemTitle })}
+        confirmText={t('delete')}
+        cancelText={t('cancel')}
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteDialog(prev => ({ ...prev, open: false }))}
         variant="destructive"
@@ -491,10 +494,10 @@ export default function EnhancedProblemsTable({
 
       <ConfirmationDialog
         isOpen={bulkDeleteDialog.open}
-        title="Delete Problems"
-        message={`Are you sure you want to delete ${bulkDeleteDialog.count} problem${bulkDeleteDialog.count !== 1 ? 's' : ''}? This action cannot be undone.`}
-        confirmText="Delete All"
-        cancelText="Cancel"
+        title={t('deleteProblemsTitle')}
+        message={t('deleteProblemsMessage', { count: bulkDeleteDialog.count })}
+        confirmText={t('deleteAll')}
+        cancelText={t('cancel')}
         onConfirm={handleConfirmBulkDelete}
         onCancel={() => setBulkDeleteDialog(prev => ({ ...prev, open: false }))}
         variant="destructive"

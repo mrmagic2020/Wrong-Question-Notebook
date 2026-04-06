@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { requireUser } from '@/lib/supabase/requireUser';
 import { notFound, redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import ProblemReview from '@/app/(app)/subjects/[id]/problems/[problemId]/review/problem-review';
 import SessionReviewClient from './session-review-client';
 import { BackLink } from '@/components/back-link';
@@ -148,6 +149,7 @@ export default async function ProblemSetReviewPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ problemId?: string; sessionId?: string }>;
 }) {
+  const t = await getTranslations('ProblemSets');
   const { id } = await params;
   const { problemId, sessionId } = await searchParams;
   const { user } = await requireUser();
@@ -196,11 +198,11 @@ export default async function ProblemSetReviewPage({
     return (
       <div className="container mx-auto py-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">No Problems in Set</h1>
+          <h1 className="text-2xl font-bold mb-4">{t('noProblemsInSet')}</h1>
           <p className="text-muted-foreground mb-4">
-            This problem set doesn&apos;t have any problems yet.
+            {t('thisProblemSetHasNoProblemsYet')}
           </p>
-          <BackLink href={`/problem-sets/${id}`}>Back to Problem Set</BackLink>
+          <BackLink href={`/problem-sets/${id}`}>{t('backToSet')}</BackLink>
         </div>
       </div>
     );
@@ -211,9 +213,9 @@ export default async function ProblemSetReviewPage({
     return (
       <div className="container mx-auto py-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Starting Review</h1>
+          <h1 className="text-2xl font-bold mb-4">{t('startingReview')}</h1>
           <p className="text-muted-foreground mb-4">
-            Redirecting to the first problem in the set...
+            {t('redirectingToFirstProblem')}
           </p>
           <script>
             {`window.location.href = '/problem-sets/${id}/review?problemId=${problems[0].id}';`}

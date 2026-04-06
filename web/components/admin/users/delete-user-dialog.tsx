@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,26 +27,25 @@ export function DeleteUserDialog({
   onConfirm,
   loading,
 }: DeleteUserDialogProps) {
+  const t = useTranslations('Admin');
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete User</AlertDialogTitle>
+          <AlertDialogTitle>{t('deleteUserTitle')}</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to permanently delete{' '}
-            <span className="font-semibold text-foreground">{username}</span>?
-            This will delete all their data including subjects, problems, files,
-            and cannot be undone.
+            {t('deleteUserConfirm', { username })}. {t('deleteUserWarning')}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={loading}>{t('cancel')}</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={loading}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {loading ? 'Deleting...' : 'Delete User'}
+            {loading ? t('deleting') : t('delete')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
