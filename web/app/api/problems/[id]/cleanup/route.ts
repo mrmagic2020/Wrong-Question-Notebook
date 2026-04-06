@@ -28,9 +28,9 @@ async function cleanupProblem(
     // This prevents accidental deletion of assets for existing problems
     const { data: existingProblem, error: fetchError } = await supabase
       .from('problems')
-      .select('id')
+      .select('id, subjects!inner(user_id)')
       .eq('id', problemId)
-      .eq('user_id', user.id)
+      .eq('subjects.user_id', user.id)
       .single();
 
     if (fetchError && fetchError.code !== 'PGRST116') {
