@@ -442,6 +442,23 @@ CREATE POLICY "Admins can manage all content limits" ON content_limit_overrides
 -- =====================================================
 
 GRANT USAGE ON SCHEMA public TO anon, authenticated;
-GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO anon, authenticated;
+
+-- =====================================================
+-- RLS ENABLEMENT AND POLICIES FOR SENSITIVE TABLES
+-- =====================================================
+
+ALTER TABLE public.admin_settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Admin settings visible only to admins" ON public.admin_settings
+  FOR ALL USING (
+    EXISTS (SELECT 1 FROM user_profiles WHERE user_profiles.id = auth.uid() AND user_profiles.user_role IN ('admin', 'super_admin'))
+  );
+
+ALTER TABLE public.user_activity_logs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can only see and insert their own activity" ON public.user_activity_logs
+  FOR ALL USING (auth.uid() = user_id);
+
+ALTER TABLE public.review_sessions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can only see and manage their own review sessions" ON public.review_sessions
+  FOR ALL USING (auth.uid() = user_id);

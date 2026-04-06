@@ -25,7 +25,10 @@ function stripLocaleFromPath(pathname: string): string {
 }
 
 /** Get user from request using Supabase SSR client */
-async function getUserFromRequest(request: NextRequestType) {
+async function getUserFromRequest(
+  request: NextRequestType,
+  cookieUpdater: (cookies: any[]) => void
+) {
   if (!hasEnvVars) return null;
 
   try {
@@ -37,8 +40,11 @@ async function getUserFromRequest(request: NextRequestType) {
           getAll() {
             return request.cookies.getAll();
           },
-          setAll() {
-            // Read-only for this proxy
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) =>
+              request.cookies.set(name, value)
+            );
+            cookieUpdater(cookiesToSet);
           },
         },
       }
@@ -87,38 +93,29 @@ async function checkAdminRole(userId: string) {
 
 export async function proxy(request: NextRequest) {
   const originalPathname = request.nextUrl.pathname;
+  let finalResponse: NextResponse;
+  let cookiesToUpdate: any[] = [];
 
   // Step 0: API routes should NOT go through intlMiddleware at all
-  // API routes are handled directly and should never have locale prefix
-  // Skip to API processing directly to avoid redirect loops
   if (originalPathname.startsWith('/api/')) {
-    // For API routes, we only need to check auth (if required)
-    // and let the request proceed to the API route handler
     return NextResponse.next();
   }
 
-  // Step 1: Handle i18n routing (only for non-API routes)
+  // Step 1: Handle i18n routing
   let locale = routing.defaultLocale;
-
   const intlResponse = await intlMiddleware(request);
 
-  // If intlMiddleware returned a redirect, pass it through
   if (intlResponse.status === 307 || intlResponse.status === 308) {
-    return NextResponse.redirect(
-      new URL(
-        intlResponse.headers.get('location') || `/${routing.defaultLocale}`,
-        request.url
-      ),
-      { status: intlResponse.status as 307 | 308 }
-    );
+    return intlResponse;
   }
 
-  // Get locale from header or URL
+  // Next-Intl sets this on non-redirect responses
+  finalResponse = intlResponse;
+
   const localeHeader = intlResponse.headers.get('x-next-intl-locale');
   if (localeHeader && (localeHeader === 'en' || localeHeader === 'zh-CN')) {
     locale = localeHeader;
   } else {
-    // Check URL for locale
     for (const l of routing.locales) {
       if (originalPathname.startsWith(`/${l}`)) {
         locale = l;
@@ -127,32 +124,41 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // Strip locale to get the "content" path
   const contentPath = stripLocaleFromPath(originalPathname);
 
   // Step 2: Check auth state
-  const user = await getUserFromRequest(request);
+  const user = await getUserFromRequest(request, cookies => {
+    cookiesToUpdate.push(...cookies);
+  });
+
+  // Apply collected cookies to any response returned from here on
+  const applyCookies = (res: NextResponse) => {
+    cookiesToUpdate.forEach(({ name, value, options }) => {
+      res.cookies.set(name, value, options);
+    });
+    return res;
+  };
 
   // Step 3: Handle admin routes
   if (contentPath.startsWith('/admin')) {
     if (!user) {
-      return NextResponse.redirect(
-        new URL(`/${locale}/auth/login`, request.url)
+      return applyCookies(
+        NextResponse.redirect(new URL(`/${locale}/auth/login`, request.url))
       );
     }
 
     const isAdmin = await checkAdminRole(user.id);
     if (!isAdmin) {
-      return NextResponse.redirect(new URL(`/${locale}/subjects`, request.url));
+      return applyCookies(
+        NextResponse.redirect(new URL(`/${locale}/subjects`, request.url))
+      );
     }
 
-    // Admin user accessing admin route - allow through
-    return NextResponse.next();
+    return applyCookies(finalResponse);
   }
 
   // Step 4: Public paths check
   const publicPaths = ['/auth', '/privacy', '/upload'];
-
   const apiPublicPaths = [
     '/api/problem-sets',
     '/api/files',
@@ -164,35 +170,20 @@ export async function proxy(request: NextRequest) {
   const isPublicPath = publicPaths.some(p => contentPath.startsWith(p));
   const isApiPublicPath = apiPublicPaths.some(p => contentPath.startsWith(p));
 
-  // Auth pages are always public
-  if (contentPath.startsWith('/auth')) {
-    return NextResponse.next();
-  }
-
-  // API paths are checked separately
-  if (isApiPublicPath) {
-    return NextResponse.next();
-  }
-
-  // Other public pages
-  if (isPublicPath) {
-    return NextResponse.next();
+  if (contentPath.startsWith('/auth') || isApiPublicPath || isPublicPath) {
+    return applyCookies(finalResponse);
   }
 
   // Step 5: Protected routes - redirect to login if not authenticated
   if (!user) {
     const loginUrl = new URL(`/${locale}/auth/login`, request.url);
-
-    // Only add redirect for non-root paths
     if (contentPath !== '/') {
       loginUrl.searchParams.set('redirect', contentPath);
     }
-
-    return NextResponse.redirect(loginUrl);
+    return applyCookies(NextResponse.redirect(loginUrl));
   }
 
-  // User is authenticated, allow through
-  // Update last login if needed
+  // User is authenticated
   if (user.id) {
     try {
       const supabase = createServerClient(
@@ -204,14 +195,12 @@ export async function proxy(request: NextRequest) {
               return request.cookies.getAll();
             },
             setAll() {
-              // Read-only
+              // Read-only login heartbeat check
             },
           },
         }
       );
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       updateLastLoginEdge(
         user.id,
         process.env[ENV_VARS.SUPABASE_URL]!,
@@ -219,11 +208,11 @@ export async function proxy(request: NextRequest) {
         session?.access_token
       ).catch(() => {});
     } catch {
-      // Ignore errors
+      // Ignore
     }
   }
 
-  return NextResponse.next();
+  return applyCookies(finalResponse);
 }
 
 export const config = {
