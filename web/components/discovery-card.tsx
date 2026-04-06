@@ -39,9 +39,9 @@ export function DiscoveryCard({
   const router = useRouter();
   const subjectColorClass =
     SUBJECT_COLORS[set.subject_color || 'amber'] || SUBJECT_COLORS.amber;
-  const descriptionPreview = set.description
-    ? stripHtml(set.description).substring(0, 120) +
-      (stripHtml(set.description).length > 120 ? '...' : '')
+  const plain = set.description ? stripHtml(set.description) : null;
+  const descriptionPreview = plain
+    ? plain.substring(0, 120) + (plain.length > 120 ? '...' : '')
     : null;
 
   const cardHref = `/problem-sets/${set.id}?from=${encodeURIComponent(fromHref)}`;
