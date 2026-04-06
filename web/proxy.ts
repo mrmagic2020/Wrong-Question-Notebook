@@ -170,7 +170,7 @@ export async function proxy(request: NextRequest) {
   const isPublicPath = publicPaths.some(p => contentPath.startsWith(p));
   const isApiPublicPath = apiPublicPaths.some(p => contentPath.startsWith(p));
 
-  if (contentPath.startsWith('/auth') || isApiPublicPath || isPublicPath) {
+  if (contentPath === '/' || contentPath.startsWith('/auth') || isApiPublicPath || isPublicPath) {
     return applyCookies(finalResponse);
   }
 
