@@ -1,8 +1,10 @@
 'use client';
 
 import { BookOpen, CheckCircle2, Circle, XCircle } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export function HeroAnimation() {
+  const t = useTranslations('Landing');
   return (
     <div className="hero-float relative w-full max-w-md mx-auto">
       {/* Notebook mockup container */}
@@ -15,7 +17,7 @@ export function HeroAnimation() {
             <div className="w-2.5 h-2.5 rounded-full bg-green-400/70" />
           </div>
           <span className="text-xs font-medium text-amber-800/60 dark:text-amber-200/50 ml-1">
-            Wrong Question Notebook
+            {t('heroAppName')}
           </span>
         </div>
 
@@ -28,10 +30,10 @@ export function HeroAnimation() {
             </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-blue-900 dark:text-blue-100 truncate">
-                Mathematics
+                {t('heroSubject')}
               </p>
               <p className="text-xs text-blue-600/70 dark:text-blue-400/60">
-                12 problems
+                {t('heroProblems')}
               </p>
             </div>
           </div>
@@ -42,10 +44,10 @@ export function HeroAnimation() {
             <div className="hero-slide-in-right flex items-center gap-2 rounded-lg px-2.5 py-2 bg-white/60 dark:bg-stone-800/40 border border-gray-100 dark:border-stone-700/50">
               <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
               <span className="text-xs text-gray-700 dark:text-gray-300 truncate flex-1">
-                Quadratic formula derivation
+                {t('heroProblem1')}
               </span>
               <span className="status-mastered text-[10px] flex-shrink-0">
-                Mastered
+                {t('heroMastered')}
               </span>
             </div>
 
@@ -56,14 +58,14 @@ export function HeroAnimation() {
                 <CheckCircle2 className="w-4 h-4 text-green-500 absolute inset-0 hero-status-mastered" />
               </div>
               <span className="text-xs text-gray-700 dark:text-gray-300 truncate flex-1">
-                Integration by parts
+                {t('heroProblem2')}
               </span>
               <div className="relative flex-shrink-0">
                 <span className="status-wrong text-[10px] hero-badge-wrong absolute top-0 right-0">
-                  Wrong
+                  {t('heroWrong')}
                 </span>
                 <span className="status-mastered text-[10px] hero-badge-mastered">
-                  Mastered
+                  {t('heroMastered')}
                 </span>
               </div>
             </div>
@@ -72,10 +74,10 @@ export function HeroAnimation() {
             <div className="hero-slide-in-right-delayed-2 flex items-center gap-2 rounded-lg px-2.5 py-2 bg-white/60 dark:bg-stone-800/40 border border-gray-100 dark:border-stone-700/50">
               <Circle className="w-4 h-4 text-amber-500 flex-shrink-0" />
               <span className="text-xs text-gray-700 dark:text-gray-300 truncate flex-1">
-                Taylor series expansion
+                {t('heroProblem3')}
               </span>
               <span className="status-needs-review text-[10px] flex-shrink-0">
-                Review
+                {t('heroReview')}
               </span>
             </div>
           </div>
@@ -84,7 +86,7 @@ export function HeroAnimation() {
           <div className="hero-fade-in-delayed pt-1">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-[10px] font-medium text-gray-500 dark:text-gray-400">
-                Progress
+                {t('heroProgress')}
               </span>
               <span className="text-[10px] font-semibold text-amber-700 dark:text-amber-400">
                 67%

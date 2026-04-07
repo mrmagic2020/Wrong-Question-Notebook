@@ -47,7 +47,7 @@ export default function StatisticsPageClient({
           icon={Flame}
           value={streaks.current_streak}
           label={t('dayStreak')}
-          sublabel={`${tCommon('of')} ${streaks.longest_streak} ${t('longestStreak')}`}
+          sublabel={`${t('bestStreak', { count: streaks.longest_streak })}`}
           color="orange"
         />
         <HeroStatCard
@@ -58,7 +58,7 @@ export default function StatisticsPageClient({
               : '0:00'
           }
           label={t('totalReviewTime')}
-          sublabel={`${sessionStats.total_sessions} ${t('totalSessions')}`}
+          sublabel={`${sessionStats.total_sessions} ${t('sessions')}`}
           color="rose"
         />
       </div>

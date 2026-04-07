@@ -1,6 +1,7 @@
 import { Link } from '@/i18n/navigation';
 import { ProfileButton } from '@/components/profile-button';
 import { ThemeSwitcher } from '@/components/theme-switcher';
+import { LocaleSwitcher } from '@/components/locale-switcher';
 import { WLogo } from '@/components/w-logo';
 import { hasEnvVars } from '@/lib/server-utils';
 import { AppNavLinks } from '@/components/app-nav-links';
@@ -43,6 +44,7 @@ export function Navigation({
 
         <div className="flex items-center gap-3">
           {hasEnvVars && <ProfileButton />}
+          <LocaleSwitcher />
           <ThemeSwitcher />
         </div>
       </div>

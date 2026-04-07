@@ -142,9 +142,9 @@ export default function ProblemCardList({
                       variant="outline"
                       className={`${getStatusBadgeStyle(problem.status as ProblemStatus)} font-medium flex-shrink-0 text-xs`}
                     >
-                      {getProblemStatusDisplayName(
+                      {t(getProblemStatusDisplayName(
                         problem.status as ProblemStatus
-                      )}
+                      ))}
                     </Badge>
                   )}
                 </div>
@@ -152,7 +152,7 @@ export default function ProblemCardList({
                 {/* Type + tags */}
                 <div className="flex flex-wrap gap-1 mb-2">
                   <Badge variant="outline" className="text-xs">
-                    {getProblemTypeDisplayName(problem.problem_type)}
+                    {t(getProblemTypeDisplayName(problem.problem_type))}
                   </Badge>
                   {(problem.tags || []).slice(0, 2).map(tag => (
                     <Badge key={tag.id} variant="outline" className="text-xs">

@@ -179,7 +179,7 @@ export default function InsightsPageClient({
 
   return (
     <div className="section-container">
-      <PageHeader title={t('insights')} description={t('generatingInsights')} />
+      <PageHeader title={t('insights')} description={t('insightsSubtitle')} />
 
       {/* Empty / Generating / Insufficient data states */}
       {(!digest || isGenerating || hasInsufficientData) && (
@@ -212,7 +212,7 @@ export default function InsightsPageClient({
             <HeroStatCard
               icon={BookOpen}
               value={Object.keys(subjectHealth).length}
-              label={t('subjectOverview')}
+              label={t('subjects')}
               color="blue"
             />
             <HeroStatCard
@@ -227,7 +227,7 @@ export default function InsightsPageClient({
                 (sum, arr) => sum + arr.length,
                 0
               )}
-              label={t('reviewCluster')}
+              label={t('topicClusters')}
               color="amber"
             />
             <HeroStatCard
@@ -239,7 +239,7 @@ export default function InsightsPageClient({
                     ? t('preliminary')
                     : t('full')
               }
-              label={t('errorPatterns')}
+              label={t('analysisDepth')}
               color={
                 digest.digest_tier === 'mastery'
                   ? 'emerald'
@@ -540,7 +540,7 @@ function DigestHeader({
           <RefreshCw
             className={`mr-2 h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`}
           />
-          {tCommon('tryAgain')}
+          {tCommon('refresh')}
         </Button>
       </div>
     </div>
@@ -597,8 +597,7 @@ function SubjectHealthCard({
           {clusterCount > 0 && (
             <span className="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400">
               <Layers className="h-3 w-3" />
-              {clusterCount} {t('reviewCluster').toLowerCase()}
-              {clusterCount !== 1 ? 's' : ''}
+              {clusterCount} cluster{clusterCount !== 1 ? 's' : ''}
             </span>
           )}
         </div>

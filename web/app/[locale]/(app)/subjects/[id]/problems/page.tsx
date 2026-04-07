@@ -21,7 +21,7 @@ export async function generateMetadata({
   const { subject } = await loadData(id);
   const t = await getTranslations('Subjects');
   return {
-    title: `${subject?.name} – ${t('title')}`,
+    title: `${subject?.name} – ${t('problems')}`,
   };
 }
 
@@ -149,7 +149,7 @@ export default async function SubjectProblemsPage({
       <div className="flex items-center justify-between">
         <div className="page-header">
           <h1 className="page-title">
-            {subject.name} — {t('title')}
+            {subject.name} — {t('problems')}
           </h1>
           <p className="page-description">{t('pageDescription')}</p>
         </div>

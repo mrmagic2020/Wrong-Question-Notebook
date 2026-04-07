@@ -132,7 +132,7 @@ export function StatusDoughnutChart({ overview }: StatusDoughnutChartProps) {
       <div className="relative w-44 h-44">
         <Doughnut data={chartData} options={options} />
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-sm font-bold text-gray-900 dark:text-white">
+          <span className="text-2xl font-bold text-gray-900 dark:text-white">
             {overview.mastery_rate}%
           </span>
           <span className="text-xs text-gray-500 dark:text-gray-400">

@@ -287,7 +287,7 @@ export default function AttemptStatusForm({
                 className="w-full px-3 py-2 rounded-lg text-left text-sm font-medium border border-border bg-background flex items-center gap-2"
               >
                 <Icon className="h-4 w-4 flex-shrink-0" />
-                <span>{option.label}</span>
+                <span>{t(option.value)}</span>
               </div>
             );
           })}
@@ -420,7 +420,7 @@ export default function AttemptStatusForm({
       )}
 
       <p className="text-xs text-muted-foreground mt-2 text-center">
-        {t('currentStatus', { status: currentStatus.replace('_', ' ') })}
+        {t('currentStatus', { status: t(currentStatus === 'needs_review' ? 'needsReview' : currentStatus) })}
       </p>
 
       {/* Collapsible details */}

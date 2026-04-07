@@ -203,7 +203,7 @@ export default function CompactSearchFilter({
 
   // Create options for faceted filters
   const problemTypeOptions = PROBLEM_TYPE_VALUES.map(type => ({
-    label: getProblemTypeDisplayName(type),
+    label: t(getProblemTypeDisplayName(type)),
     value: type,
   }));
 
@@ -214,17 +214,17 @@ export default function CompactSearchFilter({
 
   const statusOptions = [
     {
-      label: getProblemStatusDisplayName('wrong'),
+      label: t(getProblemStatusDisplayName('wrong')),
       value: 'wrong',
       icon: XCircle,
     },
     {
-      label: getProblemStatusDisplayName('needs_review'),
+      label: t(getProblemStatusDisplayName('needs_review')),
       value: 'needs_review',
       icon: Clock,
     },
     {
-      label: getProblemStatusDisplayName('mastered'),
+      label: t(getProblemStatusDisplayName('mastered')),
       value: 'mastered',
       icon: CheckCircle,
     },
@@ -238,7 +238,7 @@ export default function CompactSearchFilter({
   const filterElements = (
     <>
       <DataTableFacetedFilter
-        title="Type"
+        title={t('type')}
         options={problemTypeOptions}
         selectedValues={selectedProblemTypes}
         onSelectedValuesChange={values => {
@@ -249,7 +249,7 @@ export default function CompactSearchFilter({
         }}
       />
       <DataTableFacetedFilter
-        title="Tags"
+        title={t('tags')}
         options={tagOptions}
         selectedValues={selectedTagIds}
         onSelectedValuesChange={values => {
@@ -288,7 +288,7 @@ export default function CompactSearchFilter({
       </DataTableFacetedFilter>
       {!hideStatusFilter && (
         <DataTableFacetedFilter
-          title="Status"
+          title={t('status')}
           options={statusOptions}
           selectedValues={selectedStatuses}
           onSelectedValuesChange={values => {
@@ -457,7 +457,7 @@ export default function CompactSearchFilter({
                               column.toggleVisibility(!!value)
                             }
                           >
-                            {getColumnDisplayName(column.id)}
+                            {t(getColumnDisplayName(column.id))}
                           </DropdownMenuCheckboxItem>
                         );
                       })}

@@ -396,7 +396,3 @@ export function createViewerColumns(t: (key: string) => string): ColumnDef<Probl
     viewerActionsColumn(t),
   ];
 }
-
-// Default exports for backwards compatibility
-export const ownerColumns: ColumnDef<ProblemInSet>[] = [];
-export const viewerColumns: ColumnDef<ProblemInSet>[] = [];

@@ -64,19 +64,19 @@ export default function ResumeSessionDialog({
             <div>
               <div className="text-lg font-bold">{completed}</div>
               <div className="text-xs text-muted-foreground">
-                {t('completed')}
+                {t('completedLabel')}
               </div>
             </div>
             <div>
               <div className="text-lg font-bold text-yellow-600">{skipped}</div>
               <div className="text-xs text-muted-foreground">
-                {t('skipped')}
+                {t('skippedLabel')}
               </div>
             </div>
             <div>
               <div className="text-lg font-bold text-blue-600">{remaining}</div>
               <div className="text-xs text-muted-foreground">
-                {t('remaining')}
+                {t('remainingLabel')}
               </div>
             </div>
           </div>

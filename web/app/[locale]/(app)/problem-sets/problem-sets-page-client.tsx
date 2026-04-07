@@ -324,7 +324,7 @@ export default function ProblemSetsPageClient({
                       size="sm"
                       onClick={e => e.stopPropagation()}
                     >
-                      Actions
+                      {tCommon('actions')}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">

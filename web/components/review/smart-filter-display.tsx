@@ -85,6 +85,7 @@ export default function SmartFilterCriteriaDisplay({
   tagNames = {},
 }: SmartFilterCriteriaDisplayProps) {
   const t = useTranslations('Review');
+  const tCommon = useTranslations('CommonUtils');
   const [open, setOpen] = useState(true);
 
   const statuses =
@@ -132,7 +133,7 @@ export default function SmartFilterCriteriaDisplay({
                       className={`text-xs gap-1 ${getStatusBadgeVariant(status)}`}
                     >
                       {getStatusIcon(status)}
-                      {getProblemStatusDisplayName(status as ProblemStatus)}
+                      {tCommon(getProblemStatusDisplayName(status as ProblemStatus))}
                     </Badge>
                   ))}
                 </div>
@@ -145,7 +146,7 @@ export default function SmartFilterCriteriaDisplay({
               <div className="flex flex-wrap gap-1.5 min-w-0 flex-1">
                 {problemTypes.map(type => (
                   <Badge key={type} variant="secondary" className="text-xs">
-                    {getProblemTypeDisplayName(type)}
+                    {tCommon(getProblemTypeDisplayName(type))}
                   </Badge>
                 ))}
               </div>
@@ -188,7 +189,7 @@ export default function SmartFilterCriteriaDisplay({
               <div className="flex items-baseline gap-2">
                 <span className="w-[4.5rem] shrink-0" />
                 <span className="text-xs text-muted-foreground italic pt-0.5">
-                  {t('includeNeverReviewed')}
+                  {t('includesNeverReviewed')}
                 </span>
               </div>
             )}

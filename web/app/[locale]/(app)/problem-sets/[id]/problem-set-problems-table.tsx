@@ -19,10 +19,11 @@ import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import CopyProblemDialog from '@/components/copy-problem-dialog';
 import { toast } from 'sonner';
 import {
-  ownerColumns,
-  viewerColumns,
+  createOwnerColumns,
+  createViewerColumns,
   ProblemSetTableMeta,
 } from './problem-set-columns';
+import { useTranslations } from 'next-intl';
 
 interface ProblemSetProblemsTableProps {
   problems: ProblemInSet[];
@@ -44,6 +45,7 @@ export default function ProblemSetProblemsTable({
   isAuthenticated,
 }: ProblemSetProblemsTableProps) {
   const router = useRouter();
+  const t = useTranslations('CommonUtils');
   const isMobile = useIsMobile();
   const { initialFilters, updateUrl } = useFilterParams();
 
@@ -146,7 +148,7 @@ export default function ProblemSetProblemsTable({
     isOwner,
   ]);
 
-  const columns = isOwner ? ownerColumns : viewerColumns;
+  const columns = isOwner ? createOwnerColumns(t) : createViewerColumns(t);
 
   const handleSearch = useCallback(
     (filters: SearchFilters) => {

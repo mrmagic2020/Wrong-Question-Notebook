@@ -66,7 +66,7 @@ export function SubjectRadarChart({ data }: SubjectRadarChartProps) {
     labels: data.map(d => d.subject_name),
     datasets: [
       {
-        label: t('masteryPct'),
+        label: t('masteryPercent'),
         data: data.map(d => d.mastery_pct),
         backgroundColor: isDark
           ? 'rgba(251, 191, 36, 0.2)'
