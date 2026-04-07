@@ -799,6 +799,8 @@
     "weakSpots": "Weak Spots",
     "topicClusters": "Topic Clusters",
     "analysisDepth": "Analysis Depth",
+    "weakSpotCount": "{count, plural, =1 {# weak spot} other {# weak spots}}",
+    "clusterCount": "{count, plural, =1 {# cluster} other {# clusters}}",
     "resumeCluster": "Resume Cluster",
     "currentStreak": "Current Streak",
     "bestStreak": "Best: {count}",

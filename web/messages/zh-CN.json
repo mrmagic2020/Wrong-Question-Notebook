@@ -799,6 +799,8 @@
     "weakSpots": "薄弱点",
     "topicClusters": "主题组合",
     "analysisDepth": "分析深度",
+    "weakSpotCount": "{count, plural, other {# 个薄弱点}}",
+    "clusterCount": "{count, plural, other {# 个主题组合}}",
     "resumeCluster": "继续复习组合",
     "currentStreak": "当前连续天数",
     "bestStreak": "最佳: {count}",

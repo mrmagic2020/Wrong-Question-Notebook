@@ -14,7 +14,7 @@ import {
   Layers,
   NotebookPen,
 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/page-header';
@@ -499,13 +499,17 @@ function DigestHeader({
   t: ReturnType<typeof useTranslations>;
   tCommon: ReturnType<typeof useTranslations>;
 }) {
-  const formattedDate = new Date(generatedAt).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
+  const locale = useLocale();
+  const formattedDate = new Date(generatedAt).toLocaleString(
+    locale === 'zh-CN' ? 'zh-CN' : 'en-US',
+    {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    }
+  );
 
   return (
     <div className="rounded-2xl border border-orange-200/40 bg-orange-50/50 p-6 dark:border-orange-800/30 dark:bg-orange-950/30">
@@ -590,14 +594,13 @@ function SubjectHealthCard({
           {weakSpotCount > 0 && (
             <span className="inline-flex items-center gap-1 text-rose-600 dark:text-rose-400">
               <AlertTriangle className="h-3 w-3" />
-              {weakSpotCount} {t('weakSpots').toLowerCase().slice(0, -1)}
-              {weakSpotCount !== 1 ? 's' : ''}
+              {t('weakSpotCount', { count: weakSpotCount })}
             </span>
           )}
           {clusterCount > 0 && (
             <span className="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400">
               <Layers className="h-3 w-3" />
-              {clusterCount} cluster{clusterCount !== 1 ? 's' : ''}
+              {t('clusterCount', { count: clusterCount })}
             </span>
           )}
         </div>
