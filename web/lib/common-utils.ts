@@ -10,10 +10,29 @@ import { logger } from './logger';
 // Date and Time Utilities
 // =====================================================
 
-export function formatDisplayDateTime(dateString: string): string {
+/** Map next-intl locale codes to BCP 47 tags for Intl APIs */
+const localeMap: Record<string, string> = {
+  'zh-CN': 'zh-CN',
+  en: 'en-US',
+};
+
+function resolveIntlLocale(locale?: string): string {
+  if (locale) return localeMap[locale] || locale;
+  // Auto-detect from <html lang> on client
+  if (typeof document !== 'undefined') {
+    const htmlLang = document.documentElement.lang;
+    if (htmlLang) return localeMap[htmlLang] || htmlLang;
+  }
+  return 'en-US';
+}
+
+export function formatDisplayDateTime(
+  dateString: string,
+  locale?: string
+): string {
   try {
     const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
+    return date.toLocaleString(resolveIntlLocale(locale), {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -29,10 +48,13 @@ export function formatDisplayDateTime(dateString: string): string {
   }
 }
 
-export function formatDisplayDate(dateString: string): string {
+export function formatDisplayDate(
+  dateString: string,
+  locale?: string
+): string {
   try {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString(resolveIntlLocale(locale), {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -46,25 +68,30 @@ export function formatDisplayDate(dateString: string): string {
   }
 }
 
-export function formatRelativeTime(dateString: string): string {
+export function formatRelativeTime(
+  dateString: string,
+  locale?: string
+): string {
   try {
     const date = new Date(dateString);
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    const resolvedLocale = resolveIntlLocale(locale);
+
+    const rtf = new Intl.RelativeTimeFormat(resolvedLocale, {
+      numeric: 'auto',
+    });
 
     if (diffInSeconds < 60) {
-      return 'Just now';
+      return rtf.format(0, 'second');
     } else if (diffInSeconds < 3600) {
-      const minutes = Math.floor(diffInSeconds / 60);
-      return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+      return rtf.format(-Math.floor(diffInSeconds / 60), 'minute');
     } else if (diffInSeconds < 86400) {
-      const hours = Math.floor(diffInSeconds / 3600);
-      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+      return rtf.format(-Math.floor(diffInSeconds / 3600), 'hour');
     } else if (diffInSeconds < 604800) {
-      const days = Math.floor(diffInSeconds / 86400);
-      return `${days} day${days > 1 ? 's' : ''} ago`;
+      return rtf.format(-Math.floor(diffInSeconds / 86400), 'day');
     } else {
-      return formatDisplayDateTime(dateString);
+      return formatDisplayDateTime(dateString, locale);
     }
   } catch (error) {
     logger.error('Error formatting relative time', error, {

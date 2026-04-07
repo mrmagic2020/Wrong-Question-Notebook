@@ -11,7 +11,8 @@ import { Button } from '@/components/ui/button';
 import { SubjectWithMetadata } from '@/lib/types';
 import { SUBJECT_CONSTANTS, getIconComponent } from '@/lib/constants';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNow, isValid, parseISO } from 'date-fns';
+import { type Locale, formatDistanceToNow, isValid, parseISO } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 import {
   Calendar,
   FileText,
@@ -21,7 +22,11 @@ import {
   Trash2,
 } from 'lucide-react';
 import { ReviewDueButton } from './review-due-button';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+
+const dateFnsLocales: Record<string, Locale> = {
+  'zh-CN': zhCN,
+};
 
 interface NotebookCardProps {
   subject: SubjectWithMetadata;
@@ -38,7 +43,10 @@ interface NotebookCardProps {
  * Safely formats a date string using date-fns formatDistanceToNow.
  * Returns null if the date is invalid or formatting fails.
  */
-function formatSafeDate(dateString: string | null | undefined): string | null {
+function formatSafeDate(
+  dateString: string | null | undefined,
+  locale?: Locale
+): string | null {
   if (!dateString) return null;
 
   try {
@@ -47,7 +55,7 @@ function formatSafeDate(dateString: string | null | undefined): string | null {
       console.warn(`Invalid date string: "${dateString}"`);
       return null;
     }
-    return formatDistanceToNow(date, { addSuffix: true });
+    return formatDistanceToNow(date, { addSuffix: true, locale });
   } catch (error) {
     console.error('Error formatting date:', error);
     return null;
@@ -65,6 +73,8 @@ export function NotebookCard({
   style,
 }: NotebookCardProps) {
   const t = useTranslations('Subjects');
+  const locale = useLocale();
+  const dateFnsLocale = dateFnsLocales[locale];
   const color = subject.color || SUBJECT_CONSTANTS.DEFAULT_COLOR;
   const safeColor =
     color in SUBJECT_CONSTANTS.COLOR_GRADIENTS
@@ -83,8 +93,8 @@ export function NotebookCard({
   const createdAt = subject.created_at;
 
   // Safely format dates, will be null if date is invalid
-  const formattedCreatedAt = formatSafeDate(createdAt);
-  const formattedLastActivity = formatSafeDate(lastActivity);
+  const formattedCreatedAt = formatSafeDate(createdAt, dateFnsLocale);
+  const formattedLastActivity = formatSafeDate(lastActivity, dateFnsLocale);
 
   return (
     <Card
