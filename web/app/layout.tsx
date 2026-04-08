@@ -36,6 +36,12 @@ export default async function RootLayout({
   const messages = await getMessages();
   const t = await getTranslations('Common');
 
+  // Only pass root-level messages to avoid duplicating the full bundle
+  // (the [locale] layout's provider supplies the complete set)
+  const rootMessages = {
+    CookieConsent: (messages as Record<string, unknown>).CookieConsent,
+  };
+
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={`${geistSans.className} antialiased`}>
@@ -48,7 +54,7 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <NextIntlClientProvider locale={locale} messages={messages}>
+          <NextIntlClientProvider locale={locale} messages={rootMessages}>
             <ConsentProvider>
               {children}
               <ConditionalAnalytics />
