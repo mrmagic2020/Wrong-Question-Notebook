@@ -67,10 +67,7 @@ export default function InsightsPageClient({
       if (pollCountRef.current > INSIGHT_CONSTANTS.MAX_POLL_ATTEMPTS) {
         setIsGenerating(false);
         stopPolling();
-        toast.error(
-          t('insightsGenerationTimeout') ||
-            'Insights generation is taking too long. Please try again later.'
-        );
+        toast.error(t('insightsGenerationTimeout'));
         return;
       }
 
@@ -83,11 +80,11 @@ export default function InsightsPageClient({
           setDigest(data.digest);
           setIsGenerating(false);
           stopPolling();
-          toast.success(tCommon('success') || 'Success');
+          toast.success(tCommon('success'));
         } else if (data.status === 'failed' || data.status === 'none') {
           setIsGenerating(false);
           stopPolling();
-          toast.error(tCommon('error') || 'Error');
+          toast.error(tCommon('error'));
         }
         // 'generating' → keep polling
       } catch {
@@ -155,21 +152,18 @@ export default function InsightsPageClient({
       // Check if the API returned a cached digest due to cooldown
       if (json.message && digest && data.id === digest.id) {
         setIsGenerating(false);
-        toast.info(
-          t('insightsRecentlyGenerated') ||
-            'Insights were generated recently. Try again later.'
-        );
+        toast.info(t('insightsRecentlyGenerated'));
         return;
       }
 
       setDigest(data);
       setIsGenerating(false);
-      toast.success(tCommon('success') || 'Success');
+      toast.success(tCommon('success'));
       router.refresh();
     } catch (err) {
       setIsGenerating(false);
       toast.error(
-        err instanceof Error ? err.message : tCommon('error') || 'Error'
+        err instanceof Error ? err.message : tCommon('error')
       );
     }
   }
@@ -403,8 +397,7 @@ function EmptyInsightsState({
             {t('generatingInsights')}
           </h3>
           <p className="max-w-sm text-sm text-gray-600 dark:text-gray-400">
-            {t('generatingInsightsDesc') ||
-              'Analyzing your error patterns and identifying weak spots. This may take a moment.'}
+            {t('generatingInsightsDesc')}
           </p>
         </>
       ) : hasInsufficientData ? (
@@ -414,19 +407,19 @@ function EmptyInsightsState({
           </div>
           <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
             {activityProgress
-              ? t('almostThere') || 'Almost there!'
+              ? t('almostThere')
               : t('notEnoughData')}
           </h3>
           {activityProgress ? (
             <div className="mb-6 flex flex-col items-center gap-3 pt-2">
               <ProgressBar
-                label={t('problemsAttempted') || 'Problems attempted'}
+                label={t('problemsAttempted')}
                 current={activityProgress.activity.total_problems}
                 target={INSIGHT_CONSTANTS.MIN_ACTIVITY_FOR_INSIGHTS}
                 met={activityProgress.activity_needed === 0}
               />
               <ProgressBar
-                label={t('errorsToAnalyse') || 'Errors to analyse'}
+                label={t('errorsToAnalyse')}
                 current={activityProgress.activity.problems_with_errors}
                 target={INSIGHT_CONSTANTS.MIN_ERRORS_FOR_FULL_DIGEST}
                 met={activityProgress.errors_needed === 0}
@@ -448,8 +441,7 @@ function EmptyInsightsState({
             </div>
           ) : (
             <p className="mb-6 max-w-sm text-sm text-gray-600 dark:text-gray-400">
-              {t('notEnoughDataDesc') ||
-                'Keep reviewing problems and logging your attempts. We need more data to generate meaningful insights for you.'}
+              {t('notEnoughDataDesc')}
             </p>
           )}
           <Button
@@ -466,11 +458,10 @@ function EmptyInsightsState({
             <Sparkles className="h-8 w-8 text-orange-600 dark:text-orange-400" />
           </div>
           <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-            {t('noInsightsYet') || 'No insights yet'}
+            {t('noInsightsYet')}
           </h3>
           <p className="mb-6 max-w-sm text-sm text-gray-600 dark:text-gray-400">
-            {t('generateFirstInsightsDesc') ||
-              'Generate your first AI-powered insight digest to discover your weak spots and error patterns.'}
+            {t('generateFirstInsightsDesc')}
           </p>
           <Button onClick={onGenerate} className="btn-cta-primary">
             <Sparkles className="mr-2 h-4 w-4" />
