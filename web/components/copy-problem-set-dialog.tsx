@@ -173,7 +173,7 @@ export default function CopyProblemSetDialog({
           <div className="rounded-lg border p-3 bg-muted/30 space-y-1">
             <p className="text-sm font-medium">{problemSetName}</p>
             <p className="text-xs text-muted-foreground">
-              {t('problemsCount', { count: problemCount, plural: problemCount !== 1 ? 's' : '' })}
+              {t('problemsCount', { count: problemCount })}
             </p>
           </div>
 

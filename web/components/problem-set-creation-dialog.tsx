@@ -194,7 +194,6 @@ export default function ProblemSetCreationDialog({
           <DialogDescription>
             {t('createProblemSetDesc', {
               count: selectedProblemIds.length,
-              plural: selectedProblemIds.length !== 1 ? '' : '',
             })}
           </DialogDescription>
           {limitData && (
