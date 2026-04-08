@@ -24,12 +24,12 @@ function stripLocaleFromPath(pathname: string): string {
   return pathname;
 }
 
-/** Get user from request using Supabase SSR client */
+/** Get user and access token from request using Supabase SSR client */
 async function getUserFromRequest(
   request: NextRequestType,
   cookieUpdater: (cookies: any[]) => void
 ) {
-  if (!hasEnvVars) return null;
+  if (!hasEnvVars) return { user: null, accessToken: null };
 
   try {
     const supabase = createServerClient(
@@ -50,9 +50,10 @@ async function getUserFromRequest(
       }
     );
     const { data } = await supabase.auth.getUser();
-    return data.user;
+    const { data: { session } } = await supabase.auth.getSession();
+    return { user: data.user, accessToken: session?.access_token ?? null };
   } catch {
-    return null;
+    return { user: null, accessToken: null };
   }
 }
 
@@ -127,7 +128,7 @@ export async function proxy(request: NextRequest) {
   const contentPath = stripLocaleFromPath(originalPathname);
 
   // Step 2: Check auth state
-  const user = await getUserFromRequest(request, cookies => {
+  const { user, accessToken } = await getUserFromRequest(request, cookies => {
     cookiesToUpdate.push(...cookies);
   });
 
@@ -183,33 +184,14 @@ export async function proxy(request: NextRequest) {
     return applyCookies(NextResponse.redirect(loginUrl));
   }
 
-  // User is authenticated
+  // User is authenticated — fire-and-forget login heartbeat
   if (user.id) {
-    try {
-      const supabase = createServerClient(
-        process.env[ENV_VARS.SUPABASE_URL]!,
-        process.env[ENV_VARS.SUPABASE_ANON_KEY]!,
-        {
-          cookies: {
-            getAll() {
-              return request.cookies.getAll();
-            },
-            setAll() {
-              // Read-only login heartbeat check
-            },
-          },
-        }
-      );
-      const { data: { session } } = await supabase.auth.getSession();
-      updateLastLoginEdge(
-        user.id,
-        process.env[ENV_VARS.SUPABASE_URL]!,
-        process.env[ENV_VARS.SUPABASE_ANON_KEY]!,
-        session?.access_token
-      ).catch(() => {});
-    } catch {
-      // Ignore
-    }
+    updateLastLoginEdge(
+      user.id,
+      process.env[ENV_VARS.SUPABASE_URL]!,
+      process.env[ENV_VARS.SUPABASE_ANON_KEY]!,
+      accessToken
+    ).catch(() => {});
   }
 
   return applyCookies(finalResponse);
