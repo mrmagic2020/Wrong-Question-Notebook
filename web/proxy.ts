@@ -16,7 +16,7 @@ const intlMiddleware = createNextIntlMiddleware(routing);
 function stripLocaleFromPath(pathname: string): string {
   for (const locale of routing.locales) {
     const prefix = `/${locale}`;
-    if (pathname.startsWith(prefix)) {
+    if (pathname === prefix || pathname.startsWith(prefix + '/')) {
       const stripped = pathname.slice(prefix.length);
       return stripped || '/';
     }
