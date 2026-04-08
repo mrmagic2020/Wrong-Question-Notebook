@@ -293,7 +293,7 @@
     "color": "Color",
     "notebooksUsed": "notebooks used",
     "creating": "Creating...",
-    "problemCount": "{count} problem(s)",
+    "problemCount": "{count, plural, one {# problem} other {# problems}}",
     "created": "Created {relativeTime}",
     "lastReviewed": "Last reviewed {relativeTime}",
     "edit": "Edit",
