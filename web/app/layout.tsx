@@ -4,7 +4,8 @@ import { ThemeProvider } from 'next-themes';
 import { Toaster } from '@/components/ui/sonner';
 import { ConsentProvider } from '@/components/cookie-consent/consent-provider';
 import { ConditionalAnalytics } from '@/components/cookie-consent/conditional-analytics';
-import { getLocale, getTranslations } from 'next-intl/server';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages, getTranslations } from 'next-intl/server';
 import './globals.css';
 
 const defaultUrl = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
@@ -32,6 +33,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getLocale();
+  const messages = await getMessages();
   const t = await getTranslations('Common');
 
   return (
@@ -46,10 +48,12 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <ConsentProvider>
-            {children}
-            <ConditionalAnalytics />
-          </ConsentProvider>
+          <NextIntlClientProvider locale={locale} messages={messages}>
+            <ConsentProvider>
+              {children}
+              <ConditionalAnalytics />
+            </ConsentProvider>
+          </NextIntlClientProvider>
         </ThemeProvider>
         <Toaster />
         <script
