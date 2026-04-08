@@ -18,6 +18,7 @@ export default function SubjectRow({
   showConfirmation,
 }: SubjectRowProps) {
   const t = useTranslations('CommonUtils');
+  const tCommon = useTranslations('Common');
   const tSubjects = useTranslations('Subjects');
   const router = useRouter();
   const [editing, setEditing] = useState(false);
@@ -155,7 +156,7 @@ export default function SubjectRow({
     <tr className="border-t border-border">
       <td className="px-4 py-2 align-middle">
         {editing ? (
-          <Tooltip content="Press Enter to save or Escape to cancel">
+          <Tooltip content={tSubjects('tooltipEnterSaveEscape')}>
             <Input
               ref={inputRef}
               value={name}
@@ -180,7 +181,7 @@ export default function SubjectRow({
                 className="flex items-center gap-1"
               >
                 {renaming && <Spinner />}
-                {renaming ? 'Saving...' : 'Save'}
+                {renaming ? tSubjects('saving') : tCommon('save')}
               </Button>
               <Button
                 onClick={() => {
@@ -190,34 +191,34 @@ export default function SubjectRow({
                 disabled={renaming || deleting}
                 variant="secondary"
               >
-                Cancel
+                {tCommon('cancel')}
               </Button>
             </>
           ) : (
             <>
               <Button asChild variant="outline" className="">
-                <Link href={`/subjects/${subject.id}/problems`}>{tSubjects('problemsCount').split(' ')[0]}</Link>
+                <Link href={`/subjects/${subject.id}/problems`}>{tSubjects('problems')}</Link>
               </Button>
               <Button asChild variant="outline" className="">
                 <Link href={`/subjects/${subject.id}/tags`}>{tSubjects('tags')}</Link>
               </Button>
-              <Tooltip content="Click to rename this subject (Enter to save, Escape to cancel)">
+              <Tooltip content={tSubjects('tooltipClickToRename')}>
                 <Button
                   onClick={() => setEditing(true)}
                   disabled={renaming || deleting}
                   variant="outline"
                 >
-                  Rename
+                  {t('rename')}
                 </Button>
               </Tooltip>
-              <Tooltip content="Permanently delete this subject and all its problems">
+              <Tooltip content={tSubjects('tooltipPermanentlyDelete')}>
                 <Button
                   onClick={handleRemove}
                   disabled={renaming || deleting}
                   variant="destructive"
                 >
                   {deleting && <Spinner />}
-                  Delete
+                  {t('delete')}
                 </Button>
               </Tooltip>
             </>

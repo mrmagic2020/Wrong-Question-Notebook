@@ -405,7 +405,10 @@
     "problemsCount": "题目",
     "subjectDeletedSuccessfully": "科目已成功删除",
     "subjectRenamedSuccessfully": "科目已成功重命名",
-    "titleRequired": "请输入题目标题"
+    "titleRequired": "请输入题目标题",
+    "tooltipEnterSaveEscape": "按 Enter 保存或 Escape 取消",
+    "tooltipClickToRename": "点击重命名此科目（Enter 保存，Escape 取消）",
+    "tooltipPermanentlyDelete": "永久删除此科目及其所有题目"
   },
   "Problems": {
     "title": "题目",
@@ -475,7 +478,9 @@
     "manualReviewRequired": "此题目需要人工批改。在下方输入你的答案，然后点击「查看解答」来检查你的作答。",
     "clickToRevealSolution": "点击「显示解答」来查看解答",
     "pdfDocument": "PDF 文档",
-    "acceptableAnswers": "可接受的答案"
+    "acceptableAnswers": "可接受的答案",
+    "noAnswerInputForType": "此题型暂无答题输入。",
+    "failedToSaveImageAsset": "保存图片为{role}附件失败：{error}"
   },
   "ProblemSets": {
     "title": "题目集",
@@ -1084,6 +1089,8 @@
     "sendFailed": "发送失败",
     "photoSecureNote": "你的照片仅安全存储在你的账号中",
     "somethingWrong": "出错了",
+    "somethingWrongTryAgain": "出了点问题，请重试。",
+    "networkErrorTryAgain": "网络错误，请检查网络连接后重试。",
     "2d": "2d",
     "canvas": "canvas"
   },

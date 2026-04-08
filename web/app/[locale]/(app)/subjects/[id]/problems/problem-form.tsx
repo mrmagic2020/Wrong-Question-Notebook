@@ -790,7 +790,10 @@ export default function ProblemForm({
           }
         } catch (err: any) {
           toast.error(
-            `Failed to save image as ${role} asset: ${err.message || 'Unknown error'}`
+            tProblems('failedToSaveImageAsset', {
+              role,
+              error: err.message || '',
+            })
           );
         }
       }

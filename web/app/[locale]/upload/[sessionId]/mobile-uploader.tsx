@@ -180,7 +180,7 @@ export function MobileUploader({ sessionId, token }: MobileUploaderProps) {
 
         const json = await res.json().catch(() => null);
         const message =
-          json?.error || 'Something went wrong. Please try again.';
+          json?.error || t('somethingWrongTryAgain');
 
         if (res.status === 410) {
           setErrorMessage(QR_SESSION_CONSTANTS.ERRORS.SESSION_EXPIRED);
@@ -193,7 +193,7 @@ export function MobileUploader({ sessionId, token }: MobileUploaderProps) {
         }
         setState('error');
       } catch {
-        setErrorMessage('Network error. Check your connection and try again.');
+        setErrorMessage(t('networkErrorTryAgain'));
         setState('error');
       }
     },

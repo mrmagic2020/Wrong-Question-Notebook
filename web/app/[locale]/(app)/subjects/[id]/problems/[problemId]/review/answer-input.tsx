@@ -168,7 +168,7 @@ export default function AnswerInput({
     default:
       return (
         <div className="text-muted-foreground text-sm">
-          No answer input available for this problem type.
+          {t('noAnswerInputForType')}
         </div>
       );
   }

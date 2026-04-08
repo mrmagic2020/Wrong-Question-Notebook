@@ -405,7 +405,10 @@
     "problemsCount": "Problems",
     "subjectDeletedSuccessfully": "Subject deleted successfully",
     "subjectRenamedSuccessfully": "Subject renamed successfully",
-    "titleRequired": "Please enter a problem title"
+    "titleRequired": "Please enter a problem title",
+    "tooltipEnterSaveEscape": "Press Enter to save or Escape to cancel",
+    "tooltipClickToRename": "Click to rename this subject (Enter to save, Escape to cancel)",
+    "tooltipPermanentlyDelete": "Permanently delete this subject and all its problems"
   },
   "Problems": {
     "title": "Problems",
@@ -475,7 +478,9 @@
     "manualReviewRequired": "This problem requires manual review. Enter your answer below and click \"View Solution\" to check your work.",
     "clickToRevealSolution": "Click \"Reveal Solution\" to view the solution",
     "pdfDocument": "PDF Document",
-    "acceptableAnswers": "Acceptable Answers"
+    "acceptableAnswers": "Acceptable Answers",
+    "noAnswerInputForType": "No answer input available for this problem type.",
+    "failedToSaveImageAsset": "Failed to save image as {role} asset: {error}"
   },
   "ProblemSets": {
     "title": "Problem Sets",
@@ -1084,6 +1089,8 @@
     "sendFailed": "Send failed",
     "photoSecureNote": "Your photo is stored securely in your account only",
     "somethingWrong": "Something went wrong",
+    "somethingWrongTryAgain": "Something went wrong. Please try again.",
+    "networkErrorTryAgain": "Network error. Check your connection and try again.",
     "2d": "2d",
     "canvas": "canvas"
   },
