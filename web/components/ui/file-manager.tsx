@@ -142,7 +142,10 @@ export default function FileManager({
 
     if (oversizedFiles.length > 0) {
       setError(
-        tErrors('fileTooLarge', { files: oversizedFiles.join(', '), maxSize: '10MB' })
+        tErrors('fileTooLarge', {
+          files: oversizedFiles.join(', '),
+          maxSize: '10MB',
+        })
       );
       return;
     }
@@ -179,7 +182,7 @@ export default function FileManager({
 
       // Update database in edit mode
       await updateDatabaseAssets(finalFiles);
-    } catch (err: any) {
+    } catch {
       setError(tErrors('uploadFailed'));
 
       // Remove failed uploading files - keep only the original files
@@ -216,7 +219,7 @@ export default function FileManager({
 
       // Update database in edit mode
       await updateDatabaseAssets(updatedFiles);
-    } catch (err: any) {
+    } catch {
       setError(tErrors('failedToDeleteFile'));
     }
   };

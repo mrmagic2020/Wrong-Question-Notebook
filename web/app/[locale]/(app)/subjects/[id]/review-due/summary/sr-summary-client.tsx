@@ -56,7 +56,6 @@ export default function SRSummaryClient({
   sessionId,
 }: SRSummaryClientProps) {
   const t = useTranslations('Review');
-  const tSubjects = useTranslations('Subjects');
   const tProblems = useTranslations('Problems');
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -176,7 +175,9 @@ export default function SRSummaryClient({
           <Brain className="h-7 w-7 text-amber-600 dark:text-amber-400" />
           <span className="text-gradient-warm">{t('reviewComplete')}</span>
         </h1>
-        <p className="page-description">{t('spacedReviewTitle')} &middot; {subjectName}</p>
+        <p className="page-description">
+          {t('spacedReviewTitle')} &middot; {subjectName}
+        </p>
       </div>
 
       {/* Main content: pie chart + status cards */}
@@ -254,7 +255,9 @@ export default function SRSummaryClient({
         <Card className="card-section">
           <CardContent className="pt-5 pb-5 text-center">
             <div className="text-2xl font-bold">{summary.total_problems}</div>
-            <p className="text-xs text-muted-foreground">{t('totalProblems')}</p>
+            <p className="text-xs text-muted-foreground">
+              {t('totalProblems')}
+            </p>
           </CardContent>
         </Card>
 
@@ -292,10 +295,14 @@ export default function SRSummaryClient({
       {/* Timestamps */}
       <div className="text-sm text-muted-foreground text-center space-y-1">
         {summary.started_at && (
-          <p>{t('started')}: {formatDisplayDateTime(summary.started_at)}</p>
+          <p>
+            {t('started')}: {formatDisplayDateTime(summary.started_at)}
+          </p>
         )}
         {summary.completed_at && (
-          <p>{t('finished')}: {formatDisplayDateTime(summary.completed_at)}</p>
+          <p>
+            {t('finished')}: {formatDisplayDateTime(summary.completed_at)}
+          </p>
         )}
       </div>
 

@@ -21,7 +21,6 @@ export default function StatisticsPageClient({
   data,
 }: StatisticsPageClientProps) {
   const t = useTranslations('Statistics');
-  const tCommon = useTranslations('Common');
   const { overview, streaks, sessionStats, subjectBreakdown } = data;
 
   return (

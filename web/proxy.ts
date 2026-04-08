@@ -50,7 +50,9 @@ async function getUserFromRequest(
       }
     );
     const { data } = await supabase.auth.getUser();
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     return { user: data.user, accessToken: session?.access_token ?? null };
   } catch {
     return { user: null, accessToken: null };
@@ -94,8 +96,7 @@ async function checkAdminRole(userId: string) {
 
 export async function proxy(request: NextRequest) {
   const originalPathname = request.nextUrl.pathname;
-  let finalResponse: NextResponse;
-  let cookiesToUpdate: any[] = [];
+  const cookiesToUpdate: any[] = [];
 
   // Step 0: API routes should NOT go through intlMiddleware at all
   if (originalPathname.startsWith('/api/')) {
@@ -111,7 +112,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // Next-Intl sets this on non-redirect responses
-  finalResponse = intlResponse;
+  const finalResponse = intlResponse;
 
   const localeHeader = intlResponse.headers.get('x-next-intl-locale');
   if (localeHeader && (localeHeader === 'en' || localeHeader === 'zh-CN')) {
@@ -171,7 +172,12 @@ export async function proxy(request: NextRequest) {
   const isPublicPath = publicPaths.some(p => contentPath.startsWith(p));
   const isApiPublicPath = apiPublicPaths.some(p => contentPath.startsWith(p));
 
-  if (contentPath === '/' || contentPath.startsWith('/auth') || isApiPublicPath || isPublicPath) {
+  if (
+    contentPath === '/' ||
+    contentPath.startsWith('/auth') ||
+    isApiPublicPath ||
+    isPublicPath
+  ) {
     return applyCookies(finalResponse);
   }
 
@@ -190,7 +196,7 @@ export async function proxy(request: NextRequest) {
       user.id,
       process.env[ENV_VARS.SUPABASE_URL]!,
       process.env[ENV_VARS.SUPABASE_ANON_KEY]!,
-      accessToken
+      accessToken ?? undefined
     ).catch(() => {});
   }
 

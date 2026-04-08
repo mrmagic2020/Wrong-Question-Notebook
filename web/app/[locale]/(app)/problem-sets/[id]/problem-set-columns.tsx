@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown, MoreHorizontal, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -116,7 +116,11 @@ const titleColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
 const typeColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
   accessorKey: 'problem_type',
   header: ({ column }) => (
-    <DataTableColumnHeader column={column} title={t('problemTypeColumn')} t={t} />
+    <DataTableColumnHeader
+      column={column}
+      title={t('problemTypeColumn')}
+      t={t}
+    />
   ),
   cell: ({ row }) => {
     const type = row.getValue('problem_type') as ProblemType;
@@ -151,10 +155,16 @@ const tagsColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
   },
 });
 
-const createdAtColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
+const createdAtColumn = (
+  t: (key: string) => string
+): ColumnDef<ProblemInSet> => ({
   accessorKey: 'created_at',
   header: ({ column }) => (
-    <DataTableColumnHeader column={column} title={t('dateCreatedColumn')} t={t} />
+    <DataTableColumnHeader
+      column={column}
+      title={t('dateCreatedColumn')}
+      t={t}
+    />
   ),
   cell: ({ row }) => {
     const createdAt = row.getValue('created_at') as string;
@@ -215,10 +225,16 @@ const statusColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
   },
 });
 
-const lastReviewedColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
+const lastReviewedColumn = (
+  t: (key: string) => string
+): ColumnDef<ProblemInSet> => ({
   accessorKey: 'last_reviewed_date',
   header: ({ column }) => (
-    <DataTableColumnHeader column={column} title={t('lastReviewedColumn')} t={t} />
+    <DataTableColumnHeader
+      column={column}
+      title={t('lastReviewedColumn')}
+      t={t}
+    />
   ),
   cell: ({ row }) => {
     const lastReviewedDate = row.getValue('last_reviewed_date') as string;
@@ -231,7 +247,9 @@ const lastReviewedColumn = (t: (key: string) => string): ColumnDef<ProblemInSet>
 });
 
 // Actions column for owners
-const ownerActionsColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
+const ownerActionsColumn = (
+  t: (key: string) => string
+): ColumnDef<ProblemInSet> => ({
   id: 'actions',
   header: t('actionsColumn'),
   cell: ({ row, table }) => {
@@ -361,7 +379,9 @@ function ViewerActionsCell({
 }
 
 // Actions column for viewers
-const viewerActionsColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
+const viewerActionsColumn = (
+  t: (key: string) => string
+): ColumnDef<ProblemInSet> => ({
   id: 'actions',
   header: t('actionsColumn'),
   cell: ({ row, table }) => {
@@ -374,7 +394,9 @@ const viewerActionsColumn = (t: (key: string) => string): ColumnDef<ProblemInSet
 });
 
 // Factory functions that create columns with translations
-export function createOwnerColumns(t: (key: string) => string): ColumnDef<ProblemInSet>[] {
+export function createOwnerColumns(
+  t: (key: string) => string
+): ColumnDef<ProblemInSet>[] {
   return [
     selectColumn,
     titleColumn(t),
@@ -387,7 +409,9 @@ export function createOwnerColumns(t: (key: string) => string): ColumnDef<Proble
   ];
 }
 
-export function createViewerColumns(t: (key: string) => string): ColumnDef<ProblemInSet>[] {
+export function createViewerColumns(
+  t: (key: string) => string
+): ColumnDef<ProblemInSet>[] {
   return [
     titleColumn(t),
     typeColumn(t),

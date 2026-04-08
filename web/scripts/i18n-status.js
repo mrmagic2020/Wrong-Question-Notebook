@@ -13,6 +13,7 @@
  *   - Code-referenced keys missing from source
  */
 
+/* eslint-disable @typescript-eslint/no-require-imports */
 const fs = require('fs');
 const path = require('path');
 
@@ -105,7 +106,11 @@ function walk(dir) {
   for (const f of fs.readdirSync(dir)) {
     const full = path.join(dir, f);
     const stat = fs.statSync(full);
-    if (stat.isDirectory() && !f.includes('node_modules') && !f.includes('.next')) {
+    if (
+      stat.isDirectory() &&
+      !f.includes('node_modules') &&
+      !f.includes('.next')
+    ) {
       results.push(...walk(full));
     } else if (/\.(tsx?|jsx?)$/.test(f)) {
       results.push(full);
@@ -134,7 +139,7 @@ function findReferencedKeys(en) {
 
     for (const [varName, ns] of Object.entries(hooks)) {
       const escaped = varName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const callPattern = new RegExp(escaped + "\\(['\"]([\\w_.]+)['\"]", 'g');
+      const callPattern = new RegExp(escaped + '\\([\'"]([\\w_.]+)[\'"]', 'g');
       let cm;
       while ((cm = callPattern.exec(src)) !== null) {
         const key = cm[1];
@@ -202,7 +207,10 @@ function compareLocale(en, locale, localeData) {
     placeholderIssues,
     coverage:
       enKeys.size > 0
-        ? (((enKeys.size - missingInLocale.length) / enKeys.size) * 100).toFixed(1)
+        ? (
+            ((enKeys.size - missingInLocale.length) / enKeys.size) *
+            100
+          ).toFixed(1)
         : '100.0',
   };
 }
@@ -238,16 +246,26 @@ const codeKeysMissing = findReferencedKeys(en);
 
 if (jsonFlag) {
   console.log(
-    JSON.stringify({ sourceKeys: getLeafKeys(en).length, locales: results, codeKeysMissing }, null, 2)
+    JSON.stringify(
+      { sourceKeys: getLeafKeys(en).length, locales: results, codeKeysMissing },
+      null,
+      2
+    )
   );
-  process.exit(codeKeysMissing.length > 0 || results.some(r => r.missingKeys?.length) ? 1 : 0);
+  process.exit(
+    codeKeysMissing.length > 0 || results.some(r => r.missingKeys?.length)
+      ? 1
+      : 0
+  );
 }
 
 // Markdown output
 const totalSourceKeys = getLeafKeys(en).length;
-const allPassed = results.every(
-  r => !r.error && r.missingKeys.length === 0 && r.placeholderIssues.length === 0
-) && codeKeysMissing.length === 0;
+const allPassed =
+  results.every(
+    r =>
+      !r.error && r.missingKeys.length === 0 && r.placeholderIssues.length === 0
+  ) && codeKeysMissing.length === 0;
 
 console.log(`## i18n Status Report\n`);
 console.log(`Source locale: \`en\` (${totalSourceKeys} keys)\n`);
@@ -260,22 +278,32 @@ for (const r of results) {
     console.log(`| ${r.locale} | - | - | - | - | ${r.error} |`);
     continue;
   }
-  const status = r.missingKeys.length === 0 && r.placeholderIssues.length === 0 ? ' :white_check_mark:' : ' :warning:';
+  const status =
+    r.missingKeys.length === 0 && r.placeholderIssues.length === 0
+      ? ' :white_check_mark:'
+      : ' :warning:';
   console.log(
     `| \`${r.locale}\`${status} | ${r.totalLocaleKeys} | ${r.missingKeys.length} | ${r.extraKeys.length} | ${r.placeholderIssues.length} | ${r.coverage}% |`
   );
 }
 
 // Code keys check
-console.log(`\n**Code key references:** ${codeKeysMissing.length === 0 ? ':white_check_mark: All resolved' : `:warning: ${codeKeysMissing.length} missing`}\n`);
+console.log(
+  `\n**Code key references:** ${codeKeysMissing.length === 0 ? ':white_check_mark: All resolved' : `:warning: ${codeKeysMissing.length} missing`}\n`
+);
 
 // Details for failures
 for (const r of results) {
   if (r.error) continue;
-  const hasIssues = r.missingKeys.length > 0 || r.extraKeys.length > 0 || r.placeholderIssues.length > 0;
+  const hasIssues =
+    r.missingKeys.length > 0 ||
+    r.extraKeys.length > 0 ||
+    r.placeholderIssues.length > 0;
   if (!hasIssues) continue;
 
-  console.log(`<details><summary><b>${r.locale}</b> — ${r.missingKeys.length} missing, ${r.extraKeys.length} extra, ${r.placeholderIssues.length} placeholder issues</summary>\n`);
+  console.log(
+    `<details><summary><b>${r.locale}</b> — ${r.missingKeys.length} missing, ${r.extraKeys.length} extra, ${r.placeholderIssues.length} placeholder issues</summary>\n`
+  );
 
   if (r.missingKeys.length > 0) {
     console.log('**Missing keys:**');
@@ -293,14 +321,18 @@ for (const r of results) {
     console.log('**Placeholder issues:**');
     console.log('| Key | Issue |');
     console.log('|-----|-------|');
-    r.placeholderIssues.forEach(p => console.log(`| \`${p.key}\` | ${p.details} |`));
+    r.placeholderIssues.forEach(p =>
+      console.log(`| \`${p.key}\` | ${p.details} |`)
+    );
     console.log('');
   }
   console.log('</details>\n');
 }
 
 if (codeKeysMissing.length > 0) {
-  console.log('<details><summary><b>Missing code-referenced keys</b></summary>\n');
+  console.log(
+    '<details><summary><b>Missing code-referenced keys</b></summary>\n'
+  );
   console.log('```');
   codeKeysMissing.forEach(k => console.log(k));
   console.log('```\n</details>\n');
