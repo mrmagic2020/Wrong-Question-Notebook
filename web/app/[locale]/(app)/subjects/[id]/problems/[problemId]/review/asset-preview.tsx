@@ -70,7 +70,7 @@ export default function AssetPreview({ asset }: AssetPreviewProps) {
           <p className="text-xs text-muted-foreground truncate">
             {getFileName(asset.path)}
           </p>
-          <p className="text-xs text-primary mt-1">{tCommon('clickToViewFullSize', { defaultValue: 'Click to view full size' })}</p>
+          <p className="text-xs text-primary mt-1">{tCommon('clickToViewFullSize')}</p>
         </div>
       </div>
     );
