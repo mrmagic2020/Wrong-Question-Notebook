@@ -33,8 +33,7 @@ function formatRelativeShort(
   if (diffDays < 1) return t('today');
   if (diffDays === 1) return t('yesterday');
   if (diffDays < 7) return t('daysAgo', { count: diffDays });
-  if (diffDays < 30)
-    return t('weeksAgo', { count: Math.floor(diffDays / 7) });
+  if (diffDays < 30) return t('weeksAgo', { count: Math.floor(diffDays / 7) });
   return date.toLocaleDateString();
 }
 
@@ -174,7 +173,9 @@ export default function AttemptTimeline({
         <h3 className="text-sm font-semibold text-violet-900 dark:text-violet-100 mb-1">
           {t('attemptHistory')}
         </h3>
-        <span className="text-xs text-muted-foreground">{t('noAttemptsYet')}</span>
+        <span className="text-xs text-muted-foreground">
+          {t('noAttemptsYet')}
+        </span>
       </div>
     );
   }
@@ -195,7 +196,10 @@ export default function AttemptTimeline({
             <div className="flex items-center gap-1.5">
               <span className="text-xs text-muted-foreground">
                 {t('attemptCount', { count: attempts.length })}
-                {' \u00B7 '}{t('lastAttempt', { time: formatRelativeShort(lastAttempt.created_at, t) })}
+                {' \u00B7 '}
+                {t('lastAttempt', {
+                  time: formatRelativeShort(lastAttempt.created_at, t),
+                })}
               </span>
               <ChevronDown
                 className={cn(
@@ -228,7 +232,9 @@ export default function AttemptTimeline({
                 >
                   {isLoadingMore
                     ? t('loading')
-                    : t('showOlderAttempts', { count: Math.min(PAGE_SIZE, remaining) })}
+                    : t('showOlderAttempts', {
+                        count: Math.min(PAGE_SIZE, remaining),
+                      })}
                 </Button>
               </div>
             )}

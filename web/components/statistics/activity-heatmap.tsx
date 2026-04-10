@@ -45,10 +45,10 @@ export function ActivityHeatmap({ data, timezone }: ActivityHeatmapProps) {
     const d = new Date(2024, m.monthIndex, 1);
     return {
       label: format.dateTime(d, { month: 'short' }),
-      colStart: m.colStart
+      colStart: m.colStart,
     };
   });
-  
+
   const DAY_LABELS = ['', t('dayMon'), '', t('dayWed'), '', t('dayFri'), ''];
 
   useEffect(() => {
@@ -211,7 +211,10 @@ export function ActivityHeatmap({ data, timezone }: ActivityHeatmapProps) {
                       title={
                         cell.intensity === -1
                           ? ''
-                          : t('cellTooltip', { date: cell.date, count: cell.count })
+                          : t('cellTooltip', {
+                              date: cell.date,
+                              count: cell.count,
+                            })
                       }
                     />
                   ))}

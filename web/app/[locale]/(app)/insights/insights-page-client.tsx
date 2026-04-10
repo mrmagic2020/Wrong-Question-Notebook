@@ -162,9 +162,7 @@ export default function InsightsPageClient({
       router.refresh();
     } catch (err) {
       setIsGenerating(false);
-      toast.error(
-        err instanceof Error ? err.message : tCommon('error')
-      );
+      toast.error(err instanceof Error ? err.message : tCommon('error'));
     }
   }
 
@@ -406,9 +404,7 @@ function EmptyInsightsState({
             <FileQuestion className="h-8 w-8 text-amber-600 dark:text-amber-400" />
           </div>
           <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-            {activityProgress
-              ? t('almostThere')
-              : t('notEnoughData')}
+            {activityProgress ? t('almostThere') : t('notEnoughData')}
           </h3>
           {activityProgress ? (
             <div className="mb-6 flex flex-col items-center gap-3 pt-2">

@@ -39,7 +39,9 @@ export function DeleteUserDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>{t('cancel')}</AlertDialogCancel>
+          <AlertDialogCancel disabled={loading}>
+            {t('cancel')}
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={loading}

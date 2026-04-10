@@ -58,7 +58,9 @@ export function ProgressLineChart({ data }: ProgressLineChartProps) {
     );
   }
 
-  const labels = data.map(d => format(parseISO(d.week_start), 'MMM d', { locale: dateLocale }));
+  const labels = data.map(d =>
+    format(parseISO(d.week_start), 'MMM d', { locale: dateLocale })
+  );
 
   const chartData = {
     labels,
@@ -95,8 +97,7 @@ export function ProgressLineChart({ data }: ProgressLineChartProps) {
         padding: 12,
         cornerRadius: 8,
         callbacks: {
-          label: (ctx: any) =>
-            t('masteredTooltip', { count: ctx.parsed.y }),
+          label: (ctx: any) => t('masteredTooltip', { count: ctx.parsed.y }),
         },
       },
     },

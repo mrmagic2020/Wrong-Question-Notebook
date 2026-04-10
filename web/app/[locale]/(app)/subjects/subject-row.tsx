@@ -118,11 +118,7 @@ export default function SubjectRow({
       });
     } else {
       // Fallback to browser confirm if showConfirmation is not available
-      if (
-        confirm(
-          tSubjects('confirmDeleteSubject', { name: subject.name })
-        )
-      ) {
+      if (confirm(tSubjects('confirmDeleteSubject', { name: subject.name }))) {
         setDeleting(true);
         setErr(null);
         fetch(`/api/subjects/${subject.id}`, {
@@ -197,10 +193,14 @@ export default function SubjectRow({
           ) : (
             <>
               <Button asChild variant="outline" className="">
-                <Link href={`/subjects/${subject.id}/problems`}>{tSubjects('problems')}</Link>
+                <Link href={`/subjects/${subject.id}/problems`}>
+                  {tSubjects('problems')}
+                </Link>
               </Button>
               <Button asChild variant="outline" className="">
-                <Link href={`/subjects/${subject.id}/tags`}>{tSubjects('tags')}</Link>
+                <Link href={`/subjects/${subject.id}/tags`}>
+                  {tSubjects('tags')}
+                </Link>
               </Button>
               <Tooltip content={tSubjects('tooltipClickToRename')}>
                 <Button

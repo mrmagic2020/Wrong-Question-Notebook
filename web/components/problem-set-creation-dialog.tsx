@@ -138,9 +138,7 @@ export default function ProblemSetCreationDialog({
       router.push(`/problem-sets/${result.data.id}`);
     } catch (error) {
       console.error('Error creating problem set:', error);
-      toast.error(
-        error instanceof Error ? error.message : t('failedToCreate')
-      );
+      toast.error(error instanceof Error ? error.message : t('failedToCreate'));
     } finally {
       setIsLoading(false);
     }

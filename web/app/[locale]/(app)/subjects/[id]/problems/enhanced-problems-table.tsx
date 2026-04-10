@@ -251,9 +251,13 @@ export default function EnhancedProblemsTable({
         let errorMessage = t('failedToDeleteProblem', { error: '' });
         try {
           const error = await response.json();
-          errorMessage = t('failedToDeleteProblem', { error: error.message || response.statusText });
+          errorMessage = t('failedToDeleteProblem', {
+            error: error.message || response.statusText,
+          });
         } catch {
-          errorMessage = t('failedToDeleteProblem', { error: response.statusText });
+          errorMessage = t('failedToDeleteProblem', {
+            error: response.statusText,
+          });
         }
         throw new Error(errorMessage);
       }
@@ -322,9 +326,7 @@ export default function EnhancedProblemsTable({
       } catch (error) {
         console.error('Error adding problems to set:', error);
         toast.error(
-          error instanceof Error
-            ? error.message
-            : t('failedToAddProblemsToSet')
+          error instanceof Error ? error.message : t('failedToAddProblemsToSet')
         );
       }
     } else {
@@ -484,7 +486,9 @@ export default function EnhancedProblemsTable({
       <ConfirmationDialog
         isOpen={deleteDialog.open}
         title={t('deleteProblemTitle')}
-        message={t('deleteProblemMessage', { title: deleteDialog.problemTitle })}
+        message={t('deleteProblemMessage', {
+          title: deleteDialog.problemTitle,
+        })}
         confirmText={t('delete')}
         cancelText={t('cancel')}
         onConfirm={handleConfirmDelete}

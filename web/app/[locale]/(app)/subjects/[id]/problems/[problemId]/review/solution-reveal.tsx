@@ -172,9 +172,7 @@ export default function SolutionReveal({
         </div>
       ) : (
         <div className="text-center py-8 text-muted-foreground">
-          <p className="text-sm">
-            {t('clickToRevealSolution')}
-          </p>
+          <p className="text-sm">{t('clickToRevealSolution')}</p>
         </div>
       )}
     </div>

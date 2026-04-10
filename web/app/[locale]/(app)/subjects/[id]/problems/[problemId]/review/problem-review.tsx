@@ -322,14 +322,14 @@ export default function ProblemReview({
               </div>
             )}
             {problem.tags && problem.tags.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setTagsExpanded(!tagsExpanded)}
-            >
-              <Tag className="h-4 w-4" aria-label="Toggle tags visibility" />
-              {t('tags')}
-            </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setTagsExpanded(!tagsExpanded)}
+              >
+                <Tag className="h-4 w-4" aria-label="Toggle tags visibility" />
+                {t('tags')}
+              </Button>
             )}
             {showExitButton && onExitSession && (
               <Button variant="ghost" size="sm" onClick={onExitSession}>
@@ -345,7 +345,9 @@ export default function ProblemReview({
                     : `/subjects/${subject.id}/problems`
                 }
               >
-                {isProblemSetMode ? tProblemSets('backToSet') : tProblems('backToProblems')}
+                {isProblemSetMode
+                  ? tProblemSets('backToSet')
+                  : tProblems('backToProblems')}
               </BackLink>
             )}
           </div>
@@ -469,7 +471,9 @@ export default function ProblemReview({
                       <span
                         className={`font-medium ${isCorrect ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}`}
                       >
-                        {isCorrect ? tProblems('correct') : tProblems('incorrect')}
+                        {isCorrect
+                          ? tProblems('correct')
+                          : tProblems('incorrect')}
                       </span>
                     </div>
                     {problem.answer_config?.type === 'mcq' ? (
@@ -495,7 +499,8 @@ export default function ProblemReview({
                       </>
                     ) : (
                       <p className="text-sm text-muted-foreground mt-1">
-                        {tProblems('yourAnswerPrefix')} {JSON.stringify(submittedAnswer)}
+                        {tProblems('yourAnswerPrefix')}{' '}
+                        {JSON.stringify(submittedAnswer)}
                       </p>
                     )}
                     {!isCorrect && problem.auto_mark && (
@@ -568,7 +573,9 @@ export default function ProblemReview({
                 }}
               >
                 <BookPlus className="h-4 w-4 mr-2" />
-                {isAuthenticated ? tProblems('addToNotebook') : tProblems('signUpToSave')}
+                {isAuthenticated
+                  ? tProblems('addToNotebook')
+                  : tProblems('signUpToSave')}
               </Button>
             </div>
           )}
@@ -585,7 +592,10 @@ export default function ProblemReview({
             !hideNavigation && (
               <div className="review-section-rose">
                 <div className="text-xs text-muted-foreground mb-2 text-center">
-                  {tProblems('problemOf', { current: currentIndex + 1, total: allProblems.length })}
+                  {tProblems('problemOf', {
+                    current: currentIndex + 1,
+                    total: allProblems.length,
+                  })}
                 </div>
                 <div className="flex gap-2">
                   <Button

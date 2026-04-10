@@ -259,7 +259,9 @@ export default function SummaryClient({
         <Card className="card-section">
           <CardContent className="pt-5 pb-5 text-center">
             <div className="text-2xl font-bold">{summary.total_problems}</div>
-            <p className="text-xs text-muted-foreground">{tProblemSets('totalProblems')}</p>
+            <p className="text-xs text-muted-foreground">
+              {tProblemSets('totalProblems')}
+            </p>
           </CardContent>
         </Card>
 
@@ -297,10 +299,14 @@ export default function SummaryClient({
       {/* Timestamps */}
       <div className="text-sm text-muted-foreground text-center space-y-1">
         {summary.started_at && (
-          <p>{t('started')}: {formatDisplayDateTime(summary.started_at)}</p>
+          <p>
+            {t('started')}: {formatDisplayDateTime(summary.started_at)}
+          </p>
         )}
         {summary.completed_at && (
-          <p>{t('finished')}: {formatDisplayDateTime(summary.completed_at)}</p>
+          <p>
+            {t('finished')}: {formatDisplayDateTime(summary.completed_at)}
+          </p>
         )}
       </div>
 

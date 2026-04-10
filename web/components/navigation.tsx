@@ -36,7 +36,9 @@ export function Navigation({
             <span className="hidden sm:inline text-lg -ml-0.5">
               {t('logoText')}
             </span>
-            <span className="sm:hidden text-lg -ml-0.5">{t('logoShortText')}</span>
+            <span className="sm:hidden text-lg -ml-0.5">
+              {t('logoShortText')}
+            </span>
           </Link>
 
           {showAppLinks ? <AppNavLinks /> : null}

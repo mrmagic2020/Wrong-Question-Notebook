@@ -302,9 +302,7 @@ export default function SpacedReviewClient({
     return (
       <div className="section-container text-center py-12">
         <h2 className="text-xl font-bold mb-2">{t('problemNotFound')}</h2>
-        <p className="text-muted-foreground mb-4">
-          {t('problemNotFoundDesc')}
-        </p>
+        <p className="text-muted-foreground mb-4">{t('problemNotFoundDesc')}</p>
         <Button
           variant="outline"
           onClick={() => router.push(`/subjects/${subjectId}/problems`)}

@@ -187,7 +187,9 @@ export default function ProblemSetPageClient({
       {/* Header */}
       <div className="page-header flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center space-x-4">
-          <BackLink onClick={() => router.push('/problem-sets')}>{t('back')}</BackLink>
+          <BackLink onClick={() => router.push('/problem-sets')}>
+            {t('back')}
+          </BackLink>
           <div className="min-w-0">
             <h1 className="page-title">{problemSet.name}</h1>
             {problemSet.isOwner ? (
@@ -293,7 +295,9 @@ export default function ProblemSetPageClient({
               <div className="text-2xl font-bold">
                 {progressLoading ? '...' : progress.total_problems}
               </div>
-              <p className="text-xs text-muted-foreground">{t('totalProblems')}</p>
+              <p className="text-xs text-muted-foreground">
+                {t('totalProblems')}
+              </p>
             </CardContent>
           </Card>
           <Card className="card-section">
@@ -309,7 +313,9 @@ export default function ProblemSetPageClient({
               <div className="text-2xl font-bold text-yellow-600">
                 {progressLoading ? '...' : progress.needs_review_count}
               </div>
-              <p className="text-xs text-muted-foreground">{t('needsReview')}</p>
+              <p className="text-xs text-muted-foreground">
+                {t('needsReview')}
+              </p>
             </CardContent>
           </Card>
           <Card className="card-section">

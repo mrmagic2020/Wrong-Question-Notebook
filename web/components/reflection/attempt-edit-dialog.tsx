@@ -110,9 +110,7 @@ export default function AttemptEditDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t('editAttempt')}</DialogTitle>
-          <DialogDescription>
-            {t('editAttemptDesc')}
-          </DialogDescription>
+          <DialogDescription>{t('editAttemptDesc')}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">

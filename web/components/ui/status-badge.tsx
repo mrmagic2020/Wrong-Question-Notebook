@@ -22,8 +22,7 @@ const statusKeys = {
 
 const StatusBadge = React.forwardRef<HTMLSpanElement, StatusBadgeProps>(
   ({ className, status, children, t, ...props }, ref) => {
-    const label = children
-      ?? (t ? t(statusKeys[status]) : statusKeys[status]);
+    const label = children ?? (t ? t(statusKeys[status]) : statusKeys[status]);
     return (
       <span
         ref={ref}

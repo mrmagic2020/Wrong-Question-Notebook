@@ -114,9 +114,7 @@ export default function ProblemSetEditDialog({
       }
     } catch (error) {
       console.error('Error updating problem set:', error);
-      toast.error(
-        error instanceof Error ? error.message : t('failedToUpdate')
-      );
+      toast.error(error instanceof Error ? error.message : t('failedToUpdate'));
     } finally {
       setIsLoading(false);
     }
@@ -173,9 +171,7 @@ export default function ProblemSetEditDialog({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>{t('editProblemSet')}</DialogTitle>
-          <DialogDescription>
-            {t('editProblemSetDesc')}
-          </DialogDescription>
+          <DialogDescription>{t('editProblemSetDesc')}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">

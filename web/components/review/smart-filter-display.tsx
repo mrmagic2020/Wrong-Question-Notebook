@@ -133,7 +133,9 @@ export default function SmartFilterCriteriaDisplay({
                       className={`text-xs gap-1 ${getStatusBadgeVariant(status)}`}
                     >
                       {getStatusIcon(status)}
-                      {tCommon(getProblemStatusDisplayName(status as ProblemStatus))}
+                      {tCommon(
+                        getProblemStatusDisplayName(status as ProblemStatus)
+                      )}
                     </Badge>
                   ))}
                 </div>

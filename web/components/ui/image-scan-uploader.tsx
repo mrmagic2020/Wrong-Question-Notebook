@@ -796,7 +796,9 @@ export function ImageScanUploader({
             <span
               className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${confidenceColor(confidence.content_quality)}`}
             >
-              {t('quality', { level: confidence.content_quality.replace('_', ' ') })}
+              {t('quality', {
+                level: confidence.content_quality.replace('_', ' '),
+              })}
             </span>
             {confidence.has_math && (
               <span className="inline-flex items-center rounded-full border border-blue-200/50 bg-blue-100/80 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:border-blue-800/40 dark:bg-blue-900/30 dark:text-blue-300">
@@ -807,11 +809,11 @@ export function ImageScanUploader({
 
           {/* Preview of extracted content */}
           <div className="mb-2 text-sm text-gray-700 dark:text-gray-300">
-            <span className="font-medium">{t('title')}</span> {extractionResult.title}
+            <span className="font-medium">{t('title')}</span>{' '}
+            {extractionResult.title}
           </div>
           <div className="text-sm text-gray-700 dark:text-gray-300">
-            <span className="font-medium">{t('type')}</span>{' '}
-            {problemTypeLabel}
+            <span className="font-medium">{t('type')}</span> {problemTypeLabel}
             {choicesCountLabel}
           </div>
 
@@ -822,7 +824,9 @@ export function ImageScanUploader({
               {extractionResult.problem_type === 'mcq' &&
                 extractionResult.answer_hint.mcq_correct_choice_id && (
                   <span>
-                    {t('choiceLabel', { id: extractionResult.answer_hint.mcq_correct_choice_id })}
+                    {t('choiceLabel', {
+                      id: extractionResult.answer_hint.mcq_correct_choice_id,
+                    })}
                   </span>
                 )}
               {extractionResult.problem_type === 'short' &&
@@ -834,7 +838,10 @@ export function ImageScanUploader({
               {extractionResult.problem_type === 'extended' &&
                 extractionResult.answer_hint.extended_working && (
                   <span>
-                    {t('workingSolution', { count: extractionResult.answer_hint.extended_working.length })}
+                    {t('workingSolution', {
+                      count:
+                        extractionResult.answer_hint.extended_working.length,
+                    })}
                   </span>
                 )}
               <p className="mt-1 text-xs italic text-gray-500 dark:text-gray-400">

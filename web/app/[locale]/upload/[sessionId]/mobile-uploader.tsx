@@ -179,8 +179,7 @@ export function MobileUploader({ sessionId, token }: MobileUploaderProps) {
         }
 
         const json = await res.json().catch(() => null);
-        const message =
-          json?.error || t('somethingWrongTryAgain');
+        const message = json?.error || t('somethingWrongTryAgain');
 
         if (res.status === 410) {
           setErrorMessage(QR_SESSION_CONSTANTS.ERRORS.SESSION_EXPIRED);

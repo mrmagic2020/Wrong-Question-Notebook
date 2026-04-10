@@ -163,9 +163,7 @@ export default function CopyProblemSetDialog({
             <Copy className="h-5 w-5" />
             {t('copyToMyLibrary')}
           </DialogTitle>
-          <DialogDescription>
-            {t('createCopyInAccount')}
-          </DialogDescription>
+          <DialogDescription>{t('createCopyInAccount')}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -217,7 +215,9 @@ export default function CopyProblemSetDialog({
                       {subject.name}
                     </SelectItem>
                   ))}
-                  <SelectItem value="__new__">{t('createNewSubject')}</SelectItem>
+                  <SelectItem value="__new__">
+                    {t('createNewSubject')}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             )}

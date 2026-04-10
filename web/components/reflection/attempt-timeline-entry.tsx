@@ -56,10 +56,7 @@ function getCauseLabel(
   return found?.label || cause;
 }
 
-function getStatusBadge(
-  status: string | null,
-  t: (key: string) => string
-) {
+function getStatusBadge(status: string | null, t: (key: string) => string) {
   switch (status) {
     case 'wrong':
       return {

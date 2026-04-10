@@ -3,7 +3,9 @@ import { type EmailOtpType } from '@supabase/supabase-js';
 import { NextResponse, type NextRequest } from 'next/server';
 
 function isRelativePath(path: string): boolean {
-  return path.startsWith('/') && !path.startsWith('//') && !path.includes('://');
+  return (
+    path.startsWith('/') && !path.startsWith('//') && !path.includes('://')
+  );
 }
 
 function extractLocale(pathname: string): string {

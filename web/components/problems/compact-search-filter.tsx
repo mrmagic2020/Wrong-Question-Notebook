@@ -347,7 +347,9 @@ export default function CompactSearchFilter({
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" className="relative">
                 <SlidersHorizontal className="h-4 w-4" />
-                <span className="sr-only md:not-sr-only ml-1">{t('filters')}</span>
+                <span className="sr-only md:not-sr-only ml-1">
+                  {t('filters')}
+                </span>
                 {activeFilterCount > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center font-medium">
                     {activeFilterCount}

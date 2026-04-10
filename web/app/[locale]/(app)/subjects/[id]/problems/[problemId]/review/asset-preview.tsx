@@ -70,7 +70,9 @@ export default function AssetPreview({ asset }: AssetPreviewProps) {
           <p className="text-xs text-muted-foreground truncate">
             {getFileName(asset.path)}
           </p>
-          <p className="text-xs text-primary mt-1">{tCommon('clickToViewFullSize')}</p>
+          <p className="text-xs text-primary mt-1">
+            {tCommon('clickToViewFullSize')}
+          </p>
         </div>
       </div>
     );
@@ -90,7 +92,9 @@ export default function AssetPreview({ asset }: AssetPreviewProps) {
               <p className="text-sm font-medium text-foreground truncate">
                 {getFileName(asset.path)}
               </p>
-              <p className="text-xs text-muted-foreground">{t('pdfDocument')}</p>
+              <p className="text-xs text-muted-foreground">
+                {t('pdfDocument')}
+              </p>
             </div>
           </div>
           <a

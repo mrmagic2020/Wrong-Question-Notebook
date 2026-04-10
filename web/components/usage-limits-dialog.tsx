@@ -78,8 +78,8 @@ function ContentLimitRow({ item }: { item: ContentLimitResult }) {
   const t = useTranslations('Usage');
   const [expanded, setExpanded] = useState(false);
   const Icon = CONTENT_LIMIT_ICONS[item.resource_type] ?? FileText;
-  const label = t.has(`limits.${item.resource_type}` as any) 
-    ? t(`limits.${item.resource_type}` as any) 
+  const label = t.has(`limits.${item.resource_type}` as any)
+    ? t(`limits.${item.resource_type}` as any)
     : item.resource_type;
   const isStorage = item.resource_type === 'storage_bytes';
   const hasPerSubject = item.per_subject && item.per_subject.length > 0;
@@ -110,11 +110,7 @@ function ContentLimitRow({ item }: { item: ContentLimitResult }) {
           {hasPerSubject && (
             <button
               onClick={() => setExpanded(!expanded)}
-              aria-label={
-                expanded
-                  ? t('hideBreakdown')
-                  : t('showBreakdown')
-              }
+              aria-label={expanded ? t('hideBreakdown') : t('showBreakdown')}
               aria-expanded={expanded}
               aria-controls={`breakdown-${item.resource_type}`}
               className="rounded p-0.5 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
@@ -129,7 +125,8 @@ function ContentLimitRow({ item }: { item: ContentLimitResult }) {
       <ProgressBar current={item.current} limit={item.limit} />
       {hasPerSubject && !expanded && highestSubject && (
         <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          {t('highest')}: {highestSubject.subject_name} ({highestSubject.current})
+          {t('highest')}: {highestSubject.subject_name} (
+          {highestSubject.current})
         </p>
       )}
       {hasPerSubject && expanded && (

@@ -420,7 +420,11 @@ export default function AttemptStatusForm({
       )}
 
       <p className="text-xs text-muted-foreground mt-2 text-center">
-        {t('currentStatus', { status: t(currentStatus === 'needs_review' ? 'needsReview' : currentStatus) })}
+        {t('currentStatus', {
+          status: t(
+            currentStatus === 'needs_review' ? 'needsReview' : currentStatus
+          ),
+        })}
       </p>
 
       {/* Collapsible details */}

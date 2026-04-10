@@ -85,9 +85,7 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
   };
 
   const handleDeleteUser = async (userId: string, username: string) => {
-    const confirmed = window.confirm(
-      t('confirmDeleteUser', { username })
-    );
+    const confirmed = window.confirm(t('confirmDeleteUser', { username }));
 
     if (!confirmed) return;
 

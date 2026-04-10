@@ -142,9 +142,11 @@ export default function ProblemCardList({
                       variant="outline"
                       className={`${getStatusBadgeStyle(problem.status as ProblemStatus)} font-medium flex-shrink-0 text-xs`}
                     >
-                      {t(getProblemStatusDisplayName(
-                        problem.status as ProblemStatus
-                      ))}
+                      {t(
+                        getProblemStatusDisplayName(
+                          problem.status as ProblemStatus
+                        )
+                      )}
                     </Badge>
                   )}
                 </div>

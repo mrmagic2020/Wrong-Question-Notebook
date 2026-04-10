@@ -166,9 +166,7 @@ export default function CopyProblemDialog({
             <BookPlus className="h-5 w-5" />
             {t('addToNotebook')}
           </DialogTitle>
-          <DialogDescription>
-            {t('copyProblemDescription')}
-          </DialogDescription>
+          <DialogDescription>{t('copyProblemDescription')}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -207,7 +205,9 @@ export default function CopyProblemDialog({
                       {subject.name}
                     </SelectItem>
                   ))}
-                  <SelectItem value="__new__">{t('createNewSubject')}</SelectItem>
+                  <SelectItem value="__new__">
+                    {t('createNewSubject')}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             )}

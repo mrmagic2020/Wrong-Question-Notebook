@@ -329,9 +329,7 @@ export default function SessionReviewClient({
     return (
       <div className="section-container text-center py-12">
         <h2 className="text-xl font-bold mb-2">{t('problemNotFound')}</h2>
-        <p className="text-muted-foreground mb-4">
-          {t('problemNotFoundDesc')}
-        </p>
+        <p className="text-muted-foreground mb-4">{t('problemNotFoundDesc')}</p>
         <BackLink onClick={() => router.push(`/problem-sets/${problemSetId}`)}>
           {t('backToSet')}
         </BackLink>

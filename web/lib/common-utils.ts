@@ -48,10 +48,7 @@ export function formatDisplayDateTime(
   }
 }
 
-export function formatDisplayDate(
-  dateString: string,
-  locale?: string
-): string {
+export function formatDisplayDate(dateString: string, locale?: string): string {
   try {
     const date = new Date(dateString);
     return date.toLocaleDateString(resolveIntlLocale(locale), {

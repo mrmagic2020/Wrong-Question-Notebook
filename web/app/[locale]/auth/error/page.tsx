@@ -39,16 +39,15 @@ export default async function Page({
             {/* Title */}
             <div className="text-center mb-6 space-y-2">
               <h1 className="auth-title">{t('somethingWentWrong')}</h1>
-              <p className="auth-subtitle">
-                {t('errorEncountered')}
-              </p>
+              <p className="auth-subtitle">{t('errorEncountered')}</p>
             </div>
 
             {/* Error message */}
             <div className="auth-slide-up space-y-6">
               {params?.error ? (
                 <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-                  {t('errorCode')} <span className="font-mono">{params.error}</span>
+                  {t('errorCode')}{' '}
+                  <span className="font-mono">{params.error}</span>
                 </p>
               ) : (
                 <p className="text-sm text-gray-600 dark:text-gray-400 text-center">

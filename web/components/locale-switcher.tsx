@@ -43,10 +43,7 @@ const LocaleSwitcher = () => {
           aria-label={t('switchLanguage')}
           disabled={isPending}
         >
-          <Languages
-            size={ICON_SIZE}
-            className="text-muted-foreground"
-          />
+          <Languages size={ICON_SIZE} className="text-muted-foreground" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-content" align="start">

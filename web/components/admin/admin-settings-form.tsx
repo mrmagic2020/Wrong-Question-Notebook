@@ -72,7 +72,9 @@ export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor={`${key}-message`}>{t('maintenanceMessage')}</Label>
+              <Label htmlFor={`${key}-message`}>
+                {t('maintenanceMessage')}
+              </Label>
               <Textarea
                 id={`${key}-message`}
                 value={currentValue.message || ''}

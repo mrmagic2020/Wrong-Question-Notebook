@@ -153,9 +153,7 @@ export default function AddToSetDialog({
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
           <DialogTitle>{t('addToProblemSet')}</DialogTitle>
-          <DialogDescription>
-            {t('selectProblemSet')}
-          </DialogDescription>
+          <DialogDescription>{t('selectProblemSet')}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">

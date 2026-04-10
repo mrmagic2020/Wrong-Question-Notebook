@@ -216,7 +216,7 @@ export function DataTable<TData, TValue>({
         <div className="flex-1 text-sm text-muted-foreground">
           {t('selectedRowsInfo', {
             selectedCount: table.getFilteredSelectedRowModel().rows.length,
-            totalCount: table.getFilteredRowModel().rows.length
+            totalCount: table.getFilteredRowModel().rows.length,
           })}
         </div>
         <div className="flex items-center space-x-6 lg:space-x-8">
@@ -239,7 +239,7 @@ export function DataTable<TData, TValue>({
           <div className="flex w-[100px] items-center justify-center text-sm font-medium">
             {t('pageInfo', {
               pageIndex: table.getState().pagination.pageIndex + 1,
-              pageCount: table.getPageCount()
+              pageCount: table.getPageCount(),
             })}
           </div>
           <div className="flex items-center space-x-2">
