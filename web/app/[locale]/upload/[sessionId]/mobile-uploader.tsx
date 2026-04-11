@@ -196,7 +196,7 @@ export function MobileUploader({ sessionId, token }: MobileUploaderProps) {
         setState('error');
       }
     },
-    [file, preview, sessionId, token, completedCrop]
+    [file, preview, sessionId, token, completedCrop, t]
   );
 
   // -- Capture state --

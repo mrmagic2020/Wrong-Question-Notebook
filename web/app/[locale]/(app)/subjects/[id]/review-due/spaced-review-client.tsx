@@ -80,7 +80,7 @@ export default function SpacedReviewClient({
     } finally {
       setLoading(false);
     }
-  }, [sessionId, subjectId, router]);
+  }, [sessionId, subjectId, router, t]);
 
   useEffect(() => {
     fetchSession();

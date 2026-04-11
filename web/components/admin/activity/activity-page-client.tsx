@@ -71,7 +71,7 @@ export function ActivityPageClient({
         setLoading(false);
       }
     },
-    []
+    [t]
   );
 
   const handleApplyFilters = () => {

@@ -86,7 +86,7 @@ export default function SessionReviewClient({
     } finally {
       setLoading(false);
     }
-  }, [sessionId, problemSetId, router]);
+  }, [sessionId, problemSetId, router, t]);
 
   useEffect(() => {
     fetchSession();
