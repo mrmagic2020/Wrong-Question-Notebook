@@ -11,6 +11,7 @@ import {
 import { Radar } from 'react-chartjs-2';
 import { useEffect, useState } from 'react';
 import { SubjectBreakdownRow } from '@/lib/types';
+import { useTranslations } from 'next-intl';
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip);
 
@@ -19,6 +20,7 @@ interface SubjectRadarChartProps {
 }
 
 export function SubjectRadarChart({ data }: SubjectRadarChartProps) {
+  const t = useTranslations('Statistics');
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
@@ -54,7 +56,7 @@ export function SubjectRadarChart({ data }: SubjectRadarChartProps) {
           </svg>
         </div>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Need at least 3 subjects for radar chart
+          {t('needThreeSubjects')}
         </p>
       </div>
     );
@@ -64,7 +66,7 @@ export function SubjectRadarChart({ data }: SubjectRadarChartProps) {
     labels: data.map(d => d.subject_name),
     datasets: [
       {
-        label: 'Mastery %',
+        label: t('masteryPercent'),
         data: data.map(d => d.mastery_pct),
         backgroundColor: isDark
           ? 'rgba(251, 191, 36, 0.2)'
@@ -93,7 +95,7 @@ export function SubjectRadarChart({ data }: SubjectRadarChartProps) {
         padding: 12,
         cornerRadius: 8,
         callbacks: {
-          label: (ctx: any) => `Mastery: ${ctx.parsed.r}%`,
+          label: (ctx: any) => t('masteryTooltip', { pct: ctx.parsed.r }),
         },
       },
     },

@@ -57,6 +57,15 @@ export async function getContentLimit(
     .maybeSingle();
 
   if (error) {
+    // Check if error is "table not found" (PGRST205) - this is expected in dev
+    // In this case, fall back to default limits
+    if (
+      error.code === 'PGRST205' ||
+      (error.message?.includes('table') && error.message?.includes('not found'))
+    ) {
+      console.warn('Content limit overrides table not found, using defaults');
+      return getDefaultLimit(resourceType);
+    }
     console.error('Content limit override lookup failed:', error);
     throw new Error('Failed to look up content limit');
   }
@@ -228,10 +237,27 @@ export async function getAllContentLimits(
 
   // Fetch all overrides in one query
   const supabase = createServiceClient();
-  const { data: overrides } = await supabase
-    .from('content_limit_overrides')
-    .select('resource_type, limit_value')
-    .eq('user_id', userId);
+  let overrides: Array<{ resource_type: string; limit_value: string }> = [];
+  try {
+    const { data, error } = await supabase
+      .from('content_limit_overrides')
+      .select('resource_type, limit_value')
+      .eq('user_id', userId);
+
+    if (error) {
+      // Table might not exist - use empty overrides
+      if (error.code === 'PGRST205') {
+        console.warn('Content limit overrides table not found, using defaults');
+      } else {
+        console.error('Failed to fetch content limit overrides:', error);
+      }
+    } else {
+      overrides = data ?? [];
+    }
+  } catch {
+    // Table might not exist - use empty overrides
+    console.warn('Content limit overrides table not found, using defaults');
+  }
 
   const overrideMap = new Map(
     (overrides ?? []).map(o => [o.resource_type, Number(o.limit_value)])

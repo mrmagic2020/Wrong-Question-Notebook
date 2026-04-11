@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Input } from '@/components/ui/input';
 import { Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,7 @@ interface UserSearchBarProps {
 }
 
 export function UserSearchBar({ value, onChange }: UserSearchBarProps) {
+  const t = useTranslations('Admin');
   const [localValue, setLocalValue] = useState(value);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -28,7 +30,7 @@ export function UserSearchBar({ value, onChange }: UserSearchBarProps) {
     <div className="relative">
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
       <Input
-        placeholder="Search users by name or username..."
+        placeholder={t('searchUsersPlaceholder')}
         value={localValue}
         onChange={e => handleChange(e.target.value)}
         className="pl-9 pr-9 rounded-xl border-amber-200/40 dark:border-stone-700 bg-white/80 dark:bg-stone-900/50"

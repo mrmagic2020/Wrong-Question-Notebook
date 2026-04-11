@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { AdminSettingsType } from '@/lib/schemas';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,8 @@ interface SettingsPageClientProps {
 }
 
 export function SettingsPageClient({ settings }: SettingsPageClientProps) {
+  const t = useTranslations('Admin');
+  const tCommon = useTranslations('Common');
   const [modifiedSettings, setModifiedSettings] = useState<
     Record<string, Record<string, unknown>>
   >({});
@@ -47,13 +50,13 @@ export function SettingsPageClient({ settings }: SettingsPageClientProps) {
 
       const failed = results.filter(r => !r.ok);
       if (failed.length > 0) {
-        toast.error(`Failed to save ${failed.length} setting(s)`);
+        toast.error(t('errorSavingSettings', { count: failed.length }));
       } else {
-        toast.success('Settings saved successfully');
+        toast.success(t('settingsSaved'));
         setModifiedSettings({});
       }
     } catch {
-      toast.error('Error saving settings');
+      toast.error(t('errorSavingSettings'));
     } finally {
       setSaving(false);
     }
@@ -76,7 +79,7 @@ export function SettingsPageClient({ settings }: SettingsPageClientProps) {
         return (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label>Maintenance Mode</Label>
+              <Label>{t('maintenanceMode')}</Label>
               <Switch
                 checked={(val.enabled as boolean) || false}
                 onCheckedChange={enabled =>
@@ -85,13 +88,13 @@ export function SettingsPageClient({ settings }: SettingsPageClientProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label>Maintenance Message</Label>
+              <Label>{t('maintenanceMessage')}</Label>
               <Textarea
                 value={(val.message as string) || ''}
                 onChange={e =>
                   handleChange(key, { ...val, message: e.target.value })
                 }
-                placeholder="Enter maintenance message..."
+                placeholder={t('enterMaintenanceMessage')}
                 rows={3}
                 className="rounded-xl"
               />
@@ -103,7 +106,7 @@ export function SettingsPageClient({ settings }: SettingsPageClientProps) {
         return (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label>Allow Registration</Label>
+              <Label>{t('allowRegistration')}</Label>
               <Switch
                 checked={val.enabled !== false}
                 onCheckedChange={enabled =>
@@ -112,7 +115,7 @@ export function SettingsPageClient({ settings }: SettingsPageClientProps) {
               />
             </div>
             <div className="flex items-center justify-between">
-              <Label>Require Email Verification</Label>
+              <Label>{t('requireEmailVerification')}</Label>
               <Switch
                 checked={val.require_email_verification !== false}
                 onCheckedChange={require_email_verification =>
@@ -126,7 +129,7 @@ export function SettingsPageClient({ settings }: SettingsPageClientProps) {
       case 'max_file_upload_size':
         return (
           <div className="space-y-2">
-            <Label>Maximum Upload Size (MB)</Label>
+            <Label>{t('maxUploadSize')}</Label>
             <Input
               type="number"
               value={(val.size_mb as number) || 10}
@@ -145,7 +148,7 @@ export function SettingsPageClient({ settings }: SettingsPageClientProps) {
       case 'session_timeout':
         return (
           <div className="space-y-2">
-            <Label>Session Timeout (Hours)</Label>
+            <Label>{t('sessionTimeout')}</Label>
             <Input
               type="number"
               value={(val.hours as number) || 24}
@@ -166,7 +169,7 @@ export function SettingsPageClient({ settings }: SettingsPageClientProps) {
         if (key === 'site_announcement') return null;
         return (
           <div className="space-y-2">
-            <Label>Raw Value (JSON)</Label>
+            <Label>{t('rawValue')} (JSON)</Label>
             <Textarea
               value={JSON.stringify(val, null, 2)}
               onChange={e => {
@@ -191,10 +194,10 @@ export function SettingsPageClient({ settings }: SettingsPageClientProps) {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Settings
+            {t('settingsTitle')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Configure application-wide settings
+            {t('settingsDesc')}
           </p>
         </div>
         {hasModifications && (
@@ -202,7 +205,7 @@ export function SettingsPageClient({ settings }: SettingsPageClientProps) {
             variant="outline"
             className="bg-orange-100/80 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-200/50 dark:border-orange-800/40"
           >
-            Unsaved Changes
+            {t('unsavedChanges')}
           </Badge>
         )}
       </div>
@@ -244,7 +247,7 @@ export function SettingsPageClient({ settings }: SettingsPageClientProps) {
             disabled={saving}
           >
             <RotateCcw className="h-4 w-4" />
-            Reset
+            {tCommon('reset')}
           </Button>
           <Button
             className="rounded-xl gap-2"
@@ -252,7 +255,7 @@ export function SettingsPageClient({ settings }: SettingsPageClientProps) {
             disabled={saving}
           >
             <Save className="h-4 w-4" />
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? t('saving') : t('saveChanges')}
           </Button>
         </div>
       )}

@@ -20,6 +20,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
+import { useTranslations } from 'next-intl';
 
 // Helper function to get status badge styling with custom colors
 const getStatusBadgeStyle = (status: string): string => {
@@ -56,6 +57,7 @@ export function DataTableFacetedFilter<TData, TValue>({
   onSelectedValuesChange,
   children,
 }: DataTableFacetedFilterProps<TData, TValue>) {
+  const t = useTranslations('DataTable');
   const facets = column?.getFacetedUniqueValues();
   const internalSelectedValues = new Set(column?.getFilterValue() as string[]);
   const selectedValues = externalSelectedValues || internalSelectedValues;
@@ -105,7 +107,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                     variant="secondary"
                     className="rounded-sm px-1 font-normal"
                   >
-                    {selectedValues.size} selected
+                    {selectedValues.size} {t('selectedCount')}
                   </Badge>
                 ) : (
                   options
@@ -142,7 +144,7 @@ export function DataTableFacetedFilter<TData, TValue>({
             className="h-8 focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-0 focus:shadow-none"
           />
           <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandEmpty>{t('noResultsFound')}</CommandEmpty>
             <CommandGroup>
               {options.map(option => {
                 const isSelected = selectedValues.has(option.value);
@@ -193,7 +195,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                     onSelect={handleClear}
                     className="justify-center text-center"
                   >
-                    Clear filters
+                    {t('clearFilters')}
                   </CommandItem>
                 </CommandGroup>
               </>

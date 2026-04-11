@@ -83,23 +83,23 @@ export function getHeatmapIntensity(count: number, maxCount: number): number {
  */
 export function getHeatmapMonthLabels(
   grid: HeatmapWeek[]
-): { label: string; colStart: number }[] {
-  const months: { label: string; colStart: number }[] = [];
-  let lastMonth = '';
+): { monthIndex: number; colStart: number }[] {
+  const months: { monthIndex: number; colStart: number }[] = [];
+  let lastMonth: number = -1;
   let lastColStart = -4; // ensure first label always shows
 
   for (let w = 0; w < grid.length; w++) {
     const firstDay = grid[w].cells[0];
     if (!firstDay) continue;
     const date = new Date(firstDay.date + 'T00:00:00');
-    const monthLabel = date.toLocaleString('en-US', { month: 'short' });
-    if (monthLabel !== lastMonth) {
+    const monthIndex = date.getMonth();
+    if (monthIndex !== lastMonth) {
       // Skip if too close to previous label (avoid overlap)
       if (w - lastColStart >= 3) {
-        months.push({ label: monthLabel, colStart: w });
+        months.push({ monthIndex, colStart: w });
         lastColStart = w;
       }
-      lastMonth = monthLabel;
+      lastMonth = monthIndex;
     }
   }
 

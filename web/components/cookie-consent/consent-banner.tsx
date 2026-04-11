@@ -1,10 +1,14 @@
 'use client';
 
 import { Cookie } from 'lucide-react';
+import { Link } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { useConsent } from './consent-provider';
 
 export function ConsentBanner() {
+  const t = useTranslations('CookieConsent');
+  const tCommon = useTranslations('Common');
   const { acceptAll, rejectAll, openPreferences } = useConsent();
 
   return (
@@ -17,18 +21,16 @@ export function ConsentBanner() {
             </div>
             <div className="space-y-1.5">
               <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                We value your privacy
+                {t('weValuePrivacy')}
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                We use essential cookies to keep you signed in, and optional
-                analytics cookies to help us improve. Analytics cookies are only
-                set with your permission.{' '}
-                <a
+                {t('cookieDesc')}
+                <Link
                   href="/privacy#section-6"
                   className="text-amber-600 dark:text-amber-400 hover:underline font-medium"
                 >
-                  Learn more
-                </a>
+                  {tCommon('learnMore')}
+                </Link>
               </p>
             </div>
           </div>
@@ -40,7 +42,7 @@ export function ConsentBanner() {
               onClick={openPreferences}
               className="text-sm"
             >
-              Manage preferences
+              {t('managePreferences')}
             </Button>
             <Button
               variant="outline"
@@ -48,10 +50,10 @@ export function ConsentBanner() {
               onClick={rejectAll}
               className="text-sm"
             >
-              Reject all
+              {t('rejectAll')}
             </Button>
             <Button size="sm" onClick={acceptAll} className="text-sm shadow-md">
-              Accept all
+              {t('acceptAll')}
             </Button>
           </div>
         </div>

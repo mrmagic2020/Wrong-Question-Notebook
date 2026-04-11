@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -12,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
+import { apiUrl } from '@/lib/api-utils';
 import { Tag } from '@/lib/types';
 import { Check, Pencil, Trash2, X } from 'lucide-react';
 import { useContentLimit } from '@/lib/hooks/useContentLimit';
@@ -31,6 +33,8 @@ export function TagManageDialog({
   subjectId,
   subjectName,
 }: TagManageDialogProps) {
+  const t = useTranslations('Subjects');
+  const tCommon = useTranslations('Common');
   const router = useRouter();
   const [tags, setTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,9 +63,9 @@ export function TagManageDialog({
     fetch(`/api/tags?subject_id=${subjectId}`)
       .then(r => r.json())
       .then(j => setTags(j.data ?? []))
-      .catch(() => toast.error('Failed to load tags'))
+      .catch(() => toast.error(t('failedToLoadTags')))
       .finally(() => setLoading(false));
-  }, [open, subjectId]);
+  }, [open, subjectId, t]);
 
   // Focus edit input when editing starts
   useEffect(() => {
@@ -81,27 +85,27 @@ export function TagManageDialog({
     const trimmed = newTagName.trim();
     if (!trimmed) return;
     if (isDuplicate(trimmed)) {
-      toast.error('A tag with this name already exists');
+      toast.error(t('tagExists'));
       return;
     }
 
     setCreatingTag(true);
     try {
-      const res = await fetch('/api/tags', {
+      const res = await fetch(apiUrl('/api/tags'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subject_id: subjectId, name: trimmed }),
       });
       const j = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(j?.error ?? 'Failed to create tag');
+      if (!res.ok) throw new Error(j?.error ?? t('failedToCreateTag'));
 
       setTags(prev => [...prev, j.data]);
       setNewTagName('');
-      toast.success('Tag created');
+      toast.success(t('tagCreated'));
       refreshLimit();
       router.refresh();
     } catch (e: any) {
-      toast.error(e.message || 'Failed to create tag');
+      toast.error(e.message || t('failedToCreateTag'));
     } finally {
       setCreatingTag(false);
     }
@@ -110,11 +114,11 @@ export function TagManageDialog({
   async function handleRenameTag(tagId: string) {
     const trimmed = editingName.trim();
     if (!trimmed) {
-      toast.error('Name cannot be empty');
+      toast.error(t('tagNameEmpty'));
       return;
     }
     if (isDuplicate(trimmed, tagId)) {
-      toast.error('A tag with this name already exists');
+      toast.error(t('tagExists'));
       return;
     }
 
@@ -126,16 +130,16 @@ export function TagManageDialog({
         body: JSON.stringify({ name: trimmed }),
       });
       const j = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(j?.error ?? 'Rename failed');
+      if (!res.ok) throw new Error(j?.error ?? t('failedToRenameTag'));
 
       setTags(prev =>
         prev.map(t => (t.id === tagId ? { ...t, name: trimmed } : t))
       );
       setEditingTagId(null);
-      toast.success('Tag renamed');
+      toast.success(t('tagRenamed'));
       router.refresh();
     } catch (e: any) {
-      toast.error(e.message || 'Failed to rename tag');
+      toast.error(e.message || t('failedToRenameTag'));
     } finally {
       setBusyTagId(null);
     }
@@ -148,14 +152,14 @@ export function TagManageDialog({
         method: 'DELETE',
       });
       const j = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(j?.error ?? 'Delete failed');
+      if (!res.ok) throw new Error(j?.error ?? t('failedToDeleteTag'));
 
       setTags(prev => prev.filter(t => t.id !== tagId));
       setConfirmingDeleteId(null);
-      toast.success('Tag deleted');
+      toast.success(t('tagDeleted'));
       router.refresh();
     } catch (e: any) {
-      toast.error(e.message || 'Failed to delete tag');
+      toast.error(e.message || t('failedToDeleteTag'));
     } finally {
       setBusyTagId(null);
     }
@@ -179,7 +183,9 @@ export function TagManageDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{subjectName} — Tags</DialogTitle>
+            <DialogTitle>
+              {subjectName} — {tCommon('tags')}
+            </DialogTitle>
           </DialogHeader>
 
           {/* Create tag */}
@@ -187,13 +193,13 @@ export function TagManageDialog({
             <ContentLimitIndicator
               current={limitData.current}
               limit={limitData.limit}
-              label="tags used"
+              label={t('tagsUsed')}
             />
           )}
           <div className="flex items-center gap-2">
             <Input
               placeholder={
-                tagLimitExhausted ? 'Tag limit reached' : 'New tag name'
+                tagLimitExhausted ? t('tagLimitReached') : t('newTagName')
               }
               value={newTagName}
               onChange={e => setNewTagName(e.target.value)}
@@ -213,7 +219,7 @@ export function TagManageDialog({
               disabled={creatingTag || !newTagName.trim() || tagLimitExhausted}
             >
               {creatingTag && <Spinner />}
-              Add
+              {tCommon('add')}
             </Button>
           </div>
 
@@ -224,7 +230,7 @@ export function TagManageDialog({
             </div>
           ) : tags.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-6">
-              No tags yet. Create one above.
+              {t('noTagsYet')}
             </p>
           ) : (
             <div className="max-h-60 overflow-y-auto -mx-1 px-1 space-y-1">
@@ -274,7 +280,7 @@ export function TagManageDialog({
                         {tag.name}
                       </span>
                       <span className="text-xs text-destructive whitespace-nowrap">
-                        Delete?
+                        {t('deleteTag')}
                       </span>
                       <Button
                         type="button"

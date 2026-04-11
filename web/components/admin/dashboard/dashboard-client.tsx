@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import {
   Users,
   Activity,
@@ -37,50 +38,53 @@ export function DashboardClient({
   storageStats,
   recentActivity,
 }: DashboardClientProps) {
+  const t = useTranslations('Admin');
+  const tCommon = useTranslations('Common');
+
   return (
     <div className="space-y-8">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Dashboard
+          {t('dashboard')}
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Platform overview and quick actions
+          {t('platformOverview')}
         </p>
       </div>
 
       {/* User Stat Cards */}
       <div>
         <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
-          Users
+          {t('users')}
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             icon={Users}
             value={userStats.total_users}
-            label="Total Users"
-            sublabel={`${userStats.new_users_today} new today`}
+            label={t('totalUsers')}
+            sublabel={t('newToday', { count: userStats.new_users_today })}
             color="amber"
           />
           <StatCard
             icon={Activity}
             value={userStats.active_users}
-            label="Active Users"
-            sublabel="Currently active"
+            label={t('activeUsers')}
+            sublabel={t('currentlyActive')}
             color="emerald"
           />
           <StatCard
             icon={TrendingUp}
             value={userStats.new_users_this_week}
-            label="New This Week"
-            sublabel="Last 7 days"
+            label={t('newThisWeek')}
+            sublabel={t('last7Days')}
             color="blue"
           />
           <StatCard
             icon={Shield}
             value={userStats.admin_users}
-            label="Admin Users"
-            sublabel="With admin privileges"
+            label={t('adminUsers')}
+            sublabel={t('withAdminPrivileges')}
             color="purple"
           />
         </div>
@@ -89,38 +93,38 @@ export function DashboardClient({
       {/* Content Stat Cards */}
       <div>
         <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
-          Content
+          {t('content')}
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <StatCard
             icon={FileQuestion}
             value={contentStats.total_problems}
-            label="Problems"
+            label={t('problems')}
             color="orange"
           />
           <StatCard
             icon={BookOpen}
             value={contentStats.total_subjects}
-            label="Subjects"
+            label={t('subjects')}
             color="rose"
           />
           <StatCard
             icon={FolderOpen}
             value={contentStats.total_problem_sets}
-            label="Problem Sets"
+            label={t('sets')}
             color="blue"
           />
           <StatCard
             icon={Target}
             value={contentStats.total_attempts}
-            label="Attempts"
+            label={t('attempts')}
             color="emerald"
           />
           <StatCard
             icon={HardDrive}
             value={formatBytes(storageStats.totalBytes)}
-            label="Storage"
-            sublabel={`${storageStats.fileCount} files`}
+            label={tCommon('storage')}
+            sublabel={t('files', { count: storageStats.fileCount })}
             color="purple"
           />
         </div>
@@ -131,7 +135,7 @@ export function DashboardClient({
         {/* Recent Activity */}
         <div className="admin-section-card">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Recent Activity
+            {t('recentActivityTitle')}
           </h2>
           <RecentActivityFeed activities={recentActivity} />
         </div>
@@ -139,7 +143,7 @@ export function DashboardClient({
         {/* Quick Actions */}
         <div className="admin-section-card">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Quick Actions
+            {t('quickActions')}
           </h2>
           <QuickActions />
         </div>

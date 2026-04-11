@@ -5,15 +5,17 @@ import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { useState } from 'react';
 import { ROUTES } from '@/lib/constants';
 import { Lock } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export function UpdatePasswordForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<'div'>) {
+  const t = useTranslations('Auth');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -49,10 +51,8 @@ export function UpdatePasswordForm({
 
         {/* Title */}
         <div className="text-center mb-6 space-y-2">
-          <h1 className="auth-title">Set new password</h1>
-          <p className="auth-subtitle">
-            Choose a strong password for your account
-          </p>
+          <h1 className="auth-title">{t('updateYourPassword')}</h1>
+          <p className="auth-subtitle">{t('updatePasswordDesc')}</p>
         </div>
 
         {/* Form */}
@@ -61,11 +61,11 @@ export function UpdatePasswordForm({
           className="auth-slide-up space-y-4"
         >
           <div className="space-y-2">
-            <Label htmlFor="password">New password</Label>
+            <Label htmlFor="password">{t('newPassword')}</Label>
             <Input
               id="password"
               type="password"
-              placeholder="Enter new password"
+              placeholder={t('newPassword')}
               required
               value={password}
               onChange={e => setPassword(e.target.value)}
@@ -77,7 +77,7 @@ export function UpdatePasswordForm({
             className="w-full btn-cta-primary"
             disabled={isLoading}
           >
-            {isLoading ? 'Saving...' : 'Save new password'}
+            {isLoading ? t('updating') : t('updatePassword')}
           </Button>
         </form>
       </div>

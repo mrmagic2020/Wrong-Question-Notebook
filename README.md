@@ -1,5 +1,7 @@
 # Wrong Question Notebook
 
+[English](README.md) | [简体中文](README.zh-CN.md)
+
 The Wrong Question Notebook (WQN) is a web application designed to help students systematically track, organise, and revise the problems they answered incorrectly. It provides a comprehensive system for managing problems across multiple notebooks, tracking progress with detailed statistics, and facilitating effective revision through structured review sessions.
 
 **Live:** [wqn.magicworks.app](https://wqn.magicworks.app/)

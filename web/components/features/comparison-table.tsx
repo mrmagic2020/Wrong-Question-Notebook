@@ -1,80 +1,17 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Check, X, Minus } from 'lucide-react';
 
-interface ComparisonRow {
-  feature: string;
-  physical: { icon: 'check' | 'cross' | 'partial'; label: string };
-  digital: { icon: 'check' | 'cross' | 'partial'; label: string };
-  wqn: { icon: 'check' | 'cross' | 'partial'; label: string };
-}
+type StatusIconType = 'check' | 'cross' | 'partial';
 
-const rows: ComparisonRow[] = [
-  {
-    feature: 'Record wrong questions',
-    physical: { icon: 'check', label: 'Handwrite' },
-    digital: { icon: 'check', label: 'Photo/Screenshot' },
-    wqn: { icon: 'check', label: 'Structured form' },
-  },
-  {
-    feature: 'Organize by subject',
-    physical: { icon: 'partial', label: 'Separate notebooks' },
-    digital: { icon: 'partial', label: 'Folders/headings' },
-    wqn: { icon: 'check', label: 'Subjects with colors & icons' },
-  },
-  {
-    feature: 'Search & filter',
-    physical: { icon: 'cross', label: 'Flip through pages' },
-    digital: { icon: 'partial', label: 'Ctrl+F text only' },
-    wqn: { icon: 'check', label: 'Tags, status, smart filters' },
-  },
-  {
-    feature: 'Track mastery progress',
-    physical: { icon: 'cross', label: 'Tally marks?' },
-    digital: { icon: 'cross', label: 'Manual tracking' },
-    wqn: { icon: 'check', label: 'Automatic status tracking' },
-  },
-  {
-    feature: 'Review sessions',
-    physical: { icon: 'partial', label: 'Self-directed' },
-    digital: { icon: 'partial', label: 'Self-directed' },
-    wqn: { icon: 'check', label: 'Interactive with auto-marking' },
-  },
-  {
-    feature: 'Analytics & insights',
-    physical: { icon: 'cross', label: 'None' },
-    digital: { icon: 'cross', label: 'None' },
-    wqn: { icon: 'check', label: 'Charts, heatmaps, streaks' },
-  },
-  {
-    feature: 'Share with others',
-    physical: { icon: 'cross', label: 'Photocopy' },
-    digital: { icon: 'check', label: 'Share doc link' },
-    wqn: { icon: 'check', label: 'Share access link' },
-  },
-  {
-    feature: 'Access anywhere',
-    physical: { icon: 'cross', label: 'Carry it' },
-    digital: { icon: 'check', label: 'Any browser' },
-    wqn: { icon: 'check', label: 'Any browser' },
-  },
-];
-
-const STATUS_LABELS: Record<'check' | 'cross' | 'partial', string> = {
-  check: 'Supported',
-  partial: 'Partially supported',
-  cross: 'Not supported',
-};
-
-function StatusIcon({ type }: { type: 'check' | 'cross' | 'partial' }) {
-  const srLabel = STATUS_LABELS[type];
-
+function StatusIcon({ type, label }: { type: StatusIconType; label: string }) {
   if (type === 'check') {
     return (
       <div
         className="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center"
         role="img"
-        aria-label={srLabel}
+        aria-label={label}
       >
         <Check
           className="w-3 h-3 text-green-600 dark:text-green-400"
@@ -88,7 +25,7 @@ function StatusIcon({ type }: { type: 'check' | 'cross' | 'partial' }) {
       <div
         className="w-5 h-5 rounded-full bg-yellow-100 dark:bg-yellow-900/40 flex items-center justify-center"
         role="img"
-        aria-label={srLabel}
+        aria-label={label}
       >
         <Minus
           className="w-3 h-3 text-yellow-600 dark:text-yellow-400"
@@ -101,7 +38,7 @@ function StatusIcon({ type }: { type: 'check' | 'cross' | 'partial' }) {
     <div
       className="w-5 h-5 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center"
       role="img"
-      aria-label={srLabel}
+      aria-label={label}
     >
       <X
         className="w-3 h-3 text-red-500 dark:text-red-400"
@@ -112,6 +49,108 @@ function StatusIcon({ type }: { type: 'check' | 'cross' | 'partial' }) {
 }
 
 export function ComparisonTable() {
+  const t = useTranslations('Comparison');
+  const tCommon = useTranslations('Common');
+
+  const statusLabel = (type: StatusIconType) => {
+    if (type === 'check') return t('supported');
+    if (type === 'partial') return t('partiallySupported');
+    return t('notSupported');
+  };
+
+  const rows = [
+    {
+      feature: t('recordWrongQuestions'),
+      physical: { icon: 'check' as StatusIconType, label: t('handwrite') },
+      digital: { icon: 'check' as StatusIconType, label: t('photoScreenshot') },
+      wqn: { icon: 'check' as StatusIconType, label: t('structuredForm') },
+    },
+    {
+      feature: t('organizeBySubject'),
+      physical: {
+        icon: 'partial' as StatusIconType,
+        label: t('separateNotebooks'),
+      },
+      digital: {
+        icon: 'partial' as StatusIconType,
+        label: t('foldersHeadings'),
+      },
+      wqn: {
+        icon: 'check' as StatusIconType,
+        label: t('subjectsColorsIcons'),
+      },
+    },
+    {
+      feature: t('searchFilter'),
+      physical: {
+        icon: 'cross' as StatusIconType,
+        label: t('flipThroughPages'),
+      },
+      digital: {
+        icon: 'partial' as StatusIconType,
+        label: t('ctrlFTextOnly'),
+      },
+      wqn: {
+        icon: 'check' as StatusIconType,
+        label: t('tagsStatusSmartFilters'),
+      },
+    },
+    {
+      feature: t('trackMasteryProgress'),
+      physical: { icon: 'cross' as StatusIconType, label: t('tallyMarks') },
+      digital: {
+        icon: 'cross' as StatusIconType,
+        label: t('manualTracking'),
+      },
+      wqn: {
+        icon: 'check' as StatusIconType,
+        label: t('automaticStatusTracking'),
+      },
+    },
+    {
+      feature: t('reviewSessions'),
+      physical: {
+        icon: 'partial' as StatusIconType,
+        label: t('selfDirected'),
+      },
+      digital: {
+        icon: 'partial' as StatusIconType,
+        label: t('selfDirected'),
+      },
+      wqn: {
+        icon: 'check' as StatusIconType,
+        label: t('interactiveWithAutoMarking'),
+      },
+    },
+    {
+      feature: t('analyticsInsights'),
+      physical: { icon: 'cross' as StatusIconType, label: tCommon('none') },
+      digital: { icon: 'cross' as StatusIconType, label: tCommon('none') },
+      wqn: {
+        icon: 'check' as StatusIconType,
+        label: t('chartsHeatmapsStreaks'),
+      },
+    },
+    {
+      feature: t('shareWithOthers'),
+      physical: { icon: 'cross' as StatusIconType, label: t('photocopy') },
+      digital: {
+        icon: 'check' as StatusIconType,
+        label: t('shareDocLink'),
+      },
+      wqn: {
+        icon: 'check' as StatusIconType,
+        label: t('shareAccessLink'),
+      },
+    },
+    {
+      feature: t('accessAnywhere'),
+      physical: { icon: 'cross' as StatusIconType, label: t('carryIt') },
+      digital: { icon: 'check' as StatusIconType, label: t('anyBrowser') },
+      wqn: { icon: 'check' as StatusIconType, label: t('anyBrowser') },
+    },
+  ];
+
   return (
     <>
       {/* Desktop table */}
@@ -123,25 +162,25 @@ export function ComparisonTable() {
                 scope="col"
                 className="text-left p-4 text-sm font-medium text-gray-600 dark:text-gray-400 w-[28%]"
               >
-                Feature
+                {t('feature')}
               </th>
               <th
                 scope="col"
                 className="text-center p-4 text-sm font-medium text-gray-600 dark:text-gray-400 w-[24%]"
               >
-                Physical Notebook
+                {t('physicalNotebook')}
               </th>
               <th
                 scope="col"
                 className="text-center p-4 text-sm font-medium text-gray-600 dark:text-gray-400 w-[24%]"
               >
-                Digital Document
+                {t('digitalDocument')}
               </th>
               <th
                 scope="col"
                 className="text-center p-4 text-sm font-semibold text-amber-700 dark:text-amber-300 w-[24%] bg-amber-200/50 dark:bg-amber-900/20 rounded-t-2xl"
               >
-                WQN
+                {t('wqn')}
               </th>
             </tr>
           </thead>
@@ -160,7 +199,10 @@ export function ComparisonTable() {
                 </td>
                 <td className="p-4">
                   <div className="flex flex-col items-center gap-1">
-                    <StatusIcon type={row.physical.icon} />
+                    <StatusIcon
+                      type={row.physical.icon}
+                      label={statusLabel(row.physical.icon)}
+                    />
                     <span className="text-xs text-gray-600 dark:text-gray-400">
                       {row.physical.label}
                     </span>
@@ -168,7 +210,10 @@ export function ComparisonTable() {
                 </td>
                 <td className="p-4">
                   <div className="flex flex-col items-center gap-1">
-                    <StatusIcon type={row.digital.icon} />
+                    <StatusIcon
+                      type={row.digital.icon}
+                      label={statusLabel(row.digital.icon)}
+                    />
                     <span className="text-xs text-gray-600 dark:text-gray-400">
                       {row.digital.label}
                     </span>
@@ -181,7 +226,10 @@ export function ComparisonTable() {
                   }
                 >
                   <div className="flex flex-col items-center gap-1">
-                    <StatusIcon type={row.wqn.icon} />
+                    <StatusIcon
+                      type={row.wqn.icon}
+                      label={statusLabel(row.wqn.icon)}
+                    />
                     <span className="text-xs font-medium text-amber-700 dark:text-amber-300">
                       {row.wqn.label}
                     </span>
@@ -205,27 +253,36 @@ export function ComparisonTable() {
             </h4>
             <div className="space-y-1.5">
               <div className="flex items-center gap-2.5">
-                <StatusIcon type={row.physical.icon} />
+                <StatusIcon
+                  type={row.physical.icon}
+                  label={statusLabel(row.physical.icon)}
+                />
                 <span className="text-xs font-medium text-gray-600 dark:text-gray-400 w-14 shrink-0">
-                  Physical
+                  {t('physical')}
                 </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">
                   {row.physical.label}
                 </span>
               </div>
               <div className="flex items-center gap-2.5">
-                <StatusIcon type={row.digital.icon} />
+                <StatusIcon
+                  type={row.digital.icon}
+                  label={statusLabel(row.digital.icon)}
+                />
                 <span className="text-xs font-medium text-gray-600 dark:text-gray-400 w-14 shrink-0">
-                  Digital
+                  {t('digital')}
                 </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">
                   {row.digital.label}
                 </span>
               </div>
               <div className="flex items-center gap-2.5 rounded-lg bg-amber-50/50 dark:bg-amber-900/10 px-2 py-1.5 -mx-2">
-                <StatusIcon type={row.wqn.icon} />
+                <StatusIcon
+                  type={row.wqn.icon}
+                  label={statusLabel(row.wqn.icon)}
+                />
                 <span className="text-xs font-semibold text-amber-700 dark:text-amber-300 w-14 shrink-0">
-                  WQN
+                  {t('wqn')}
                 </span>
                 <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
                   {row.wqn.label}

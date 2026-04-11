@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 interface ProblemSet {
   id: string;
@@ -40,6 +41,8 @@ export default function AddToSetDialog({
   subjectId,
   onSuccess,
 }: AddToSetDialogProps) {
+  const t = useTranslations('ProblemSets');
+  const tCommon = useTranslations('Common');
   const [isLoading, setIsLoading] = useState(false);
   const [problemSets, setProblemSets] = useState<ProblemSet[]>([]);
   const [selectedSetId, setSelectedSetId] = useState<string>('');
@@ -94,12 +97,12 @@ export default function AddToSetDialog({
     e.preventDefault();
 
     if (!selectedSetId) {
-      toast.error('Please select a problem set');
+      toast.error(t('pleaseSelectProblemSet'));
       return;
     }
 
     if (!problemId) {
-      toast.error('Invalid problem');
+      toast.error(t('invalidProblem'));
       return;
     }
 
@@ -118,7 +121,7 @@ export default function AddToSetDialog({
       );
 
       if (!response.ok) {
-        let errorMessage = 'Failed to add problem to set';
+        let errorMessage = t('failedToAddProblemToSet');
         try {
           const error = await response.json();
           errorMessage = error.message || errorMessage;
@@ -129,7 +132,7 @@ export default function AddToSetDialog({
         throw new Error(errorMessage);
       }
 
-      toast.success('Problem added to set successfully');
+      toast.success(t('problemAddedToSetSuccessfully'));
       onOpenChange(false);
       setSelectedSetId('');
 
@@ -139,7 +142,7 @@ export default function AddToSetDialog({
     } catch (error) {
       console.error('Error adding problem to set:', error);
       toast.error(
-        error instanceof Error ? error.message : 'Failed to add problem to set'
+        error instanceof Error ? error.message : t('failedToAddProblemToSet')
       );
     } finally {
       setIsLoading(false);
@@ -150,18 +153,16 @@ export default function AddToSetDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
-          <DialogTitle>Add to Problem Set</DialogTitle>
-          <DialogDescription>
-            Select a problem set to add this problem to.
-          </DialogDescription>
+          <DialogTitle>{t('addToProblemSet')}</DialogTitle>
+          <DialogDescription>{t('selectProblemSet')}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Problem Set</label>
+            <label className="text-sm font-medium">{t('problemSet')}</label>
             <Select value={selectedSetId} onValueChange={setSelectedSetId}>
               <SelectTrigger>
-                <SelectValue placeholder="Select a problem set" />
+                <SelectValue placeholder={t('selectProblemSet')} />
               </SelectTrigger>
               <SelectContent>
                 {problemSets
@@ -182,8 +183,8 @@ export default function AddToSetDialog({
           ).length === 0 && (
             <p className="text-sm text-muted-foreground">
               {problemSets.length === 0
-                ? 'No problem sets found for this subject. Create a problem set first.'
-                : 'This problem is already in all available problem sets.'}
+                ? t('noProblemSetsForSubject')
+                : t('problemAlreadyInAllSets')}
             </p>
           )}
 
@@ -194,7 +195,7 @@ export default function AddToSetDialog({
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button
               type="submit"
@@ -206,7 +207,7 @@ export default function AddToSetDialog({
                 ).length === 0
               }
             >
-              {isLoading ? 'Adding...' : 'Add to Set'}
+              {isLoading ? t('adding') : t('addToSet')}
             </Button>
           </DialogFooter>
         </form>

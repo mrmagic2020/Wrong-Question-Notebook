@@ -8,12 +8,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ATTEMPT_CONSTANTS } from '@/lib/constants';
+import type { TranslatorProp } from '@/i18n/types';
 
 interface CauseSelectorProps {
   value: string | undefined;
   onChange: (value: string) => void;
   isCorrect: boolean;
   onOtherSelected?: () => void;
+  t?: TranslatorProp;
 }
 
 export default function CauseSelector({
@@ -21,6 +23,7 @@ export default function CauseSelector({
   onChange,
   isCorrect,
   onOtherSelected,
+  t = ((key: string) => key) as TranslatorProp,
 }: CauseSelectorProps) {
   const categories = isCorrect
     ? ATTEMPT_CONSTANTS.CAUSE_CATEGORIES.CORRECT
@@ -29,7 +32,7 @@ export default function CauseSelector({
   return (
     <div className="space-y-1.5">
       <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-        {isCorrect ? 'How did you get it right?' : 'What went wrong?'}
+        {isCorrect ? t('howDidYouGetRight') : t('whatWentWrong')}
       </label>
       <Select
         value={value || ''}
@@ -39,7 +42,7 @@ export default function CauseSelector({
         }}
       >
         <SelectTrigger>
-          <SelectValue placeholder="Select a reason..." />
+          <SelectValue placeholder={t('selectReason')} />
         </SelectTrigger>
         <SelectContent>
           {categories.map(cat => (

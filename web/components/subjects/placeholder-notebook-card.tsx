@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 interface PlaceholderNotebookCardProps {
   onClick: () => void;
@@ -17,6 +18,7 @@ export function PlaceholderNotebookCard({
   style,
   atLimit = false,
 }: PlaceholderNotebookCardProps) {
+  const t = useTranslations('Subjects');
   return (
     <Card
       className={cn(
@@ -46,15 +48,13 @@ export function PlaceholderNotebookCard({
           </div>
         </div>
         <h3 className="text-xl font-semibold mt-3 text-gray-500 dark:text-gray-400">
-          {atLimit ? 'Notebook Limit Reached' : 'New Notebook'}
+          {atLimit ? t('notebookLimitReached') : t('newNotebook')}
         </h3>
       </CardHeader>
 
       <CardContent className="space-y-3 text-sm">
         <p className="text-gray-400 dark:text-gray-500 text-xs">
-          {atLimit
-            ? 'You have reached the maximum number of notebooks. Remove an existing one to create a new notebook.'
-            : 'Click to create a new notebook for organizing your problems by subject.'}
+          {atLimit ? t('atLimitDescription') : t('clickToCreate')}
         </p>
       </CardContent>
     </Card>
