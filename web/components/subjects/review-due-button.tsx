@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { SUBJECT_CONSTANTS } from '@/lib/constants';
 import { Brain, ChevronRight } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface ReviewDueButtonProps {
   dueCount: number;
@@ -16,6 +17,7 @@ export function ReviewDueButton({
   color,
   onClick,
 }: ReviewDueButtonProps) {
+  const t = useTranslations('Subjects');
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [svgDims, setSvgDims] = useState<{ w: number; h: number } | null>(null);
 
@@ -58,7 +60,9 @@ export function ReviewDueButton({
       )}
     >
       <Brain className="w-3.5 h-3.5" />
-      <span>{dueCount} due</span>
+      <span>
+        {dueCount} {t('due')}
+      </span>
       <ChevronRight className="w-3 h-3 opacity-60 -ml-0.5 transition-transform duration-200 group-hover:translate-x-0.5" />
       {svgDims && (
         <svg

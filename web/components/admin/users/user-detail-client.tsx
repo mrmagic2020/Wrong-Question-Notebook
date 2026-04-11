@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { Link } from '@/i18n/navigation';
+import { useRouter } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import {
   UserProfileType,
@@ -59,6 +60,8 @@ export function UserDetailClient({
   contentLimits: initialContentLimits,
 }: UserDetailClientProps) {
   const router = useRouter();
+  const t = useTranslations('Admin');
+  const tCommon = useTranslations('Common');
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [roleDialog, setRoleDialog] = useState(false);
@@ -76,7 +79,7 @@ export function UserDetailClient({
   const displayName =
     profile.username ||
     [profile.first_name, profile.last_name].filter(Boolean).join(' ') ||
-    'No name';
+    t('noName');
 
   const handleDelete = async () => {
     setDeleteLoading(true);
@@ -86,14 +89,14 @@ export function UserDetailClient({
       });
       if (!res.ok) {
         const err = await res.json();
-        toast.error(err.error || 'Failed to delete');
+        toast.error(err.error || t('errorDeleting'));
         return;
       }
-      toast.success('User deleted');
+      toast.success(t('userDeleted'));
       router.push(ROUTES.ADMIN.USERS);
       router.refresh();
     } catch {
-      toast.error('Error deleting user');
+      toast.error(t('errorDeletingUser'));
     } finally {
       setDeleteLoading(false);
     }
@@ -109,14 +112,14 @@ export function UserDetailClient({
       });
       if (!res.ok) {
         const err = await res.json();
-        toast.error(err.error || 'Failed to change role');
+        toast.error(err.error || t('errorChangingRole'));
         return;
       }
-      toast.success('Role updated');
+      toast.success(t('roleUpdated'));
       setRoleDialog(false);
       router.refresh();
     } catch {
-      toast.error('Error changing role');
+      toast.error(t('errorChangingRole'));
     } finally {
       setRoleLoading(false);
     }
@@ -129,13 +132,15 @@ export function UserDetailClient({
       });
       if (!res.ok) {
         const err = await res.json();
-        toast.error(err.error || 'Failed');
+        toast.error(err.error || t('errorTogglingStatus'));
         return;
       }
-      toast.success(profile.is_active ? 'User deactivated' : 'User activated');
+      toast.success(
+        profile.is_active ? t('userDeactivated') : t('userActivated')
+      );
       router.refresh();
     } catch {
-      toast.error('Error toggling status');
+      toast.error(t('errorTogglingStatus'));
     }
   };
 
@@ -151,16 +156,16 @@ export function UserDetailClient({
       });
       if (!res.ok) {
         const err = await res.json();
-        toast.error(err.error || 'Failed to update quota');
+        toast.error(err.error || t('errorUpdatingQuota'));
         return;
       }
       toast.success(
-        quotaInput ? 'Quota override set' : 'Quota override removed'
+        quotaInput ? t('quotaOverrideSet') : t('quotaOverrideRemoved')
       );
       setQuotaInput('');
       router.refresh();
     } catch {
-      toast.error('Error updating quota');
+      toast.error(t('errorUpdatingQuota'));
     } finally {
       setQuotaSaving(false);
     }
@@ -180,17 +185,17 @@ export function UserDetailClient({
       });
       if (!res.ok) {
         const err = await res.json();
-        toast.error(err.error || 'Failed to update limit');
+        toast.error(err.error || t('errorUpdatingLimit'));
         return;
       }
       const json = await res.json();
       setContentLimits(json.limits);
       toast.success(
-        inputValue ? 'Limit override set' : 'Limit override removed'
+        inputValue ? t('limitOverrideSet') : t('limitOverrideRemoved')
       );
       setContentLimitInputs(prev => ({ ...prev, [resourceType]: '' }));
     } catch {
-      toast.error('Error updating limit');
+      toast.error(t('errorUpdatingLimit'));
     } finally {
       setContentLimitSaving(null);
     }
@@ -212,7 +217,7 @@ export function UserDetailClient({
             {displayName}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            User details and management
+            {t('userDetails')}
           </p>
         </div>
       </div>
@@ -241,30 +246,36 @@ export function UserDetailClient({
 
           <div className="mt-6 space-y-3 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-500 dark:text-gray-400">ID</span>
+              <span className="text-gray-500 dark:text-gray-400">
+                {tCommon('id')}
+              </span>
               <span className="font-mono text-xs text-gray-700 dark:text-gray-300">
                 {profile.id.slice(0, 12)}...
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500 dark:text-gray-400">Joined</span>
+              <span className="text-gray-500 dark:text-gray-400">
+                {t('joined')}
+              </span>
               <span className="text-gray-700 dark:text-gray-300">
                 {formatDisplayDate(profile.created_at)}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500 dark:text-gray-400">
-                Last Login
+                {t('lastLogin')}
               </span>
               <span className="text-gray-700 dark:text-gray-300">
                 {profile.last_login_at
                   ? formatDisplayDate(profile.last_login_at)
-                  : 'Never'}
+                  : t('neverLoggedIn')}
               </span>
             </div>
             {profile.region && (
               <div className="flex justify-between">
-                <span className="text-gray-500 dark:text-gray-400">Region</span>
+                <span className="text-gray-500 dark:text-gray-400">
+                  {t('region')}
+                </span>
                 <span className="text-gray-700 dark:text-gray-300">
                   {profile.region}
                 </span>
@@ -282,7 +293,7 @@ export function UserDetailClient({
                 onClick={() => setRoleDialog(true)}
               >
                 <Shield className="h-4 w-4 mr-2" />
-                Change Role
+                {t('changeRole')}
               </Button>
               <Button
                 variant="outline"
@@ -293,12 +304,12 @@ export function UserDetailClient({
                 {profile.is_active ? (
                   <>
                     <Ban className="h-4 w-4 mr-2" />
-                    Deactivate
+                    {t('deactivate')}
                   </>
                 ) : (
                   <>
                     <CheckCircle className="h-4 w-4 mr-2" />
-                    Activate
+                    {t('activate')}
                   </>
                 )}
               </Button>
@@ -309,7 +320,7 @@ export function UserDetailClient({
                 onClick={() => setDeleteDialog(true)}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                Delete User
+                {t('deleteUser')}
               </Button>
             </div>
           )}
@@ -320,35 +331,35 @@ export function UserDetailClient({
           {/* Content Stats */}
           <div className="admin-section-card">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Content
+              {t('content')}
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {[
                 {
                   icon: BookOpen,
                   value: contentStats.subjects,
-                  label: 'Subjects',
+                  label: t('subjects'),
                   color: 'text-rose-600 dark:text-rose-400',
                   bg: 'bg-rose-500/10 dark:bg-rose-500/20',
                 },
                 {
                   icon: FileQuestion,
                   value: contentStats.problems,
-                  label: 'Problems',
+                  label: t('problems'),
                   color: 'text-orange-600 dark:text-orange-400',
                   bg: 'bg-orange-500/10 dark:bg-orange-500/20',
                 },
                 {
                   icon: FolderOpen,
                   value: contentStats.problem_sets,
-                  label: 'Sets',
+                  label: t('sets'),
                   color: 'text-blue-600 dark:text-blue-400',
                   bg: 'bg-blue-500/10 dark:bg-blue-500/20',
                 },
                 {
                   icon: Target,
                   value: contentStats.attempts,
-                  label: 'Attempts',
+                  label: t('attempts'),
                   color: 'text-emerald-600 dark:text-emerald-400',
                   bg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
                 },
@@ -382,14 +393,14 @@ export function UserDetailClient({
               <div className="flex items-center gap-2 mb-3">
                 <HardDrive className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                 <h3 className="font-semibold text-gray-900 dark:text-white">
-                  Storage
+                  {tCommon('storage')}
                 </h3>
               </div>
               <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">
                 {formatBytes(storageUsage.totalBytes)}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {storageUsage.fileCount} files
+                {t('files', { count: storageUsage.fileCount })}
               </p>
             </div>
 
@@ -398,7 +409,7 @@ export function UserDetailClient({
               <div className="flex items-center gap-2 mb-3">
                 <Zap className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                 <h3 className="font-semibold text-gray-900 dark:text-white">
-                  AI Quota
+                  {t('aiQuota')}
                 </h3>
               </div>
               {quotaUsage ? (
@@ -408,7 +419,7 @@ export function UserDetailClient({
                       {quotaUsage.current_usage}
                     </span>
                     <span className="text-sm text-gray-500 dark:text-gray-400">
-                      / {quotaUsage.daily_limit} today
+                      / {quotaUsage.daily_limit} {t('today')}
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 dark:bg-stone-700 rounded-full h-2 mt-2">
@@ -422,7 +433,7 @@ export function UserDetailClient({
                   <div className="flex gap-2 mt-3">
                     <Input
                       type="number"
-                      placeholder="Override limit"
+                      placeholder={t('overrideLimit')}
                       value={quotaInput}
                       onChange={e => setQuotaInput(e.target.value)}
                       className="h-8 text-xs rounded-lg"
@@ -435,13 +446,13 @@ export function UserDetailClient({
                       onClick={handleQuotaSave}
                       disabled={quotaSaving}
                     >
-                      {quotaInput ? 'Set' : 'Reset'}
+                      {quotaInput ? tCommon('set') : tCommon('reset')}
                     </Button>
                   </div>
                 </>
               ) : (
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  No quota data
+                  {t('noQuotaData')}
                 </p>
               )}
             </div>
@@ -450,7 +461,7 @@ export function UserDetailClient({
           {/* Content Limits */}
           <div className="admin-section-card">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Content Limits
+              {t('contentLimits')}
             </h2>
             <div className="space-y-4">
               {contentLimits.map(cl => {
@@ -487,7 +498,7 @@ export function UserDetailClient({
                     <div className="flex gap-2 mt-2">
                       <Input
                         type="number"
-                        placeholder="Override"
+                        placeholder={t('override')}
                         value={contentLimitInputs[cl.resource_type] ?? ''}
                         onChange={e =>
                           setContentLimitInputs(prev => ({
@@ -505,7 +516,9 @@ export function UserDetailClient({
                         onClick={() => handleContentLimitSave(cl.resource_type)}
                         disabled={contentLimitSaving === cl.resource_type}
                       >
-                        {contentLimitInputs[cl.resource_type] ? 'Set' : 'Reset'}
+                        {contentLimitInputs[cl.resource_type]
+                          ? tCommon('set')
+                          : tCommon('reset')}
                       </Button>
                     </div>
                   </div>
@@ -517,11 +530,11 @@ export function UserDetailClient({
           {/* Activity */}
           <div className="admin-section-card">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Recent Activity
+              {t('recentActivityTitle')}
             </h2>
             {activity.length === 0 ? (
               <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-                No activity recorded
+                {t('noActivityRecorded')}
               </p>
             ) : (
               <div className="space-y-2">

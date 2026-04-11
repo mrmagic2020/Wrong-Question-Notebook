@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
   ChevronLeft,
@@ -53,6 +54,9 @@ export default function ReviewSessionNav({
   elapsedMs,
   onPause,
 }: ReviewSessionNavProps) {
+  const t = useTranslations('Review');
+  const tCommon = useTranslations('Common');
+
   const progressPercent =
     totalProblems > 0
       ? ((completedCount + skippedCount) / totalProblems) * 100
@@ -69,16 +73,22 @@ export default function ReviewSessionNav({
       <div className="space-y-1">
         <div className="flex justify-between text-sm text-muted-foreground">
           <span>
-            {completedCount} / {totalProblems} completed
+            {t('completed', {
+              completed: completedCount,
+              total: totalProblems,
+            })}
             {skippedCount > 0 && (
               <span className="text-yellow-600 dark:text-yellow-400">
                 {' '}
-                &middot; {skippedCount} skipped
+                &middot; {t('skipped', { n: skippedCount })}
               </span>
             )}
           </span>
           <span>
-            Problem {currentIndex + 1} of {totalProblems}
+            {t('problemOf', {
+              current: currentIndex + 1,
+              total: totalProblems,
+            })}
           </span>
         </div>
         <div className="w-full bg-muted rounded-full h-2">
@@ -102,7 +112,7 @@ export default function ReviewSessionNav({
               size="sm"
               onClick={onPause}
               className="h-6 w-6 p-0"
-              aria-label="Pause session"
+              aria-label={t('pauseSession')}
             >
               <Pause className="h-3.5 w-3.5" />
             </Button>
@@ -120,7 +130,7 @@ export default function ReviewSessionNav({
           className="hover:bg-rose-50 hover:border-rose-200 dark:hover:bg-rose-950/20 dark:hover:border-rose-800/40"
         >
           <ChevronLeft className="h-4 w-4 mr-1" />
-          Previous
+          {tCommon('previous')}
         </Button>
 
         <Button
@@ -130,7 +140,7 @@ export default function ReviewSessionNav({
           className="text-muted-foreground hover:text-yellow-600 hover:bg-yellow-50/50 dark:hover:text-yellow-400 dark:hover:bg-yellow-950/20"
         >
           <SkipForward className="h-4 w-4 mr-1" />
-          Skip
+          {t('skip')}
         </Button>
 
         {isLastProblem && nextEnabled ? (
@@ -139,7 +149,7 @@ export default function ReviewSessionNav({
             size="sm"
             className="bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 hover:from-amber-700 hover:via-orange-700 hover:to-rose-700 dark:from-amber-700 dark:via-orange-700 dark:to-rose-700 dark:hover:from-amber-800 dark:hover:via-orange-800 dark:hover:to-rose-800 text-white shadow-sm"
           >
-            Finish
+            {t('finish')}
             <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
         ) : (
@@ -154,7 +164,7 @@ export default function ReviewSessionNav({
                 : 'hover:bg-rose-50 hover:border-rose-200 dark:hover:bg-rose-950/20 dark:hover:border-rose-800/40'
             }
           >
-            Next
+            {tCommon('next')}
             <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
         )}

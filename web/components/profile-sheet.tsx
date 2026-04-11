@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
 import {
   Sheet,
   SheetContent,
@@ -44,6 +45,8 @@ interface ProfileSheetProps {
 
 export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
   const router = useRouter();
+  const t = useTranslations('Profile');
+  const tCommon = useTranslations('Common');
 
   // Sheet open state (controlled so we can intercept close)
   const [open, setOpen] = useState(false);
@@ -157,11 +160,11 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     if (!allowedTypes.includes(file.type)) {
-      setAvatarError('File type not allowed. Use JPEG, PNG, WEBP, or GIF.');
+      setAvatarError(t('fileTypeNotAllowed'));
       return;
     }
     if (file.size > FILE_CONSTANTS.STORAGE.AVATAR_MAX_SIZE) {
-      setAvatarError('File too large. Maximum size is 2MB.');
+      setAvatarError(t('fileTooLarge'));
       return;
     }
 
@@ -180,7 +183,7 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
       const json = await res.json();
       if (!res.ok) {
         setAvatarPreview(null);
-        setAvatarError(json.error ?? 'Upload failed');
+        setAvatarError(t('uploadFailed'));
       } else {
         setAvatarPreview(null);
         setAvatarUrl(json.data.avatar_url);
@@ -188,7 +191,7 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
       }
     } catch {
       setAvatarPreview(null);
-      setAvatarError('Upload failed');
+      setAvatarError(t('uploadFailed'));
     } finally {
       setAvatarUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -206,39 +209,42 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
         router.refresh();
       } else {
         const json = await res.json();
-        setAvatarError(json.error ?? 'Failed to remove avatar');
+        setAvatarError(json.error ?? t('failedToRemove'));
       }
     } catch {
-      setAvatarError('Failed to remove avatar');
+      setAvatarError(t('failedToRemove'));
     } finally {
       setAvatarUploading(false);
     }
   };
 
-  const checkUsername = useCallback(async (value: string) => {
-    if (!value || value.length < 3 || value === savedUsernameRef.current) {
-      setUsernameError(null);
-      return;
-    }
-    setUsernameChecking(true);
-    try {
-      const res = await fetch(
-        `/api/profile/username-check?username=${encodeURIComponent(value)}`
-      );
-      const json = await res.json();
-      setUsernameError(
-        res.ok && !json.data.available ? 'Username is already taken' : null
-      );
-    } catch {
-      // Ignore network errors during check
-    } finally {
-      setUsernameChecking(false);
-    }
-  }, []);
+  const checkUsername = useCallback(
+    async (value: string) => {
+      if (!value || value.length < 3 || value === savedUsernameRef.current) {
+        setUsernameError(null);
+        return;
+      }
+      setUsernameChecking(true);
+      try {
+        const res = await fetch(
+          `/api/profile/username-check?username=${encodeURIComponent(value)}`
+        );
+        const json = await res.json();
+        setUsernameError(
+          res.ok && !json.data.available ? t('usernameTaken') : null
+        );
+      } catch {
+        // Ignore network errors during check
+      } finally {
+        setUsernameChecking(false);
+      }
+    },
+    [t]
+  );
 
   const handleSave = async () => {
     if (!username.trim()) {
-      setUsernameError('Username is required');
+      setUsernameError(t('usernameRequired'));
       return;
     }
     if (usernameError || usernameChecking) return;
@@ -269,7 +275,7 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
           setFieldErrors(errors);
           setSaveError(null);
         } else {
-          setSaveError(json.error ?? 'Failed to save profile');
+          setSaveError(json.error ?? t('failedToSave'));
         }
       } else {
         savedUsernameRef.current = username;
@@ -287,7 +293,7 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
         router.refresh();
       }
     } catch {
-      setSaveError('Failed to save profile');
+      setSaveError(t('failedToSave'));
     } finally {
       setSaving(false);
     }
@@ -322,7 +328,7 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
           className="flex flex-col overflow-y-auto p-0"
         >
           <SheetHeader className="px-4 pt-4 pb-2">
-            <SheetTitle>Profile</SheetTitle>
+            <SheetTitle>{t('title')}</SheetTitle>
           </SheetHeader>
 
           <div className="flex flex-col gap-5 px-4 py-2 flex-1">
@@ -356,7 +362,7 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
                   className="text-xs"
                 >
                   <Camera className="w-3 h-3 mr-1" />
-                  Change photo
+                  {t('changePhoto')}
                 </Button>
                 {(avatarUrl || avatarPreview) && (
                   <Button
@@ -367,7 +373,7 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
                     className="text-xs text-destructive hover:text-destructive"
                   >
                     <X className="w-3 h-3 mr-1" />
-                    Remove
+                    {t('remove')}
                   </Button>
                 )}
               </div>
@@ -383,7 +389,7 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
             {/* Email (read-only) */}
             <div className="space-y-1">
               <Label htmlFor="sheet-email" className="text-xs">
-                Email
+                {t('email')}
               </Label>
               <Input
                 id="sheet-email"
@@ -402,7 +408,7 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
             {/* Username */}
             <div className="space-y-1">
               <Label htmlFor="sheet-username" className="text-xs">
-                Username <span className="text-destructive">*</span>
+                {t('username')} <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
                 <Input
@@ -420,12 +426,12 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
                   }}
                   onBlur={() => {
                     if (!username.trim()) {
-                      setUsernameError('Username is required');
+                      setUsernameError(t('usernameRequired'));
                     } else {
                       checkUsername(username);
                     }
                   }}
-                  placeholder="Enter username"
+                  placeholder={t('usernamePlaceholder')}
                   maxLength={50}
                   className="text-sm pr-8"
                 />
@@ -443,7 +449,7 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
             {/* First name */}
             <div className="space-y-1">
               <Label htmlFor="sheet-first-name" className="text-xs">
-                First name
+                {t('firstName')}
               </Label>
               <Input
                 id="sheet-first-name"
@@ -452,7 +458,7 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
                   setFirstName(e.target.value);
                   setFieldErrors(prev => ({ ...prev, first_name: [] }));
                 }}
-                placeholder="First name"
+                placeholder={t('firstName')}
                 maxLength={100}
                 className="text-sm"
               />
@@ -466,7 +472,7 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
             {/* Last name */}
             <div className="space-y-1">
               <Label htmlFor="sheet-last-name" className="text-xs">
-                Last name
+                {t('lastName')}
               </Label>
               <Input
                 id="sheet-last-name"
@@ -475,7 +481,7 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
                   setLastName(e.target.value);
                   setFieldErrors(prev => ({ ...prev, last_name: [] }));
                 }}
-                placeholder="Last name"
+                placeholder={t('lastName')}
                 maxLength={100}
                 className="text-sm"
               />
@@ -489,26 +495,26 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
             {/* Bio */}
             <div className="space-y-1">
               <Label htmlFor="sheet-bio" className="text-xs">
-                Bio
+                {t('bio')}
               </Label>
               <Textarea
                 id="sheet-bio"
                 value={bio}
                 onChange={e => setBio(e.target.value)}
-                placeholder="Tell us about yourself..."
+                placeholder={t('bioPlaceholder')}
                 maxLength={500}
                 rows={3}
                 className="text-sm resize-none"
               />
               <p className="text-xs text-muted-foreground text-right">
-                {bio.length}/500
+                {t('bioCount', { count: bio.length })}
               </p>
             </div>
 
             {/* Date of birth */}
             <div className="space-y-1">
               <Label htmlFor="sheet-dob" className="text-xs">
-                Date of birth
+                {t('dateOfBirth')}
               </Label>
               <Input
                 id="sheet-dob"
@@ -521,20 +527,20 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
 
             {/* Gender */}
             <div className="space-y-1">
-              <Label className="text-xs">Gender</Label>
+              <Label className="text-xs">{t('gender')}</Label>
               <Select
                 value={gender || undefined}
                 onValueChange={val => setGender(val)}
               >
                 <SelectTrigger className="text-sm">
-                  <SelectValue placeholder="Select gender" />
+                  <SelectValue placeholder={t('selectGender')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="male">Male</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="male">{t('male')}</SelectItem>
+                  <SelectItem value="female">{t('female')}</SelectItem>
+                  <SelectItem value="other">{t('other')}</SelectItem>
                   <SelectItem value="prefer_not_to_say">
-                    Prefer not to say
+                    {t('preferNotToSay')}
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -543,7 +549,7 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
             {/* Timezone (auto-detected) */}
             <div className="space-y-1">
               <Label htmlFor="sheet-timezone" className="text-xs">
-                Timezone
+                {t('timezone')}
               </Label>
               <Input
                 id="sheet-timezone"
@@ -567,15 +573,15 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
               {saving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
+                  {t('saving')}
                 </>
               ) : saved ? (
                 <>
                   <Check className="mr-2 h-4 w-4" />
-                  Saved
+                  {t('saved')}
                 </>
               ) : (
-                'Save changes'
+                t('saveChanges')
               )}
             </Button>
             <div className="flex items-center justify-between">
@@ -586,7 +592,7 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
                 onClick={() => setUsageDialogOpen(true)}
               >
                 <BarChart3 className="w-4 h-4 mr-1.5" />
-                Usage & Limits
+                {t('usageAndLimits')}
               </Button>
               <Button
                 variant="ghost"
@@ -602,7 +608,7 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
                   router.refresh();
                 }}
               >
-                Sign out
+                {t('signOut')}
                 <LogOut className="w-4 h-4 ml-1.5" />
               </Button>
             </div>
@@ -618,18 +624,18 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
       <AlertDialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Discard changes?</AlertDialogTitle>
+            <AlertDialogTitle>{t('discardChangesTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              You have unsaved changes. If you close now, they will be lost.
+              {t('discardChangesDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Keep editing</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon('keepEditing')}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={handleDiscardChanges}
             >
-              Discard
+              {t('discard')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning].
 
 ### Changed
 
+- **i18n key refactor**: Dissolved the 250-key `CommonUtils` junk-drawer namespace into purpose-specific namespaces (`Editor`, `FileManager`, `CopyDialog`, `Problems`, `Statistics`, `DataTable`, `Subjects`, `ProblemSets`, `Common`), removed 100+ cross-namespace duplicate keys, and added compile-time type safety via next-intl `AppConfig` augmentation
 - **AI Extraction math formatting**: Multi-line equations now use a single KaTeX `aligned` block instead of multiple separate display math blocks, producing cleaner rendering
 - **AI Extraction classification**: Problems with visible multi-step working are now consistently classified as "extended" instead of sometimes "short", even when the final answer is a number
 

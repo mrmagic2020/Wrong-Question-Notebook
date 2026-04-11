@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback, useRef, FormEvent } from 'react';
+import { useRouter } from '@/i18n/navigation';
 import { toast } from 'sonner';
 import {
   SUBJECT_CONSTANTS,
@@ -9,6 +9,7 @@ import {
   SubjectIcon,
 } from '@/lib/constants';
 import { SubjectWithMetadata } from '@/lib/types';
+import { apiUrl } from '@/lib/api-utils';
 
 interface UseSubjectFormProps {
   existingSubjects?: Array<{ color?: string }>;
@@ -28,6 +29,9 @@ export function useSubjectForm({
   const [icon, setIcon] = useState<SubjectIcon>(SUBJECT_CONSTANTS.DEFAULT_ICON);
   const [busy, setBusy] = useState(false);
   const router = useRouter();
+
+  // Ref to track current fetch abort controller
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Auto-suggest icon when name changes
   useEffect(() => {
@@ -54,14 +58,28 @@ export function useSubjectForm({
       return;
     }
 
+    // Cancel any existing in-flight request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
     setBusy(true);
     try {
-      const res = await fetch('/api/subjects', {
+      const res = await fetch(apiUrl('/api/subjects'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: name.trim(), color, icon }),
+        signal: abortController.signal,
       });
-      if (!res.ok) throw new Error('Failed to create subject');
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(
+          `HTTP ${res.status}: ${errorData.error?.message || res.statusText}`
+        );
+      }
 
       const result = await res.json();
 
@@ -75,11 +93,25 @@ export function useSubjectForm({
 
       return result.data;
     } catch (err: unknown) {
+      // Ignore abort errors - they happen when user navigates away or closes dialog
+      if (err instanceof Error) {
+        // AbortError is thrown when fetch is cancelled by AbortController
+        if (err.name === 'AbortError') {
+          return;
+        }
+        // TypeError with 'Failed to fetch' message usually means network error or CORS issue
+        // This can happen if the request is cancelled due to page navigation
+        if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
+          return;
+        }
+        toast.error('Failed to create subject: ' + err.message);
+        throw new Error(`Failed to create subject: ${err.message}`);
+      }
       toast.error('Failed to create subject');
-      const originalMessage = err instanceof Error ? err.message : String(err);
-      throw new Error(`Failed to create subject: ${originalMessage}`);
+      throw new Error(`Failed to create subject: ${String(err)}`);
     } finally {
       setBusy(false);
+      abortControllerRef.current = null;
     }
   };
 

@@ -2,9 +2,10 @@
 
 import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { useEffect, useState } from 'react';
 import { StatisticsOverview } from '@/lib/types';
+import { useTranslations } from 'next-intl';
 
 ChartJS.register(ArcElement, Tooltip);
 
@@ -13,6 +14,7 @@ interface StatusDoughnutChartProps {
 }
 
 export function StatusDoughnutChart({ overview }: StatusDoughnutChartProps) {
+  const t = useTranslations('Statistics');
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
@@ -54,13 +56,13 @@ export function StatusDoughnutChart({ overview }: StatusDoughnutChartProps) {
           </svg>
         </div>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          No problems yet
+          {t('noProblemsYet')}
         </p>
         <Link
           href="/subjects"
           className="text-xs text-amber-600 dark:text-amber-400 hover:underline"
         >
-          Log your first problem &rarr;
+          {t('logFirstProblem')}
         </Link>
       </div>
     );
@@ -68,19 +70,19 @@ export function StatusDoughnutChart({ overview }: StatusDoughnutChartProps) {
 
   const slices = [
     {
-      label: 'Wrong',
+      label: t('chartWrong'),
       value: overview.wrong_count,
       colorLight: '#f97316',
       colorDark: '#fb923c',
     },
     {
-      label: 'Needs Review',
+      label: t('chartNeedsReview'),
       value: overview.needs_review_count,
       colorLight: '#f59e0b',
       colorDark: '#fbbf24',
     },
     {
-      label: 'Mastered',
+      label: t('chartMastered'),
       value: overview.mastered_count,
       colorLight: '#10b981',
       colorDark: '#34d399',
@@ -134,7 +136,7 @@ export function StatusDoughnutChart({ overview }: StatusDoughnutChartProps) {
             {overview.mastery_rate}%
           </span>
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            Mastery
+            {t('masteryLabel')}
           </span>
         </div>
       </div>

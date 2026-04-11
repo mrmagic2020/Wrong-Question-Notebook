@@ -401,6 +401,9 @@ export const CONTENT_LIMIT_CONSTANTS = {
     tags_per_subject: 50,
   } as Record<string, number>,
   WARNING_THRESHOLD: 0.8, // Show warning at 80% usage
+  /**
+   * @deprecated Use i18n translation keys instead: t(`Usage.limits.${key}`)
+   */
   LABELS: {
     storage_bytes: 'Storage',
     subjects: 'Notebooks',

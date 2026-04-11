@@ -11,6 +11,8 @@ import { cn } from '@/lib/utils';
 import { ATTEMPT_CONSTANTS } from '@/lib/constants';
 import { Attempt, ErrorCategorisation } from '@/lib/types';
 import { Button } from '@/components/ui/button';
+import { useTranslations } from 'next-intl';
+import type { TranslatorProp } from '@/i18n/types';
 import AttemptTimelineEntry from './attempt-timeline-entry';
 
 interface AttemptTimelineProps {
@@ -20,16 +22,16 @@ interface AttemptTimelineProps {
 
 const PAGE_SIZE = ATTEMPT_CONSTANTS.TIMELINE_PAGE_SIZE;
 
-function formatRelativeShort(dateString: string): string {
+function formatRelativeShort(dateString: string, t: TranslatorProp): string {
   const date = new Date(dateString);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffDays < 1) return 'today';
-  if (diffDays === 1) return 'yesterday';
-  if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+  if (diffDays < 1) return t('today');
+  if (diffDays === 1) return t('yesterday');
+  if (diffDays < 7) return t('daysAgo', { count: diffDays });
+  if (diffDays < 30) return t('weeksAgo', { count: Math.floor(diffDays / 7) });
   return date.toLocaleDateString();
 }
 
@@ -72,6 +74,8 @@ export default function AttemptTimeline({
   problemId,
   refreshKey = 0,
 }: AttemptTimelineProps) {
+  const t = useTranslations('Review');
+  const tCommon = useTranslations('Common');
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [categorisations, setCategorisations] = useState<
     Record<string, ErrorCategorisation>
@@ -153,10 +157,10 @@ export default function AttemptTimeline({
     return (
       <div className="review-section-violet">
         <h3 className="text-sm font-semibold text-violet-900 dark:text-violet-100 mb-1">
-          Attempt History
+          {t('attemptHistory')}
         </h3>
         <span className="text-xs text-muted-foreground">
-          Loading attempts...
+          {t('loadingAttempts')}
         </span>
       </div>
     );
@@ -166,9 +170,11 @@ export default function AttemptTimeline({
     return (
       <div className="review-section-violet">
         <h3 className="text-sm font-semibold text-violet-900 dark:text-violet-100 mb-1">
-          Attempt History
+          {t('attemptHistory')}
         </h3>
-        <span className="text-xs text-muted-foreground">No attempts yet</span>
+        <span className="text-xs text-muted-foreground">
+          {t('noAttemptsYet')}
+        </span>
       </div>
     );
   }
@@ -184,12 +190,15 @@ export default function AttemptTimeline({
         <CollapsibleTrigger className="w-full">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-violet-900 dark:text-violet-100">
-              Attempt History
+              {t('attemptHistory')}
             </h3>
             <div className="flex items-center gap-1.5">
               <span className="text-xs text-muted-foreground">
-                {attempts.length} attempt{attempts.length !== 1 ? 's' : ''}
-                {' \u00B7 '}Last: {formatRelativeShort(lastAttempt.created_at)}
+                {t('attemptCount', { count: attempts.length })}
+                {' \u00B7 '}
+                {t('lastAttempt', {
+                  time: formatRelativeShort(lastAttempt.created_at, t),
+                })}
               </span>
               <ChevronDown
                 className={cn(
@@ -221,8 +230,10 @@ export default function AttemptTimeline({
                   disabled={isLoadingMore}
                 >
                   {isLoadingMore
-                    ? 'Loading...'
-                    : `Show ${Math.min(PAGE_SIZE, remaining)} older attempt${Math.min(PAGE_SIZE, remaining) !== 1 ? 's' : ''}`}
+                    ? tCommon('loading')
+                    : t('showOlderAttempts', {
+                        count: Math.min(PAGE_SIZE, remaining),
+                      })}
                 </Button>
               </div>
             )}

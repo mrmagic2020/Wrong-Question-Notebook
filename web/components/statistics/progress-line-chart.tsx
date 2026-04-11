@@ -13,6 +13,8 @@ import { Line } from 'react-chartjs-2';
 import { useEffect, useState } from 'react';
 import { WeeklyProgressPoint } from '@/lib/types';
 import { format, parseISO } from 'date-fns';
+import { enUS, zhCN } from 'date-fns/locale';
+import { useTranslations, useLocale } from 'next-intl';
 
 ChartJS.register(
   CategoryScale,
@@ -28,6 +30,9 @@ interface ProgressLineChartProps {
 }
 
 export function ProgressLineChart({ data }: ProgressLineChartProps) {
+  const t = useTranslations('Statistics');
+  const locale = useLocale();
+  const dateLocale = locale === 'zh-CN' ? zhCN : enUS;
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
@@ -47,19 +52,21 @@ export function ProgressLineChart({ data }: ProgressLineChartProps) {
     return (
       <div className="flex items-center justify-center h-full">
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          No progress data yet
+          {t('noProgressData')}
         </p>
       </div>
     );
   }
 
-  const labels = data.map(d => format(parseISO(d.week_start), 'MMM d'));
+  const labels = data.map(d =>
+    format(parseISO(d.week_start), 'MMM d', { locale: dateLocale })
+  );
 
   const chartData = {
     labels,
     datasets: [
       {
-        label: 'Mastered Problems',
+        label: t('masteredProblemsChart'),
         data: data.map(d => d.cumulative_mastered),
         borderColor: isDark ? '#34d399' : '#10b981',
         backgroundColor: isDark
@@ -90,8 +97,7 @@ export function ProgressLineChart({ data }: ProgressLineChartProps) {
         padding: 12,
         cornerRadius: 8,
         callbacks: {
-          label: (ctx: any) =>
-            `${ctx.parsed.y} mastered problem${ctx.parsed.y !== 1 ? 's' : ''}`,
+          label: (ctx: any) => t('masteredTooltip', { count: ctx.parsed.y }),
         },
       },
     },

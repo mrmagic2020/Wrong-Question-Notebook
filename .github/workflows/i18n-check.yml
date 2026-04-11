@@ -1,0 +1,96 @@
+name: i18n Check
+
+on:
+  pull_request:
+    paths:
+      - 'web/messages/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  i18n-check:
+    name: Check translations
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect modified locales
+        id: detect
+        run: |
+          # Get all modified locale files (not en.json — that's the source)
+          CHANGED=$(gh pr diff ${{ github.event.pull_request.number }} --name-only \
+            | grep '^web/messages/.*\.json$' \
+            | grep -v 'web/messages/en.json' \
+            | sed 's|web/messages/||;s|\.json||' \
+            | paste -sd ',' -)
+
+          EN_CHANGED=$(gh pr diff ${{ github.event.pull_request.number }} --name-only \
+            | grep -c '^web/messages/en.json$' || true)
+
+          if [ -z "$CHANGED" ] && [ "$EN_CHANGED" = "0" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "No locale files modified, skipping."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            # If en.json changed, check all locales (source keys may have shifted)
+            if [ "$EN_CHANGED" != "0" ]; then
+              ALL=$(ls web/messages/*.json \
+                | xargs -I{} basename {} .json \
+                | grep -v '^en$' \
+                | paste -sd ',' -)
+              echo "locales=$ALL" >> "$GITHUB_OUTPUT"
+              echo "Checking all locales (en.json changed): $ALL"
+            else
+              echo "locales=$CHANGED" >> "$GITHUB_OUTPUT"
+              echo "Checking modified locales: $CHANGED"
+            fi
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Setup Node.js
+        if: steps.detect.outputs.skip != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run i18n status check
+        if: steps.detect.outputs.skip != 'true'
+        id: check
+        working-directory: web
+        run: |
+          LOCALES="${{ steps.detect.outputs.locales }}"
+          REPORT=$(node scripts/i18n-status.js --locales "$LOCALES" 2>&1 || true)
+          # Save report for the comment step
+          echo "$REPORT" > /tmp/i18n-report.md
+          # Also check exit code
+          node scripts/i18n-status.js --locales "$LOCALES" --json > /tmp/i18n-result.json 2>&1 && \
+            echo "passed=true" >> "$GITHUB_OUTPUT" || \
+            echo "passed=false" >> "$GITHUB_OUTPUT"
+
+      - name: Find existing comment
+        if: steps.detect.outputs.skip != 'true'
+        uses: peter-evans/find-comment@v3
+        id: fc
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: '## i18n Status Report'
+
+      - name: Create or update comment
+        if: steps.detect.outputs.skip != 'true'
+        uses: peter-evans/create-or-update-comment@v5
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body-path: /tmp/i18n-report.md
+          edit-mode: replace
+
+      - name: Fail if issues found
+        if: steps.detect.outputs.skip != 'true' && steps.check.outputs.passed != 'true'
+        run: |
+          echo "::error::i18n check found issues. See the PR comment for details."
+          exit 1

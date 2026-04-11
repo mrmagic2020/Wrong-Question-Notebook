@@ -2,6 +2,7 @@ import type { Editor } from '@tiptap/core';
 import type { EditorActiveState } from '../use-editor-active-state';
 import { ToolbarButton } from './toolbar-button';
 import { Undo, Redo } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface HistoryButtonsProps {
   editor: Editor;
@@ -14,12 +15,13 @@ export function HistoryButtons({
   activeState,
   disabled,
 }: HistoryButtonsProps) {
+  const t = useTranslations('Editor');
   return (
     <div className="flex items-center gap-1">
       <ToolbarButton
         onClick={() => editor.chain().focus().undo().run()}
         disabled={!activeState.canUndo || disabled}
-        title="Undo"
+        title={t('toolbarUndo')}
         shortcut="Ctrl+Z"
       >
         <Undo className="h-4 w-4" />
@@ -27,7 +29,7 @@ export function HistoryButtons({
       <ToolbarButton
         onClick={() => editor.chain().focus().redo().run()}
         disabled={!activeState.canRedo || disabled}
-        title="Redo"
+        title={t('toolbarRedo')}
         shortcut="Ctrl+Shift+Z"
       >
         <Redo className="h-4 w-4" />

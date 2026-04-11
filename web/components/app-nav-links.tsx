@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Link } from '@/i18n/navigation';
+import { usePathname } from '@/i18n/navigation';
 import {
   Menu,
   BookOpen,
@@ -12,6 +12,7 @@ import {
   Lightbulb,
   type LucideIcon,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -25,35 +26,35 @@ import {
 const APP_LINKS = [
   {
     href: '/subjects',
-    label: 'Subjects',
+    labelKey: 'subjects' as const,
     icon: BookOpen,
     iconBg: 'bg-amber-500/10 dark:bg-amber-500/20',
     iconColor: 'text-amber-600 dark:text-amber-400',
   },
   {
     href: '/problem-sets',
-    label: 'Problem Sets',
+    labelKey: 'problemSets' as const,
     icon: FolderOpen,
     iconBg: 'bg-blue-500/10 dark:bg-blue-500/20',
     iconColor: 'text-blue-600 dark:text-blue-400',
   },
   {
     href: '/discover',
-    label: 'Discover',
+    labelKey: 'discover' as const,
     icon: Globe,
     iconBg: 'bg-purple-500/10 dark:bg-purple-500/20',
     iconColor: 'text-purple-600 dark:text-purple-400',
   },
   {
     href: '/statistics',
-    label: 'Statistics',
+    labelKey: 'statistics' as const,
     icon: BarChart3,
     iconBg: 'bg-green-500/10 dark:bg-green-500/20',
     iconColor: 'text-green-600 dark:text-green-400',
   },
   {
     href: '/insights',
-    label: 'Insights',
+    labelKey: 'insights' as const,
     icon: Lightbulb,
     iconBg: 'bg-orange-500/10 dark:bg-orange-500/20',
     iconColor: 'text-orange-600 dark:text-orange-400',
@@ -65,7 +66,14 @@ function isActivePath(pathname: string | null, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function NavLink({ href, label }: { href: string; label: string }) {
+function NavLink({
+  href,
+  labelKey,
+}: {
+  href: string;
+  labelKey: (typeof APP_LINKS)[number]['labelKey'];
+}) {
+  const t = useTranslations('Navigation');
   const pathname = usePathname();
   const active = isActivePath(pathname, href);
 
@@ -79,26 +87,27 @@ function NavLink({ href, label }: { href: string; label: string }) {
       )}
       aria-current={active ? 'page' : undefined}
     >
-      {label}
+      {t(labelKey)}
     </Link>
   );
 }
 
 function MobileNavLink({
   href,
-  label,
+  labelKey,
   icon: Icon,
   iconBg,
   iconColor,
   onClick,
 }: {
   href: string;
-  label: string;
+  labelKey: (typeof APP_LINKS)[number]['labelKey'];
   icon: LucideIcon;
   iconBg: string;
   iconColor: string;
   onClick?: () => void;
 }) {
+  const t = useTranslations('Navigation');
   const pathname = usePathname();
   const active = isActivePath(pathname, href);
 
@@ -120,7 +129,7 @@ function MobileNavLink({
       >
         <Icon className={cn('h-[18px] w-[18px]', iconColor)} />
       </span>
-      <span className="text-[15px]">{label}</span>
+      <span className="text-[15px]">{t(labelKey)}</span>
     </Link>
   );
 }
@@ -132,7 +141,7 @@ export function AppNavLinks() {
     <>
       <div className="hidden items-center gap-6 md:flex">
         {APP_LINKS.map(l => (
-          <NavLink key={l.href} href={l.href} label={l.label} />
+          <NavLink key={l.href} href={l.href} labelKey={l.labelKey} />
         ))}
       </div>
 
@@ -160,7 +169,7 @@ export function AppNavLinks() {
               >
                 <MobileNavLink
                   href={l.href}
-                  label={l.label}
+                  labelKey={l.labelKey}
                   icon={l.icon}
                   iconBg={l.iconBg}
                   iconColor={l.iconColor}

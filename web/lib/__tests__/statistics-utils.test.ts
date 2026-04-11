@@ -199,7 +199,8 @@ describe('getHeatmapMonthLabels', () => {
 
     expect(labels.length).toBeGreaterThan(0);
     for (const label of labels) {
-      expect(label.label).toBeTruthy();
+      expect(label.monthIndex).toBeGreaterThanOrEqual(0);
+      expect(label.monthIndex).toBeLessThanOrEqual(11);
       expect(label.colStart).toBeGreaterThanOrEqual(0);
     }
   });
@@ -207,26 +208,12 @@ describe('getHeatmapMonthLabels', () => {
   it('should include short month names', () => {
     const grid = buildHeatmapGrid([]);
     const labels = getHeatmapMonthLabels(grid);
-    const labelNames = labels.map(l => l.label);
+    const monthIndices = labels.map(l => l.monthIndex);
 
-    // 26 weeks back from mid-June 2025 starts around mid-December 2024
-    // Expect month names like Dec, Jan, Feb, Mar, Apr, May, Jun
-    const validMonths = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    for (const name of labelNames) {
-      expect(validMonths).toContain(name);
+    // Month indices are 0-11
+    for (const index of monthIndices) {
+      expect(index).toBeGreaterThanOrEqual(0);
+      expect(index).toBeLessThanOrEqual(11);
     }
   });
 

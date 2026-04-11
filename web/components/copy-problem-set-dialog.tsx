@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -43,6 +44,8 @@ export default function CopyProblemSetDialog({
   problemCount,
   isSmart,
 }: CopyProblemSetDialogProps) {
+  const t = useTranslations('CopyDialog');
+  const tCommon = useTranslations('Common');
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -65,14 +68,14 @@ export default function CopyProblemSetDialog({
           setSubjects(data.data || []);
         }
       } catch (error) {
-        console.error('Failed to fetch subjects:', error);
+        console.error(t('failedToFetchSubjects'), error);
       } finally {
         setLoadingSubjects(false);
       }
     };
 
     fetchSubjects();
-  }, [open]);
+  }, [open, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,7 +86,7 @@ export default function CopyProblemSetDialog({
     if (createNewSubject) {
       const trimmed = newSubjectName.trim();
       if (!trimmed) {
-        toast.error('Please enter a subject name');
+        toast.error(t('pleaseEnterSubjectName'));
         return;
       }
       if (
@@ -106,7 +109,7 @@ export default function CopyProblemSetDialog({
         if (!res.ok) {
           const err = await res.json().catch(() => null);
           throw new Error(
-            err?.error || err?.message || 'Failed to create subject'
+            err?.error || err?.message || t('failedToCreateSubject')
           );
         }
 
@@ -114,7 +117,7 @@ export default function CopyProblemSetDialog({
         subjectId = data.data.id;
       } catch (error) {
         toast.error(
-          error instanceof Error ? error.message : 'Failed to create subject'
+          error instanceof Error ? error.message : t('failedToCreateSubject')
         );
         setIsLoading(false);
         return;
@@ -122,7 +125,7 @@ export default function CopyProblemSetDialog({
     }
 
     if (!subjectId) {
-      toast.error('Please select a target subject');
+      toast.error(t('pleaseSelectTargetSubject'));
       return;
     }
 
@@ -147,20 +150,23 @@ export default function CopyProblemSetDialog({
               : `Limit reached: ${d.current}/${d.limit} problem sets`;
           throw new Error(msg);
         }
-        throw new Error(body?.error || 'Failed to copy problem set');
+        throw new Error(body?.error || t('failedToCopySet'));
       }
 
       const data = await res.json();
       const result = data.data;
 
       toast.success(
-        `Copied ${result.problem_count} problems${result.tag_count > 0 ? ` and ${result.tag_count} tags` : ''}`
+        t(result.tag_count > 0 ? 'copiedProblemsAndTags' : 'copied', {
+          problems: result.problem_count,
+          tags: result.tag_count > 0 ? ` and ${result.tag_count} tags` : '',
+        })
       );
       onOpenChange(false);
       router.push(`/problem-sets/${result.problem_set_id}`);
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : 'Failed to copy problem set'
+        error instanceof Error ? error.message : t('failedToCopySet')
       );
     } finally {
       setIsLoading(false);
@@ -173,11 +179,9 @@ export default function CopyProblemSetDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Copy className="h-5 w-5" />
-            Copy to My Library
+            {t('copyToMyLibrary')}
           </DialogTitle>
-          <DialogDescription>
-            Create a copy of this problem set in your account.
-          </DialogDescription>
+          <DialogDescription>{t('createCopyInAccount')}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -185,7 +189,7 @@ export default function CopyProblemSetDialog({
           <div className="rounded-lg border p-3 bg-muted/30 space-y-1">
             <p className="text-sm font-medium">{problemSetName}</p>
             <p className="text-xs text-muted-foreground">
-              {problemCount} problem{problemCount !== 1 ? 's' : ''}
+              {t('problemsCount', { count: problemCount })}
             </p>
           </div>
 
@@ -194,19 +198,18 @@ export default function CopyProblemSetDialog({
             <div className="flex items-start gap-2 rounded-lg border border-amber-200/50 dark:border-amber-800/40 bg-amber-50/80 dark:bg-amber-900/20 p-3">
               <Info className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
               <p className="text-xs text-amber-800 dark:text-amber-300">
-                This smart set will be copied as a manual set with{' '}
-                {problemCount} problems currently matching the filters.
+                {t('smartSetCopiedAsManual', { count: problemCount })}
               </p>
             </div>
           )}
 
           {/* Subject picker */}
           <div className="space-y-2">
-            <Label>Target Subject</Label>
+            <Label>{t('targetSubject')}</Label>
             {loadingSubjects ? (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Loading subjects...
+                {t('loadingSubjects')}
               </div>
             ) : (
               <Select
@@ -222,7 +225,7 @@ export default function CopyProblemSetDialog({
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a subject" />
+                  <SelectValue placeholder={t('selectSubject')} />
                 </SelectTrigger>
                 <SelectContent>
                   {subjects.map(subject => (
@@ -230,7 +233,9 @@ export default function CopyProblemSetDialog({
                       {subject.name}
                     </SelectItem>
                   ))}
-                  <SelectItem value="__new__">+ Create new subject</SelectItem>
+                  <SelectItem value="__new__">
+                    {t('createNewSubject')}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -240,7 +245,7 @@ export default function CopyProblemSetDialog({
                 <Input
                   value={newSubjectName}
                   onChange={e => setNewSubjectName(e.target.value)}
-                  placeholder="Enter subject name"
+                  placeholder={t('enterSubjectName')}
                   maxLength={
                     VALIDATION_CONSTANTS.STRING_LIMITS.SUBJECT_NAME_MAX
                   }
@@ -263,7 +268,7 @@ export default function CopyProblemSetDialog({
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <Label htmlFor="copy-tags" className="text-sm">
-                Copy tags to target subject
+                {t('copyTagsToTargetSubject')}
               </Label>
               <Switch
                 id="copy-tags"
@@ -273,8 +278,8 @@ export default function CopyProblemSetDialog({
             </div>
             <p className="text-xs text-muted-foreground">
               {copyTags
-                ? "Tags that don't exist in the target subject will be created"
-                : 'Tags will be dropped from copied problems'}
+                ? t('tagsNotInTargetWillBeCreated')
+                : t('tagsWillBeDropped')}
             </p>
           </div>
 
@@ -285,18 +290,18 @@ export default function CopyProblemSetDialog({
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Copying...
+                  {t('copying')}
                 </>
               ) : (
                 <>
                   <Copy className="h-4 w-4 mr-2" />
-                  Copy
+                  {t('copyToMyLibrary')}
                 </>
               )}
             </Button>

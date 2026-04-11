@@ -11,10 +11,12 @@ import {
 import { Laptop, Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 const ThemeSwitcher = () => {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
+  const t = useTranslations('Common');
 
   // useEffect only runs on the client, so now we can safely show the UI
   useEffect(() => {
@@ -30,7 +32,7 @@ const ThemeSwitcher = () => {
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size={'sm'} aria-label="Toggle theme">
+        <Button variant="ghost" size={'sm'} aria-label={t('toggleTheme')}>
           {theme === 'light' ? (
             <Sun
               key="light"
@@ -56,15 +58,15 @@ const ThemeSwitcher = () => {
         <DropdownMenuRadioGroup value={theme} onValueChange={e => setTheme(e)}>
           <DropdownMenuRadioItem className="flex gap-2" value="light">
             <Sun size={ICON_SIZE} className="text-muted-foreground" />{' '}
-            <span>Light</span>
+            <span>{t('themeLight')}</span>
           </DropdownMenuRadioItem>
           <DropdownMenuRadioItem className="flex gap-2" value="dark">
             <Moon size={ICON_SIZE} className="text-muted-foreground" />{' '}
-            <span>Dark</span>
+            <span>{t('themeDark')}</span>
           </DropdownMenuRadioItem>
           <DropdownMenuRadioItem className="flex gap-2" value="system">
             <Laptop size={ICON_SIZE} className="text-muted-foreground" />{' '}
-            <span>System</span>
+            <span>{t('themeSystem')}</span>
           </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>

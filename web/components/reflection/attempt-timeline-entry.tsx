@@ -13,6 +13,8 @@ import {
 } from '@/components/ui/accordion';
 import { Pencil, User } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
+import type { TranslatorProp } from '@/i18n/types';
 import { Button } from '@/components/ui/button';
 import AttemptEditDialog from './attempt-edit-dialog';
 import { ErrorCategoryEditor } from '@/components/insights/error-category-editor';
@@ -24,7 +26,7 @@ interface AttemptTimelineEntryProps {
   initialCategorisation?: ErrorCategorisation | null;
 }
 
-function formatRelativeDate(dateString: string): string {
+function formatRelativeDate(dateString: string, t: TranslatorProp): string {
   const date = new Date(dateString);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -32,11 +34,11 @@ function formatRelativeDate(dateString: string): string {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return 'just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+  if (diffMins < 1) return t('justNow');
+  if (diffMins < 60) return t('minutesAgo', { count: diffMins });
+  if (diffHours < 24) return t('hoursAgo', { count: diffHours });
+  if (diffDays < 7) return t('daysAgo', { count: diffDays });
+  if (diffDays < 30) return t('weeksAgo', { count: Math.floor(diffDays / 7) });
   return date.toLocaleDateString();
 }
 
@@ -52,32 +54,32 @@ function getCauseLabel(
   return found?.label || cause;
 }
 
-function getStatusBadge(status: string | null) {
+function getStatusBadge(status: string | null, t: TranslatorProp) {
   switch (status) {
     case 'wrong':
       return {
-        label: 'Wrong',
+        label: t('wrong'),
         className:
           'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
         dotColor: 'bg-red-500',
       };
     case 'needs_review':
       return {
-        label: 'Needs Review',
+        label: t('needsReview'),
         className:
           'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
         dotColor: 'bg-yellow-500',
       };
     case 'mastered':
       return {
-        label: 'Mastered',
+        label: t('mastered'),
         className:
           'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
         dotColor: 'bg-green-500',
       };
     default:
       return {
-        label: 'Ungraded',
+        label: t('ungraded'),
         className:
           'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
         dotColor: 'bg-gray-400',
@@ -91,6 +93,7 @@ export default function AttemptTimelineEntry({
   onUpdated,
   initialCategorisation,
 }: AttemptTimelineEntryProps) {
+  const t = useTranslations('Review');
   const [editOpen, setEditOpen] = useState(false);
   const [categorisation, setCategorisation] =
     useState<ErrorCategorisation | null>(initialCategorisation ?? null);
@@ -137,11 +140,11 @@ export default function AttemptTimelineEntry({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
       });
-      if (!res.ok) throw new Error('Failed to save');
+      if (!res.ok) throw new Error(t('failedToSave'));
       const json = await res.json();
       if (json.data) setCategorisation(json.data);
     } catch {
-      toast.error('Failed to save classification. Please try again.');
+      toast.error(t('failedToSaveClassification'));
     }
   };
 
@@ -150,15 +153,15 @@ export default function AttemptTimelineEntry({
       const res = await fetch(`/api/ai/categorise-error/${id}`, {
         method: 'DELETE',
       });
-      if (!res.ok) throw new Error('Failed to reset');
+      if (!res.ok) throw new Error(t('failedToSave'));
       const json = await res.json();
       if (json.data) setCategorisation(json.data);
     } catch {
-      toast.error('Failed to reset classification. Please try again.');
+      toast.error(t('failedToResetClassification'));
     }
   };
 
-  const badge = getStatusBadge(attempt.selected_status);
+  const badge = getStatusBadge(attempt.selected_status, t);
 
   const catColors = categorisation
     ? ERROR_CATEGORY_COLORS[categorisation.broad_category]
@@ -201,7 +204,7 @@ export default function AttemptTimelineEntry({
 
                   {/* Self-assessed indicator */}
                   {attempt.is_self_assessed && (
-                    <span title="Self-assessed">
+                    <span title={t('selfAssessed')}>
                       <User className="w-3 h-3 text-violet-500" />
                     </span>
                   )}
@@ -227,7 +230,7 @@ export default function AttemptTimelineEntry({
 
                   {/* Relative date */}
                   <span className="text-xs text-muted-foreground">
-                    {formatRelativeDate(attempt.created_at)}
+                    {formatRelativeDate(attempt.created_at, t)}
                   </span>
                 </div>
               </AccordionTrigger>
@@ -238,7 +241,7 @@ export default function AttemptTimelineEntry({
                     <div className="flex items-start gap-2 rounded-lg bg-gray-50 px-2.5 py-2 dark:bg-gray-800/40">
                       <div className="min-w-0 flex-1 space-y-0.5">
                         <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                          AI Diagnosis
+                          {t('aiDiagnosis')}
                         </p>
                         <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
                           {categorisation.granular_tag}
@@ -254,10 +257,10 @@ export default function AttemptTimelineEntry({
 
                   {/* Submitted response */}
                   {attempt.submitted_answer != null &&
-                    attempt.submitted_answer !== 'Self-assessed' && (
+                    attempt.submitted_answer !== t('selfAssessed') && (
                       <p className="text-gray-700 dark:text-gray-300 line-clamp-2">
                         <span className="text-xs font-medium text-muted-foreground">
-                          Response:{' '}
+                          {t('response')}{' '}
                         </span>
                         {typeof attempt.submitted_answer === 'string'
                           ? attempt.submitted_answer
@@ -269,7 +272,7 @@ export default function AttemptTimelineEntry({
                   {attempt.cause && (
                     <div>
                       <span className="text-xs font-medium text-muted-foreground">
-                        Cause:{' '}
+                        {t('cause')}{' '}
                       </span>
                       <span className="text-gray-700 dark:text-gray-300">
                         {getCauseLabel(attempt.cause, attempt.is_correct)}
@@ -281,7 +284,7 @@ export default function AttemptTimelineEntry({
                   {attempt.reflection_notes && (
                     <p className="text-gray-700 dark:text-gray-300 line-clamp-3">
                       <span className="text-xs font-medium text-muted-foreground">
-                        Notes:{' '}
+                        {t('notesLabel')}{' '}
                       </span>
                       {attempt.reflection_notes}
                     </p>
@@ -298,7 +301,7 @@ export default function AttemptTimelineEntry({
                     }}
                   >
                     <Pencil className="w-3 h-3" />
-                    Edit
+                    {t('editAttempt')}
                   </Button>
                 </div>
               </AccordionContent>

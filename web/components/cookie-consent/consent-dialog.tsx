@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Cookie, BarChart3, Shield } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -21,6 +22,8 @@ interface ConsentDialogProps {
 }
 
 export function ConsentDialog({ open, onOpenChange }: ConsentDialogProps) {
+  const t = useTranslations('CookieConsent');
+  const tCommon = useTranslations('Common');
   const { consent, savePreferences } = useConsent();
   const [analytics, setAnalytics] = useState(false);
 
@@ -36,12 +39,9 @@ export function ConsentDialog({ open, onOpenChange }: ConsentDialogProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Cookie className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-            Cookie Preferences
+            {t('cookiePreferences')}
           </DialogTitle>
-          <DialogDescription>
-            Choose which cookies you&apos;d like to allow. Essential cookies are
-            required for the site to function.
-          </DialogDescription>
+          <DialogDescription>{t('cookiePreferencesDesc')}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
@@ -54,15 +54,15 @@ export function ConsentDialog({ open, onOpenChange }: ConsentDialogProps) {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                    Essential
+                    {t('essential')}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Required for sign-in &amp; core features
+                    {t('essentialDesc')}
                   </p>
                 </div>
               </div>
               <span className="inline-flex items-center rounded-full bg-amber-100/80 dark:bg-amber-900/30 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-300 border border-amber-200/50 dark:border-amber-800/40">
-                Always on
+                {t('alwaysOn')}
               </span>
             </div>
             <ul className="mt-2.5 space-y-1 text-xs text-gray-500 dark:text-gray-400 pl-11">
@@ -76,7 +76,7 @@ export function ConsentDialog({ open, onOpenChange }: ConsentDialogProps) {
                 <code className="text-[11px] bg-amber-200/30 dark:bg-amber-800/20 rounded px-1">
                   {COOKIE_CONSENT_CONSTANTS.COOKIE_NAME}
                 </code>{' '}
-                &mdash; Your cookie preferences
+                &mdash; {t('yourPreferences')}
               </li>
             </ul>
           </div>
@@ -90,10 +90,10 @@ export function ConsentDialog({ open, onOpenChange }: ConsentDialogProps) {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                    Analytics
+                    {t('analytics')}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Help us understand how to improve
+                    {t('analyticsDesc')}
                   </p>
                 </div>
               </div>
@@ -120,10 +120,10 @@ export function ConsentDialog({ open, onOpenChange }: ConsentDialogProps) {
             size="sm"
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {tCommon('cancel')}
           </Button>
           <Button size="sm" onClick={() => savePreferences(analytics)}>
-            Save preferences
+            {t('savePreferences')}
           </Button>
         </DialogFooter>
       </DialogContent>
