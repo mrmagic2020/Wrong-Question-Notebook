@@ -1,9 +1,11 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { ArrowRight } from 'lucide-react';
 import { RecentStudyActivity } from '@/lib/types';
 import { formatRelativeTime } from '@/lib/common-utils';
+
+type StatusKey = 'status.wrong' | 'status.needs_review' | 'status.mastered';
 
 interface RecentActivityFeedUserProps {
   activities: RecentStudyActivity[];
@@ -19,6 +21,7 @@ export function RecentActivityFeedUser({
   activities,
 }: RecentActivityFeedUserProps) {
   const t = useTranslations('Statistics');
+  const locale = useLocale();
 
   if (activities.length === 0) {
     return (
@@ -61,7 +64,7 @@ export function RecentActivityFeedUser({
                         statusBadgeClass[activity.old_status] || 'status-wrong'
                       }
                     >
-                      {t(`status.${activity.old_status}`)}
+                      {t(`status.${activity.old_status}` as StatusKey)}
                     </span>
                     <ArrowRight className="w-3 h-3 text-gray-400" />
                   </>
@@ -71,11 +74,11 @@ export function RecentActivityFeedUser({
                     statusBadgeClass[activity.new_status] || 'status-wrong'
                   }
                 >
-                  {t(`status.${activity.new_status}`)}
+                  {t(`status.${activity.new_status}` as StatusKey)}
                 </span>
               </div>
               <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0 w-16 text-right">
-                {formatRelativeTime(activity.changed_at)}
+                {formatRelativeTime(activity.changed_at, locale)}
               </span>
             </div>
           ))}
