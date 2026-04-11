@@ -25,28 +25,28 @@ import {
 const APP_LINKS = [
   {
     href: '/subjects',
-    labelKey: 'subjects',
+    labelKey: 'subjects' as const,
     icon: BookOpen,
     iconBg: 'bg-amber-500/10 dark:bg-amber-500/20',
     iconColor: 'text-amber-600 dark:text-amber-400',
   },
   {
     href: '/problem-sets',
-    labelKey: 'problemSets',
+    labelKey: 'problemSets' as const,
     icon: FolderOpen,
     iconBg: 'bg-blue-500/10 dark:bg-blue-500/20',
     iconColor: 'text-blue-600 dark:text-blue-400',
   },
   {
     href: '/statistics',
-    labelKey: 'statistics',
+    labelKey: 'statistics' as const,
     icon: BarChart3,
     iconBg: 'bg-green-500/10 dark:bg-green-500/20',
     iconColor: 'text-green-600 dark:text-green-400',
   },
   {
     href: '/insights',
-    labelKey: 'insights',
+    labelKey: 'insights' as const,
     icon: Lightbulb,
     iconBg: 'bg-orange-500/10 dark:bg-orange-500/20',
     iconColor: 'text-orange-600 dark:text-orange-400',
@@ -58,7 +58,13 @@ function isActivePath(pathname: string | null, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function NavLink({ href, labelKey }: { href: string; labelKey: string }) {
+function NavLink({
+  href,
+  labelKey,
+}: {
+  href: string;
+  labelKey: (typeof APP_LINKS)[number]['labelKey'];
+}) {
   const t = useTranslations('Navigation');
   const pathname = usePathname();
   const active = isActivePath(pathname, href);
@@ -87,7 +93,7 @@ function MobileNavLink({
   onClick,
 }: {
   href: string;
-  labelKey: string;
+  labelKey: (typeof APP_LINKS)[number]['labelKey'];
   icon: LucideIcon;
   iconBg: string;
   iconColor: string;

@@ -21,29 +21,24 @@ interface AnnouncementEditorProps {
   } | null;
 }
 
-const typeOptions: {
-  value: AnnouncementType;
-  labelKey: string;
-  icon: typeof Info;
-  color: string;
-}[] = [
+const typeOptions = [
   {
-    value: 'info',
-    labelKey: 'info',
+    value: 'info' as AnnouncementType,
+    labelKey: 'info' as const,
     icon: Info,
     color:
       'text-blue-600 dark:text-blue-400 bg-blue-500/10 dark:bg-blue-500/20 border-blue-200/50 dark:border-blue-800/40',
   },
   {
-    value: 'warning',
-    labelKey: 'warning',
+    value: 'warning' as AnnouncementType,
+    labelKey: 'warning' as const,
     icon: AlertTriangle,
     color:
       'text-amber-600 dark:text-amber-400 bg-amber-500/10 dark:bg-amber-500/20 border-amber-200/50 dark:border-amber-800/40',
   },
   {
-    value: 'success',
-    labelKey: 'success',
+    value: 'success' as AnnouncementType,
+    labelKey: 'success' as const,
     icon: CheckCircle,
     color:
       'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/20 border-emerald-200/50 dark:border-emerald-800/40',
@@ -60,6 +55,7 @@ const previewStyles: Record<AnnouncementType, string> = {
 
 export function AnnouncementEditor({ initial }: AnnouncementEditorProps) {
   const t = useTranslations('Admin');
+  const tCommon = useTranslations('Common');
   const [enabled, setEnabled] = useState(initial?.enabled ?? false);
   const [message, setMessage] = useState(initial?.message ?? '');
   const [type, setType] = useState<AnnouncementType>(initial?.type ?? 'info');
@@ -133,7 +129,11 @@ export function AnnouncementEditor({ initial }: AnnouncementEditorProps) {
                 )}
               >
                 <opt.icon className="h-4 w-4" />
-                {t(opt.labelKey)}
+                {opt.value === 'info'
+                  ? t('info')
+                  : opt.value === 'warning'
+                    ? t('warning')
+                    : tCommon('success')}
               </button>
             ))}
           </div>

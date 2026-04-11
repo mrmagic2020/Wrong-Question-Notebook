@@ -17,6 +17,7 @@ import {
   Timer,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import type { TranslatorProp } from '@/i18n/types';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -111,7 +112,7 @@ function ImageAssetToggles({
   saveAsSolutionAsset: boolean;
   onSolutionAssetChange: (v: boolean) => void;
   hint?: string;
-  t: (key: string) => string;
+  t: TranslatorProp;
 }) {
   return (
     <div className="flex items-center gap-4 rounded-xl border border-amber-200/40 bg-amber-50/30 px-3 py-2 dark:border-amber-800/30 dark:bg-amber-950/20">
@@ -163,6 +164,7 @@ export function ImageScanUploader({
   onQuotaChange,
 }: ImageScanUploaderProps) {
   const t = useTranslations('ImageScan');
+  const tCommon = useTranslations('Common');
   const [state, setState] = useState<UploaderState>('initial');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -574,7 +576,7 @@ export function ImageScanUploader({
               <div className="flex flex-col items-center justify-center gap-1.5">
                 <div className="h-full w-px bg-gray-200/60 dark:bg-gray-700/40" />
                 <span className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                  {t('or')}
+                  {tCommon('or')}
                 </span>
                 <div className="h-full w-px bg-gray-200/60 dark:bg-gray-700/40" />
               </div>
@@ -669,7 +671,7 @@ export function ImageScanUploader({
             }}
             className="text-muted-foreground"
           >
-            {t('cancel')}
+            {tCommon('cancel')}
           </Button>
         </div>
       </div>
@@ -919,7 +921,7 @@ export function ImageScanUploader({
             onClick={reset}
             className="text-muted-foreground"
           >
-            {t('tryAgain')}
+            {tCommon('tryAgain')}
           </Button>
           <Button
             type="button"

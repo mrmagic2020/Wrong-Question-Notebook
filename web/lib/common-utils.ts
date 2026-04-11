@@ -103,40 +103,62 @@ export function formatRelativeTime(
 // String Utilities
 // =====================================================
 
-export function getColumnDisplayName(columnId: string): string {
-  const displayNames: Record<string, string> = {
-    select: 'selectColumn',
-    title: 'titleColumn',
-    problem_type: 'problemTypeColumn',
-    tags: 'tagsColumn',
-    status: 'statusColumn',
-    created_at: 'dateCreatedColumn',
-    updated_at: 'updatedColumn',
-    last_reviewed_date: 'lastReviewedColumn',
-    actions: 'actionsColumn',
-  };
+const COLUMN_DISPLAY_NAMES = {
+  select: 'selectColumn',
+  title: 'titleColumn',
+  problem_type: 'problemTypeColumn',
+  tags: 'tagsColumn',
+  status: 'statusColumn',
+  created_at: 'dateCreatedColumn',
+  updated_at: 'updatedColumn',
+  last_reviewed_date: 'lastReviewedColumn',
+  actions: 'actionsColumn',
+} as const;
 
-  return displayNames[columnId] || columnId;
+export type ColumnDisplayKey =
+  (typeof COLUMN_DISPLAY_NAMES)[keyof typeof COLUMN_DISPLAY_NAMES];
+
+export function getColumnDisplayName(columnId: string): ColumnDisplayKey {
+  return (
+    COLUMN_DISPLAY_NAMES[columnId as keyof typeof COLUMN_DISPLAY_NAMES] ??
+    ('selectColumn' as ColumnDisplayKey)
+  );
 }
 
-export function getProblemTypeDisplayName(type: string): string {
-  const displayNames: Record<string, string> = {
-    mcq: 'multipleChoiceType',
-    short: 'shortAnswerType',
-    extended: 'extendedResponseType',
-  };
+const PROBLEM_TYPE_DISPLAY_NAMES = {
+  mcq: 'multipleChoiceType',
+  short: 'shortAnswerType',
+  extended: 'extendedResponseType',
+} as const;
 
-  return displayNames[type] || type;
+export type ProblemTypeDisplayKey =
+  (typeof PROBLEM_TYPE_DISPLAY_NAMES)[keyof typeof PROBLEM_TYPE_DISPLAY_NAMES];
+
+export function getProblemTypeDisplayName(type: string): ProblemTypeDisplayKey {
+  return (
+    PROBLEM_TYPE_DISPLAY_NAMES[
+      type as keyof typeof PROBLEM_TYPE_DISPLAY_NAMES
+    ] ?? 'multipleChoiceType'
+  );
 }
 
-export function getProblemStatusDisplayName(status: string): string {
-  const displayNames: Record<string, string> = {
-    wrong: 'wrongStatus',
-    needs_review: 'needsReviewStatus',
-    mastered: 'masteredStatus',
-  };
+const PROBLEM_STATUS_DISPLAY_NAMES = {
+  wrong: 'wrongStatus',
+  needs_review: 'needsReviewStatus',
+  mastered: 'masteredStatus',
+} as const;
 
-  return displayNames[status] || status;
+export type ProblemStatusDisplayKey =
+  (typeof PROBLEM_STATUS_DISPLAY_NAMES)[keyof typeof PROBLEM_STATUS_DISPLAY_NAMES];
+
+export function getProblemStatusDisplayName(
+  status: string
+): ProblemStatusDisplayKey {
+  return (
+    PROBLEM_STATUS_DISPLAY_NAMES[
+      status as keyof typeof PROBLEM_STATUS_DISPLAY_NAMES
+    ] ?? 'wrongStatus'
+  );
 }
 
 export function getStatusBorderColor(status: string): string {

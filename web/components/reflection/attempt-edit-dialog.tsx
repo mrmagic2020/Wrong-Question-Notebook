@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useState, useEffect } from 'react';
+
 import {
   Dialog,
   DialogContent,
@@ -23,21 +24,21 @@ import { toast } from 'sonner';
 const statusOptions = [
   {
     value: 'wrong' as ProblemStatus,
-    labelKey: 'wrong',
+    labelKey: 'wrong' as const,
     icon: XCircle,
     activeBg:
       'bg-red-100 dark:bg-red-950/20 text-red-800 dark:text-red-200 border-red-300 dark:border-red-800',
   },
   {
     value: 'needs_review' as ProblemStatus,
-    labelKey: 'needsReview',
+    labelKey: 'needsReview' as const,
     icon: AlertCircle,
     activeBg:
       'bg-yellow-100 dark:bg-yellow-950/20 text-yellow-800 dark:text-yellow-200 border-yellow-300 dark:border-yellow-800',
   },
   {
     value: 'mastered' as ProblemStatus,
-    labelKey: 'mastered',
+    labelKey: 'mastered' as const,
     icon: CheckCircle,
     activeBg:
       'bg-green-100 dark:bg-green-950/20 text-green-800 dark:text-green-200 border-green-300 dark:border-green-800',
@@ -58,6 +59,7 @@ export default function AttemptEditDialog({
   onSaved,
 }: AttemptEditDialogProps) {
   const t = useTranslations('Review');
+  const tCommon = useTranslations('Common');
   const [selectedStatus, setSelectedStatus] = useState<ProblemStatus | null>(
     null
   );
@@ -235,7 +237,7 @@ export default function AttemptEditDialog({
             onClick={() => onOpenChange(false)}
             disabled={isSaving}
           >
-            {t('cancel')}
+            {tCommon('cancel')}
           </Button>
           <Button onClick={handleSave} disabled={isSaving}>
             {isSaving ? t('savingChanges') : t('saveChanges')}

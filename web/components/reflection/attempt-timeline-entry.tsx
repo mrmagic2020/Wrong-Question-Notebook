@@ -14,6 +14,7 @@ import {
 import { Pencil, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
+import type { TranslatorProp } from '@/i18n/types';
 import { Button } from '@/components/ui/button';
 import AttemptEditDialog from './attempt-edit-dialog';
 import { ErrorCategoryEditor } from '@/components/insights/error-category-editor';
@@ -25,10 +26,7 @@ interface AttemptTimelineEntryProps {
   initialCategorisation?: ErrorCategorisation | null;
 }
 
-function formatRelativeDate(
-  dateString: string,
-  t: (key: string, values?: Record<string, number>) => string
-): string {
+function formatRelativeDate(dateString: string, t: TranslatorProp): string {
   const date = new Date(dateString);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -56,7 +54,7 @@ function getCauseLabel(
   return found?.label || cause;
 }
 
-function getStatusBadge(status: string | null, t: (key: string) => string) {
+function getStatusBadge(status: string | null, t: TranslatorProp) {
   switch (status) {
     case 'wrong':
       return {

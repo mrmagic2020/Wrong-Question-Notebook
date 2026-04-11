@@ -21,6 +21,7 @@ import {
   formatDisplayDate,
 } from '@/lib/common-utils';
 import { Link } from '@/i18n/navigation';
+import type { TranslatorProp } from '@/i18n/types';
 import { toast } from 'sonner';
 import { Problem, TableMeta } from '@/lib/types';
 
@@ -54,7 +55,7 @@ function DataTableColumnHeader({
 }: {
   column: any;
   title: string;
-  t: (key: string) => string;
+  t: TranslatorProp;
 }) {
   return (
     <DropdownMenu modal={false}>
@@ -83,9 +84,7 @@ function DataTableColumnHeader({
   );
 }
 
-export function createColumns(
-  t: (key: string) => string
-): ColumnDef<Problem>[] {
+export function createColumns(t: TranslatorProp): ColumnDef<Problem>[] {
   return [
     {
       id: 'select',

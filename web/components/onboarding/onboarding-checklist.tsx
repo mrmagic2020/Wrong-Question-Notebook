@@ -26,13 +26,10 @@ interface StepDef {
   label: string;
 }
 
-const STEP_KEYS: Array<{
-  key: 'hasSubject' | 'hasProblem' | 'hasReviewed';
-  translationKey: string;
-}> = [
-  { key: 'hasSubject', translationKey: 'step1' },
-  { key: 'hasProblem', translationKey: 'step2' },
-  { key: 'hasReviewed', translationKey: 'step3' },
+const STEP_KEYS = [
+  { key: 'hasSubject' as const, translationKey: 'step1' as const },
+  { key: 'hasProblem' as const, translationKey: 'step2' as const },
+  { key: 'hasReviewed' as const, translationKey: 'step3' as const },
 ];
 
 /**

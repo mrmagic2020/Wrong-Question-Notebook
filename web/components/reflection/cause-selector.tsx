@@ -8,13 +8,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ATTEMPT_CONSTANTS } from '@/lib/constants';
+import type { TranslatorProp } from '@/i18n/types';
 
 interface CauseSelectorProps {
   value: string | undefined;
   onChange: (value: string) => void;
   isCorrect: boolean;
   onOtherSelected?: () => void;
-  t?: (key: string) => string;
+  t?: TranslatorProp;
 }
 
 export default function CauseSelector({
@@ -22,7 +23,7 @@ export default function CauseSelector({
   onChange,
   isCorrect,
   onOtherSelected,
-  t = (key: string) => key,
+  t = ((key: string) => key) as TranslatorProp,
 }: CauseSelectorProps) {
   const categories = isCorrect
     ? ATTEMPT_CONSTANTS.CAUSE_CATEGORIES.CORRECT

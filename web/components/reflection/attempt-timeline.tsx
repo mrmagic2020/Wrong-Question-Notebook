@@ -12,6 +12,7 @@ import { ATTEMPT_CONSTANTS } from '@/lib/constants';
 import { Attempt, ErrorCategorisation } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from 'next-intl';
+import type { TranslatorProp } from '@/i18n/types';
 import AttemptTimelineEntry from './attempt-timeline-entry';
 
 interface AttemptTimelineProps {
@@ -21,10 +22,7 @@ interface AttemptTimelineProps {
 
 const PAGE_SIZE = ATTEMPT_CONSTANTS.TIMELINE_PAGE_SIZE;
 
-function formatRelativeShort(
-  dateString: string,
-  t: (key: string, values?: Record<string, number>) => string
-): string {
+function formatRelativeShort(dateString: string, t: TranslatorProp): string {
   const date = new Date(dateString);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -77,6 +75,7 @@ export default function AttemptTimeline({
   refreshKey = 0,
 }: AttemptTimelineProps) {
   const t = useTranslations('Review');
+  const tCommon = useTranslations('Common');
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [categorisations, setCategorisations] = useState<
     Record<string, ErrorCategorisation>
@@ -231,7 +230,7 @@ export default function AttemptTimeline({
                   disabled={isLoadingMore}
                 >
                   {isLoadingMore
-                    ? t('loading')
+                    ? tCommon('loading')
                     : t('showOlderAttempts', {
                         count: Math.min(PAGE_SIZE, remaining),
                       })}

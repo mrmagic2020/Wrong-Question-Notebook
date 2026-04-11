@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
+import type { TranslatorProp } from '@/i18n/types';
 
 interface StatusBadgeProps {
   status: 'needs_review' | 'wrong' | 'mastered';
   className?: string;
   children?: React.ReactNode;
-  t?: (key: string) => string;
+  t?: TranslatorProp;
 }
 
 const statusClasses = {

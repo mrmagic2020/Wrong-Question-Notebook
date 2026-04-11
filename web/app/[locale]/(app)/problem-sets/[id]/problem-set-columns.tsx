@@ -23,6 +23,7 @@ import {
   formatDisplayDate,
 } from '@/lib/common-utils';
 import { toast } from 'sonner';
+import type { TranslatorProp } from '@/i18n/types';
 import { ProblemInSet } from '@/lib/types';
 import CopyProblemDialog from '@/components/copy-problem-dialog';
 
@@ -65,7 +66,7 @@ function DataTableColumnHeader({
 }: {
   column: any;
   title: string;
-  t: (key: string) => string;
+  t: TranslatorProp;
 }) {
   return (
     <DropdownMenu modal={false}>
@@ -95,7 +96,7 @@ function DataTableColumnHeader({
 }
 
 // Shared columns (used by both owner and viewer)
-const titleColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
+const titleColumn = (t: TranslatorProp): ColumnDef<ProblemInSet> => ({
   accessorKey: 'title',
   header: ({ column }) => (
     <DataTableColumnHeader column={column} title={t('titleColumn')} t={t} />
@@ -113,7 +114,7 @@ const titleColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
   },
 });
 
-const typeColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
+const typeColumn = (t: TranslatorProp): ColumnDef<ProblemInSet> => ({
   accessorKey: 'problem_type',
   header: ({ column }) => (
     <DataTableColumnHeader
@@ -135,7 +136,7 @@ const typeColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
   },
 });
 
-const tagsColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
+const tagsColumn = (t: TranslatorProp): ColumnDef<ProblemInSet> => ({
   accessorKey: 'tags',
   header: ({ column }) => (
     <DataTableColumnHeader column={column} title={t('tagsColumn')} t={t} />
@@ -155,9 +156,7 @@ const tagsColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
   },
 });
 
-const createdAtColumn = (
-  t: (key: string) => string
-): ColumnDef<ProblemInSet> => ({
+const createdAtColumn = (t: TranslatorProp): ColumnDef<ProblemInSet> => ({
   accessorKey: 'created_at',
   header: ({ column }) => (
     <DataTableColumnHeader
@@ -202,7 +201,7 @@ const selectColumn: ColumnDef<ProblemInSet> = {
   enableHiding: false,
 };
 
-const statusColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
+const statusColumn = (t: TranslatorProp): ColumnDef<ProblemInSet> => ({
   accessorKey: 'status',
   header: ({ column }) => (
     <DataTableColumnHeader column={column} title={t('statusColumn')} t={t} />
@@ -225,9 +224,7 @@ const statusColumn = (t: (key: string) => string): ColumnDef<ProblemInSet> => ({
   },
 });
 
-const lastReviewedColumn = (
-  t: (key: string) => string
-): ColumnDef<ProblemInSet> => ({
+const lastReviewedColumn = (t: TranslatorProp): ColumnDef<ProblemInSet> => ({
   accessorKey: 'last_reviewed_date',
   header: ({ column }) => (
     <DataTableColumnHeader
@@ -247,9 +244,7 @@ const lastReviewedColumn = (
 });
 
 // Actions column for owners
-const ownerActionsColumn = (
-  t: (key: string) => string
-): ColumnDef<ProblemInSet> => ({
+const ownerActionsColumn = (t: TranslatorProp): ColumnDef<ProblemInSet> => ({
   id: 'actions',
   header: t('actionsColumn'),
   cell: ({ row, table }) => {
@@ -321,7 +316,7 @@ function ViewerActionsCell({
 }: {
   problem: ProblemInSet;
   meta: ProblemSetTableMeta;
-  t: (key: string) => string;
+  t: TranslatorProp;
 }) {
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
   const showCopyAction =
@@ -379,9 +374,7 @@ function ViewerActionsCell({
 }
 
 // Actions column for viewers
-const viewerActionsColumn = (
-  t: (key: string) => string
-): ColumnDef<ProblemInSet> => ({
+const viewerActionsColumn = (t: TranslatorProp): ColumnDef<ProblemInSet> => ({
   id: 'actions',
   header: t('actionsColumn'),
   cell: ({ row, table }) => {
@@ -395,7 +388,7 @@ const viewerActionsColumn = (
 
 // Factory functions that create columns with translations
 export function createOwnerColumns(
-  t: (key: string) => string
+  t: TranslatorProp
 ): ColumnDef<ProblemInSet>[] {
   return [
     selectColumn,
@@ -410,7 +403,7 @@ export function createOwnerColumns(
 }
 
 export function createViewerColumns(
-  t: (key: string) => string
+  t: TranslatorProp
 ): ColumnDef<ProblemInSet>[] {
   return [
     titleColumn(t),
