@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Plus, X } from 'lucide-react';
@@ -35,6 +36,8 @@ export function ShortAnswerConfig({
   onChange,
   disabled = false,
 }: ShortAnswerConfigProps) {
+  const t = useTranslations('Problems');
+  const tCommon = useTranslations('Common');
   const { MAX_ACCEPTABLE_ANSWERS, MAX_ANSWER_LENGTH, NUMERIC } =
     ANSWER_CONFIG_CONSTANTS.SHORT_ANSWER;
 
@@ -90,7 +93,7 @@ export function ShortAnswerConfig({
   return (
     <div className="space-y-3">
       <div className="form-row">
-        <label className="form-label">Answer mode</label>
+        <label className="form-label">{t('answerMode')}</label>
         <div className="inline-flex self-start rounded-lg border border-border p-0.5">
           <button
             type="button"
@@ -102,7 +105,7 @@ export function ShortAnswerConfig({
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            Text
+            {t('text')}
           </button>
           <button
             type="button"
@@ -114,17 +117,17 @@ export function ShortAnswerConfig({
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            Numeric
+            {t('numeric')}
           </button>
         </div>
       </div>
 
       {mode === 'text' && value.mode === 'text' && (
         <div className="form-row-start">
-          <label className="form-label pt-2">Acceptable answers</label>
+          <label className="form-label pt-2">{t('acceptableAnswers')}</label>
           <div className="flex-1 space-y-2">
             <p className="text-sm text-muted-foreground">
-              All answers will be matched case-insensitively
+              {t('acceptableAnswersHint')}
             </p>
             {/* Tags display */}
             {value.acceptable_answers.length > 0 && (
@@ -140,7 +143,7 @@ export function ShortAnswerConfig({
                         type="button"
                         onClick={() => removeAnswer(i)}
                         className="ml-0.5 text-amber-600 hover:text-red-500 dark:text-amber-400 dark:hover:text-red-400"
-                        aria-label="Remove acceptable answer"
+                        aria-label={t('removeAcceptableAnswer')}
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -161,7 +164,7 @@ export function ShortAnswerConfig({
                       addAnswer();
                     }
                   }}
-                  placeholder="Type an acceptable answer and press Enter"
+                  placeholder={t('typeAnswerHint')}
                   maxLength={MAX_ANSWER_LENGTH}
                   disabled={disabled}
                   className="flex-1"
@@ -174,7 +177,7 @@ export function ShortAnswerConfig({
                   disabled={disabled || !newAnswer.trim()}
                 >
                   <Plus className="mr-1 h-4 w-4" />
-                  Add
+                  {tCommon('add')}
                 </Button>
               </div>
             )}
@@ -184,15 +187,15 @@ export function ShortAnswerConfig({
 
       {mode === 'numeric' && value.mode === 'numeric' && (
         <div className="form-row-start">
-          <label className="form-label pt-2">Numeric answer</label>
+          <label className="form-label pt-2">{t('numericAnswer')}</label>
           <div className="flex-1 space-y-2">
             <p className="text-sm text-muted-foreground">
-              Define correct value with tolerance
+              {t('numericAnswerHint')}
             </p>
             <div className="flex flex-wrap items-end gap-3">
               <div className="space-y-1">
                 <label className="text-xs text-muted-foreground">
-                  Correct value
+                  {t('correctValue')}
                 </label>
                 <Input
                   type="number"
@@ -208,14 +211,14 @@ export function ShortAnswerConfig({
                       },
                     })
                   }
-                  placeholder="e.g. 3.14"
+                  placeholder={t('numericValuePlaceholder')}
                   disabled={disabled}
                   className="w-32"
                 />
               </div>
               <div className="space-y-1">
                 <label className="text-xs text-muted-foreground">
-                  Tolerance (+/-)
+                  {t('tolerance')}
                 </label>
                 <Input
                   type="number"
@@ -232,14 +235,14 @@ export function ShortAnswerConfig({
                       },
                     })
                   }
-                  placeholder="e.g. 0.01"
+                  placeholder={t('tolerancePlaceholder')}
                   disabled={disabled}
                   className="w-32"
                 />
               </div>
               <div className="space-y-1">
                 <label className="text-xs text-muted-foreground">
-                  Unit (optional)
+                  {t('unitOptional')}
                 </label>
                 <Input
                   value={value.numeric_config.unit || ''}
@@ -252,7 +255,7 @@ export function ShortAnswerConfig({
                       },
                     })
                   }
-                  placeholder="e.g. m, kg"
+                  placeholder={t('unitPlaceholder')}
                   maxLength={NUMERIC.MAX_UNIT_LENGTH}
                   disabled={disabled}
                   className="w-28"

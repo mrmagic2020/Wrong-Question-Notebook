@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { uploadFiles } from '@/lib/storage/client';
 import { Button } from '@/components/ui/button';
 import { ContentLimitIndicator } from '@/components/ui/content-limit-indicator';
 import { useContentLimit } from '@/lib/hooks/useContentLimit';
 import { CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
 import { formatBytes } from '@/lib/format-utils';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 
 interface FileAsset {
   path: string;
@@ -37,6 +38,9 @@ export default function FileManager({
   className = '',
   disabled = false,
 }: FileManagerProps) {
+  const t = useTranslations('FileManager');
+  const tCommon = useTranslations('Common');
+  const tErrors = useTranslations('FileManager');
   const [files, setFiles] = useState<FileAsset[]>(initialFiles);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -109,23 +113,19 @@ export default function FileManager({
 
     // Check if component is disabled
     if (disabled) {
-      setError('File upload is disabled. Please expand the form first.');
+      setError(tErrors('fileUploadDisabled'));
       return;
     }
 
     // Check storage limit
     if (storageLimitExhausted) {
-      setError(
-        'Storage limit reached. Delete existing files or contact support.'
-      );
+      setError(tErrors('storageLimitReached'));
       return;
     }
 
     // Validate problemId before attempting upload
     if (!problemId || problemId.trim() === '' || problemId === 'disabled') {
-      setError(
-        'Cannot upload files: Problem ID is not available. Please expand the form first.'
-      );
+      setError(tErrors('cannotUploadFiles'));
       return;
     }
 
@@ -143,7 +143,10 @@ export default function FileManager({
 
     if (oversizedFiles.length > 0) {
       setError(
-        `Files too large: ${oversizedFiles.join(', ')}. Maximum file size is 10MB.`
+        tErrors('fileTooLarge', {
+          files: oversizedFiles.join(', '),
+          maxSize: '10MB',
+        })
       );
       return;
     }
@@ -180,8 +183,8 @@ export default function FileManager({
 
       // Update database in edit mode
       await updateDatabaseAssets(finalFiles);
-    } catch (err: any) {
-      setError(err.message ?? 'Upload failed');
+    } catch {
+      setError(tErrors('uploadFailed'));
 
       // Remove failed uploading files - keep only the original files
       updateFiles(currentFiles);
@@ -217,8 +220,8 @@ export default function FileManager({
 
       // Update database in edit mode
       await updateDatabaseAssets(updatedFiles);
-    } catch (err: any) {
-      setError(err.message ?? 'Failed to delete file');
+    } catch {
+      setError(tErrors('failedToDeleteFile'));
     }
   };
 
@@ -240,7 +243,7 @@ export default function FileManager({
         <ContentLimitIndicator
           current={storageLimit.current}
           limit={storageLimit.limit}
-          label="storage used"
+          label={t('storageUsed')}
           formatValue={formatBytes}
         />
       )}
@@ -284,27 +287,27 @@ export default function FileManager({
           <div className="text-sm text-gray-600 dark:text-gray-400">
             {storageLimitExhausted ? (
               <span className="font-medium text-rose-600 dark:text-rose-400">
-                Storage limit reached
+                {t('storageLimitReached')}
               </span>
             ) : disabled ? (
               <span className="font-medium text-gray-400 dark:text-gray-500">
-                Expand the form to upload files
+                {t('expandFormToUpload')}
               </span>
             ) : (
               <>
                 <span className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300">
-                  Click to upload
+                  {t('clickToUpload')}
                 </span>{' '}
-                or drag and drop
+                {t('orDragAndDrop')}
               </>
             )}
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400">
             {storageLimitExhausted
-              ? 'Delete existing files or contact support'
+              ? t('deleteOrContactSupport')
               : disabled
-                ? 'Form must be expanded first'
-                : 'Images and PDFs up to 10MB each'}
+                ? t('formMustBeExpanded')
+                : t('imagesAndPdfs')}
           </p>
         </div>
       </div>
@@ -320,7 +323,7 @@ export default function FileManager({
       {files.length > 0 && (
         <div className="space-y-2">
           <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Uploaded Files ({files.length})
+            {t('uploadedFiles', { count: files.length })}
           </h4>
           <div className="space-y-2">
             {files.map((file, index) => (
@@ -379,7 +382,7 @@ export default function FileManager({
                     </p>
                     {file.uploading ? (
                       <p className="text-xs text-blue-600 dark:text-blue-400">
-                        Uploading...
+                        {t('uploading')}
                       </p>
                     ) : file.error ? (
                       <p className="text-xs text-red-600 dark:text-red-400">
@@ -387,7 +390,7 @@ export default function FileManager({
                       </p>
                     ) : (
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Ready
+                        {t('fileReady')}
                       </p>
                     )}
                   </div>
@@ -407,7 +410,7 @@ export default function FileManager({
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        View
+                        {tCommon('view')}
                       </Link>
                     </Button>
                   )}
@@ -421,9 +424,9 @@ export default function FileManager({
                         size="sm"
                         onClick={() => onInsertImage(file.path, file.name)}
                         className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300"
-                        title="Insert image into editor"
+                        title={t('insertImageIntoEditor')}
                       >
-                        Insert
+                        {t('insert')}
                       </Button>
                     )}
                   <Button
@@ -434,7 +437,7 @@ export default function FileManager({
                     disabled={file.uploading}
                     className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 disabled:text-gray-400 dark:disabled:text-gray-500"
                   >
-                    Delete
+                    {t('fileDelete')}
                   </Button>
                 </div>
               </div>

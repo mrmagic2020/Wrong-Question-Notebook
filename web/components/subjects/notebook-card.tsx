@@ -11,7 +11,8 @@ import { Button } from '@/components/ui/button';
 import { SubjectWithMetadata } from '@/lib/types';
 import { SUBJECT_CONSTANTS, getIconComponent } from '@/lib/constants';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNow, isValid, parseISO } from 'date-fns';
+import { type Locale, formatDistanceToNow, isValid, parseISO } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 import {
   Calendar,
   FileText,
@@ -21,6 +22,11 @@ import {
   Trash2,
 } from 'lucide-react';
 import { ReviewDueButton } from './review-due-button';
+import { useTranslations, useLocale } from 'next-intl';
+
+const dateFnsLocales: Record<string, Locale> = {
+  'zh-CN': zhCN,
+};
 
 interface NotebookCardProps {
   subject: SubjectWithMetadata;
@@ -37,7 +43,10 @@ interface NotebookCardProps {
  * Safely formats a date string using date-fns formatDistanceToNow.
  * Returns null if the date is invalid or formatting fails.
  */
-function formatSafeDate(dateString: string | null | undefined): string | null {
+function formatSafeDate(
+  dateString: string | null | undefined,
+  locale?: Locale
+): string | null {
   if (!dateString) return null;
 
   try {
@@ -46,7 +55,7 @@ function formatSafeDate(dateString: string | null | undefined): string | null {
       console.warn(`Invalid date string: "${dateString}"`);
       return null;
     }
-    return formatDistanceToNow(date, { addSuffix: true });
+    return formatDistanceToNow(date, { addSuffix: true, locale });
   } catch (error) {
     console.error('Error formatting date:', error);
     return null;
@@ -63,6 +72,10 @@ export function NotebookCard({
   className,
   style,
 }: NotebookCardProps) {
+  const t = useTranslations('Subjects');
+  const tCommon = useTranslations('Common');
+  const locale = useLocale();
+  const dateFnsLocale = dateFnsLocales[locale];
   const color = subject.color || SUBJECT_CONSTANTS.DEFAULT_COLOR;
   const safeColor =
     color in SUBJECT_CONSTANTS.COLOR_GRADIENTS
@@ -81,8 +94,8 @@ export function NotebookCard({
   const createdAt = subject.created_at;
 
   // Safely format dates, will be null if date is invalid
-  const formattedCreatedAt = formatSafeDate(createdAt);
-  const formattedLastActivity = formatSafeDate(lastActivity);
+  const formattedCreatedAt = formatSafeDate(createdAt, dateFnsLocale);
+  const formattedLastActivity = formatSafeDate(lastActivity, dateFnsLocale);
 
   return (
     <Card
@@ -124,7 +137,7 @@ export function NotebookCard({
                   onEdit();
                 }}
               >
-                <Pencil className="mr-2 h-4 w-4" /> Edit
+                <Pencil className="mr-2 h-4 w-4" /> {tCommon('edit')}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={e => {
@@ -132,7 +145,7 @@ export function NotebookCard({
                   onManageTags();
                 }}
               >
-                <Tags className="mr-2 h-4 w-4" /> Manage Tags
+                <Tags className="mr-2 h-4 w-4" /> {t('manageTags')}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={e => {
@@ -141,7 +154,7 @@ export function NotebookCard({
                 }}
                 className="text-destructive focus:text-destructive"
               >
-                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                <Trash2 className="mr-2 h-4 w-4" /> {tCommon('delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -156,7 +169,7 @@ export function NotebookCard({
           <div className="flex items-center gap-2">
             <FileText className={cn('w-4 h-4', colorClasses.iconColor)} />
             <span className="text-gray-600 dark:text-gray-400">
-              {problemCount} {problemCount === 1 ? 'problem' : 'problems'}
+              {t('problemCount', { count: problemCount })}
             </span>
           </div>
           {dueCount > 0 && onReviewDue && (
@@ -172,7 +185,7 @@ export function NotebookCard({
           <div className="flex items-center gap-2">
             <Calendar className={cn('w-4 h-4', colorClasses.iconColor)} />
             <span className="text-gray-500 dark:text-gray-500 text-xs">
-              Created {formattedCreatedAt}
+              {t('created', { relativeTime: formattedCreatedAt })}
             </span>
           </div>
         )}
@@ -180,7 +193,7 @@ export function NotebookCard({
         {formattedLastActivity && (
           <div className="pt-2 border-t border-current/10">
             <span className="text-xs text-gray-500 dark:text-gray-500">
-              Last reviewed {formattedLastActivity}
+              {t('lastReviewed', { relativeTime: formattedLastActivity })}
             </span>
           </div>
         )}

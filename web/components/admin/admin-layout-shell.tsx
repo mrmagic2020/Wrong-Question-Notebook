@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +13,7 @@ import {
 import { AdminSidebar } from './admin-sidebar';
 
 export function AdminLayoutShell({ children }: { children: React.ReactNode }) {
+  const t = useTranslations('Admin');
   const [open, setOpen] = useState(false);
 
   return (
@@ -33,7 +35,7 @@ export function AdminLayoutShell({ children }: { children: React.ReactNode }) {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-[264px] p-0">
-          <SheetTitle className="sr-only">Admin Navigation</SheetTitle>
+          <SheetTitle className="sr-only">{t('adminNavigation')}</SheetTitle>
           <AdminSidebar onNavigate={() => setOpen(false)} />
         </SheetContent>
       </Sheet>

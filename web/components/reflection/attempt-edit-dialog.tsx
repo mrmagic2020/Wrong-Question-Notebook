@@ -1,6 +1,8 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState, useEffect } from 'react';
+
 import {
   Dialog,
   DialogContent,
@@ -22,21 +24,21 @@ import { toast } from 'sonner';
 const statusOptions = [
   {
     value: 'wrong' as ProblemStatus,
-    label: 'Wrong',
+    labelKey: 'wrong' as const,
     icon: XCircle,
     activeBg:
       'bg-red-100 dark:bg-red-950/20 text-red-800 dark:text-red-200 border-red-300 dark:border-red-800',
   },
   {
     value: 'needs_review' as ProblemStatus,
-    label: 'Needs Review',
+    labelKey: 'needsReview' as const,
     icon: AlertCircle,
     activeBg:
       'bg-yellow-100 dark:bg-yellow-950/20 text-yellow-800 dark:text-yellow-200 border-yellow-300 dark:border-yellow-800',
   },
   {
     value: 'mastered' as ProblemStatus,
-    label: 'Mastered',
+    labelKey: 'mastered' as const,
     icon: CheckCircle,
     activeBg:
       'bg-green-100 dark:bg-green-950/20 text-green-800 dark:text-green-200 border-green-300 dark:border-green-800',
@@ -56,6 +58,8 @@ export default function AttemptEditDialog({
   attempt,
   onSaved,
 }: AttemptEditDialogProps) {
+  const t = useTranslations('Review');
+  const tCommon = useTranslations('Common');
   const [selectedStatus, setSelectedStatus] = useState<ProblemStatus | null>(
     null
   );
@@ -97,7 +101,7 @@ export default function AttemptEditDialog({
       onSaved();
       onOpenChange(false);
     } catch {
-      toast.error('Failed to save changes. Please try again.');
+      toast.error(t('failedToSave'));
     } finally {
       setIsSaving(false);
     }
@@ -107,10 +111,8 @@ export default function AttemptEditDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit Attempt</DialogTitle>
-          <DialogDescription>
-            Update the assessment for this attempt.
-          </DialogDescription>
+          <DialogTitle>{t('editAttempt')}</DialogTitle>
+          <DialogDescription>{t('editAttemptDesc')}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
@@ -125,7 +127,7 @@ export default function AttemptEditDialog({
               )}
             >
               <span>{attempt.is_correct ? '\u2713' : '\u2717'}</span>
-              {attempt.is_correct ? 'Correct' : 'Incorrect'}
+              {attempt.is_correct ? t('correct') : t('incorrect')}
             </div>
           )}
 
@@ -134,7 +136,7 @@ export default function AttemptEditDialog({
             attempt.submitted_answer !== 'Self-assessed' && (
               <div className="space-y-1">
                 <span className="text-xs font-medium text-muted-foreground">
-                  Your response
+                  {t('yourResponse')}
                 </span>
                 <p className="text-sm text-gray-700 dark:text-gray-300 bg-muted/50 rounded-lg px-3 py-2">
                   {typeof attempt.submitted_answer === 'string'
@@ -147,7 +149,7 @@ export default function AttemptEditDialog({
           {/* Status selector */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Status
+              {t('status')}
             </label>
             <div className="space-y-1.5">
               {statusOptions
@@ -182,7 +184,7 @@ export default function AttemptEditDialog({
                       )}
                     >
                       <Icon className="h-4 w-4 flex-shrink-0" />
-                      <span>{option.label}</span>
+                      <span>{t(option.labelKey)}</span>
                     </button>
                   );
                 })}
@@ -195,6 +197,7 @@ export default function AttemptEditDialog({
               value={cause}
               onChange={setCause}
               isCorrect={effectiveIsCorrect}
+              t={t}
             />
           )}
 
@@ -202,9 +205,9 @@ export default function AttemptEditDialog({
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Notes{' '}
+                {t('notes')}{' '}
                 <span className="text-muted-foreground font-normal">
-                  (optional)
+                  ({t('optional')})
                 </span>
               </label>
               <span
@@ -222,7 +225,7 @@ export default function AttemptEditDialog({
               value={notes}
               onChange={e => setNotes(e.target.value)}
               maxLength={NOTES_MAX}
-              placeholder="What will you do differently next time?"
+              placeholder={t('notesPlaceholder')}
               className="h-20 resize-none"
             />
           </div>
@@ -234,10 +237,10 @@ export default function AttemptEditDialog({
             onClick={() => onOpenChange(false)}
             disabled={isSaving}
           >
-            Cancel
+            {tCommon('cancel')}
           </Button>
           <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Save'}
+            {isSaving ? t('savingChanges') : t('saveChanges')}
           </Button>
         </DialogFooter>
       </DialogContent>

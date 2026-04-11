@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { UserProfileType, UserRoleType } from '@/lib/schemas';
 import { formatDisplayDate } from '@/lib/common-utils';
@@ -56,6 +57,8 @@ export function UsersPageClient({
   initialTotalCount,
 }: UsersPageClientProps) {
   const router = useRouter();
+  const t = useTranslations('Admin');
+  const tCommon = useTranslations('Common');
   const [users, setUsers] = useState(initialUsers);
   const [totalCount, setTotalCount] = useState(initialTotalCount);
   const [page, setPage] = useState(1);
@@ -103,12 +106,12 @@ export function UsersPageClient({
         setUsers(data.users);
         setTotalCount(data.total_count);
       } catch {
-        toast.error('Failed to fetch users');
+        toast.error(t('failedToFetchUsers'));
       } finally {
         setLoading(false);
       }
     },
-    []
+    [t]
   );
 
   const handleSearchChange = (value: string) => {
@@ -141,17 +144,15 @@ export function UsersPageClient({
         method: 'PATCH',
       });
       if (!res.ok) {
-        const err = await res.json();
-        toast.error(err.error || 'Failed to toggle status');
+        await res.json();
+        toast.error(t('errorTogglingStatus'));
         return;
       }
-      toast.success(
-        `User ${user.is_active ? 'deactivated' : 'activated'} successfully`
-      );
+      toast.success(user.is_active ? t('userDeactivated') : t('userActivated'));
       fetchUsers(page, search, roleFilter, sortColumn, sortDir);
       router.refresh();
     } catch {
-      toast.error('Error toggling user status');
+      toast.error(t('errorTogglingStatus'));
     }
   };
 
@@ -163,16 +164,16 @@ export function UsersPageClient({
         method: 'DELETE',
       });
       if (!res.ok) {
-        const err = await res.json();
-        toast.error(err.error || 'Failed to delete user');
+        await res.json();
+        toast.error(t('errorDeletingUser'));
         return;
       }
-      toast.success('User deleted successfully');
+      toast.success(t('userDeleted'));
       setDeleteDialog({ open: false, user: null, loading: false });
       fetchUsers(page, search, roleFilter, sortColumn, sortDir);
       router.refresh();
     } catch {
-      toast.error('Error deleting user');
+      toast.error(t('errorDeletingUser'));
     } finally {
       setDeleteDialog(prev => ({ ...prev, loading: false }));
     }
@@ -188,16 +189,16 @@ export function UsersPageClient({
         body: JSON.stringify({ role: newRole }),
       });
       if (!res.ok) {
-        const err = await res.json();
-        toast.error(err.error || 'Failed to change role');
+        await res.json();
+        toast.error(t('errorChangingRole'));
         return;
       }
-      toast.success('User role updated successfully');
+      toast.success(t('roleUpdated'));
       setRoleDialog({ open: false, user: null, loading: false });
       fetchUsers(page, search, roleFilter, sortColumn, sortDir);
       router.refresh();
     } catch {
-      toast.error('Error changing role');
+      toast.error(t('errorChangingRole'));
     } finally {
       setRoleDialog(prev => ({ ...prev, loading: false }));
     }
@@ -207,7 +208,7 @@ export function UsersPageClient({
   const getDisplayName = (user: UserProfileType) =>
     user.username ||
     [user.first_name, user.last_name].filter(Boolean).join(' ') ||
-    'No name';
+    t('noName');
 
   const SortButton = ({
     col,
@@ -230,10 +231,10 @@ export function UsersPageClient({
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Users
+          {t('users')}
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Manage user accounts, roles, and permissions
+          {t('manageUsers')}
         </p>
       </div>
 
@@ -251,7 +252,7 @@ export function UsersPageClient({
               className="rounded-xl text-xs"
               onClick={() => handleRoleFilter(r)}
             >
-              {r ? r.replace('_', ' ') : 'All'}
+              {r ? r.replace('_', ' ') : tCommon('all')}
             </Button>
           ))}
         </div>
@@ -264,19 +265,19 @@ export function UsersPageClient({
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead>
-                  <SortButton col="username">User</SortButton>
+                  <SortButton col="username">{tCommon('user')}</SortButton>
                 </TableHead>
                 <TableHead>
-                  <SortButton col="user_role">Role</SortButton>
+                  <SortButton col="user_role">{t('role')}</SortButton>
                 </TableHead>
                 <TableHead>
-                  <SortButton col="is_active">Status</SortButton>
+                  <SortButton col="is_active">{t('status')}</SortButton>
                 </TableHead>
                 <TableHead className="hidden md:table-cell">
-                  <SortButton col="last_login_at">Last Login</SortButton>
+                  <SortButton col="last_login_at">{t('lastLogin')}</SortButton>
                 </TableHead>
                 <TableHead className="hidden md:table-cell">
-                  <SortButton col="created_at">Created</SortButton>
+                  <SortButton col="created_at">{t('created')}</SortButton>
                 </TableHead>
                 <TableHead className="w-12" />
               </TableRow>
@@ -286,7 +287,7 @@ export function UsersPageClient({
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8">
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Loading...
+                      {tCommon('loading')}
                     </p>
                   </TableCell>
                 </TableRow>
@@ -294,7 +295,7 @@ export function UsersPageClient({
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8">
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      No users found
+                      {t('noUsersFound')}
                     </p>
                   </TableCell>
                 </TableRow>
@@ -328,7 +329,7 @@ export function UsersPageClient({
                     <TableCell className="hidden md:table-cell text-sm text-gray-500 dark:text-gray-400">
                       {user.last_login_at
                         ? formatDisplayDate(user.last_login_at)
-                        : 'Never'}
+                        : t('never')}
                     </TableCell>
                     <TableCell className="hidden md:table-cell text-sm text-gray-500 dark:text-gray-400">
                       {formatDisplayDate(user.created_at)}
@@ -351,7 +352,7 @@ export function UsersPageClient({
                             }
                           >
                             <Eye className="h-4 w-4 mr-2" />
-                            View Details
+                            {tCommon('viewDetails')}
                           </DropdownMenuItem>
                           {user.user_role !== 'super_admin' && (
                             <>
@@ -365,7 +366,7 @@ export function UsersPageClient({
                                 }
                               >
                                 <Shield className="h-4 w-4 mr-2" />
-                                Change Role
+                                {t('changeRole')}
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleToggleActive(user)}
@@ -373,12 +374,12 @@ export function UsersPageClient({
                                 {user.is_active ? (
                                   <>
                                     <Ban className="h-4 w-4 mr-2" />
-                                    Deactivate
+                                    {t('deactivate')}
                                   </>
                                 ) : (
                                   <>
                                     <CheckCircle className="h-4 w-4 mr-2" />
-                                    Activate
+                                    {t('activate')}
                                   </>
                                 )}
                               </DropdownMenuItem>
@@ -394,7 +395,7 @@ export function UsersPageClient({
                                 className="text-red-600 focus:text-red-600"
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
-                                Delete User
+                                {t('deleteUser')}
                               </DropdownMenuItem>
                             </>
                           )}

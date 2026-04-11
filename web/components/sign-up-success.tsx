@@ -5,10 +5,13 @@ import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { Mail, Clock, CheckCircle } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export function SignUpSuccess() {
+  const t = useTranslations('Auth');
+  const tCommon = useTranslations('Common');
   const [email, setEmail] = useState('');
   const [isResending, setIsResending] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -57,7 +60,7 @@ export function SignUpSuccess() {
 
   const handleResendEmail = async () => {
     if (!email) {
-      setMessage('Please enter your email address');
+      setMessage(t('enterYourEmail'));
       setMessageType('error');
       return;
     }
@@ -77,15 +80,13 @@ export function SignUpSuccess() {
 
       if (error) throw error;
 
-      setMessage('Confirmation email sent successfully!');
+      setMessage(t('confirmationSent'));
       setMessageType('success');
       setLastResendTime(Date.now());
       localStorage.setItem('lastResendTime', Date.now().toString());
       setResendCooldown(60); // 60 seconds cooldown
     } catch (error: unknown) {
-      setMessage(
-        error instanceof Error ? error.message : 'Failed to resend email'
-      );
+      setMessage(error instanceof Error ? error.message : t('failedToResend'));
       setMessageType('error');
     } finally {
       setIsResending(false);
@@ -104,30 +105,26 @@ export function SignUpSuccess() {
 
         {/* Title */}
         <div className="text-center mb-6 space-y-2">
-          <h1 className="auth-title">Check your email!</h1>
-          <p className="auth-subtitle">
-            We&apos;ve sent a confirmation link to your email address
-          </p>
+          <h1 className="auth-title">{t('accountCreated')}</h1>
+          <p className="auth-subtitle">{t('confirmationLinkSent')}</p>
         </div>
 
         {/* Message */}
         <div className="auth-slide-up space-y-6">
           <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-            Please check your email and click the confirmation link to activate
-            your account. You can then sign in to start organizing your
-            learning.
+            {t('checkEmailDescription')}
           </p>
 
           {/* Email input and resend functionality */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email address</Label>
+              <Label htmlFor="email">{t('emailAddress')}</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="Enter your email address"
+                placeholder={t('enterYourEmail')}
                 className="rounded-lg"
               />
             </div>
@@ -141,17 +138,17 @@ export function SignUpSuccess() {
               {isResending ? (
                 <>
                   <Mail className="mr-2 h-4 w-4 animate-spin" />
-                  Sending...
+                  {t('sending')}
                 </>
               ) : resendCooldown > 0 ? (
                 <>
                   <Clock className="mr-2 h-4 w-4" />
-                  Resend in {resendCooldown}s
+                  {t('resendIn', { n: resendCooldown })}
                 </>
               ) : (
                 <>
                   <Mail className="mr-2 h-4 w-4" />
-                  Resend confirmation email
+                  {t('resendConfirmation')}
                 </>
               )}
             </Button>
@@ -172,10 +169,10 @@ export function SignUpSuccess() {
           {/* Action buttons */}
           <div className="space-y-3">
             <Button asChild className="w-full btn-cta-primary">
-              <Link href="/auth/login">Go to Login</Link>
+              <Link href="/auth/login">{t('login')}</Link>
             </Button>
             <Button asChild variant="outline" className="w-full btn-cta">
-              <Link href="/">Back to Home</Link>
+              <Link href="/">{tCommon('back')}</Link>
             </Button>
           </div>
         </div>

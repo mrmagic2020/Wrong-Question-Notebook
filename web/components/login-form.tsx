@@ -5,18 +5,21 @@ import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { Link } from '@/i18n/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { ROUTES, ERROR_MESSAGES, CAPTCHA_CONSTANTS } from '@/lib/constants';
 import { LogIn, Eye, EyeOff } from 'lucide-react';
 import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
+import { useTranslations } from 'next-intl';
 
 interface LoginFormProps extends React.ComponentPropsWithoutRef<'div'> {
   redirectTo?: string;
 }
 
 export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
+  const t = useTranslations('Auth');
+  const tCommon = useTranslations('Common');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -74,20 +77,18 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
 
         {/* Title */}
         <div className="text-center mb-6 space-y-2">
-          <h1 className="auth-title">Welcome back</h1>
-          <p className="auth-subtitle">
-            Enter your credentials to access your notebook
-          </p>
+          <h1 className="auth-title">{t('welcomeBack')}</h1>
+          <p className="auth-subtitle">{t('enterCredentials')}</p>
         </div>
 
         {/* Form */}
         <form onSubmit={handleLogin} className="auth-slide-up space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t('email')}</Label>
             <Input
               id="email"
               type="email"
-              placeholder="m@example.com"
+              placeholder={t('emailPlaceholder')}
               required
               value={email}
               onChange={e => setEmail(e.target.value)}
@@ -95,12 +96,12 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t('password')}</Label>
               <Link
                 href="/auth/forgot-password"
                 className="auth-link text-sm underline"
               >
-                Forgot password?
+                {t('forgotPassword')}
               </Link>
             </div>
             <div className="relative">
@@ -116,7 +117,9 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
                 type="button"
                 onClick={() => setShowPassword(prev => !prev)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={
+                  showPassword ? t('hidePassword') : t('showPassword')
+                }
               >
                 {showPassword ? (
                   <EyeOff className="h-4 w-4" />
@@ -139,7 +142,7 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
               onExpire={() => setCaptchaToken(undefined)}
               onError={() => {
                 setCaptchaToken(undefined);
-                setCaptchaError('Security verification failed.');
+                setCaptchaError(t('securityVerificationFailed'));
               }}
             />
             {captchaError && (
@@ -153,7 +156,7 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
                     captchaRef.current?.reset();
                   }}
                 >
-                  Try again
+                  {tCommon('tryAgain')}
                 </button>
               </p>
             )}
@@ -163,15 +166,15 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
             className={`w-full btn-cta-primary${captchaReady ? ' captcha-ready-glow' : ''}`}
             disabled={isLoading || !captchaToken}
           >
-            {isLoading ? 'Logging in...' : 'Login'}
+            {isLoading ? t('loggingIn') : t('login')}
           </Button>
         </form>
 
         {/* Links */}
         <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-          Don&apos;t have an account?{' '}
+          {t('dontHaveAccount')}{' '}
           <Link href="/auth/sign-up" className="auth-link underline">
-            Sign up
+            {t('signUp')}
           </Link>
         </div>
       </div>

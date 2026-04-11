@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -83,6 +84,8 @@ export default function SmartFilterCriteriaDisplay({
   hideStatus = false,
   tagNames = {},
 }: SmartFilterCriteriaDisplayProps) {
+  const t = useTranslations('Review');
+  const tCommon = useTranslations('Problems');
   const [open, setOpen] = useState(true);
 
   const statuses =
@@ -108,7 +111,7 @@ export default function SmartFilterCriteriaDisplay({
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400" />
             <span className="text-sm font-medium text-amber-800 dark:text-amber-300">
-              Smart Filter Criteria
+              {t('smartFilterCriteria')}
             </span>
           </div>
           <ChevronDown
@@ -121,7 +124,7 @@ export default function SmartFilterCriteriaDisplay({
             {/* Status section */}
             {!hideStatus && (
               <div className="flex items-baseline gap-2">
-                <FilterLabel icon={CircleDot} label="Status" />
+                <FilterLabel icon={CircleDot} label={t('status')} />
                 <div className="flex flex-wrap gap-1.5 min-w-0 flex-1">
                   {statuses.map(status => (
                     <Badge
@@ -130,7 +133,9 @@ export default function SmartFilterCriteriaDisplay({
                       className={`text-xs gap-1 ${getStatusBadgeVariant(status)}`}
                     >
                       {getStatusIcon(status)}
-                      {getProblemStatusDisplayName(status as ProblemStatus)}
+                      {tCommon(
+                        getProblemStatusDisplayName(status as ProblemStatus)
+                      )}
                     </Badge>
                   ))}
                 </div>
@@ -139,11 +144,11 @@ export default function SmartFilterCriteriaDisplay({
 
             {/* Problem type section */}
             <div className="flex items-baseline gap-2">
-              <FilterLabel icon={FileText} label="Type" />
+              <FilterLabel icon={FileText} label={t('type')} />
               <div className="flex flex-wrap gap-1.5 min-w-0 flex-1">
                 {problemTypes.map(type => (
                   <Badge key={type} variant="secondary" className="text-xs">
-                    {getProblemTypeDisplayName(type)}
+                    {tCommon(getProblemTypeDisplayName(type))}
                   </Badge>
                 ))}
               </div>
@@ -151,7 +156,7 @@ export default function SmartFilterCriteriaDisplay({
 
             {/* Tags section */}
             <div className="flex items-baseline gap-2">
-              <FilterLabel icon={Tag} label="Tags" />
+              <FilterLabel icon={Tag} label={t('tagsFilter')} />
               {hasTags ? (
                 <div className="flex flex-wrap gap-1.5 min-w-0 flex-1">
                   {resolvedTags.map(name => (
@@ -162,7 +167,7 @@ export default function SmartFilterCriteriaDisplay({
                 </div>
               ) : (
                 <span className="text-xs text-muted-foreground italic pt-0.5">
-                  All tags
+                  {t('allTags')}
                 </span>
               )}
             </div>
@@ -170,10 +175,12 @@ export default function SmartFilterCriteriaDisplay({
             {/* Review date section */}
             {hasDaysSinceReview && (
               <div className="flex items-baseline gap-2">
-                <FilterLabel icon={Calendar} label="Review" />
+                <FilterLabel icon={Calendar} label={t('reviewFilter')} />
                 <div className="flex flex-wrap gap-1.5 min-w-0 flex-1">
                   <Badge variant="secondary" className="text-xs">
-                    Not reviewed in {filterConfig.days_since_review} days
+                    {t('notReviewedIn', {
+                      n: filterConfig.days_since_review ?? 0,
+                    })}
                   </Badge>
                 </div>
               </div>
@@ -184,7 +191,7 @@ export default function SmartFilterCriteriaDisplay({
               <div className="flex items-baseline gap-2">
                 <span className="w-[4.5rem] shrink-0" />
                 <span className="text-xs text-muted-foreground italic pt-0.5">
-                  Includes never-reviewed problems
+                  {t('includesNeverReviewed')}
                 </span>
               </div>
             )}

@@ -36,6 +36,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useLatestRef } from '@/lib/hooks/use-latest-ref';
 import { Kbd } from '@/components/ui/kbd';
 import { SearchFilters, SimpleTag, TagFilterMode } from '@/lib/types';
+import { useTranslations } from 'next-intl';
 
 interface CompactSearchFilterProps {
   onSearch: (filters: SearchFilters) => void;
@@ -91,6 +92,9 @@ export default function CompactSearchFilter({
   onSelectModeChange,
   hideStatusFilter = false,
 }: CompactSearchFilterProps) {
+  const t = useTranslations('Problems');
+  const tDataTable = useTranslations('DataTable');
+  const tCommon = useTranslations('Common');
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -201,7 +205,7 @@ export default function CompactSearchFilter({
 
   // Create options for faceted filters
   const problemTypeOptions = PROBLEM_TYPE_VALUES.map(type => ({
-    label: getProblemTypeDisplayName(type),
+    label: t(getProblemTypeDisplayName(type)),
     value: type,
   }));
 
@@ -212,17 +216,17 @@ export default function CompactSearchFilter({
 
   const statusOptions = [
     {
-      label: getProblemStatusDisplayName('wrong'),
+      label: t(getProblemStatusDisplayName('wrong')),
       value: 'wrong',
       icon: XCircle,
     },
     {
-      label: getProblemStatusDisplayName('needs_review'),
+      label: t(getProblemStatusDisplayName('needs_review')),
       value: 'needs_review',
       icon: Clock,
     },
     {
-      label: getProblemStatusDisplayName('mastered'),
+      label: t(getProblemStatusDisplayName('mastered')),
       value: 'mastered',
       icon: CheckCircle,
     },
@@ -236,7 +240,7 @@ export default function CompactSearchFilter({
   const filterElements = (
     <>
       <DataTableFacetedFilter
-        title="Type"
+        title={t('type')}
         options={problemTypeOptions}
         selectedValues={selectedProblemTypes}
         onSelectedValuesChange={values => {
@@ -247,7 +251,7 @@ export default function CompactSearchFilter({
         }}
       />
       <DataTableFacetedFilter
-        title="Tags"
+        title={tCommon('tags')}
         options={tagOptions}
         selectedValues={selectedTagIds}
         onSelectedValuesChange={values => {
@@ -259,7 +263,9 @@ export default function CompactSearchFilter({
       >
         {tagIds.length > 1 && (
           <div className="flex items-center justify-between border-t px-2 py-1.5">
-            <span className="text-xs text-muted-foreground">Match</span>
+            <span className="text-xs text-muted-foreground">
+              {tDataTable('match')}
+            </span>
             <div className="inline-flex rounded-full bg-muted p-0.5">
               {(['any', 'all'] as const).map(mode => (
                 <button
@@ -277,7 +283,7 @@ export default function CompactSearchFilter({
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  {mode === 'any' ? 'Any' : 'All'}
+                  {mode === 'any' ? tDataTable('any') : tCommon('all')}
                 </button>
               ))}
             </div>
@@ -286,7 +292,7 @@ export default function CompactSearchFilter({
       </DataTableFacetedFilter>
       {!hideStatusFilter && (
         <DataTableFacetedFilter
-          title="Status"
+          title={t('status')}
           options={statusOptions}
           selectedValues={selectedStatuses}
           onSelectedValuesChange={values => {
@@ -309,7 +315,7 @@ export default function CompactSearchFilter({
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             ref={inputRef}
-            placeholder="Search problems..."
+            placeholder={tDataTable('searchPlaceholder')}
             value={searchText}
             onChange={e => {
               const newValue = e.target.value;
@@ -345,7 +351,9 @@ export default function CompactSearchFilter({
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" className="relative">
                 <SlidersHorizontal className="h-4 w-4" />
-                <span className="sr-only md:not-sr-only ml-1">Filters</span>
+                <span className="sr-only md:not-sr-only ml-1">
+                  {tDataTable('filters')}
+                </span>
                 {activeFilterCount > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center font-medium">
                     {activeFilterCount}
@@ -383,7 +391,7 @@ export default function CompactSearchFilter({
               className="flex-shrink-0"
             >
               <X className="h-4 w-4 mr-1" />
-              Clear
+              {tCommon('clear')}
             </Button>
           )}
         </div>
@@ -403,7 +411,7 @@ export default function CompactSearchFilter({
                 className="text-primary hover:bg-primary/10"
               >
                 <Plus className="h-4 w-4 mr-1" />
-                {isAddToSetMode ? 'Add to Set' : 'Create Set'}
+                {isAddToSetMode ? t('addToSet') : tDataTable('createSet')}
               </Button>
               <Button
                 variant="outline"
@@ -412,7 +420,7 @@ export default function CompactSearchFilter({
                 disabled={!onBulkDeleteEnabled}
                 className="text-destructive hover:bg-destructive/10"
               >
-                Delete
+                {tCommon('delete')}
               </Button>
             </div>
           )}
@@ -421,7 +429,7 @@ export default function CompactSearchFilter({
             <div className="md:hidden">
               <Button variant="ghost" size="sm" onClick={clearFilters}>
                 <X className="h-4 w-4 mr-1" />
-                Clear
+                {tCommon('clear')}
               </Button>
             </div>
           )}
@@ -433,14 +441,14 @@ export default function CompactSearchFilter({
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline">
                     <Settings className="mr-2 h-4 w-4" />
-                    View
+                    {tCommon('view')}
                     <ChevronDown className="ml-2 h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-[200px]">
                   <div className="p-2">
                     <div className="text-sm font-medium mb-2">
-                      Toggle columns
+                      {tDataTable('toggleColumns')}
                     </div>
                     {table
                       .getAllColumns()
@@ -455,7 +463,7 @@ export default function CompactSearchFilter({
                               column.toggleVisibility(!!value)
                             }
                           >
-                            {getColumnDisplayName(column.id)}
+                            {t(getColumnDisplayName(column.id))}
                           </DropdownMenuCheckboxItem>
                         );
                       })}

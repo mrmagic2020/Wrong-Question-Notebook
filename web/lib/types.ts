@@ -592,6 +592,10 @@ export interface CompactSearchFilterProps {
 // Generic Helper Types
 // =====================================================
 
+// =====================================================
+// Table Meta Type (extensible)
+// =====================================================
+
 export type TableMeta = {
   isAddToSetMode?: boolean;
   onAddToSet?: (problem: Problem) => void;

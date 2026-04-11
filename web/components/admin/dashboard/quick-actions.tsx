@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { Users, Settings, Activity, Megaphone, ArrowRight } from 'lucide-react';
 import { ROUTES } from '@/lib/constants';
 

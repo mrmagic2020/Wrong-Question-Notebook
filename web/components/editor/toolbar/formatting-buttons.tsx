@@ -9,6 +9,7 @@ import {
   Subscript as SubscriptIcon,
   Superscript as SuperscriptIcon,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface FormattingButtonsProps {
   editor: Editor;
@@ -21,13 +22,14 @@ export function FormattingButtons({
   activeState,
   disabled,
 }: FormattingButtonsProps) {
+  const t = useTranslations('Editor');
   return (
     <div className="flex items-center gap-1">
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleBold().run()}
         isActive={activeState.bold}
         disabled={disabled}
-        title="Bold"
+        title={t('toolbarBold')}
         shortcut="Ctrl+B"
       >
         <Bold className="h-4 w-4" />
@@ -36,7 +38,7 @@ export function FormattingButtons({
         onClick={() => editor.chain().focus().toggleItalic().run()}
         isActive={activeState.italic}
         disabled={disabled}
-        title="Italic"
+        title={t('toolbarItalic')}
         shortcut="Ctrl+I"
       >
         <Italic className="h-4 w-4" />
@@ -45,7 +47,7 @@ export function FormattingButtons({
         onClick={() => editor.chain().focus().toggleStrike().run()}
         isActive={activeState.strike}
         disabled={disabled}
-        title="Strikethrough"
+        title={t('toolbarStrikethrough')}
         shortcut="Ctrl+Shift+S"
       >
         <Strikethrough className="h-4 w-4" />
@@ -54,7 +56,7 @@ export function FormattingButtons({
         onClick={() => editor.chain().focus().toggleCode().run()}
         isActive={activeState.code}
         disabled={disabled}
-        title="Inline code"
+        title={t('toolbarInlineCode')}
         shortcut="Ctrl+E"
       >
         <Code className="h-4 w-4" />
@@ -63,7 +65,7 @@ export function FormattingButtons({
         onClick={() => editor.chain().focus().toggleSubscript().run()}
         isActive={activeState.subscript}
         disabled={disabled}
-        title="Subscript"
+        title={t('toolbarSubscript')}
       >
         <SubscriptIcon className="h-4 w-4" />
       </ToolbarButton>
@@ -71,7 +73,7 @@ export function FormattingButtons({
         onClick={() => editor.chain().focus().toggleSuperscript().run()}
         isActive={activeState.superscript}
         disabled={disabled}
-        title="Superscript"
+        title={t('toolbarSuperscript')}
       >
         <SuperscriptIcon className="h-4 w-4" />
       </ToolbarButton>

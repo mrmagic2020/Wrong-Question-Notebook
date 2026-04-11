@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { AdminSettingsType } from '@/lib/schemas';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,7 @@ interface AdminSettingsFormProps {
 }
 
 export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
+  const t = useTranslations('Admin');
   const [modifiedSettings, setModifiedSettings] = useState<Record<string, any>>(
     {}
   );
@@ -60,7 +62,7 @@ export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
         return (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label htmlFor={`${key}-enabled`}>Maintenance Mode</Label>
+              <Label htmlFor={`${key}-enabled`}>{t('maintenanceMode')}</Label>
               <Switch
                 id={`${key}-enabled`}
                 checked={currentValue.enabled || false}
@@ -70,7 +72,9 @@ export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor={`${key}-message`}>Maintenance Message</Label>
+              <Label htmlFor={`${key}-message`}>
+                {t('maintenanceMessage')}
+              </Label>
               <Textarea
                 id={`${key}-message`}
                 value={currentValue.message || ''}
@@ -80,7 +84,7 @@ export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
                     message: e.target.value,
                   })
                 }
-                placeholder="Enter maintenance message..."
+                placeholder={t('maintenanceMessage')}
                 rows={3}
               />
             </div>
@@ -91,7 +95,7 @@ export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
         return (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label htmlFor={`${key}-enabled`}>Allow Registration</Label>
+              <Label htmlFor={`${key}-enabled`}>{t('allowRegistration')}</Label>
               <Switch
                 id={`${key}-enabled`}
                 checked={currentValue.enabled !== false}
@@ -102,7 +106,7 @@ export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor={`${key}-verify`}>
-                Require Email Verification
+                {t('requireEmailVerification')}
               </Label>
               <Switch
                 id={`${key}-verify`}
@@ -121,7 +125,7 @@ export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
       case 'max_file_upload_size':
         return (
           <div className="space-y-2">
-            <Label htmlFor={`${key}-size`}>Maximum Upload Size (MB)</Label>
+            <Label htmlFor={`${key}-size`}>{t('maxUploadSize')}</Label>
             <Input
               id={`${key}-size`}
               type="number"
@@ -140,7 +144,7 @@ export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
       case 'session_timeout':
         return (
           <div className="space-y-2">
-            <Label htmlFor={`${key}-hours`}>Session Timeout (Hours)</Label>
+            <Label htmlFor={`${key}-hours`}>{t('sessionTimeout')}</Label>
             <Input
               id={`${key}-hours`}
               type="number"
@@ -159,7 +163,7 @@ export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
       default:
         return (
           <div className="space-y-2">
-            <Label>Raw Value</Label>
+            <Label>{t('rawValue')}</Label>
             <Textarea
               value={JSON.stringify(currentValue, null, 2)}
               onChange={e => {
@@ -183,14 +187,14 @@ export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-medium">System Configuration</h3>
+          <h3 className="text-lg font-medium">{t('systemConfig')}</h3>
           <p className="text-sm text-muted-foreground">
-            Modify application-wide settings and behavior
+            {t('systemConfigDesc')}
           </p>
         </div>
         {hasModifications && (
           <Badge variant="outline" className="text-orange-600">
-            Unsaved Changes
+            {t('unsavedChanges')}
           </Badge>
         )}
       </div>
@@ -222,11 +226,11 @@ export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
             disabled={isLoading}
           >
             <RefreshCw className="h-4 w-4 mr-2" />
-            Reset Changes
+            {t('resetChanges')}
           </Button>
           <Button onClick={handleSaveSettings} disabled={isLoading}>
             <Save className="h-4 w-4 mr-2" />
-            {isLoading ? 'Saving...' : 'Save Changes'}
+            {isLoading ? t('saving') : t('saveChanges')}
           </Button>
         </div>
       )}

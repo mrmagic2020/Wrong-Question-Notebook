@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,6 +30,7 @@ import { Subject, SimpleTag } from '@/lib/types';
 import { useContentLimit } from '@/lib/hooks/useContentLimit';
 import { ContentLimitIndicator } from '@/components/ui/content-limit-indicator';
 import { CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
+import { apiUrl } from '@/lib/api-utils';
 
 interface CreateSmartSetDialogProps {
   open: boolean;
@@ -41,6 +43,9 @@ export default function CreateSmartSetDialog({
   onOpenChange,
   onSuccess,
 }: CreateSmartSetDialogProps) {
+  const t = useTranslations('Review');
+  const tCommon = useTranslations('Common');
+
   const { data: limitData, isExhausted } = useContentLimit(
     CONTENT_LIMIT_CONSTANTS.RESOURCE_TYPES.PROBLEM_SETS
   );
@@ -72,7 +77,7 @@ export default function CreateSmartSetDialog({
     if (!open) return;
     async function loadSubjects() {
       try {
-        const res = await fetch('/api/subjects');
+        const res = await fetch(apiUrl('/api/subjects'));
         if (res.ok) {
           const data = await res.json();
           setSubjects(data.data || []);
@@ -92,7 +97,9 @@ export default function CreateSmartSetDialog({
     }
     async function loadTags() {
       try {
-        const res = await fetch(`/api/tags?subject_id=${formData.subject_id}`);
+        const res = await fetch(
+          apiUrl(`/api/tags?subject_id=${formData.subject_id}`)
+        );
         if (res.ok) {
           const data = await res.json();
           setAvailableTags(data.data || []);
@@ -112,7 +119,7 @@ export default function CreateSmartSetDialog({
     }
     setCountLoading(true);
     try {
-      const res = await fetch('/api/problems/filter-count', {
+      const res = await fetch(apiUrl('/api/problems/filter-count'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -180,17 +187,17 @@ export default function CreateSmartSetDialog({
     e.preventDefault();
 
     if (!formData.name.trim()) {
-      toast.error('Please enter a name');
+      toast.error(t('enterNameError'));
       return;
     }
     if (!formData.subject_id) {
-      toast.error('Please select a subject');
+      toast.error(t('selectSubjectError'));
       return;
     }
 
     setIsLoading(true);
     try {
-      const res = await fetch('/api/problem-sets', {
+      const res = await fetch(apiUrl('/api/problem-sets'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -215,14 +222,14 @@ export default function CreateSmartSetDialog({
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || 'Failed to create smart set');
+        throw new Error(err.message || t('failedCreateSmartSet'));
       }
 
-      toast.success('Smart problem set created');
+      toast.success(t('smartSetCreated'));
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to create');
+      toast.error(error instanceof Error ? error.message : t('failedToCreate'));
     } finally {
       setIsLoading(false);
     }
@@ -234,16 +241,14 @@ export default function CreateSmartSetDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-amber-500" />
-            Create Smart Problem Set
+            {t('createSmartSet')}
           </DialogTitle>
-          <DialogDescription>
-            Automatically generate a review set based on filter criteria.
-          </DialogDescription>
+          <DialogDescription>{t('smartSetDesc')}</DialogDescription>
           {limitData && (
             <ContentLimitIndicator
               current={limitData.current}
               limit={limitData.limit}
-              label="problem sets used"
+              label={t('problemSetsUsed')}
             />
           )}
         </DialogHeader>
@@ -251,14 +256,14 @@ export default function CreateSmartSetDialog({
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Name */}
           <div className="space-y-2">
-            <Label htmlFor="smart-name">Name *</Label>
+            <Label htmlFor="smart-name">{t('nameRequired')}</Label>
             <Input
               id="smart-name"
               value={formData.name}
               onChange={e =>
                 setFormData(prev => ({ ...prev, name: e.target.value }))
               }
-              placeholder="e.g. Algebra Review - Weak Areas"
+              placeholder={t('namePlaceholder')}
               maxLength={50}
               required
             />
@@ -266,7 +271,7 @@ export default function CreateSmartSetDialog({
 
           {/* Subject */}
           <div className="space-y-2">
-            <Label>Subject *</Label>
+            <Label>{t('subjectRequired')}</Label>
             <Select
               value={formData.subject_id}
               onValueChange={value =>
@@ -278,7 +283,7 @@ export default function CreateSmartSetDialog({
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select a subject" />
+                <SelectValue placeholder={t('selectSubject')} />
               </SelectTrigger>
               <SelectContent>
                 {subjects.map(s => (
@@ -295,18 +300,18 @@ export default function CreateSmartSetDialog({
             <>
               {/* Status filter */}
               <div className="space-y-2">
-                <Label>Status Filter</Label>
+                <Label>{t('statusFilter')}</Label>
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { value: 'wrong', label: 'Wrong', color: 'destructive' },
+                    { value: 'wrong', label: t('wrong'), color: 'destructive' },
                     {
                       value: 'needs_review',
-                      label: 'Needs Review',
+                      label: t('needsReview'),
                       color: 'default',
                     },
                     {
                       value: 'mastered',
-                      label: 'Mastered',
+                      label: t('mastered'),
                       color: 'secondary',
                     },
                   ].map(status => (
@@ -325,18 +330,18 @@ export default function CreateSmartSetDialog({
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Leave empty to include all statuses
+                  {t('leaveEmptyAll')}
                 </p>
               </div>
 
               {/* Problem type filter */}
               <div className="space-y-2">
-                <Label>Problem Type</Label>
+                <Label>{t('problemType')}</Label>
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { value: 'mcq', label: 'MCQ' },
-                    { value: 'short', label: 'Short Answer' },
-                    { value: 'extended', label: 'Extended' },
+                    { value: 'mcq', label: t('mcq') },
+                    { value: 'short', label: t('shortAnswerType') },
+                    { value: 'extended', label: t('extended') },
                   ].map(type => (
                     <Badge
                       key={type.value}
@@ -353,14 +358,14 @@ export default function CreateSmartSetDialog({
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Leave empty to include all types
+                  {t('leaveEmptyTypes')}
                 </p>
               </div>
 
               {/* Tag filter */}
               {availableTags.length > 0 && (
                 <div className="space-y-2">
-                  <Label>Tags</Label>
+                  <Label>{t('tagsFilter')}</Label>
                   <div className="flex flex-wrap gap-2">
                     {availableTags.map(tag => (
                       <Badge
@@ -382,10 +387,10 @@ export default function CreateSmartSetDialog({
 
               {/* Review date filter */}
               <div className="space-y-3">
-                <Label>Review Date Filter</Label>
+                <Label>{t('reviewDateFilter')}</Label>
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-muted-foreground">
-                    Not reviewed in
+                    {t('notReviewedIn')}
                   </span>
                   <Input
                     type="number"
@@ -402,7 +407,9 @@ export default function CreateSmartSetDialog({
                     }
                     placeholder="--"
                   />
-                  <span className="text-sm text-muted-foreground">days</span>
+                  <span className="text-sm text-muted-foreground">
+                    {t('days')}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Checkbox
@@ -419,7 +426,7 @@ export default function CreateSmartSetDialog({
                     htmlFor="include-never"
                     className="text-sm font-normal"
                   >
-                    Include never-reviewed problems
+                    {t('includeNeverReviewed')}
                   </Label>
                 </div>
               </div>
@@ -434,8 +441,8 @@ export default function CreateSmartSetDialog({
                   )}
                   <span className="text-sm font-medium text-amber-800 dark:text-amber-300">
                     {filterCount !== null
-                      ? `${filterCount} problem${filterCount !== 1 ? 's' : ''} match your filters`
-                      : 'Select a subject to see matching problems'}
+                      ? t('matchingProblems', { count: filterCount })
+                      : t('selectSubjectToSee')}
                   </span>
                 </div>
               </div>
@@ -444,11 +451,11 @@ export default function CreateSmartSetDialog({
 
           {/* Session settings */}
           <div className="space-y-3 border-t pt-4">
-            <Label className="text-base">Session Settings</Label>
+            <Label className="text-base">{t('sessionSettings')}</Label>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label htmlFor="randomize" className="font-normal">
-                  Randomize order
+                  {t('randomizeOrder')}
                 </Label>
                 <Switch
                   id="randomize"
@@ -460,7 +467,7 @@ export default function CreateSmartSetDialog({
               </div>
               <div className="flex items-center justify-between">
                 <Label htmlFor="auto-advance" className="font-normal">
-                  Auto-advance after marking
+                  {t('autoAdvance')}
                 </Label>
                 <Switch
                   id="auto-advance"
@@ -472,7 +479,7 @@ export default function CreateSmartSetDialog({
               </div>
               <div className="flex items-center gap-3">
                 <Label htmlFor="session-size" className="font-normal">
-                  Session size
+                  {t('sessionSize')}
                 </Label>
                 <Input
                   id="session-size"
@@ -489,10 +496,10 @@ export default function CreateSmartSetDialog({
                         : null,
                     }))
                   }
-                  placeholder="All"
+                  placeholder={tCommon('all')}
                 />
                 <span className="text-sm text-muted-foreground">
-                  problems (leave empty for all)
+                  {t('problemsOptional')}
                 </span>
               </div>
             </div>
@@ -505,14 +512,14 @@ export default function CreateSmartSetDialog({
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button type="submit" disabled={isLoading || isExhausted}>
               {isLoading
-                ? 'Creating...'
+                ? t('creating')
                 : isExhausted
-                  ? 'Problem set limit reached'
-                  : 'Create Smart Set'}
+                  ? t('problemSetLimitReached')
+                  : t('createSmartSet')}
             </Button>
           </DialogFooter>
         </form>

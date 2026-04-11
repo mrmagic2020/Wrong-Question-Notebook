@@ -1,10 +1,12 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
+import type { TranslatorProp } from '@/i18n/types';
 
 interface StatusBadgeProps {
   status: 'needs_review' | 'wrong' | 'mastered';
   className?: string;
   children?: React.ReactNode;
+  t?: TranslatorProp;
 }
 
 const statusClasses = {
@@ -13,25 +15,26 @@ const statusClasses = {
   mastered: 'status-mastered',
 };
 
-const statusLabels = {
-  needs_review: 'Needs Review',
-  wrong: 'Wrong',
-  mastered: 'Mastered',
+const statusKeys = {
+  needs_review: 'needsReviewStatus',
+  wrong: 'wrongStatus',
+  mastered: 'masteredStatus',
 };
 
 const StatusBadge = React.forwardRef<HTMLSpanElement, StatusBadgeProps>(
-  ({ className, status, children, ...props }, ref) => {
+  ({ className, status, children, t, ...props }, ref) => {
+    const label = children ?? (t ? t(statusKeys[status]) : statusKeys[status]);
     return (
       <span
         ref={ref}
         className={cn(statusClasses[status], className)}
         {...props}
       >
-        {children || statusLabels[status]}
+        {label}
       </span>
     );
   }
 );
 StatusBadge.displayName = 'StatusBadge';
 
-export { StatusBadge, statusClasses, statusLabels };
+export { StatusBadge, statusClasses, statusKeys };
