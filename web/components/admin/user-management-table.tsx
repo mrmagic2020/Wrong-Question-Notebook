@@ -45,6 +45,7 @@ const roleColors = {
 
 export function UserManagementTable({ users }: UserManagementTableProps) {
   const t = useTranslations('Admin');
+  const tCommon = useTranslations('Common');
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [deletingUsers, setDeletingUsers] = useState<Set<string>>(new Set());
 
@@ -155,7 +156,7 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
                   }}
                 />
               </TableHead>
-              <TableHead>{t('user')}</TableHead>
+              <TableHead>{tCommon('user')}</TableHead>
               <TableHead>{t('role')}</TableHead>
               <TableHead>{t('status')}</TableHead>
               <TableHead>{t('lastLogin')}</TableHead>
@@ -240,7 +241,7 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem>
                         <Eye className="h-4 w-4 mr-2" />
-                        {t('viewDetails')}
+                        {tCommon('viewDetails')}
                       </DropdownMenuItem>
                       <DropdownMenuItem>
                         <Edit className="h-4 w-4 mr-2" />

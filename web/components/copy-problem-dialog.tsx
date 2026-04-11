@@ -40,7 +40,8 @@ export default function CopyProblemDialog({
   problemId,
   problemTitle,
 }: CopyProblemDialogProps) {
-  const t = useTranslations('CommonUtils');
+  const t = useTranslations('CopyDialog');
+  const tCommon = useTranslations('Common');
   const [isLoading, setIsLoading] = useState(false);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loadingSubjects, setLoadingSubjects] = useState(false);
@@ -69,7 +70,7 @@ export default function CopyProblemDialog({
     };
 
     fetchSubjects();
-  }, [open]);
+  }, [open, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -249,7 +250,7 @@ export default function CopyProblemDialog({
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
-              {t('cancel')}
+              {tCommon('cancel')}
             </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? (
@@ -260,7 +261,7 @@ export default function CopyProblemDialog({
               ) : (
                 <>
                   <BookPlus className="h-4 w-4 mr-2" />
-                  {t('add')}
+                  {tCommon('add')}
                 </>
               )}
             </Button>

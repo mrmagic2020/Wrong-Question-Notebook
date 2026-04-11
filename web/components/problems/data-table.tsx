@@ -45,6 +45,7 @@ export function DataTable<TData, TValue>({
   meta: externalMeta,
 }: DataTableProps<TData, TValue>) {
   const t = useTranslations('DataTable');
+  const tCommon = useTranslations('Common');
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -203,7 +204,7 @@ export function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  {t('noResults')}
+                  {tCommon('noResults')}
                 </TableCell>
               </TableRow>
             )}

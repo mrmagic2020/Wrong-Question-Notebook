@@ -46,6 +46,7 @@ interface ProfileSheetProps {
 export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
   const router = useRouter();
   const t = useTranslations('Profile');
+  const tCommon = useTranslations('Common');
 
   // Sheet open state (controlled so we can intercept close)
   const [open, setOpen] = useState(false);
@@ -217,26 +218,29 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
     }
   };
 
-  const checkUsername = useCallback(async (value: string) => {
-    if (!value || value.length < 3 || value === savedUsernameRef.current) {
-      setUsernameError(null);
-      return;
-    }
-    setUsernameChecking(true);
-    try {
-      const res = await fetch(
-        `/api/profile/username-check?username=${encodeURIComponent(value)}`
-      );
-      const json = await res.json();
-      setUsernameError(
-        res.ok && !json.data.available ? t('usernameTaken') : null
-      );
-    } catch {
-      // Ignore network errors during check
-    } finally {
-      setUsernameChecking(false);
-    }
-  }, []);
+  const checkUsername = useCallback(
+    async (value: string) => {
+      if (!value || value.length < 3 || value === savedUsernameRef.current) {
+        setUsernameError(null);
+        return;
+      }
+      setUsernameChecking(true);
+      try {
+        const res = await fetch(
+          `/api/profile/username-check?username=${encodeURIComponent(value)}`
+        );
+        const json = await res.json();
+        setUsernameError(
+          res.ok && !json.data.available ? t('usernameTaken') : null
+        );
+      } catch {
+        // Ignore network errors during check
+      } finally {
+        setUsernameChecking(false);
+      }
+    },
+    [t]
+  );
 
   const handleSave = async () => {
     if (usernameError || usernameChecking) return;
@@ -610,7 +614,7 @@ export function ProfileSheet({ initialProfile, email }: ProfileSheetProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('keepEditing')}</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon('keepEditing')}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={handleDiscardChanges}

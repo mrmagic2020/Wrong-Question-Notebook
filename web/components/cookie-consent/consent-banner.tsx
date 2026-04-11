@@ -8,6 +8,7 @@ import { useConsent } from './consent-provider';
 
 export function ConsentBanner() {
   const t = useTranslations('CookieConsent');
+  const tCommon = useTranslations('Common');
   const { acceptAll, rejectAll, openPreferences } = useConsent();
 
   return (
@@ -28,7 +29,7 @@ export function ConsentBanner() {
                   href="/privacy#section-6"
                   className="text-amber-600 dark:text-amber-400 hover:underline font-medium"
                 >
-                  {t('learnMore', { namespace: 'Common' })}
+                  {tCommon('learnMore')}
                 </Link>
               </p>
             </div>

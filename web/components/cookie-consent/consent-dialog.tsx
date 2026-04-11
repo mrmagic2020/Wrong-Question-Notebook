@@ -23,6 +23,7 @@ interface ConsentDialogProps {
 
 export function ConsentDialog({ open, onOpenChange }: ConsentDialogProps) {
   const t = useTranslations('CookieConsent');
+  const tCommon = useTranslations('Common');
   const { consent, savePreferences } = useConsent();
   const [analytics, setAnalytics] = useState(false);
 
@@ -119,7 +120,7 @@ export function ConsentDialog({ open, onOpenChange }: ConsentDialogProps) {
             size="sm"
             onClick={() => onOpenChange(false)}
           >
-            {t('cancel', { namespace: 'Common' })}
+            {tCommon('cancel')}
           </Button>
           <Button size="sm" onClick={() => savePreferences(analytics)}>
             {t('savePreferences')}

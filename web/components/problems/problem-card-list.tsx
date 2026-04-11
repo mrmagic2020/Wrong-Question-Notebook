@@ -59,7 +59,7 @@ export default function ProblemCardList({
   hideStatusStrip = false,
   onCopyToNotebook,
 }: ProblemCardListProps) {
-  const t = useTranslations('CommonUtils');
+  const t = useTranslations('Problems');
   const tCommon = useTranslations('Common');
   const [visibleCount, setVisibleCount] = useState<number>(ITEMS_PER_PAGE);
 

@@ -11,6 +11,7 @@ import { useTranslations } from 'next-intl';
 
 export function SignUpSuccess() {
   const t = useTranslations('Auth');
+  const tCommon = useTranslations('Common');
   const [email, setEmail] = useState('');
   const [isResending, setIsResending] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -171,7 +172,7 @@ export function SignUpSuccess() {
               <Link href="/auth/login">{t('login')}</Link>
             </Button>
             <Button asChild variant="outline" className="w-full btn-cta">
-              <Link href="/">{t('back')}</Link>
+              <Link href="/">{tCommon('back')}</Link>
             </Button>
           </div>
         </div>

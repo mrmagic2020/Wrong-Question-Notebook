@@ -18,6 +18,7 @@ interface SettingsPageClientProps {
 
 export function SettingsPageClient({ settings }: SettingsPageClientProps) {
   const t = useTranslations('Admin');
+  const tCommon = useTranslations('Common');
   const [modifiedSettings, setModifiedSettings] = useState<
     Record<string, Record<string, unknown>>
   >({});
@@ -246,7 +247,7 @@ export function SettingsPageClient({ settings }: SettingsPageClientProps) {
             disabled={saving}
           >
             <RotateCcw className="h-4 w-4" />
-            {t('reset')}
+            {tCommon('reset')}
           </Button>
           <Button
             className="rounded-xl gap-2"

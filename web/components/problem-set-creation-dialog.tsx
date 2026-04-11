@@ -46,7 +46,8 @@ export default function ProblemSetCreationDialog({
   selectedProblemIds,
   onSuccess,
 }: ProblemSetCreationDialogProps) {
-  const t = useTranslations('CommonUtils');
+  const t = useTranslations('ProblemSets');
+  const tCommon = useTranslations('Common');
   const router = useRouter();
   const { data: limitData, isExhausted } = useContentLimit(
     CONTENT_LIMIT_CONSTANTS.RESOURCE_TYPES.PROBLEM_SETS
@@ -321,7 +322,7 @@ export default function ProblemSetCreationDialog({
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
-              {t('cancel')}
+              {tCommon('cancel')}
             </Button>
             <Button type="submit" disabled={isLoading || isExhausted}>
               {isLoading

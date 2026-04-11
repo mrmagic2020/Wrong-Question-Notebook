@@ -45,7 +45,7 @@ export default function ProblemSetProblemsTable({
   isAuthenticated,
 }: ProblemSetProblemsTableProps) {
   const router = useRouter();
-  const t = useTranslations('CommonUtils');
+  const t = useTranslations('Problems');
   const isMobile = useIsMobile();
   const { initialFilters, updateUrl } = useFilterParams();
 

@@ -17,7 +17,6 @@ export default function SubjectRow({
   onSubjectUpdated,
   showConfirmation,
 }: SubjectRowProps) {
-  const t = useTranslations('CommonUtils');
   const tCommon = useTranslations('Common');
   const tSubjects = useTranslations('Subjects');
   const router = useRouter();
@@ -88,7 +87,7 @@ export default function SubjectRow({
       showConfirmation({
         title: tSubjects('deleteSubject'),
         message: tSubjects('confirmDeleteSubject', { name: subject.name }),
-        confirmText: t('delete'),
+        confirmText: tCommon('delete'),
         variant: 'destructive',
         onConfirm: async () => {
           setDeleting(true);
@@ -159,7 +158,7 @@ export default function SubjectRow({
               onChange={e => setName(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={renaming}
-              placeholder={t('enterSubjectNamePlaceholder')}
+              placeholder={tSubjects('enterSubjectNamePlaceholder')}
             />
           </Tooltip>
         ) : (
@@ -199,7 +198,7 @@ export default function SubjectRow({
               </Button>
               <Button asChild variant="outline" className="">
                 <Link href={`/subjects/${subject.id}/tags`}>
-                  {tSubjects('tags')}
+                  {tCommon('tags')}
                 </Link>
               </Button>
               <Tooltip content={tSubjects('tooltipClickToRename')}>
@@ -208,7 +207,7 @@ export default function SubjectRow({
                   disabled={renaming || deleting}
                   variant="outline"
                 >
-                  {t('rename')}
+                  {tSubjects('rename')}
                 </Button>
               </Tooltip>
               <Tooltip content={tSubjects('tooltipPermanentlyDelete')}>
@@ -218,7 +217,7 @@ export default function SubjectRow({
                   variant="destructive"
                 >
                   {deleting && <Spinner />}
-                  {t('delete')}
+                  {tCommon('delete')}
                 </Button>
               </Tooltip>
             </>

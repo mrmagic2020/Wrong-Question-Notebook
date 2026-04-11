@@ -72,7 +72,7 @@ export default function ProblemForm({
   initialShowImageScan = false,
 }: ProblemFormProps) {
   const t = useTranslations('Subjects');
-  const tCommon = useTranslations('CommonUtils');
+  const tCommon = useTranslations('Common');
   const tProblems = useTranslations('Problems');
   const router = useRouter();
   const isEditMode = !!problem;
@@ -167,24 +167,27 @@ export default function ProblemForm({
   }
 
   // Image insertion callbacks
-  const handleInsertProblemImage = useCallback((path: string, name: string) => {
-    if (!contentEditorRef.current?.editor) {
-      toast.error(t('editorNotReady'));
-      return;
-    }
+  const handleInsertProblemImage = useCallback(
+    (path: string, name: string) => {
+      if (!contentEditorRef.current?.editor) {
+        toast.error(t('editorNotReady'));
+        return;
+      }
 
-    const imageUrl = `/api/files/${encodeURIComponent(path)}`;
-    contentEditorRef.current.editor
-      .chain()
-      .focus()
-      .setResizableImage({
-        src: imageUrl,
-        alt: name,
-      })
-      .run();
+      const imageUrl = `/api/files/${encodeURIComponent(path)}`;
+      contentEditorRef.current.editor
+        .chain()
+        .focus()
+        .setResizableImage({
+          src: imageUrl,
+          alt: name,
+        })
+        .run();
 
-    toast.success(t('imageInserted'));
-  }, []);
+      toast.success(t('imageInserted'));
+    },
+    [t]
+  );
 
   const handleInsertSolutionImage = useCallback(
     (path: string, name: string) => {
@@ -205,7 +208,7 @@ export default function ProblemForm({
 
       toast.success(t('solutionImageInserted'));
     },
-    []
+    [t]
   );
 
   // Form expansion state (only for create mode)
@@ -798,7 +801,7 @@ export default function ProblemForm({
         }
       }
     })();
-  }, [problemUuid, pendingImageAttachment]);
+  }, [problemUuid, pendingImageAttachment, tProblems]);
 
   // Cleanup function for unsaved problem assets (can be called explicitly or via effect)
   const cleanupUnsavedProblem = useCallback(
@@ -1040,7 +1043,7 @@ export default function ProblemForm({
           <AccordionContent>
             <div className="form-section">
               <div className="form-row">
-                <label className="form-label">{tCommon('type')}</label>
+                <label className="form-label">{tProblems('type')}</label>
                 <Select
                   value={problemType}
                   onValueChange={value => setProblemType(value as ProblemType)}
@@ -1051,7 +1054,7 @@ export default function ProblemForm({
                   <SelectContent>
                     {PROBLEM_TYPE_VALUES.map(type => (
                       <SelectItem key={type} value={type}>
-                        {tCommon(getProblemTypeDisplayName(type))}
+                        {tProblems(getProblemTypeDisplayName(type))}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -1059,7 +1062,7 @@ export default function ProblemForm({
               </div>
 
               <div className="form-row">
-                <label className="form-label">{tCommon('status')}</label>
+                <label className="form-label">{tProblems('status')}</label>
                 <Select
                   value={status}
                   onValueChange={value => setStatus(value as any)}
@@ -1093,7 +1096,7 @@ export default function ProblemForm({
                     htmlFor="auto-mark-switch"
                     className={`text-sm cursor-pointer ${isAutoMarkDisabled ? 'text-muted-foreground' : ''}`}
                   >
-                    {tCommon('autoMark')}
+                    {tProblems('autoMark')}
                     {isAutoMarkDisabled && (
                       <span className="text-body-sm text-muted-foreground ml-1">
                         {t('autoMarkNotAvailable')}
@@ -1120,7 +1123,7 @@ export default function ProblemForm({
             <AccordionContent>
               <div className="form-section">
                 <div className="form-row">
-                  <span className="form-label">{tCommon('answerMode')}</span>
+                  <span className="form-label">{tProblems('answerMode')}</span>
                   <div className="flex items-center gap-2">
                     <Switch
                       id="enhanced-mcq-switch"

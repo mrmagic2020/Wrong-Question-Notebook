@@ -57,7 +57,7 @@ export function DataTableFacetedFilter<TData, TValue>({
   onSelectedValuesChange,
   children,
 }: DataTableFacetedFilterProps<TData, TValue>) {
-  const t = useTranslations('CommonUtils');
+  const t = useTranslations('DataTable');
   const facets = column?.getFacetedUniqueValues();
   const internalSelectedValues = new Set(column?.getFilterValue() as string[]);
   const selectedValues = externalSelectedValues || internalSelectedValues;

@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { Problem } from '@/lib/types';
 
 export default function StatsStrip({ problems }: { problems: Problem[] }) {
-  const t = useTranslations('CommonUtils');
+  const t = useTranslations('Statistics');
 
   if (problems.length === 0) return null;
 

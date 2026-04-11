@@ -184,7 +184,7 @@ export function TagManageDialog({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {subjectName} — {t('tags')}
+              {subjectName} — {tCommon('tags')}
             </DialogTitle>
           </DialogHeader>
 

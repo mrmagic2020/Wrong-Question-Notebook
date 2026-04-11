@@ -111,7 +111,7 @@ export function UsersPageClient({
         setLoading(false);
       }
     },
-    []
+    [t]
   );
 
   const handleSearchChange = (value: string) => {
@@ -252,7 +252,7 @@ export function UsersPageClient({
               className="rounded-xl text-xs"
               onClick={() => handleRoleFilter(r)}
             >
-              {r ? r.replace('_', ' ') : t('all')}
+              {r ? r.replace('_', ' ') : tCommon('all')}
             </Button>
           ))}
         </div>
@@ -265,7 +265,7 @@ export function UsersPageClient({
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead>
-                  <SortButton col="username">{t('user')}</SortButton>
+                  <SortButton col="username">{tCommon('user')}</SortButton>
                 </TableHead>
                 <TableHead>
                   <SortButton col="user_role">{t('role')}</SortButton>

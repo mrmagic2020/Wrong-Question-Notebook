@@ -19,6 +19,7 @@ interface LoginFormProps extends React.ComponentPropsWithoutRef<'div'> {
 
 export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
   const t = useTranslations('Auth');
+  const tCommon = useTranslations('Common');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -155,7 +156,7 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
                     captchaRef.current?.reset();
                   }}
                 >
-                  {t('tryAgain')}
+                  {tCommon('tryAgain')}
                 </button>
               </p>
             )}

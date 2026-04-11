@@ -28,6 +28,7 @@ export function DeleteUserDialog({
   loading,
 }: DeleteUserDialogProps) {
   const t = useTranslations('Admin');
+  const tCommon = useTranslations('Common');
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -40,14 +41,14 @@ export function DeleteUserDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={loading}>
-            {t('cancel')}
+            {tCommon('cancel')}
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={loading}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {loading ? t('deleting') : t('delete')}
+            {loading ? t('deleting') : tCommon('delete')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

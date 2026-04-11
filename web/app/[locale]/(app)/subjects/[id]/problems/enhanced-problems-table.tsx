@@ -48,7 +48,8 @@ export default function EnhancedProblemsTable({
 }) {
   const router = useRouter();
   const isMobile = useIsMobile();
-  const t = useTranslations('CommonUtils');
+  const t = useTranslations('Problems');
+  const tCommon = useTranslations('Common');
   const { initialFilters, updateUrl } = useFilterParams();
   const [problems, setProblems] = useState<Problem[]>(initialProblems);
   const [tagsByProblem, setTagsByProblem] = useState(initialTagsByProblem);
@@ -489,8 +490,8 @@ export default function EnhancedProblemsTable({
         message={t('deleteProblemMessage', {
           title: deleteDialog.problemTitle,
         })}
-        confirmText={t('delete')}
-        cancelText={t('cancel')}
+        confirmText={tCommon('delete')}
+        cancelText={tCommon('cancel')}
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteDialog(prev => ({ ...prev, open: false }))}
         variant="destructive"
@@ -501,7 +502,7 @@ export default function EnhancedProblemsTable({
         title={t('deleteProblemsTitle')}
         message={t('deleteProblemsMessage', { count: bulkDeleteDialog.count })}
         confirmText={t('deleteAll')}
-        cancelText={t('cancel')}
+        cancelText={tCommon('cancel')}
         onConfirm={handleConfirmBulkDelete}
         onCancel={() => setBulkDeleteDialog(prev => ({ ...prev, open: false }))}
         variant="destructive"

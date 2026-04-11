@@ -389,7 +389,7 @@ export default function EditSmartSetDialog({
               <span className="text-sm font-medium text-amber-800 dark:text-amber-300">
                 {filterCount !== null
                   ? t('matchingProblems', { count: filterCount })
-                  : t('loading')}
+                  : tCommon('loading')}
               </span>
             </div>
           </div>
@@ -441,7 +441,7 @@ export default function EditSmartSetDialog({
                         : null,
                     }))
                   }
-                  placeholder={t('all')}
+                  placeholder={tCommon('all')}
                 />
                 <span className="text-sm text-muted-foreground">
                   {t('problemsOptional')}

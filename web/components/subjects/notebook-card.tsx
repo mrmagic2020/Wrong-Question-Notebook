@@ -73,6 +73,7 @@ export function NotebookCard({
   style,
 }: NotebookCardProps) {
   const t = useTranslations('Subjects');
+  const tCommon = useTranslations('Common');
   const locale = useLocale();
   const dateFnsLocale = dateFnsLocales[locale];
   const color = subject.color || SUBJECT_CONSTANTS.DEFAULT_COLOR;
@@ -136,7 +137,7 @@ export function NotebookCard({
                   onEdit();
                 }}
               >
-                <Pencil className="mr-2 h-4 w-4" /> {t('edit')}
+                <Pencil className="mr-2 h-4 w-4" /> {tCommon('edit')}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={e => {
@@ -153,7 +154,7 @@ export function NotebookCard({
                 }}
                 className="text-destructive focus:text-destructive"
               >
-                <Trash2 className="mr-2 h-4 w-4" /> {t('delete')}
+                <Trash2 className="mr-2 h-4 w-4" /> {tCommon('delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

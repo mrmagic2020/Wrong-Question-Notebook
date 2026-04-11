@@ -85,7 +85,7 @@ export default function SmartFilterCriteriaDisplay({
   tagNames = {},
 }: SmartFilterCriteriaDisplayProps) {
   const t = useTranslations('Review');
-  const tCommon = useTranslations('CommonUtils');
+  const tCommon = useTranslations('Problems');
   const [open, setOpen] = useState(true);
 
   const statuses =

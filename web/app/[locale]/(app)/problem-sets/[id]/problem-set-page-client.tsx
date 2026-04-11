@@ -41,6 +41,7 @@ export default function ProblemSetPageClient({
   ownerProfile,
 }: ProblemSetPageClientProps) {
   const t = useTranslations('ProblemSets');
+  const tCommon = useTranslations('Common');
   const router = useRouter();
   const [problemSet, setProblemSet] = useState<
     ProblemSetWithDetails & { problems: ProblemInSet[] }
@@ -188,7 +189,7 @@ export default function ProblemSetPageClient({
       <div className="page-header flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center space-x-4">
           <BackLink onClick={() => router.push('/problem-sets')}>
-            {t('back')}
+            {tCommon('back')}
           </BackLink>
           <div className="min-w-0">
             <h1 className="page-title">{problemSet.name}</h1>
@@ -237,7 +238,7 @@ export default function ProblemSetPageClient({
           {problemSet.isOwner && (
             <Button variant="outline" onClick={() => setEditDialog(true)}>
               <Settings className="h-4 w-4 mr-2" />
-              {t('edit')}
+              {tCommon('edit')}
             </Button>
           )}
           {problemSet.is_smart && problemSet.isOwner && (

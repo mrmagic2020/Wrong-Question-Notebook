@@ -17,6 +17,7 @@ export function ForgotPasswordForm({
   ...props
 }: React.ComponentPropsWithoutRef<'div'>) {
   const t = useTranslations('Auth');
+  const tCommon = useTranslations('Common');
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -136,7 +137,7 @@ export function ForgotPasswordForm({
                       captchaRef.current?.reset();
                     }}
                   >
-                    {t('tryAgain')}
+                    {tCommon('tryAgain')}
                   </button>
                 </p>
               )}

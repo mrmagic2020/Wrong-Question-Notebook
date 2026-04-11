@@ -42,6 +42,7 @@ export default function AddToSetDialog({
   onSuccess,
 }: AddToSetDialogProps) {
   const t = useTranslations('ProblemSets');
+  const tCommon = useTranslations('Common');
   const [isLoading, setIsLoading] = useState(false);
   const [problemSets, setProblemSets] = useState<ProblemSet[]>([]);
   const [selectedSetId, setSelectedSetId] = useState<string>('');
@@ -194,7 +195,7 @@ export default function AddToSetDialog({
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
-              {t('Common.cancel')}
+              {tCommon('cancel')}
             </Button>
             <Button
               type="submit"

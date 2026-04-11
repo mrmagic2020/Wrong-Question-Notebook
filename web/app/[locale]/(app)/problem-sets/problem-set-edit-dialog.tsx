@@ -36,6 +36,7 @@ export default function ProblemSetEditDialog({
   onSuccess,
 }: ProblemSetEditDialogProps) {
   const t = useTranslations('ProblemSets');
+  const tCommon = useTranslations('Common');
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -292,7 +293,7 @@ export default function ProblemSetEditDialog({
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
-              {t('cancel')}
+              {tCommon('cancel')}
             </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? t('updating') : t('updateProblemSet')}

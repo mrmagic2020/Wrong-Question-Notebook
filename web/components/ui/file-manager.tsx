@@ -38,8 +38,9 @@ export default function FileManager({
   className = '',
   disabled = false,
 }: FileManagerProps) {
-  const t = useTranslations('CommonUtils');
-  const tErrors = useTranslations('CommonUtils');
+  const t = useTranslations('FileManager');
+  const tCommon = useTranslations('Common');
+  const tErrors = useTranslations('FileManager');
   const [files, setFiles] = useState<FileAsset[]>(initialFiles);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -409,7 +410,7 @@ export default function FileManager({
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        {t('view')}
+                        {tCommon('view')}
                       </Link>
                     </Button>
                   )}

@@ -50,6 +50,7 @@ function StatusIcon({ type, label }: { type: StatusIconType; label: string }) {
 
 export function ComparisonTable() {
   const t = useTranslations('Comparison');
+  const tCommon = useTranslations('Common');
 
   const statusLabel = (type: StatusIconType) => {
     if (type === 'check') return t('supported');
@@ -123,8 +124,8 @@ export function ComparisonTable() {
     },
     {
       feature: t('analyticsInsights'),
-      physical: { icon: 'cross' as StatusIconType, label: t('none') },
-      digital: { icon: 'cross' as StatusIconType, label: t('none') },
+      physical: { icon: 'cross' as StatusIconType, label: tCommon('none') },
+      digital: { icon: 'cross' as StatusIconType, label: tCommon('none') },
       wqn: {
         icon: 'check' as StatusIconType,
         label: t('chartsHeatmapsStreaks'),

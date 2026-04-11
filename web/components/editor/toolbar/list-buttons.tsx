@@ -15,7 +15,7 @@ export function ListButtons({
   activeState,
   disabled,
 }: ListButtonsProps) {
-  const t = useTranslations('CommonUtils');
+  const t = useTranslations('Editor');
   return (
     <div className="flex items-center gap-1">
       <ToolbarButton

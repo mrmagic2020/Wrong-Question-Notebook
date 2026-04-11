@@ -19,6 +19,7 @@ export function SignUpForm({
   ...props
 }: React.ComponentPropsWithoutRef<'div'>) {
   const t = useTranslations('Auth');
+  const tCommon = useTranslations('Common');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
@@ -221,7 +222,7 @@ export function SignUpForm({
                     captchaRef.current?.reset();
                   }}
                 >
-                  {t('tryAgain')}
+                  {tCommon('tryAgain')}
                 </button>
               </p>
             )}

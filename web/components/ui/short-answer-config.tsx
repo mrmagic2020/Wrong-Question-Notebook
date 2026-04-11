@@ -36,7 +36,8 @@ export function ShortAnswerConfig({
   onChange,
   disabled = false,
 }: ShortAnswerConfigProps) {
-  const t = useTranslations('CommonUtils');
+  const t = useTranslations('Problems');
+  const tCommon = useTranslations('Common');
   const { MAX_ACCEPTABLE_ANSWERS, MAX_ANSWER_LENGTH, NUMERIC } =
     ANSWER_CONFIG_CONSTANTS.SHORT_ANSWER;
 
@@ -176,7 +177,7 @@ export function ShortAnswerConfig({
                   disabled={disabled || !newAnswer.trim()}
                 >
                   <Plus className="mr-1 h-4 w-4" />
-                  {t('add')}
+                  {tCommon('add')}
                 </Button>
               </div>
             )}

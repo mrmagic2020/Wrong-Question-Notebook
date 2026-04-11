@@ -22,7 +22,7 @@ export function FormattingButtons({
   activeState,
   disabled,
 }: FormattingButtonsProps) {
-  const t = useTranslations('CommonUtils');
+  const t = useTranslations('Editor');
   return (
     <div className="flex items-center gap-1">
       <ToolbarButton

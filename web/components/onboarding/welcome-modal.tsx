@@ -25,6 +25,7 @@ interface WelcomeModalProps {
 
 export function WelcomeModal({ open, onClose }: WelcomeModalProps) {
   const t = useTranslations('Onboarding');
+  const tCommon = useTranslations('Common');
   const [step, setStep] = useState<1 | 2>(1);
 
   const handleClose = () => {
@@ -64,7 +65,7 @@ export function WelcomeModal({ open, onClose }: WelcomeModalProps) {
                 onClick={() => setStep(2)}
                 className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl px-6"
               >
-                {t('next')}
+                {tCommon('next')}
                 <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </DialogFooter>

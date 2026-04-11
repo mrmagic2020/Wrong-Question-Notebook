@@ -41,6 +41,7 @@ export function ChangeRoleDialog({
   loading,
 }: ChangeRoleDialogProps) {
   const t = useTranslations('Admin');
+  const tCommon = useTranslations('Common');
   const [selectedRole, setSelectedRole] = useState<UserRoleType>(currentRole);
 
   return (
@@ -77,7 +78,7 @@ export function ChangeRoleDialog({
         </div>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={loading}>
-            {t('cancel')}
+            {tCommon('cancel')}
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={() => onConfirm(selectedRole)}

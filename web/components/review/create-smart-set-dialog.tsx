@@ -496,7 +496,7 @@ export default function CreateSmartSetDialog({
                         : null,
                     }))
                   }
-                  placeholder={t('all')}
+                  placeholder={tCommon('all')}
                 />
                 <span className="text-sm text-muted-foreground">
                   {t('problemsOptional')}
