@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { PROBLEM_SET_CONSTANTS } from '@/lib/constants';
@@ -72,26 +73,22 @@ export function ReportDialog({
         <div className="space-y-4 py-4">
           <div className="space-y-3">
             <Label>{t('reasonLabel')}</Label>
-            <div className="space-y-2">
-              {PROBLEM_SET_CONSTANTS.REPORT_REASONS.map(r => (
-                <label
-                  key={r}
-                  className="flex cursor-pointer items-center space-x-2"
-                >
-                  <input
-                    type="radio"
-                    name="report-reason"
-                    value={r}
-                    checked={reason === r}
-                    onChange={() => setReason(r)}
-                    className="h-4 w-4 border-gray-300 text-amber-600 focus:ring-amber-500"
-                  />
-                  <span className="text-sm">
-                    {t(`reasons.${r}` as any)}
-                  </span>
-                </label>
-              ))}
-            </div>
+            <RadioGroup value={reason} onValueChange={setReason}>
+              {PROBLEM_SET_CONSTANTS.REPORT_REASONS.map(r => {
+                const itemId = `report-reason-${r}`;
+                return (
+                  <div key={r} className="flex items-center space-x-2">
+                    <RadioGroupItem value={r} id={itemId} />
+                    <Label
+                      htmlFor={itemId}
+                      className="cursor-pointer text-sm font-normal"
+                    >
+                      {t(`reasons.${r}` as any)}
+                    </Label>
+                  </div>
+                );
+              })}
+            </RadioGroup>
           </div>
 
           <div className="space-y-2">
