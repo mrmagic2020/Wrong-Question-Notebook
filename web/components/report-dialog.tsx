@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -21,18 +22,12 @@ interface ReportDialogProps {
   problemSetId: string;
 }
 
-const REASON_LABELS: Record<string, string> = {
-  inappropriate: 'Inappropriate content',
-  spam: 'Spam or advertising',
-  misleading: 'Misleading or incorrect',
-  other: 'Other',
-};
-
 export function ReportDialog({
   open,
   onOpenChange,
   problemSetId,
 }: ReportDialogProps) {
+  const t = useTranslations('ReportDialog');
   const [reason, setReason] = useState('');
   const [details, setDetails] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -49,20 +44,18 @@ export function ReportDialog({
       });
 
       if (res.ok) {
-        toast.success(
-          'Report submitted. Thank you for helping keep our community safe.'
-        );
+        toast.success(t('success'));
         onOpenChange(false);
         setReason('');
         setDetails('');
       } else if (res.status === 409) {
-        toast.info('You have already reported this problem set.');
+        toast.info(t('alreadyReported'));
         onOpenChange(false);
       } else {
-        toast.error('Failed to submit report. Please try again.');
+        toast.error(t('error'));
       }
     } catch {
-      toast.error('Failed to submit report. Please try again.');
+      toast.error(t('error'));
     } finally {
       setSubmitting(false);
     }
@@ -72,16 +65,13 @@ export function ReportDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Report Problem Set</DialogTitle>
-          <DialogDescription>
-            Help us keep our community safe. Your report will be reviewed by our
-            team.
-          </DialogDescription>
+          <DialogTitle>{t('title')}</DialogTitle>
+          <DialogDescription>{t('description')}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-3">
-            <Label>Reason</Label>
+            <Label>{t('reasonLabel')}</Label>
             <div className="space-y-2">
               {PROBLEM_SET_CONSTANTS.REPORT_REASONS.map(r => (
                 <label
@@ -96,21 +86,21 @@ export function ReportDialog({
                     onChange={() => setReason(r)}
                     className="h-4 w-4 border-gray-300 text-amber-600 focus:ring-amber-500"
                   />
-                  <span className="text-sm">{REASON_LABELS[r] || r}</span>
+                  <span className="text-sm">
+                    {t(`reasons.${r}` as any)}
+                  </span>
                 </label>
               ))}
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="report-details">
-              Additional details (optional)
-            </Label>
+            <Label htmlFor="report-details">{t('detailsLabel')}</Label>
             <Textarea
               id="report-details"
               value={details}
               onChange={e => setDetails(e.target.value)}
-              placeholder="Provide any additional context..."
+              placeholder={t('detailsPlaceholder')}
               maxLength={1000}
               rows={3}
             />
@@ -123,14 +113,14 @@ export function ReportDialog({
             onClick={() => onOpenChange(false)}
             disabled={submitting}
           >
-            Cancel
+            {t('cancel')}
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={!reason || submitting}
             variant="destructive"
           >
-            {submitting ? 'Submitting...' : 'Submit Report'}
+            {submitting ? t('submitting') : t('submit')}
           </Button>
         </DialogFooter>
       </DialogContent>

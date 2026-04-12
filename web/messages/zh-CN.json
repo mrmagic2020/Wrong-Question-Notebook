@@ -1416,6 +1416,25 @@
     "removeFromFavourites": "从收藏中移除",
     "loginToSave": "登录后收藏"
   },
+  "ReportDialog": {
+    "title": "举报题目集",
+    "description": "帮助我们维护社区安全。您的举报将由我们的团队审核。",
+    "reasonLabel": "举报原因",
+    "detailsLabel": "补充说明（可选）",
+    "detailsPlaceholder": "请提供任何补充信息...",
+    "cancel": "取消",
+    "submit": "提交举报",
+    "submitting": "提交中...",
+    "success": "举报已提交。感谢您帮助维护社区安全。",
+    "alreadyReported": "您已经举报过此题目集。",
+    "error": "提交举报失败，请重试。",
+    "reasons": {
+      "inappropriate": "不当内容",
+      "spam": "垃圾信息或广告",
+      "misleading": "误导或错误信息",
+      "other": "其他"
+    }
+  },
   "DiscoverySubjects": {
     "Biology": "生物学",
     "Business Studies": "商业学",

@@ -1416,6 +1416,25 @@
     "removeFromFavourites": "Remove from favourites",
     "loginToSave": "Log in to save this set"
   },
+  "ReportDialog": {
+    "title": "Report Problem Set",
+    "description": "Help us keep our community safe. Your report will be reviewed by our team.",
+    "reasonLabel": "Reason",
+    "detailsLabel": "Additional details (optional)",
+    "detailsPlaceholder": "Provide any additional context...",
+    "cancel": "Cancel",
+    "submit": "Submit Report",
+    "submitting": "Submitting...",
+    "success": "Report submitted. Thank you for helping keep our community safe.",
+    "alreadyReported": "You have already reported this problem set.",
+    "error": "Failed to submit report. Please try again.",
+    "reasons": {
+      "inappropriate": "Inappropriate content",
+      "spam": "Spam or advertising",
+      "misleading": "Misleading or incorrect",
+      "other": "Other"
+    }
+  },
   "DiscoverySubjects": {
     "Biology": "Biology",
     "Business Studies": "Business Studies",
