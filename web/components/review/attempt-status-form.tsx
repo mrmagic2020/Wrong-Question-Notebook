@@ -238,7 +238,8 @@ export default function AttemptStatusForm({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             problem_id: problemId,
-            submitted_answer: response || 'Self-assessed',
+            submitted_answer:
+              response || ATTEMPT_CONSTANTS.SELF_ASSESSED_PLACEHOLDER,
             is_correct:
               selectedStatus === 'needs_review'
                 ? needsReviewIsCorrect
@@ -324,15 +325,19 @@ export default function AttemptStatusForm({
                 : t('wrongButClose')}
             </p>
           )}
-        {cause && (
-          <p className="text-xs text-muted-foreground mt-1.5">
-            {t('cause')}:{' '}
-            {(effectiveIsCorrect
-              ? ATTEMPT_CONSTANTS.CAUSE_CATEGORIES.CORRECT
-              : ATTEMPT_CONSTANTS.CAUSE_CATEGORIES.INCORRECT
-            ).find(c => c.value === cause)?.label || cause}
-          </p>
-        )}
+        {cause &&
+          (() => {
+            const matched = (
+              effectiveIsCorrect
+                ? ATTEMPT_CONSTANTS.CAUSE_CATEGORIES.CORRECT
+                : ATTEMPT_CONSTANTS.CAUSE_CATEGORIES.INCORRECT
+            ).find(c => c.value === cause);
+            return (
+              <p className="text-xs text-muted-foreground mt-1.5">
+                {t('cause')}: {matched ? t(matched.labelKey) : cause}
+              </p>
+            );
+          })()}
         {notes && (
           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
             {t('notes')}: {notes}

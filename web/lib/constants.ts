@@ -621,22 +621,29 @@ const ICON_COMPONENT_MAP: Record<SubjectIcon, LucideIcon> = {
 // Attempt & Reflection Constants
 // =====================================================
 export const ATTEMPT_CONSTANTS = {
+  /**
+   * Sentinel stored in `attempts.submitted_answer` when the user self-assessed
+   * without providing a textual response. Kept in English because it is an
+   * internal identifier (not user-facing) — comparisons must match the literal
+   * stored value, never a translated label.
+   */
+  SELF_ASSESSED_PLACEHOLDER: 'Self-assessed',
   CAUSE_CATEGORIES: {
     INCORRECT: [
-      { value: 'careless', label: 'Careless mistake' },
-      { value: 'misread', label: 'Misread the question' },
-      { value: 'knowledge_gap', label: 'Knowledge gap' },
-      { value: 'forgot_method', label: 'Forgot the method' },
-      { value: 'ran_out_of_time', label: 'Ran out of time' },
-      { value: 'guessed', label: 'Guessed' },
-      { value: 'other', label: 'Other' },
+      { value: 'careless', labelKey: 'causes.careless' },
+      { value: 'misread', labelKey: 'causes.misread' },
+      { value: 'knowledge_gap', labelKey: 'causes.knowledge_gap' },
+      { value: 'forgot_method', labelKey: 'causes.forgot_method' },
+      { value: 'ran_out_of_time', labelKey: 'causes.ran_out_of_time' },
+      { value: 'guessed', labelKey: 'causes.guessed' },
+      { value: 'other', labelKey: 'causes.other' },
     ],
     CORRECT: [
-      { value: 'confident', label: 'Confident' },
-      { value: 'educated_guess', label: 'Educated guess' },
-      { value: 'elimination', label: 'Process of elimination' },
-      { value: 'lucky', label: 'Got lucky' },
-      { value: 'other', label: 'Other' },
+      { value: 'confident', labelKey: 'causes.confident' },
+      { value: 'educated_guess', labelKey: 'causes.educated_guess' },
+      { value: 'elimination', labelKey: 'causes.elimination' },
+      { value: 'lucky', labelKey: 'causes.lucky' },
+      { value: 'other', labelKey: 'causes.other' },
     ],
   },
   CONFIDENCE_LABELS: {

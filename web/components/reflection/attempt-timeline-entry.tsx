@@ -44,14 +44,15 @@ function formatRelativeDate(dateString: string, t: TranslatorProp): string {
 
 function getCauseLabel(
   cause: string | undefined,
-  isCorrect: boolean | null
+  isCorrect: boolean | null,
+  t: TranslatorProp
 ): string | null {
   if (!cause) return null;
   const categories = isCorrect
     ? ATTEMPT_CONSTANTS.CAUSE_CATEGORIES.CORRECT
     : ATTEMPT_CONSTANTS.CAUSE_CATEGORIES.INCORRECT;
   const found = categories.find(c => c.value === cause);
-  return found?.label || cause;
+  return found ? t(found.labelKey) : cause;
 }
 
 function getStatusBadge(status: string | null, t: TranslatorProp) {
@@ -257,7 +258,8 @@ export default function AttemptTimelineEntry({
 
                   {/* Submitted response */}
                   {attempt.submitted_answer != null &&
-                    attempt.submitted_answer !== t('selfAssessed') && (
+                    attempt.submitted_answer !==
+                      ATTEMPT_CONSTANTS.SELF_ASSESSED_PLACEHOLDER && (
                       <p className="text-gray-700 dark:text-gray-300 line-clamp-2">
                         <span className="text-xs font-medium text-muted-foreground">
                           {t('response')}{' '}
@@ -275,7 +277,7 @@ export default function AttemptTimelineEntry({
                         {t('cause')}{' '}
                       </span>
                       <span className="text-gray-700 dark:text-gray-300">
-                        {getCauseLabel(attempt.cause, attempt.is_correct)}
+                        {getCauseLabel(attempt.cause, attempt.is_correct, t)}
                       </span>
                     </div>
                   )}

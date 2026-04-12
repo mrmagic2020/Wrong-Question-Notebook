@@ -133,7 +133,8 @@ export default function AttemptEditDialog({
 
           {/* Recorded response (read-only) */}
           {attempt.submitted_answer != null &&
-            attempt.submitted_answer !== 'Self-assessed' && (
+            attempt.submitted_answer !==
+              ATTEMPT_CONSTANTS.SELF_ASSESSED_PLACEHOLDER && (
               <div className="space-y-1">
                 <span className="text-xs font-medium text-muted-foreground">
                   {t('yourResponse')}

@@ -47,7 +47,7 @@ export default function CauseSelector({
         <SelectContent>
           {categories.map(cat => (
             <SelectItem key={cat.value} value={cat.value}>
-              {cat.label}
+              {t(cat.labelKey)}
             </SelectItem>
           ))}
         </SelectContent>
