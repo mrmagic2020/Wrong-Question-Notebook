@@ -109,6 +109,10 @@ export default function DiscoverPageClient({
       return; // Use initial server data
     }
     setHasSearched(true);
+    // Invalidate the previous cursor synchronously so the IntersectionObserver
+    // effect can't fire an infinite-scroll request with a stale value before
+    // the fresh fetch resolves.
+    setNextCursor(null);
     fetchSets();
   }, [debouncedSearch, subject, sort, fetchSets, hasSearched]);
 
