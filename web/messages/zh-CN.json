@@ -556,7 +556,16 @@
     "problemAddedToSetSuccessfully": "题目已成功添加到集合",
     "createProblemSet": "创建题目集",
     "problems": "题目",
-    "openMenu": "打开菜单"
+    "openMenu": "打开菜单",
+    "answerChoices": "答案选项",
+    "correctAnswerTooltip": "正确答案",
+    "clickToMarkCorrect": "点击设为正确答案",
+    "optionPlaceholder": "选项 {id}...",
+    "editChoice": "编辑选项 {id}：{text}",
+    "removeChoice": "删除选项 {id}",
+    "addChoice": "添加选项",
+    "markCorrectAnswer": "点击字母标记正确答案",
+    "mathTip": "提示：使用 $...$ 表示数学公式，例如 $x^2 + 1$"
   },
   "ProblemSets": {
     "title": "题目集",

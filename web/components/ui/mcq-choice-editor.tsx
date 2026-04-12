@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
@@ -23,6 +24,7 @@ export function MCQChoiceEditor({
   onCorrectChoiceChange,
   disabled = false,
 }: MCQChoiceEditorProps) {
+  const t = useTranslations('Problems');
   const { MIN_CHOICES, MAX_CHOICES, MAX_CHOICE_TEXT_LENGTH } =
     ANSWER_CONFIG_CONSTANTS.MCQ;
 
@@ -73,7 +75,7 @@ export function MCQChoiceEditor({
 
   return (
     <div className="form-row-start">
-      <label className="form-label pt-2">Answer choices</label>
+      <label className="form-label pt-2">{t('answerChoices')}</label>
       <div className="flex-1 space-y-3">
         <div className="space-y-2">
           {choices.map(choice => {
@@ -97,7 +99,9 @@ export function MCQChoiceEditor({
                       : 'border-gray-300 text-gray-400 hover:border-amber-300 dark:border-gray-600 dark:text-gray-500 dark:hover:border-amber-600'
                   }`}
                   title={
-                    isCorrect ? 'Correct answer' : 'Click to mark as correct'
+                    isCorrect
+                      ? t('correctAnswerTooltip')
+                      : t('clickToMarkCorrect')
                   }
                 >
                   {choice.id}
@@ -122,7 +126,10 @@ export function MCQChoiceEditor({
                         });
                       }
                     }}
-                    aria-label={`Edit choice ${choice.id}: ${choice.text}`}
+                    aria-label={t('editChoice', {
+                      id: choice.id,
+                      text: choice.text,
+                    })}
                   >
                     <MathText text={choice.text} />
                   </div>
@@ -135,7 +142,7 @@ export function MCQChoiceEditor({
                     onChange={e => handleTextChange(choice.id, e.target.value)}
                     onFocus={() => setFocusedChoiceId(choice.id)}
                     onBlur={() => setFocusedChoiceId(null)}
-                    placeholder={`Option ${choice.id}...`}
+                    placeholder={t('optionPlaceholder', { id: choice.id })}
                     maxLength={MAX_CHOICE_TEXT_LENGTH}
                     disabled={disabled}
                     className="flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0"
@@ -149,7 +156,7 @@ export function MCQChoiceEditor({
                     onClick={() => removeChoice(choice.id)}
                     disabled={disabled}
                     className="h-8 w-8 p-0 text-muted-foreground hover:text-red-500"
-                    aria-label={`Remove choice ${choice.id}`}
+                    aria-label={t('removeChoice', { id: choice.id })}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -168,17 +175,15 @@ export function MCQChoiceEditor({
             className="text-muted-foreground"
           >
             <Plus className="mr-1 h-4 w-4" />
-            Add choice
+            {t('addChoice')}
           </Button>
         )}
         {!correctChoiceId && choices.length > 0 && (
           <p className="text-sm text-amber-600 dark:text-amber-400">
-            Click a letter to mark the correct answer
+            {t('markCorrectAnswer')}
           </p>
         )}
-        <p className="text-xs text-muted-foreground">
-          Tip: Use $...$ for math, e.g. $x^2 + 1$
-        </p>
+        <p className="text-xs text-muted-foreground">{t('mathTip')}</p>
       </div>
     </div>
   );

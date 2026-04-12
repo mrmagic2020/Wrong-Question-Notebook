@@ -556,7 +556,16 @@
     "problemAddedToSetSuccessfully": "Problem added to set successfully",
     "createProblemSet": "Create Problem Set",
     "problems": "Problems",
-    "openMenu": "Open menu"
+    "openMenu": "Open menu",
+    "answerChoices": "Answer choices",
+    "correctAnswerTooltip": "Correct answer",
+    "clickToMarkCorrect": "Click to mark as correct",
+    "optionPlaceholder": "Option {id}...",
+    "editChoice": "Edit choice {id}: {text}",
+    "removeChoice": "Remove choice {id}",
+    "addChoice": "Add choice",
+    "markCorrectAnswer": "Click a letter to mark the correct answer",
+    "mathTip": "Tip: Use $...$ for math, e.g. $x^2 + 1$"
   },
   "ProblemSets": {
     "title": "Problem Sets",
