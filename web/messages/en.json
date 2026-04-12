@@ -1392,5 +1392,19 @@
     "copies": "copies",
     "listedSets": "Listed Problem Sets ({count})",
     "noListedSets": "This creator hasn't listed any public problem sets yet."
+  },
+  "Social": {
+    "views": "Views",
+    "copies": "Copies",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied to clipboard",
+    "failedToCopyLink": "Failed to copy link",
+    "reportThisSet": "Report this set",
+    "like": "Like",
+    "unlike": "Unlike",
+    "loginToLike": "Log in to like this set",
+    "addToFavourites": "Add to favourites",
+    "removeFromFavourites": "Remove from favourites",
+    "loginToSave": "Log in to save this set"
   }
 }

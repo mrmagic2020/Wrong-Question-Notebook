@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Eye, Copy, Share2, Flag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
@@ -34,6 +35,7 @@ export function SocialActionsBar({
   initialSocialState,
   isOwner,
 }: SocialActionsBarProps) {
+  const t = useTranslations('Social');
   const {
     stats,
     liked,
@@ -56,9 +58,9 @@ export function SocialActionsBar({
     const url = `${window.location.origin}/problem-sets/${problemSetId}`;
     try {
       await navigator.clipboard.writeText(url);
-      toast.success('Link copied to clipboard');
+      toast.success(t('linkCopied'));
     } catch {
-      toast.error('Failed to copy link');
+      toast.error(t('failedToCopyLink'));
     }
   };
 
@@ -68,7 +70,7 @@ export function SocialActionsBar({
     <>
       <div className="flex flex-wrap items-center gap-1 rounded-xl bg-amber-50/50 px-2 py-1 dark:bg-gray-800/30">
         {/* View count */}
-        <Tooltip content="Views">
+        <Tooltip content={t('views')}>
           <div className="flex items-center gap-1.5 px-2 py-1 text-muted-foreground">
             <Eye className="h-4 w-4" />
             <span className="text-sm tabular-nums">
@@ -91,7 +93,7 @@ export function SocialActionsBar({
         <div className="h-4 w-px bg-border" />
 
         {/* Copy count */}
-        <Tooltip content="Copies">
+        <Tooltip content={t('copies')}>
           <div className="flex items-center gap-1.5 px-2 py-1 text-muted-foreground">
             <Copy className="h-4 w-4" />
             <span className="text-sm tabular-nums">
@@ -113,7 +115,7 @@ export function SocialActionsBar({
         <div className="h-4 w-px bg-border" />
 
         {/* Share button */}
-        <Tooltip content="Copy link">
+        <Tooltip content={t('copyLink')}>
           <Button
             variant="ghost"
             size="sm"
@@ -128,7 +130,7 @@ export function SocialActionsBar({
         {isAuthenticated && !isOwner && (
           <>
             <div className="h-4 w-px bg-border" />
-            <Tooltip content="Report this set">
+            <Tooltip content={t('reportThisSet')}>
               <Button
                 variant="ghost"
                 size="sm"

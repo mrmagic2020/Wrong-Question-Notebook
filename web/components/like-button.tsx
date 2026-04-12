@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
@@ -22,9 +23,10 @@ export function LikeButton({
   isAuthenticated,
   loading,
 }: LikeButtonProps) {
+  const t = useTranslations('Social');
   if (!isAuthenticated) {
     return (
-      <Tooltip content="Log in to like this set">
+      <Tooltip content={t('loginToLike')}>
         <Button
           variant="ghost"
           size="sm"
@@ -39,7 +41,7 @@ export function LikeButton({
   }
 
   return (
-    <Tooltip content={liked ? 'Unlike' : 'Like'}>
+    <Tooltip content={liked ? t('unlike') : t('like')}>
       <Button
         variant="ghost"
         size="sm"

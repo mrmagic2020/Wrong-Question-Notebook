@@ -1392,5 +1392,19 @@
     "copies": "复制",
     "listedSets": "已列出的题目集 ({count})",
     "noListedSets": "该创作者尚未列出任何公开题目集。"
+  },
+  "Social": {
+    "views": "浏览",
+    "copies": "复制",
+    "copyLink": "复制链接",
+    "linkCopied": "链接已复制到剪贴板",
+    "failedToCopyLink": "复制链接失败",
+    "reportThisSet": "举报此题目集",
+    "like": "点赞",
+    "unlike": "取消点赞",
+    "loginToLike": "登录后点赞",
+    "addToFavourites": "添加到收藏",
+    "removeFromFavourites": "从收藏中移除",
+    "loginToSave": "登录后收藏"
   }
 }

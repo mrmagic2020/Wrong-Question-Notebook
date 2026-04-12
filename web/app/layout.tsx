@@ -41,7 +41,7 @@ export default async function RootLayout({
   const rootMessages = {
     Common: (messages as Record<string, unknown>).Common,
     CookieConsent: (messages as Record<string, unknown>).CookieConsent,
-  };
+  } as typeof messages;
 
   return (
     <html lang={locale} suppressHydrationWarning>

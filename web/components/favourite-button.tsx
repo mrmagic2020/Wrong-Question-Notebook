@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
@@ -20,9 +21,10 @@ export function FavouriteButton({
   isAuthenticated,
   loading,
 }: FavouriteButtonProps) {
+  const t = useTranslations('Social');
   if (!isAuthenticated) {
     return (
-      <Tooltip content="Log in to save this set">
+      <Tooltip content={t('loginToSave')}>
         <Button
           variant="ghost"
           size="sm"
@@ -37,7 +39,7 @@ export function FavouriteButton({
 
   return (
     <Tooltip
-      content={favourited ? 'Remove from favourites' : 'Add to favourites'}
+      content={favourited ? t('removeFromFavourites') : t('addToFavourites')}
     >
       <Button
         variant="ghost"
