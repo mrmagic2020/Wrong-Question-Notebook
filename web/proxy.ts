@@ -160,7 +160,14 @@ export async function proxy(request: NextRequest) {
   }
 
   // Step 4: Public paths check
-  const publicPaths = ['/auth', '/privacy', '/upload', '/discover', '/creators'];
+  const publicPaths = [
+    '/auth',
+    '/privacy',
+    '/upload',
+    '/discover',
+    '/creators',
+    '/problem-sets',
+  ];
   const apiPublicPaths = [
     '/api/problem-sets',
     '/api/discover',
