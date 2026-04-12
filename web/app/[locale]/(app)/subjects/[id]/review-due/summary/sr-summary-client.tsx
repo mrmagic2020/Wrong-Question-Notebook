@@ -266,7 +266,9 @@ export default function SRSummaryClient({
             <div className="text-2xl font-bold text-primary">
               {summary.completed_count}
             </div>
-            <p className="text-xs text-muted-foreground">{t('completed')}</p>
+            <p className="text-xs text-muted-foreground">
+              {t('completedLabel')}
+            </p>
           </CardContent>
         </Card>
 
