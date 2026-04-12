@@ -554,7 +554,8 @@
     "failedToAddProblemToSet": "Failed to add problem to set",
     "problemAddedToSetSuccessfully": "Problem added to set successfully",
     "createProblemSet": "Create Problem Set",
-    "problems": "Problems"
+    "problems": "Problems",
+    "openMenu": "Open menu"
   },
   "ProblemSets": {
     "title": "Problem Sets",

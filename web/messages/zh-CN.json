@@ -554,7 +554,8 @@
     "failedToAddProblemToSet": "添加题目到集合失败",
     "problemAddedToSetSuccessfully": "题目已成功添加到集合",
     "createProblemSet": "创建题目集",
-    "problems": "题目"
+    "problems": "题目",
+    "openMenu": "打开菜单"
   },
   "ProblemSets": {
     "title": "题目集",
