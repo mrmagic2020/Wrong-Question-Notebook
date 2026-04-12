@@ -8,6 +8,7 @@ import { ProfileAvatar } from '@/components/profile-avatar';
 import type { ProblemSetCard } from '@/lib/types';
 import { stripHtml } from '@/lib/html-sanitizer';
 import { cn } from '@/lib/utils';
+import { formatCount } from '@/lib/format-utils';
 
 // Color mapping for subject badges
 const SUBJECT_COLORS: Record<string, string> = {
@@ -21,12 +22,6 @@ const SUBJECT_COLORS: Record<string, string> = {
     'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
   rose: 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300',
 };
-
-function formatCount(n: number): string {
-  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
-  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
-  return String(n);
-}
 
 interface DiscoveryCardProps {
   set: ProblemSetCard;

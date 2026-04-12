@@ -5,6 +5,7 @@ import { Eye, Heart, Copy } from 'lucide-react';
 import { ProfileAvatar } from '@/components/profile-avatar';
 import { DiscoveryCard } from '@/components/discovery-card';
 import type { ProblemSetCard } from '@/lib/types';
+import { formatCount } from '@/lib/format-utils';
 
 interface CreatorProfile {
   username: string | null;
@@ -23,12 +24,6 @@ interface CreatorProfileClientProps {
   profile: CreatorProfile;
   sets: ProblemSetCard[];
   aggregateStats: AggregateStats;
-}
-
-function formatCount(n: number): string {
-  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
-  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
-  return String(n);
 }
 
 export default function CreatorProfileClient({
