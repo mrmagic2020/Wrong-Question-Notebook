@@ -93,7 +93,9 @@ export default function CopyProblemSetDialog({
         trimmed.length > VALIDATION_CONSTANTS.STRING_LIMITS.SUBJECT_NAME_MAX
       ) {
         toast.error(
-          `Subject name must be at most ${VALIDATION_CONSTANTS.STRING_LIMITS.SUBJECT_NAME_MAX} characters`
+          t('subjectNameTooLong', {
+            max: VALIDATION_CONSTANTS.STRING_LIMITS.SUBJECT_NAME_MAX,
+          })
         );
         return;
       }
@@ -108,9 +110,13 @@ export default function CopyProblemSetDialog({
 
         if (!res.ok) {
           const err = await res.json().catch(() => null);
-          throw new Error(
-            err?.error || err?.message || t('failedToCreateSubject')
-          );
+          if (res.status === 403 && err?.details?.resource_type) {
+            const d = err.details;
+            throw new Error(
+              t('subjectLimitReached', { current: d.current, limit: d.limit })
+            );
+          }
+          throw new Error(t('failedToCreateSubject'));
         }
 
         const data = await res.json();
@@ -146,8 +152,20 @@ export default function CopyProblemSetDialog({
           const d = body.details;
           const msg =
             d.resource_type === 'problems_per_subject'
-              ? `Limit reached: ${d.current}/${d.limit} problems in this subject${d.copy_count ? ` (trying to copy ${d.copy_count})` : ''}`
-              : `Limit reached: ${d.current}/${d.limit} problem sets`;
+              ? d.copy_count
+                ? t('problemLimitReachedWithCopy', {
+                    current: d.current,
+                    limit: d.limit,
+                    copyCount: d.copy_count,
+                  })
+                : t('problemLimitReached', {
+                    current: d.current,
+                    limit: d.limit,
+                  })
+              : t('problemSetLimitReached', {
+                  current: d.current,
+                  limit: d.limit,
+                });
           throw new Error(msg);
         }
         throw new Error(body?.error || t('failedToCopySet'));

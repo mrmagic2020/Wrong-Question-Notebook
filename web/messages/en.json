@@ -1254,7 +1254,12 @@
     "copying": "Copying...",
     "failedToCopy": "Failed to copy",
     "adding": "Adding...",
-    "addToNotebook": "Add to Notebook"
+    "addToNotebook": "Add to Notebook",
+    "problemLimitReached": "Limit reached: {current}/{limit} problems in this subject",
+    "problemLimitReachedWithCopy": "Limit reached: {current}/{limit} problems in this subject (trying to copy {copyCount})",
+    "problemSetLimitReached": "Limit reached: {current}/{limit} problem sets",
+    "subjectLimitReached": "Limit reached: {current}/{limit} subjects",
+    "subjectNameTooLong": "Subject name must be at most {max} characters"
   },
   "FileManager": {
     "clickToUpload": "Click to upload",

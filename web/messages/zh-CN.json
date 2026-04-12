@@ -1254,7 +1254,12 @@
     "copying": "复制中...",
     "failedToCopy": "复制失败",
     "adding": "添加中...",
-    "addToNotebook": "添加到笔记本"
+    "addToNotebook": "添加到笔记本",
+    "problemLimitReached": "已达上限：此科目中 {current}/{limit} 道题目",
+    "problemLimitReachedWithCopy": "已达上限：此科目中 {current}/{limit} 道题目（尝试复制 {copyCount} 道）",
+    "problemSetLimitReached": "已达上限：{current}/{limit} 个题目集",
+    "subjectLimitReached": "已达上限：{current}/{limit} 个科目",
+    "subjectNameTooLong": "科目名称最多 {max} 个字符"
   },
   "FileManager": {
     "clickToUpload": "点击上传",

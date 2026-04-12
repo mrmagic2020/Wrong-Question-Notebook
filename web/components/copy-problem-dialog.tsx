@@ -89,7 +89,9 @@ export default function CopyProblemDialog({
         trimmed.length > VALIDATION_CONSTANTS.STRING_LIMITS.SUBJECT_NAME_MAX
       ) {
         toast.error(
-          `Subject name must be at most ${VALIDATION_CONSTANTS.STRING_LIMITS.SUBJECT_NAME_MAX} characters`
+          t('subjectNameTooLong', {
+            max: VALIDATION_CONSTANTS.STRING_LIMITS.SUBJECT_NAME_MAX,
+          })
         );
         return;
       }
@@ -104,9 +106,13 @@ export default function CopyProblemDialog({
 
         if (!res.ok) {
           const err = await res.json().catch(() => null);
-          throw new Error(
-            err?.error || err?.message || t('failedToCreateSubject')
-          );
+          if (res.status === 403 && err?.details?.resource_type) {
+            const d = err.details;
+            throw new Error(
+              t('subjectLimitReached', { current: d.current, limit: d.limit })
+            );
+          }
+          throw new Error(t('failedToCreateSubject'));
         }
 
         const data = await res.json();
@@ -145,7 +151,7 @@ export default function CopyProblemDialog({
         if (res.status === 403 && body?.details?.resource_type) {
           const d = body.details;
           throw new Error(
-            `Limit reached: ${d.current}/${d.limit} problems in this subject`
+            t('problemLimitReached', { current: d.current, limit: d.limit })
           );
         }
         throw new Error(body?.error || t('failedToAddProblem'));
