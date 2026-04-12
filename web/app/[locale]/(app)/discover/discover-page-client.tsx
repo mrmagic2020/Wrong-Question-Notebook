@@ -34,6 +34,7 @@ export default function DiscoverPageClient({
   initialSubjects,
 }: DiscoverPageClientProps) {
   const t = useTranslations('Discover');
+  const tSubjects = useTranslations('DiscoverySubjects');
   const [sets, setSets] = useState<ProblemSetCard[]>(initialSets);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -194,7 +195,9 @@ export default function DiscoverPageClient({
                       : 'bg-amber-100/80 text-amber-800 hover:bg-amber-200/80 dark:bg-amber-900/30 dark:text-amber-300 dark:hover:bg-amber-900/50'
                   )}
                 >
-                  {s.name}
+                  {tSubjects.has(s.name as any)
+                    ? tSubjects(s.name as any)
+                    : s.name}
                   <span className="ml-1 opacity-60">({s.count})</span>
                 </button>
               ))}

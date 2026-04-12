@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Globe, Info, UserCog } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { DISCOVERY_SUBJECTS } from '@/lib/constants';
 
 interface ListedToggleProps {
@@ -31,6 +32,7 @@ export function ListedToggle({
   hasUsername = true,
   problemCount,
 }: ListedToggleProps) {
+  const tSubjects = useTranslations('DiscoverySubjects');
   const isEmpty = problemCount !== undefined && problemCount === 0;
   return (
     <div className="space-y-3">
@@ -64,7 +66,7 @@ export function ListedToggle({
             <SelectContent>
               {DISCOVERY_SUBJECTS.map(s => (
                 <SelectItem key={s} value={s}>
-                  {s}
+                  {tSubjects(s)}
                 </SelectItem>
               ))}
             </SelectContent>

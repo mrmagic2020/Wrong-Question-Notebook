@@ -39,6 +39,7 @@ export function DiscoveryCard({
 }: DiscoveryCardProps) {
   const router = useRouter();
   const tCommon = useTranslations('Common');
+  const tSubjects = useTranslations('DiscoverySubjects');
   const subjectColorClass =
     SUBJECT_COLORS[set.subject_color || 'amber'] || SUBJECT_COLORS.amber;
   const plain = set.description ? stripHtml(set.description) : null;
@@ -70,7 +71,9 @@ export function DiscoveryCard({
               subjectColorClass
             )}
           >
-            {set.subject_name}
+            {tSubjects.has(set.subject_name as any)
+              ? tSubjects(set.subject_name as any)
+              : set.subject_name}
           </span>
         </div>
 

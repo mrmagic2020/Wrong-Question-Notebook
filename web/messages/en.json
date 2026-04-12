@@ -1407,5 +1407,22 @@
     "addToFavourites": "Add to favourites",
     "removeFromFavourites": "Remove from favourites",
     "loginToSave": "Log in to save this set"
+  },
+  "DiscoverySubjects": {
+    "Biology": "Biology",
+    "Business Studies": "Business Studies",
+    "Chemistry": "Chemistry",
+    "Economics": "Economics",
+    "English": "English",
+    "Geography": "Geography",
+    "History": "History",
+    "Languages": "Languages",
+    "Legal Studies": "Legal Studies",
+    "Mathematics": "Mathematics",
+    "Music": "Music",
+    "Physics": "Physics",
+    "Software Engineering": "Software Engineering",
+    "Visual Arts": "Visual Arts",
+    "Other": "Other"
   }
 }

@@ -1407,5 +1407,22 @@
     "addToFavourites": "添加到收藏",
     "removeFromFavourites": "从收藏中移除",
     "loginToSave": "登录后收藏"
+  },
+  "DiscoverySubjects": {
+    "Biology": "生物学",
+    "Business Studies": "商业学",
+    "Chemistry": "化学",
+    "Economics": "经济学",
+    "English": "英语",
+    "Geography": "地理",
+    "History": "历史",
+    "Languages": "语言",
+    "Legal Studies": "法律",
+    "Mathematics": "数学",
+    "Music": "音乐",
+    "Physics": "物理",
+    "Software Engineering": "软件工程",
+    "Visual Arts": "视觉艺术",
+    "Other": "其他"
   }
 }
