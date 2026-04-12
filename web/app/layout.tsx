@@ -39,8 +39,8 @@ export default async function RootLayout({
   // Only pass root-level messages to avoid duplicating the full bundle
   // (the [locale] layout's provider supplies the complete set)
   const rootMessages = {
-    CookieConsent: (messages as { CookieConsent: Record<string, string> })
-      .CookieConsent,
+    Common: (messages as Record<string, unknown>).Common,
+    CookieConsent: (messages as Record<string, unknown>).CookieConsent,
   };
 
   return (
