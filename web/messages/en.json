@@ -1367,5 +1367,29 @@
     "noResultsFound": "No results found",
     "selectedCount": "Selected",
     "createSet": "Create set"
+  },
+  "Discover": {
+    "title": "Discover",
+    "subtitle": "Browse problem sets shared by other students",
+    "searchPlaceholder": "Search problem sets...",
+    "all": "All",
+    "trending": "Trending",
+    "newest": "Newest",
+    "mostLiked": "Most Liked",
+    "mostCopied": "Most Copied",
+    "noSetsFound": "No problem sets found",
+    "adjustFilters": "Try adjusting your search or filters.",
+    "beFirstToShare": "Be the first to share a problem set!",
+    "metaTitle": "Discover Problem Sets – Wrong Question Notebook",
+    "metaDescription": "Browse and search student-created problem sets across subjects. Find study materials shared by other students."
+  },
+  "Creator": {
+    "notFound": "Creator Not Found",
+    "problemSetsBy": "Problem sets by {name}",
+    "views": "views",
+    "likes": "likes",
+    "copies": "copies",
+    "listedSets": "Listed Problem Sets ({count})",
+    "noListedSets": "This creator hasn't listed any public problem sets yet."
   }
 }

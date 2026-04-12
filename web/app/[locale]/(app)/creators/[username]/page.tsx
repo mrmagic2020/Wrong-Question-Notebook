@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase-utils';
 import { notFound } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import CreatorProfileClient from './creator-profile-client';
 import type { Metadata } from 'next';
 import type { ProblemSetCard } from '@/lib/types';
@@ -17,14 +18,15 @@ export async function generateMetadata({
     .eq('username', username)
     .maybeSingle();
 
-  if (!profile) return { title: 'Creator Not Found' };
+  const t = await getTranslations('Creator');
+  if (!profile) return { title: t('notFound') };
 
   const displayName =
     [profile.first_name, profile.last_name].filter(Boolean).join(' ') ||
     username;
   const description = profile.bio
     ? profile.bio.substring(0, 160)
-    : `Problem sets by ${displayName}`;
+    : t('problemSetsBy', { name: displayName });
 
   return {
     title: `@${username} – Wrong Question Notebook`,

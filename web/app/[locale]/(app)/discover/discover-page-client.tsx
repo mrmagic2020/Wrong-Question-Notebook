@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { Search, SlidersHorizontal, Globe } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
@@ -16,11 +17,11 @@ import { cn } from '@/lib/utils';
 
 type SortOption = 'ranking' | 'newest' | 'most_liked' | 'most_copied';
 
-const SORT_LABELS: Record<SortOption, string> = {
-  ranking: 'Trending',
-  newest: 'Newest',
-  most_liked: 'Most Liked',
-  most_copied: 'Most Copied',
+const SORT_KEYS = {
+  ranking: 'trending' as const,
+  newest: 'newest' as const,
+  most_liked: 'mostLiked' as const,
+  most_copied: 'mostCopied' as const,
 };
 
 interface DiscoverPageClientProps {
@@ -32,6 +33,7 @@ export default function DiscoverPageClient({
   initialSets,
   initialSubjects,
 }: DiscoverPageClientProps) {
+  const t = useTranslations('Discover');
   const [sets, setSets] = useState<ProblemSetCard[]>(initialSets);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -135,9 +137,9 @@ export default function DiscoverPageClient({
             <Globe className="h-6 w-6 text-purple-600 dark:text-purple-400" />
           </div>
           <div>
-            <h1 className="heading-lg">Discover</h1>
+            <h1 className="heading-lg">{t('title')}</h1>
             <p className="text-body-sm text-muted-foreground">
-              Browse problem sets shared by other students
+              {t('subtitle')}
             </p>
           </div>
         </div>
@@ -148,7 +150,7 @@ export default function DiscoverPageClient({
           <Input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search problem sets..."
+            placeholder={t('searchPlaceholder')}
             className="pl-10 rounded-xl"
           />
         </div>
@@ -179,7 +181,7 @@ export default function DiscoverPageClient({
                     : 'bg-amber-100/80 text-amber-800 hover:bg-amber-200/80 dark:bg-amber-900/30 dark:text-amber-300 dark:hover:bg-amber-900/50'
                 )}
               >
-                All
+                {t('all')}
               </button>
               {initialSubjects.map(s => (
                 <button
@@ -206,13 +208,16 @@ export default function DiscoverPageClient({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {(Object.entries(SORT_LABELS) as [SortOption, string][]).map(
-                ([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                )
-              )}
+              {(
+                Object.entries(SORT_KEYS) as [
+                  SortOption,
+                  (typeof SORT_KEYS)[SortOption],
+                ][]
+              ).map(([value, key]) => (
+                <SelectItem key={value} value={value}>
+                  {t(key)}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -229,12 +234,12 @@ export default function DiscoverPageClient({
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Globe className="mb-4 h-12 w-12 text-muted-foreground/30" />
           <h3 className="mb-2 text-lg font-medium text-muted-foreground">
-            No problem sets found
+            {t('noSetsFound')}
           </h3>
           <p className="text-sm text-muted-foreground/70">
             {debouncedSearch || subject
-              ? 'Try adjusting your search or filters.'
-              : 'Be the first to share a problem set!'}
+              ? t('adjustFilters')
+              : t('beFirstToShare')}
           </p>
         </div>
       )}

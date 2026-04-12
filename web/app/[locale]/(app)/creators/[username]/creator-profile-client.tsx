@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Eye, Heart, Copy } from 'lucide-react';
 import { ProfileAvatar } from '@/components/profile-avatar';
 import { DiscoveryCard } from '@/components/discovery-card';
@@ -35,6 +36,7 @@ export default function CreatorProfileClient({
   sets,
   aggregateStats,
 }: CreatorProfileClientProps) {
+  const t = useTranslations('Creator');
   return (
     <div className="section-container">
       {/* Profile header */}
@@ -69,27 +71,29 @@ export default function CreatorProfileClient({
             <span className="font-medium tabular-nums">
               {formatCount(aggregateStats.total_views)}
             </span>
-            <span>views</span>
+            <span>{t('views')}</span>
           </div>
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <Heart className="h-4 w-4" />
             <span className="font-medium tabular-nums">
               {formatCount(aggregateStats.total_likes)}
             </span>
-            <span>likes</span>
+            <span>{t('likes')}</span>
           </div>
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <Copy className="h-4 w-4" />
             <span className="font-medium tabular-nums">
               {formatCount(aggregateStats.total_copies)}
             </span>
-            <span>copies</span>
+            <span>{t('copies')}</span>
           </div>
         </div>
       </div>
 
       {/* Listed sets */}
-      <h2 className="heading-sm mb-4">Listed Problem Sets ({sets.length})</h2>
+      <h2 className="heading-sm mb-4">
+        {t('listedSets', { count: sets.length })}
+      </h2>
 
       {sets.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -103,9 +107,7 @@ export default function CreatorProfileClient({
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-16 text-center">
-          <p className="text-muted-foreground">
-            This creator hasn&apos;t listed any public problem sets yet.
-          </p>
+          <p className="text-muted-foreground">{t('noListedSets')}</p>
         </div>
       )}
     </div>

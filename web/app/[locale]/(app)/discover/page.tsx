@@ -1,24 +1,25 @@
 import { createServiceClient } from '@/lib/supabase-utils';
 import { unstable_cache } from 'next/cache';
 import { CACHE_DURATIONS, CACHE_TAGS } from '@/lib/cache-config';
+import { getTranslations } from 'next-intl/server';
 import DiscoverPageClient from './discover-page-client';
-import type { Metadata } from 'next';
 
-export const metadata: Metadata = {
-  title: 'Discover Problem Sets – Wrong Question Notebook',
-  description:
-    'Browse and search student-created problem sets across subjects. Find study materials shared by other students.',
-  openGraph: {
-    title: 'Discover Problem Sets – Wrong Question Notebook',
-    description:
-      'Browse and search student-created problem sets across subjects.',
-    url: 'https://wqn.magicworks.app/discover',
-    siteName: 'Wrong Question Notebook',
-  },
-  alternates: {
-    canonical: 'https://wqn.magicworks.app/discover',
-  },
-};
+export async function generateMetadata() {
+  const t = await getTranslations('Discover');
+  return {
+    title: t('metaTitle'),
+    description: t('metaDescription'),
+    openGraph: {
+      title: t('metaTitle'),
+      description: t('metaDescription'),
+      url: 'https://wqn.magicworks.app/discover',
+      siteName: 'Wrong Question Notebook',
+    },
+    alternates: {
+      canonical: 'https://wqn.magicworks.app/discover',
+    },
+  };
+}
 
 async function loadDiscoveryData() {
   const cachedLoad = unstable_cache(

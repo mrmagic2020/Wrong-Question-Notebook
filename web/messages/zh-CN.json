@@ -1367,5 +1367,29 @@
     "noResultsFound": "无结果",
     "selectedCount": "已选",
     "createSet": "创建集"
+  },
+  "Discover": {
+    "title": "发现",
+    "subtitle": "浏览其他同学分享的题目集",
+    "searchPlaceholder": "搜索题目集...",
+    "all": "全部",
+    "trending": "热门",
+    "newest": "最新",
+    "mostLiked": "最多点赞",
+    "mostCopied": "最多复制",
+    "noSetsFound": "未找到题目集",
+    "adjustFilters": "请尝试调整搜索或筛选条件。",
+    "beFirstToShare": "成为第一个分享题目集的人！",
+    "metaTitle": "发现题目集 – 错题本",
+    "metaDescription": "浏览和搜索学生创建的各科目题目集。发现其他同学分享的学习资料。"
+  },
+  "Creator": {
+    "notFound": "未找到创作者",
+    "problemSetsBy": "{name}的题目集",
+    "views": "浏览",
+    "likes": "点赞",
+    "copies": "复制",
+    "listedSets": "已列出的题目集 ({count})",
+    "noListedSets": "该创作者尚未列出任何公开题目集。"
   }
 }
