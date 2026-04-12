@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { BackLink } from '@/components/back-link';
 import { ProblemType, ProblemStatus } from '@/lib/schemas';
+import { getProblemTypeDisplayName } from '@/lib/common-utils';
 import { RichTextDisplay } from '@/components/ui/rich-text-display';
 import MathText from '@/components/ui/math-text';
 import AnswerInput from './answer-input';
@@ -296,7 +297,8 @@ export default function ProblemReview({
               {problem.title}
             </h1>
             <p className="text-xs text-muted-foreground">
-              {subject.name} • {problem.problem_type.toUpperCase()}
+              {subject.name} •{' '}
+              {tProblems(getProblemTypeDisplayName(problem.problem_type))}
             </p>
           </div>
 
