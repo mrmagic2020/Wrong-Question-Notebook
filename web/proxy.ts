@@ -166,7 +166,7 @@ export async function proxy(request: NextRequest) {
     '/upload',
     '/discover',
     '/creators',
-    '/problem-sets',
+    '/problem-sets/',
   ];
   const apiPublicPaths = [
     '/api/problem-sets',
