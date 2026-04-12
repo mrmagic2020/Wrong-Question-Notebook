@@ -1350,7 +1350,10 @@
     "toolbarHeading2": "Heading 2",
     "toolbarHeading3": "Heading 3",
     "toolbarUndo": "Undo",
-    "toolbarRedo": "Redo"
+    "toolbarRedo": "Redo",
+    "characterCount": "{current} of {max} text characters",
+    "characterCountNoLimit": "{current} text characters",
+    "textLimitExceeded": "Text limit exceeded"
   },
   "DataTable": {
     "rowsPerPage": "Rows per page",

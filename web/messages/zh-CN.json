@@ -1350,7 +1350,10 @@
     "toolbarHeading2": "标题2",
     "toolbarHeading3": "标题3",
     "toolbarUndo": "撤销",
-    "toolbarRedo": "重做"
+    "toolbarRedo": "重做",
+    "characterCount": "{current} / {max} 个字符",
+    "characterCountNoLimit": "{current} 个字符",
+    "textLimitExceeded": "超出文字限制"
   },
   "DataTable": {
     "rowsPerPage": "每页行数",

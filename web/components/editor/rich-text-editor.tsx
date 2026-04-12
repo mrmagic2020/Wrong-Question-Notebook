@@ -8,6 +8,7 @@ import React, {
   useState,
 } from 'react';
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
+import { useTranslations } from 'next-intl';
 import 'katex/dist/katex.min.css';
 import 'tiptap-extension-resizable-image/styles.css';
 import './editor.css';
@@ -55,6 +56,7 @@ const RichTextEditor = React.forwardRef<
   },
   ref
 ) {
+  const tEditor = useTranslations('Editor');
   // Resize state
   const [editorHeight, setEditorHeight] = useState(height);
   const [isResizing, setIsResizing] = useState(false);
@@ -190,13 +192,19 @@ const RichTextEditor = React.forwardRef<
       {(showCharacterCount || maxLength) && (
         <div className="flex-shrink-0 flex justify-between items-center px-3 py-2 border-t border-border bg-muted/30 text-xs text-muted-foreground">
           <span>
-            {editor.storage.characterCount.characters()}{' '}
-            {maxLength ? `of ${maxLength}` : ''} text characters
+            {maxLength
+              ? tEditor('characterCount', {
+                  current: editor.storage.characterCount.characters(),
+                  max: maxLength,
+                })
+              : tEditor('characterCountNoLimit', {
+                  current: editor.storage.characterCount.characters(),
+                })}
           </span>
           {maxLength &&
             editor.storage.characterCount.characters() > maxLength && (
               <span className="text-red-500 font-medium">
-                Text limit exceeded
+                {tEditor('textLimitExceeded')}
               </span>
             )}
         </div>
