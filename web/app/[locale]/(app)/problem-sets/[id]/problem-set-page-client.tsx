@@ -210,8 +210,9 @@ export default function ProblemSetPageClient({
             ) : (
               <div className="mt-1.5 flex items-center gap-2 text-sm text-muted-foreground">
                 <span>
-                  {problemSet.problem_count} problem
-                  {problemSet.problem_count !== 1 ? 's' : ''}
+                  {tCommon('problemCount', {
+                    count: problemSet.problem_count,
+                  })}
                 </span>
                 {ownerProfile && (
                   <>

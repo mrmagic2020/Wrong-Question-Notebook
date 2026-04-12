@@ -79,7 +79,8 @@
     "minutesAgo": "{n, plural, one {# minute} other {# minutes}} ago",
     "hoursAgo": "{n, plural, one {# hour} other {# hours}} ago",
     "daysAgo": "{n, plural, one {# day} other {# days}} ago",
-    "weeksAgo": "{n, plural, one {# week} other {# weeks}} ago"
+    "weeksAgo": "{n, plural, one {# week} other {# weeks}} ago",
+    "problemCount": "{count, plural, one {# problem} other {# problems}}"
   },
   "Navigation": {
     "subjects": "Subjects",
@@ -1382,8 +1383,7 @@
     "adjustFilters": "Try adjusting your search or filters.",
     "beFirstToShare": "Be the first to share a problem set!",
     "metaTitle": "Discover Problem Sets – Wrong Question Notebook",
-    "metaDescription": "Browse and search student-created problem sets across subjects. Find study materials shared by other students.",
-    "problemCount": "{count, plural, one {# problem} other {# problems}}"
+    "metaDescription": "Browse and search student-created problem sets across subjects. Find study materials shared by other students."
   },
   "Creator": {
     "notFound": "Creator Not Found",

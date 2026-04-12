@@ -38,7 +38,7 @@ export function DiscoveryCard({
   fromHref = '/discover',
 }: DiscoveryCardProps) {
   const router = useRouter();
-  const t = useTranslations('Discover');
+  const tCommon = useTranslations('Common');
   const subjectColorClass =
     SUBJECT_COLORS[set.subject_color || 'amber'] || SUBJECT_COLORS.amber;
   const plain = set.description ? stripHtml(set.description) : null;
@@ -108,7 +108,7 @@ export function DiscoveryCard({
           )}
           <span className="text-xs text-gray-400 dark:text-gray-500">·</span>
           <span className="text-xs text-gray-400 dark:text-gray-500">
-            {t('problemCount', { count: set.problem_count })}
+            {tCommon('problemCount', { count: set.problem_count })}
           </span>
         </div>
 
