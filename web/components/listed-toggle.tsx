@@ -32,6 +32,7 @@ export function ListedToggle({
   hasUsername = true,
   problemCount,
 }: ListedToggleProps) {
+  const t = useTranslations('ListedToggle');
   const tSubjects = useTranslations('DiscoverySubjects');
   const isEmpty = problemCount !== undefined && problemCount === 0;
   return (
@@ -40,7 +41,7 @@ export function ListedToggle({
         <div className="flex items-center gap-2">
           <Globe className="h-4 w-4 text-purple-600 dark:text-purple-400" />
           <Label htmlFor="listed-toggle" className="text-sm font-medium">
-            Show in Discovery
+            {t('showInDiscovery')}
           </Label>
         </div>
         <Switch
@@ -54,14 +55,14 @@ export function ListedToggle({
       {isListed && hasUsername && (
         <div className="space-y-1.5">
           <Label htmlFor="discovery-subject" className="text-sm">
-            Subject category
+            {t('subjectCategory')}
           </Label>
           <Select
             value={discoverySubject || ''}
             onValueChange={onSubjectChange}
           >
             <SelectTrigger id="discovery-subject">
-              <SelectValue placeholder="Select a subject..." />
+              <SelectValue placeholder={t('selectSubject')} />
             </SelectTrigger>
             <SelectContent>
               {DISCOVERY_SUBJECTS.map(s => (
@@ -78,23 +79,19 @@ export function ListedToggle({
         <div className="flex items-start gap-2 rounded-lg bg-amber-50 p-3 dark:bg-amber-950/30">
           <UserCog className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
           <p className="text-xs text-amber-800 dark:text-amber-300">
-            Set a username first — click your avatar in the top-right to open
-            your profile.
+            {t('setUsernameFirst')}
           </p>
         </div>
       ) : isListed && isEmpty ? (
         <div className="flex items-start gap-2 rounded-lg bg-blue-50 p-3 dark:bg-blue-950/30">
           <Info className="mt-0.5 h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
           <p className="text-xs text-blue-800 dark:text-blue-300">
-            This set has no problems yet. It won&apos;t appear in Discovery
-            until you add some.
+            {t('emptySetHint')}
           </p>
         </div>
       ) : (
         <p className="text-xs text-muted-foreground">
-          {isListed
-            ? 'This set is discoverable by other students.'
-            : 'This set is only accessible via direct link.'}
+          {isListed ? t('discoverableHint') : t('directLinkOnly')}
         </p>
       )}
     </div>

@@ -1424,5 +1424,14 @@
     "Software Engineering": "软件工程",
     "Visual Arts": "视觉艺术",
     "Other": "其他"
+  },
+  "ListedToggle": {
+    "showInDiscovery": "在发现页展示",
+    "subjectCategory": "科目分类",
+    "selectSubject": "选择科目...",
+    "setUsernameFirst": "请先设置用户名 — 点击右上角的头像打开个人资料。",
+    "emptySetHint": "此题目集暂无题目，添加题目后才会出现在发现页。",
+    "discoverableHint": "其他同学可以在发现页看到此题目集。",
+    "directLinkOnly": "此题目集仅可通过直接链接访问。"
   }
 }

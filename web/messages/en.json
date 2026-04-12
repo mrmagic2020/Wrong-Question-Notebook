@@ -1424,5 +1424,14 @@
     "Software Engineering": "Software Engineering",
     "Visual Arts": "Visual Arts",
     "Other": "Other"
+  },
+  "ListedToggle": {
+    "showInDiscovery": "Show in Discovery",
+    "subjectCategory": "Subject category",
+    "selectSubject": "Select a subject...",
+    "setUsernameFirst": "Set a username first — click your avatar in the top-right to open your profile.",
+    "emptySetHint": "This set has no problems yet. It won't appear in Discovery until you add some.",
+    "discoverableHint": "This set is discoverable by other students.",
+    "directLinkOnly": "This set is only accessible via direct link."
   }
 }
