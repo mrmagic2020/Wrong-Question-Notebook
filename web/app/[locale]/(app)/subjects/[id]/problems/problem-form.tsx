@@ -1072,13 +1072,13 @@ export default function ProblemForm({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="needs_review">
-                      <StatusBadge status="needs_review" t={tCommon} />
+                      <StatusBadge status="needs_review" t={tProblems} />
                     </SelectItem>
                     <SelectItem value="wrong">
-                      <StatusBadge status="wrong" t={tCommon} />
+                      <StatusBadge status="wrong" t={tProblems} />
                     </SelectItem>
                     <SelectItem value="mastered">
-                      <StatusBadge status="mastered" t={tCommon} />
+                      <StatusBadge status="mastered" t={tProblems} />
                     </SelectItem>
                   </SelectContent>
                 </Select>
