@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import type { ProblemSetStats, UserSocialState } from '@/lib/types';
+import { PROBLEM_SET_CONSTANTS } from '@/lib/constants';
 
 interface UseSocialActionsProps {
   problemSetId: string;
@@ -70,7 +71,7 @@ export function useSocialActions({
       .catch(() => {});
   }, [problemSetId, initialStats]);
 
-  // Track view after 3-second delay
+  // Track view after the configured delay (filters out bounces).
   useEffect(() => {
     if (!trackView || viewTracked.current) return;
 
@@ -79,7 +80,7 @@ export function useSocialActions({
       fetch(`/api/problem-sets/${problemSetId}/view`, {
         method: 'POST',
       }).catch(() => {});
-    }, 3000);
+    }, PROBLEM_SET_CONSTANTS.VIEW_TRACKING_DELAY_MS);
 
     return () => clearTimeout(timer);
   }, [problemSetId, trackView]);

@@ -310,6 +310,10 @@ export const PROBLEM_SET_CONSTANTS = {
     'misleading',
     'other',
   ] as readonly string[],
+  /** Delay before a page view counts — filters out bounces. */
+  VIEW_TRACKING_DELAY_MS: 3000,
+  /** Window during which repeat views from the same viewer are deduplicated server-side. */
+  VIEW_DEDUP_WINDOW_MS: 15 * 60 * 1000,
 } as const;
 
 // =====================================================
