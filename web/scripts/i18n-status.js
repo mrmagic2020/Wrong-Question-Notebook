@@ -139,7 +139,10 @@ function findReferencedKeys(en) {
 
     for (const [varName, ns] of Object.entries(hooks)) {
       const escaped = varName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const callPattern = new RegExp(escaped + '\\([\'"]([\\w_.]+)[\'"]', 'g');
+      const callPattern = new RegExp(
+        '\\b' + escaped + '\\([\'"]([\\w_.]+)[\'"]',
+        'g'
+      );
       let cm;
       while ((cm = callPattern.exec(src)) !== null) {
         const key = cm[1];
