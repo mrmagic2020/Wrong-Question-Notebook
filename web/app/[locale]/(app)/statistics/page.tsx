@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import StatisticsPageClient from './statistics-page-client';
 import { createClient } from '@/lib/supabase/server';
 import { unstable_cache } from 'next/cache';
@@ -19,10 +20,13 @@ import type {
   RecentStudyActivity,
 } from '@/lib/types';
 
-export const metadata: Metadata = {
-  title: 'Statistics – Wrong Question Notebook',
-  description: 'Track your study progress, mastery, and streaks',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('Metadata');
+  return {
+    title: t('statisticsMetaTitle'),
+    description: t('statisticsMetaDescription'),
+  };
+}
 
 const emptyData: StatisticsData = {
   overview: {

@@ -7,14 +7,16 @@ import DiscoverPageClient from './discover-page-client';
 
 export async function generateMetadata() {
   const t = await getTranslations('Discover');
+  const tMeta = await getTranslations('Metadata');
+  const siteName = tMeta('siteName');
   return {
     title: t('metaTitle'),
     description: t('metaDescription'),
     openGraph: {
-      title: t('metaTitle'),
+      title: `${t('metaTitle')} – ${siteName}`,
       description: t('metaDescription'),
       url: 'https://wqn.magicworks.app/discover',
-      siteName: 'Wrong Question Notebook',
+      siteName,
     },
     alternates: {
       canonical: 'https://wqn.magicworks.app/discover',

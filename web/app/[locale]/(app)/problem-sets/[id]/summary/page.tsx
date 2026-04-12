@@ -1,12 +1,12 @@
 import { createClient } from '@/lib/supabase/server';
 import { requireUser } from '@/lib/supabase/requireUser';
 import { notFound } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import SummaryClient from './summary-client';
 
-export function generateMetadata() {
-  return {
-    title: 'Review Summary – Wrong Question Notebook',
-  };
+export async function generateMetadata() {
+  const t = await getTranslations('Metadata');
+  return { title: t('reviewSummaryMetaTitle') };
 }
 
 export default async function SummaryPage({

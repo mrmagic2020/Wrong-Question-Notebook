@@ -1,10 +1,12 @@
 import { requireUser } from '@/lib/supabase/requireUser';
 import { createClient } from '@/lib/supabase/server';
 import { redirect, notFound } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import SubjectInsightsClient from './subject-insights-client';
 
-export function generateMetadata() {
-  return { title: 'Subject Insights – Wrong Question Notebook' };
+export async function generateMetadata() {
+  const t = await getTranslations('Metadata');
+  return { title: t('subjectInsightsMetaTitle') };
 }
 
 export default async function SubjectInsightsPage({

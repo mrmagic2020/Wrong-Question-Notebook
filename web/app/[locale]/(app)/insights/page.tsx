@@ -1,11 +1,13 @@
 import { requireUser } from '@/lib/supabase/requireUser';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { INSIGHT_CONSTANTS } from '@/lib/constants';
 import InsightsPageClient from './insights-page-client';
 
-export function generateMetadata() {
-  return { title: 'Insights – Wrong Question Notebook' };
+export async function generateMetadata() {
+  const t = await getTranslations('Metadata');
+  return { title: t('insightsMetaTitle') };
 }
 
 export default async function InsightsPage() {

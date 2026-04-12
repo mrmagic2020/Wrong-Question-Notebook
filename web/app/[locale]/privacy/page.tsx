@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('Privacy');
   return {
-    title: `${t('title')} – Wrong Question Notebook`,
+    title: t('title'),
     description:
       'Learn about how Wrong Question Notebook collects, uses, and protects your data.',
   };

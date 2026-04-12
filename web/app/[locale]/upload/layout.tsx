@@ -4,7 +4,7 @@ import { getTranslations, getLocale } from 'next-intl/server';
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('Upload');
   return {
-    title: `${t('title')} – Wrong Question Notebook`,
+    title: t('title'),
     description: t('captureDescription'),
     robots: 'noindex, nofollow',
   };

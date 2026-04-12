@@ -19,6 +19,7 @@ export async function generateMetadata({
     .maybeSingle();
 
   const t = await getTranslations('Creator');
+  const tMeta = await getTranslations('Metadata');
   if (!profile) return { title: t('notFound') };
 
   const displayName =
@@ -28,14 +29,17 @@ export async function generateMetadata({
     ? profile.bio.substring(0, 160)
     : t('problemSetsBy', { name: displayName });
 
+  const creatorTitle = tMeta('creatorMetaTitle', { username });
+  const siteName = tMeta('siteName');
+
   return {
-    title: `@${username} – Wrong Question Notebook`,
+    title: creatorTitle,
     description,
     openGraph: {
-      title: `@${username} – Wrong Question Notebook`,
+      title: `${creatorTitle} – ${siteName}`,
       description,
       url: `https://wqn.magicworks.app/creators/${username}`,
-      siteName: 'Wrong Question Notebook',
+      siteName,
     },
     alternates: {
       canonical: `https://wqn.magicworks.app/creators/${username}`,

@@ -2,7 +2,21 @@
   "Metadata": {
     "siteName": "错题本",
     "siteDescription": "掌握你的学习",
-    "siteFullDescription": "按科目组织题目，跟踪学习进度，系统化建立知识体系"
+    "siteFullDescription": "按科目组织题目，跟踪学习进度，系统化建立知识体系",
+    "shelfMetaTitle": "你的笔记本书架",
+    "allProblemSetsMetaTitle": "全部题目集",
+    "allProblemSetsMetaDescription": "查看和管理你的题目集。题目集可以把相关题目组合起来，方便复习或与他人分享。",
+    "problemSetNotFoundMetaTitle": "题目集未找到",
+    "subjectProblemsMetaTitle": "{subject} – 题目",
+    "reviewSummaryMetaTitle": "复习总结",
+    "reviewItemMetaTitle": "复习 {name}",
+    "spacedReviewMetaTitle": "间隔复习",
+    "statisticsMetaTitle": "统计",
+    "statisticsMetaDescription": "追踪你的学习进度、掌握情况和连续天数",
+    "insightsMetaTitle": "洞察",
+    "subjectInsightsMetaTitle": "科目洞察",
+    "adminMetaTitle": "管理后台",
+    "creatorMetaTitle": "@{username}"
   },
   "Common": {
     "appName": "错题本",
@@ -1399,7 +1413,7 @@
     "noSetsFound": "未找到题目集",
     "adjustFilters": "请尝试调整搜索或筛选条件。",
     "beFirstToShare": "成为第一个分享题目集的人！",
-    "metaTitle": "发现题目集 – 错题本",
+    "metaTitle": "发现题目集",
     "metaDescription": "浏览和搜索学生创建的各科目题目集。发现其他同学分享的学习资料。"
   },
   "Creator": {

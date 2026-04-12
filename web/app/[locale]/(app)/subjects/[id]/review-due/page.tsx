@@ -1,12 +1,12 @@
 import { requireUser } from '@/lib/supabase/requireUser';
 import { createClient } from '@/lib/supabase/server';
 import { notFound, redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import SpacedReviewClient from './spaced-review-client';
 
-export function generateMetadata() {
-  return {
-    title: 'Spaced Review – Wrong Question Notebook',
-  };
+export async function generateMetadata() {
+  const t = await getTranslations('Metadata');
+  return { title: t('spacedReviewMetaTitle') };
 }
 
 export default async function SpacedReviewPage({

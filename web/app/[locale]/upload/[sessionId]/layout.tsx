@@ -1,10 +1,14 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 
-export const metadata: Metadata = {
-  title: 'Upload Photo – Wrong Question Notebook',
-  description: 'Capture a photo of your problem and send it to your desktop.',
-  robots: 'noindex, nofollow',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('Upload');
+  return {
+    title: t('title'),
+    description: t('captureDescriptionAlt'),
+    robots: 'noindex, nofollow',
+  };
+}
 
 export default function UploadLayout({
   children,

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import SubjectsPageClient from './subjects-page-client';
 import { createClient } from '@/lib/supabase/server';
 import { unstable_cache } from 'next/cache';
@@ -9,10 +10,10 @@ import {
 } from '@/lib/cache-config';
 import { SubjectWithMetadata } from '@/lib/types';
 
-export const metadata: Metadata = {
-  title: 'Your Notebook Shelf – Wrong Question Notebook',
-  description: 'View and manage your subjects',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('Metadata');
+  return { title: t('shelfMetaTitle') };
+}
 
 async function loadSubjects() {
   const supabase = await createClient();

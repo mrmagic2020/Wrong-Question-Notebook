@@ -2,7 +2,21 @@
   "Metadata": {
     "siteName": "Wrong Question Notebook",
     "siteDescription": "Master Your Learning",
-    "siteFullDescription": "Organize problems by subject, track your progress, and build your knowledge systematically"
+    "siteFullDescription": "Organize problems by subject, track your progress, and build your knowledge systematically",
+    "shelfMetaTitle": "Your Notebook Shelf",
+    "allProblemSetsMetaTitle": "All Problem Sets",
+    "allProblemSetsMetaDescription": "View and manage your problem sets. Problem sets enable you to group problems together to review or to share with others.",
+    "problemSetNotFoundMetaTitle": "Problem Set Not Found",
+    "subjectProblemsMetaTitle": "{subject} – Problems",
+    "reviewSummaryMetaTitle": "Review Summary",
+    "reviewItemMetaTitle": "Review {name}",
+    "spacedReviewMetaTitle": "Spaced Review",
+    "statisticsMetaTitle": "Statistics",
+    "statisticsMetaDescription": "Track your study progress, mastery, and streaks",
+    "insightsMetaTitle": "Insights",
+    "subjectInsightsMetaTitle": "Subject Insights",
+    "adminMetaTitle": "Admin",
+    "creatorMetaTitle": "@{username}"
   },
   "Common": {
     "appName": "Wrong Question Notebook",
@@ -1399,7 +1413,7 @@
     "noSetsFound": "No problem sets found",
     "adjustFilters": "Try adjusting your search or filters.",
     "beFirstToShare": "Be the first to share a problem set!",
-    "metaTitle": "Discover Problem Sets – Wrong Question Notebook",
+    "metaTitle": "Discover Problem Sets",
     "metaDescription": "Browse and search student-created problem sets across subjects. Find study materials shared by other students."
   },
   "Creator": {

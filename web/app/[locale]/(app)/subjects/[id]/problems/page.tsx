@@ -19,9 +19,9 @@ export async function generateMetadata({
 }) {
   const { id } = await params;
   const { subject } = await loadData(id);
-  const t = await getTranslations('Subjects');
+  const t = await getTranslations('Metadata');
   return {
-    title: `${subject?.name} – ${t('problems')}`,
+    title: t('subjectProblemsMetaTitle', { subject: subject?.name ?? '' }),
   };
 }
 

@@ -3,6 +3,7 @@ import { requireUser } from '@/lib/supabase/requireUser';
 import { createServiceClient } from '@/lib/supabase-utils';
 import ProblemSetsPageClient from './problem-sets-page-client';
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { unstable_cache } from 'next/cache';
 import {
   CACHE_DURATIONS,
@@ -24,11 +25,13 @@ type ProblemSetRow = ProblemSet & {
   problem_set_shares: ProblemSetShare[];
 };
 
-export const metadata: Metadata = {
-  title: 'All Problem Sets – Wrong Question Notebook',
-  description:
-    'View and manage your problem sets. Problem sets enable you to group problems together to review or to share with others.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('Metadata');
+  return {
+    title: t('allProblemSetsMetaTitle'),
+    description: t('allProblemSetsMetaDescription'),
+  };
+}
 
 async function loadProblemSets() {
   const supabase = await createClient();

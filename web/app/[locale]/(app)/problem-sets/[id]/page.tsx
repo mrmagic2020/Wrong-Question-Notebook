@@ -4,6 +4,7 @@ import { requireUser } from '@/lib/supabase/requireUser';
 import { getProblemSetWithFullData } from '@/lib/problem-set-utils';
 import { createServiceClient } from '@/lib/supabase-utils';
 import { stripHtml } from '@/lib/html-sanitizer';
+import { getTranslations } from 'next-intl/server';
 import ProblemSetPageClient from './problem-set-page-client';
 import { unstable_cache } from 'next/cache';
 import {
@@ -20,9 +21,10 @@ export async function generateMetadata({
 }) {
   const { id } = await params;
   const problemSet = await loadProblemSet(id);
+  const t = await getTranslations('Metadata');
 
   if (!problemSet) {
-    return { title: 'Problem Set Not Found – Wrong Question Notebook' };
+    return { title: t('problemSetNotFoundMetaTitle') };
   }
 
   const stripped = problemSet.description
@@ -35,14 +37,14 @@ export async function generateMetadata({
         `${problemSet.problem_count} problems in ${problemSet.subject_name}`;
 
   return {
-    title: `${problemSet.name} – Wrong Question Notebook`,
+    title: problemSet.name,
     description,
     openGraph: {
       title: problemSet.name,
       description,
       type: 'article' as const,
       url: `https://wqn.magicworks.app/problem-sets/${id}`,
-      siteName: 'Wrong Question Notebook',
+      siteName: t('siteName'),
     },
     twitter: {
       card: 'summary' as const,

@@ -16,8 +16,9 @@ export async function generateMetadata({
 }) {
   const { id } = await params;
   const problemSet = await loadProblemSet(id);
+  const t = await getTranslations('Metadata');
   return {
-    title: `Review ${problemSet?.name} – Wrong Question Notebook`,
+    title: t('reviewItemMetaTitle', { name: problemSet?.name ?? '' }),
   };
 }
 

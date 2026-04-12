@@ -3,11 +3,13 @@ import { createClient } from '@/lib/supabase/server';
 import { isCurrentUserSuperAdmin } from '@/lib/user-management';
 import { AdminLayoutShell } from '@/components/admin/admin-layout-shell';
 import { ROUTES } from '@/lib/constants';
+import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
 
-export const metadata: Metadata = {
-  title: 'Admin – Wrong Question Notebook',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('Metadata');
+  return { title: t('adminMetaTitle') };
+}
 
 export default async function AdminLayout({
   children,

@@ -14,9 +14,16 @@ const defaultUrl = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('Metadata');
+  const siteName = t('siteName');
   return {
     metadataBase: new URL(defaultUrl),
-    title: `${t('siteName')} – ${t('siteDescription')}`,
+    title: {
+      default: `${siteName} – ${t('siteDescription')}`,
+      // Child pages return just their local title; the template appends the
+      // localised site name so `<title>` stays consistent without each page
+      // hard-coding the brand suffix.
+      template: `%s – ${siteName}`,
+    },
     description: t('siteFullDescription'),
   };
 }

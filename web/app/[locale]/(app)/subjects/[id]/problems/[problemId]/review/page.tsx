@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import ProblemReview from './problem-review';
 import { unstable_cache } from 'next/cache';
 import {
@@ -17,8 +18,9 @@ export async function generateMetadata({
 }) {
   const { id: subjectId, problemId } = await params;
   const { problem } = await loadData(subjectId, problemId);
+  const t = await getTranslations('Metadata');
   return {
-    title: `Review ${problem?.title} – Wrong Question Notebook`,
+    title: t('reviewItemMetaTitle', { name: problem?.title ?? '' }),
   };
 }
 
