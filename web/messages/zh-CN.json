@@ -1382,7 +1382,8 @@
     "adjustFilters": "请尝试调整搜索或筛选条件。",
     "beFirstToShare": "成为第一个分享题目集的人！",
     "metaTitle": "发现题目集 – 错题本",
-    "metaDescription": "浏览和搜索学生创建的各科目题目集。发现其他同学分享的学习资料。"
+    "metaDescription": "浏览和搜索学生创建的各科目题目集。发现其他同学分享的学习资料。",
+    "problemCount": "{count}道题目"
   },
   "Creator": {
     "notFound": "未找到创作者",

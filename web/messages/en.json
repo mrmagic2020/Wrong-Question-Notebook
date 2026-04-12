@@ -1382,7 +1382,8 @@
     "adjustFilters": "Try adjusting your search or filters.",
     "beFirstToShare": "Be the first to share a problem set!",
     "metaTitle": "Discover Problem Sets – Wrong Question Notebook",
-    "metaDescription": "Browse and search student-created problem sets across subjects. Find study materials shared by other students."
+    "metaDescription": "Browse and search student-created problem sets across subjects. Find study materials shared by other students.",
+    "problemCount": "{count, plural, one {# problem} other {# problems}}"
   },
   "Creator": {
     "notFound": "Creator Not Found",

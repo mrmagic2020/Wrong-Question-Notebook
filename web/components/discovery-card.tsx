@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Eye, Heart, Copy } from 'lucide-react';
 import { ProfileAvatar } from '@/components/profile-avatar';
 import type { ProblemSetCard } from '@/lib/types';
@@ -37,6 +38,7 @@ export function DiscoveryCard({
   fromHref = '/discover',
 }: DiscoveryCardProps) {
   const router = useRouter();
+  const t = useTranslations('Discover');
   const subjectColorClass =
     SUBJECT_COLORS[set.subject_color || 'amber'] || SUBJECT_COLORS.amber;
   const plain = set.description ? stripHtml(set.description) : null;
@@ -106,7 +108,7 @@ export function DiscoveryCard({
           )}
           <span className="text-xs text-gray-400 dark:text-gray-500">·</span>
           <span className="text-xs text-gray-400 dark:text-gray-500">
-            {set.problem_count} problem{set.problem_count !== 1 ? 's' : ''}
+            {t('problemCount', { count: set.problem_count })}
           </span>
         </div>
 
