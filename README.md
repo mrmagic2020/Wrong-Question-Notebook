@@ -1,6 +1,12 @@
-# Wrong Question Notebook
+<p align="center">
+  <img src="web/public/W_logo.svg" alt="Wrong Question Notebook" width="120">
+</p>
 
-[English](README.md) | [简体中文](README.zh-CN.md)
+<h1 align="center">Wrong Question Notebook</h1>
+
+<p align="center">
+  <a href="README.md">English</a> | <a href="README.zh-CN.md">简体中文</a>
+</p>
 
 The Wrong Question Notebook (WQN) is a web application designed to help students systematically track, organise, and revise the problems they answered incorrectly. It provides a comprehensive system for managing problems across multiple notebooks, tracking progress with detailed statistics, and facilitating effective revision through structured review sessions.
 
@@ -34,6 +40,16 @@ The Wrong Question Notebook (WQN) is a web application designed to help students
 - Per-problem answer submission with auto-marking or self-assessment
 - **Session summary**: Post-review statistics and breakdown
 - Solution reveal after attempting problems
+
+### Discovery & Social
+
+- **Public Discovery page** (`/discover`) with PostgreSQL full-text search (tsvector + GIN), subject category filters, quality-biased ranking refreshed by `pg_cron`, and cursor-based infinite scroll
+- **Social engagement** on public problem sets: bounce-filtered view tracking, likes, favourites, copy counts, and a report / flag mechanism for moderation
+- **Creator profiles** at `/creators/[username]` with avatar, bio, aggregate engagement stats, and a grid of listed sets
+- **Listed / unlisted toggle** with a subject category picker — opt into Discovery only when a set is ready to share
+- **Favourites tab** on the problem sets page for quick access to saved sets
+- **Username-based identity**: usernames are auto-generated from email and editable from the profile sheet
+- **SEO**: dynamic `app/sitemap.ts` covering listed public sets and creator profiles, plus OpenGraph, Twitter Card, and JSON-LD metadata on public set pages
 
 ### Statistics Dashboard
 
@@ -151,12 +167,15 @@ Always run `npm run prepush` before committing.
 ```t
 web/
   app/
-    (app)/            # Authenticated pages (notebooks, problems, problem-sets, statistics, admin)
-    auth/             # Auth pages (login, sign-up, forgot-password, etc.)
-    api/              # API route handlers
-    privacy/          # Privacy Policy page
-    page.tsx          # Public landing page
-    layout.tsx        # Root layout
+    [locale]/
+      (app)/          # Authenticated pages (notebooks, problems, problem-sets,
+                      #   discover, creators, statistics, insights, admin)
+      auth/           # Auth pages (login, sign-up, forgot-password, etc.)
+      privacy/        # Privacy Policy page
+      page.tsx        # Public landing page
+    api/              # API route handlers (incl. /discover, social endpoints)
+    sitemap.ts        # Dynamic sitemap (listed public sets + creator profiles)
+    layout.tsx        # Root layout (title.template for localised <title>)
     globals.css       # Global styles, CSS utilities, animations
   components/
     ui/               # shadcn/ui primitives
@@ -166,9 +185,13 @@ web/
     statistics/       # Dashboard charts and cards
     admin/            # Admin panel components
     cookie-consent/   # GDPR consent banner and provider
+    discovery-card.tsx
+    social-actions-bar.tsx
+    report-dialog.tsx
     ...               # Other feature components
   lib/                # Utilities, Supabase clients, schemas, types, constants
-  public/             # Static assets (robots.txt, sitemap.xml)
+  messages/           # i18n message bundles (en, zh-CN)
+  public/             # Static assets (W_logo.svg, robots.txt)
   middleware.ts       # Supabase session refresh
 ```
 
