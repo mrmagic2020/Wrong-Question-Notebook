@@ -1,6 +1,7 @@
 import { createServiceClient } from '@/lib/supabase-utils';
 import { unstable_cache } from 'next/cache';
 import { CACHE_DURATIONS, CACHE_TAGS } from '@/lib/cache-config';
+import { PROBLEM_SET_CONSTANTS } from '@/lib/constants';
 import { getTranslations } from 'next-intl/server';
 import DiscoverPageClient from './discover-page-client';
 
@@ -33,7 +34,7 @@ async function loadDiscoveryData() {
         .select('*')
         .order('ranking_score', { ascending: false })
         .order('id', { ascending: false })
-        .limit(20);
+        .limit(PROBLEM_SET_CONSTANTS.DISCOVERY_PAGE_SIZE);
 
       // Fetch owner profiles separately (no direct FK to user_profiles)
       const ownerIds = [

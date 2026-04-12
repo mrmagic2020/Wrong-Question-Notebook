@@ -9,7 +9,7 @@ import {
 } from '@/lib/common-utils';
 import { createServiceClient } from '@/lib/supabase-utils';
 import { checkProblemSetAccess } from '@/lib/problem-set-utils';
-import { PROBLEM_SET_CONSTANTS } from '@/lib/constants';
+import { PROBLEM_SET_CONSTANTS, RATE_LIMIT_CONSTANTS } from '@/lib/constants';
 import { z } from 'zod';
 
 const ReportBody = z.object({
@@ -131,5 +131,8 @@ async function reportProblemSet(
 
 export const POST = withSecurity(reportProblemSet, {
   rateLimitType: 'custom',
-  customRateLimit: { windowMs: 60 * 60 * 1000, maxRequests: 10 },
+  customRateLimit: {
+    windowMs: RATE_LIMIT_CONSTANTS.WINDOWS.ONE_HOUR,
+    maxRequests: 10,
+  },
 });
