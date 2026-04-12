@@ -16,9 +16,9 @@ export async function generateMetadata({
 }) {
   const { id } = await params;
   const problemSet = await loadProblemSet(id);
-  const t = await getTranslations('Metadata');
+  const tMeta = await getTranslations('Metadata');
   return {
-    title: t('reviewItemMetaTitle', { name: problemSet?.name ?? '' }),
+    title: tMeta('reviewItemMetaTitle', { name: problemSet?.name ?? '' }),
   };
 }
 
