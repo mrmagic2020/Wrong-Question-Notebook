@@ -55,7 +55,7 @@ jobs:
         if: steps.detect.outputs.skip != 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Run i18n status check
         if: steps.detect.outputs.skip != 'true'
