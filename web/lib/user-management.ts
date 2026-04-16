@@ -7,7 +7,7 @@ import {
   UserActivityLogType,
   AdminSettingsType,
 } from '@/lib/schemas';
-import type { Json } from '@/lib/database.types';
+import type { Database, Json } from '@/lib/database.types';
 import { createServiceClient } from './supabase-utils';
 import { DATABASE_CONSTANTS } from './constants';
 import { logger } from './logger';
@@ -188,7 +188,9 @@ export async function updateUserProfile(
 
   const { data, error } = await serviceSupabase
     .from('user_profiles')
-    .update(updates as Record<string, unknown>)
+    .update(
+      updates as Database['public']['Tables']['user_profiles']['Update']
+    )
     .eq('id', userId)
     .select()
     .single();
@@ -705,11 +707,15 @@ export async function getAnnouncement(): Promise<{
     return null;
   }
 
-  const val = data.value as Record<string, unknown>;
+  const val = data.value as {
+    enabled?: boolean;
+    message?: string;
+    type?: 'info' | 'warning' | 'success';
+  };
   return {
-    enabled: (val.enabled as boolean) || false,
-    message: (val.message as string) || '',
-    type: (val.type as 'info' | 'warning' | 'success') || 'info',
+    enabled: val.enabled || false,
+    message: val.message || '',
+    type: val.type || 'info',
   };
 }
 

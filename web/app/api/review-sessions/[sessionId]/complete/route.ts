@@ -55,9 +55,10 @@ async function completeSession(
 
     // Fetch current problem statuses for delta calculation
     // For read-only sessions, use service client since problems belong to owner
-    const sessionState = session.session_state as Record<string, unknown>;
+    const sessionState =
+      session.session_state as ReviewSessionState['session_state'];
     const isReadOnly = !!sessionState?.is_read_only;
-    const problemIds = (sessionState?.problem_ids as string[]) || [];
+    const problemIds = sessionState?.problem_ids || [];
     const currentStatuses: Record<string, string> = {};
     if (problemIds.length > 0) {
       const queryClient = isReadOnly ? createServiceClient() : supabase;

@@ -5,6 +5,7 @@ import { normaliseTopicLabel } from '@/lib/insights-utils';
 import { checkAndIncrementQuota } from '@/lib/usage-quota';
 import { getUserTimezone } from '@/lib/timezone-utils';
 import type { AnswerConfig } from '@/lib/types';
+import type { Database } from '@/lib/database.types';
 
 const RESPONSE_SCHEMA = {
   type: 'object' as const,
@@ -146,7 +147,7 @@ export interface CategoriseErrorParams {
 
 export interface CategoriseErrorResult {
   already_exists?: boolean;
-  categorisation?: Record<string, unknown>;
+  categorisation?: Database['public']['Tables']['error_categorisations']['Row'];
   quota_exceeded?: boolean;
 }
 
@@ -328,5 +329,5 @@ export async function performErrorCategorisation(
     throw new Error(`Failed to insert categorisation: ${insertError.message}`);
   }
 
-  return { categorisation: categorisation as Record<string, unknown> };
+  return { categorisation };
 }

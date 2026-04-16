@@ -28,7 +28,7 @@ import type {
   UncategorisedAttempt,
   WeakSpot,
 } from '@/lib/types';
-import type { Json } from '@/lib/database.types';
+import type { Database, Json } from '@/lib/database.types';
 
 // =====================================================
 // Types local to the generator
@@ -543,7 +543,7 @@ export async function categoriseSingleAttempt(
   userId: string,
   attempt: UncategorisedAttempt,
   cachedLabels?: string[]
-): Promise<Record<string, unknown> | null> {
+): Promise<Database['public']['Tables']['error_categorisations']['Row'] | null> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     logger.warn('GEMINI_API_KEY not configured, skipping categorisation', {
@@ -665,7 +665,7 @@ export async function categoriseSingleAttempt(
   }
 
   // If null, the attempt was already categorised (duplicate ignored)
-  return (inserted as Record<string, unknown>) ?? null;
+  return inserted ?? null;
 }
 
 // =====================================================

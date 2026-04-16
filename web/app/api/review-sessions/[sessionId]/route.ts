@@ -8,6 +8,7 @@ import {
   isValidUuid,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
+import type { ReviewSessionState } from '@/lib/types';
 import type { Json } from '@/lib/database.types';
 import { createServiceClient } from '@/lib/supabase-utils';
 
@@ -46,9 +47,10 @@ async function getSession(
     // Get all problems in this session
     // For read-only sessions (shared sets), use service client to bypass RLS
     // since the problems belong to the set owner, not the viewer
-    const sessionState = session.session_state as Record<string, unknown>;
+    const sessionState =
+      session.session_state as ReviewSessionState['session_state'];
     const isReadOnly = !!sessionState?.is_read_only;
-    const problemIds = (sessionState?.problem_ids as string[]) || [];
+    const problemIds = sessionState?.problem_ids || [];
     let problems: any[] = [];
     if (problemIds.length > 0) {
       const queryClient = isReadOnly ? createServiceClient() : supabase;
@@ -80,8 +82,8 @@ async function getSession(
 
       if (deletedIds.length > 0) {
         const deletedSet = new Set(deletedIds);
-        const healedState: Record<string, any> = {
-          ...(session.session_state as Record<string, any>),
+        const healedState = {
+          ...(session.session_state as ReviewSessionState['session_state']),
         };
         healedState.problem_ids = problemIds.filter(
           (id: string) => !deletedSet.has(id)

@@ -97,16 +97,13 @@ async function startSession(
           { status: 400 }
         );
       }
-      const rawFilter = problemSet.filter_config as Record<string, unknown>;
+      const rawFilter = problemSet.filter_config as Partial<FilterConfig>;
       const filterConfig: FilterConfig = {
-        tag_ids: (rawFilter.tag_ids as string[]) ?? [],
-        statuses: (rawFilter.statuses as FilterConfig['statuses']) ?? [],
-        problem_types:
-          (rawFilter.problem_types as FilterConfig['problem_types']) ?? [],
-        days_since_review:
-          (rawFilter.days_since_review as number | null) ?? null,
-        include_never_reviewed:
-          (rawFilter.include_never_reviewed as boolean) ?? true,
+        tag_ids: rawFilter.tag_ids ?? [],
+        statuses: rawFilter.statuses ?? [],
+        problem_types: rawFilter.problem_types ?? [],
+        days_since_review: rawFilter.days_since_review ?? null,
+        include_never_reviewed: rawFilter.include_never_reviewed ?? true,
       };
       // For shared smart sets, use service client to bypass RLS
       const queryClient = isOwner ? supabase : createServiceClient();

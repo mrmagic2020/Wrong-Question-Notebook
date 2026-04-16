@@ -156,6 +156,7 @@ export interface ReviewSessionState {
     skipped_problem_ids: string[];
     initial_statuses: Record<string, ProblemStatus>;
     elapsed_ms: number;
+    is_read_only?: boolean;
   };
 }
 
