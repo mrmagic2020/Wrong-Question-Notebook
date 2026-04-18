@@ -153,13 +153,26 @@ async function deleteCategorisationOverride(
       );
     }
 
+    if (
+      !existing.original_broad_category ||
+      !existing.original_granular_tag
+    ) {
+      return NextResponse.json(
+        createApiErrorResponse(
+          'Cannot reset — original values are missing',
+          500
+        ),
+        { status: 500 }
+      );
+    }
+
     // Restore original values
     const { data: restored, error: updateError } = await supabase
       .from('error_categorisations')
       .update({
         is_user_override: false,
-        broad_category: existing.original_broad_category ?? undefined,
-        granular_tag: existing.original_granular_tag ?? undefined,
+        broad_category: existing.original_broad_category,
+        granular_tag: existing.original_granular_tag,
         original_broad_category: null,
         original_granular_tag: null,
       })
