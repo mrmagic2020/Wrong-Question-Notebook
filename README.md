@@ -5,7 +5,7 @@
 <h1 align="center">Wrong Question Notebook</h1>
 
 <p align="center">
-  <a href="README.md">English</a> | <a href="README.zh-CN.md">简体中文</a>
+  English | <a href="README.zh-CN.md">简体中文</a>
 </p>
 
 The Wrong Question Notebook (WQN) is a web application designed to help students systematically track, organise, and revise the problems they answered incorrectly. It provides a comprehensive system for managing problems across multiple notebooks, tracking progress with detailed statistics, and facilitating effective revision through structured review sessions.
@@ -88,6 +88,7 @@ The Wrong Question Notebook (WQN) is a web application designed to help students
 
 | Layer          | Technology                                       |
 | -------------- | ------------------------------------------------ |
+| Runtime        | Node.js 24+ (LTS)                                |
 | Framework      | Next.js 16 (App Router, Turbopack)               |
 | Language       | TypeScript (strict)                              |
 | Styling        | Tailwind CSS 3, tailwindcss-animate              |
@@ -108,59 +109,17 @@ The Wrong Question Notebook (WQN) is a web application designed to help students
 
 ## Getting Started
 
-### Prerequisites
-
-- Node.js 18+
-- A [Supabase](https://supabase.com) project
-- (Optional) A [Gemini API key](https://aistudio.google.com/) for AI problem extraction
-- (Optional) A [Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/) site key
-
-### Installation
-
 ```bash
 git clone https://github.com/mrmagic2020/Wrong-Question-Notebook.git
 cd Wrong-Question-Notebook/web
+nvm use              # Node.js 24+ (see .nvmrc)
 npm install
-```
-
-### Environment Variables
-
-Copy the example and fill in your values:
-
-```bash
+npx supabase start   # local Postgres, Auth & Storage via Docker
 cp env.example .env.local
-```
-
-| Variable                                       | Description                               | Required |
-| ---------------------------------------------- | ----------------------------------------- | -------- |
-| `NEXT_PUBLIC_SUPABASE_URL`                     | Supabase project URL                      | Yes      |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY` | Supabase anon / public key                | Yes      |
-| `SUPABASE_SERVICE_ROLE_KEY`                    | Supabase service role key (server-side)   | Yes      |
-| `SITE_URL`                                     | Deployed site URL (for sitemap)           | No       |
-| `GEMINI_API_KEY`                               | Google Gemini API key (for AI extraction) | No       |
-
-### Development
-
-```bash
 npm run dev
 ```
 
-### Available Scripts
-
-Run from `web/`:
-
-| Command              | Purpose                                                          |
-| -------------------- | ---------------------------------------------------------------- |
-| `npm run dev`        | Start dev server (Turbopack)                                     |
-| `npm run build`      | Production build                                                 |
-| `npm run type-check` | TypeScript check (`tsc --noEmit`)                                |
-| `npm run lint`       | ESLint check                                                     |
-| `npm run test`       | Run tests (Vitest)                                               |
-| `npm run test:watch` | Run tests in watch mode                                          |
-| `npm run fix-all`    | Auto-fix lint + format                                           |
-| `npm run prepush`    | Full check: fix-all, type-check, lint, format-check, test, build |
-
-Always run `npm run prepush` before committing.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full setup guide, including environment variables, database workflow, and code quality standards.
 
 ## Project Structure
 
@@ -195,23 +154,15 @@ web/
   middleware.ts       # Supabase session refresh
 ```
 
-## Deployment
+## Contributing
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for a detailed Vercel deployment guide.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full development setup, database workflow, code quality standards, deployment guide, and PR guidelines.
 
 ## Documentation
 
+- [CONTRIBUTING.md](CONTRIBUTING.md) -- Development setup & contributing guide
 - [CHANGELOG.md](CHANGELOG.md) -- Version history
-- [DEPLOYMENT.md](DEPLOYMENT.md) -- Deployment guide
 - [Proposal.md](Proposal.md) -- Initial project proposal
-
-## Contributing
-
-This project uses ESLint, Prettier, and TypeScript for code quality. Please run the following before pushing:
-
-```bash
-npm run prepush
-```
 
 ## License
 

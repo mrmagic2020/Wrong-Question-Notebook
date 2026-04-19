@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import AddProblemsToSetClient from './add-problems-to-set-client';
+import type { Problem } from '@/lib/types';
 
 async function loadProblemSet(id: string) {
   const supabase = await createClient();
@@ -105,7 +106,7 @@ export default async function AddProblemsToSetPage({
   return (
     <AddProblemsToSetClient
       problemSet={problemSet}
-      problems={problems}
+      problems={problems as unknown as Problem[]}
       tagsByProblem={tagsByProblem}
       availableTags={availableTags}
       problemSetProblemIds={problemSetProblemIds}

@@ -28,6 +28,7 @@ import type {
   UncategorisedAttempt,
   WeakSpot,
 } from '@/lib/types';
+import type { Database, Json } from '@/lib/database.types';
 
 // =====================================================
 // Types local to the generator
@@ -364,12 +365,12 @@ export async function generateDigestForUser(
     digest_tier: digestTier,
     headline: narratives.headline,
     error_pattern_summary: narratives.error_pattern_summary,
-    subject_error_patterns: subjectErrorPatternsRecord,
-    subject_health: subjectHealthRecord,
-    weak_spots: weakSpots,
-    topic_clusters: topicClusters,
-    progress_narratives: progressNarrativesRecord,
-    raw_aggregation_data: rawAggregationData,
+    subject_error_patterns: subjectErrorPatternsRecord as Json,
+    subject_health: subjectHealthRecord as Json,
+    weak_spots: weakSpots as unknown as Json,
+    topic_clusters: topicClusters as unknown as Json,
+    progress_narratives: progressNarrativesRecord as Json,
+    raw_aggregation_data: rawAggregationData as Json,
   };
 
   // 8. Save digest — update placeholder if provided, otherwise insert new row
@@ -407,7 +408,7 @@ export async function generateDigestForUser(
   // 9. Clean up old digests
   await pruneOldDigests(userId);
 
-  return inserted as InsightDigest;
+  return inserted as unknown as InsightDigest;
 }
 
 // =====================================================
@@ -542,7 +543,9 @@ export async function categoriseSingleAttempt(
   userId: string,
   attempt: UncategorisedAttempt,
   cachedLabels?: string[]
-): Promise<Record<string, unknown> | null> {
+): Promise<
+  Database['public']['Tables']['error_categorisations']['Row'] | null
+> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     logger.warn('GEMINI_API_KEY not configured, skipping categorisation', {
@@ -664,7 +667,7 @@ export async function categoriseSingleAttempt(
   }
 
   // If null, the attempt was already categorised (duplicate ignored)
-  return (inserted as Record<string, unknown>) ?? null;
+  return inserted ?? null;
 }
 
 // =====================================================

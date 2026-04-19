@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect, notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import SubjectInsightsClient from './subject-insights-client';
+import type { InsightDigest } from '@/lib/types';
 
 export async function generateMetadata() {
   const t = await getTranslations('Metadata');
@@ -60,7 +61,7 @@ export default async function SubjectInsightsPage({
   return (
     <SubjectInsightsClient
       subject={subject}
-      digest={digest}
+      digest={digest as InsightDigest | null}
       reviewSessions={sessionSummaries}
     />
   );

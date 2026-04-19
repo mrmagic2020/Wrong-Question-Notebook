@@ -45,7 +45,7 @@ export interface Problem {
   solution_text?: string | null;
   assets?: Asset[];
   solution_assets?: Asset[];
-  tags?: Tag[];
+  tags?: SimpleTag[];
   isInSet?: boolean;
 }
 
@@ -156,6 +156,7 @@ export interface ReviewSessionState {
     skipped_problem_ids: string[];
     initial_statuses: Record<string, ProblemStatus>;
     elapsed_ms: number;
+    is_read_only?: boolean;
   };
 }
 
@@ -259,7 +260,7 @@ export interface ReviewSchedule {
 }
 
 export interface ProblemWithTags extends Problem {
-  tags: Tag[];
+  tags: SimpleTag[];
 }
 
 export interface ProblemSetWithData extends ProblemSet {
@@ -276,7 +277,7 @@ export interface ProblemSetWithDetails extends ProblemSet {
 
 export interface ProblemInSet extends Problem {
   added_at: string;
-  tags: Tag[];
+  tags: SimpleTag[];
 }
 
 export interface ProblemSetProgress {
@@ -601,7 +602,7 @@ export interface AddProblemsToSetClientProps {
     subject_name: string;
   };
   problems: Problem[];
-  tagsByProblem: Record<string, Tag[]>;
+  tagsByProblem: Record<string, SimpleTag[]>;
   availableTags: SimpleTag[];
   problemSetProblemIds: string[];
 }
@@ -612,9 +613,9 @@ export interface AddProblemsToSetClientProps {
 
 export interface ProblemsPageClientProps {
   initialProblems: Problem[];
-  initialTagsByProblem: Record<string, Tag[]>;
+  initialTagsByProblem: Record<string, SimpleTag[]>;
   subjectId: string;
-  availableTags: Tag[];
+  availableTags: SimpleTag[];
 }
 
 export interface ProblemSetsPageClientProps {

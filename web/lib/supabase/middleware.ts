@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { hasEnvVars } from '../server-utils';
 import { updateLastLoginEdge } from '../edge-utils';
 import { ENV_VARS, USER_ROLES, ROUTES } from '../constants';
+import type { Database } from '@/lib/database.types';
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -17,7 +18,7 @@ export async function updateSession(request: NextRequest) {
 
   // With Fluid compute, don't put this client in a global environment
   // variable. Always create a new one on each request.
-  const supabase = createServerClient(
+  const supabase = createServerClient<Database>(
     process.env[ENV_VARS.SUPABASE_URL]!,
     process.env[ENV_VARS.SUPABASE_ANON_KEY]!,
     {
@@ -90,7 +91,7 @@ export async function updateSession(request: NextRequest) {
       }
 
       // Create a service role client to bypass RLS
-      const serviceSupabase = createServerClient(
+      const serviceSupabase = createServerClient<Database>(
         process.env[ENV_VARS.SUPABASE_URL]!,
         process.env[ENV_VARS.SUPABASE_SERVICE_ROLE_KEY]!,
         {
@@ -111,9 +112,10 @@ export async function updateSession(request: NextRequest) {
         .eq('id', user.sub)
         .single();
 
+      const adminRoles = [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN] as const;
       if (
-        !profile ||
-        ![USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN].includes(profile.user_role)
+        !profile?.user_role ||
+        !adminRoles.includes(profile.user_role as (typeof adminRoles)[number])
       ) {
         // Redirect to subjects page if not admin
         const url = request.nextUrl.clone();

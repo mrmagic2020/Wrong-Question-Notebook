@@ -5,6 +5,7 @@
 
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { ENV_VARS, ERROR_MESSAGES } from './constants';
+import type { Database } from '@/lib/database.types';
 
 // =====================================================
 // Service Client Creation
@@ -28,7 +29,7 @@ export function createServiceClient() {
     throw new Error(`${ENV_VARS.SUPABASE_URL} environment variable is not set`);
   }
 
-  return createSupabaseClient(supabaseUrl, serviceRoleKey, {
+  return createSupabaseClient<Database>(supabaseUrl, serviceRoleKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,

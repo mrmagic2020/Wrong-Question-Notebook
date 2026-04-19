@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { INSIGHT_CONSTANTS } from '@/lib/constants';
 import InsightsPageClient from './insights-page-client';
+import type { InsightDigest } from '@/lib/types';
 
 export async function generateMetadata() {
   const t = await getTranslations('Metadata');
@@ -55,7 +56,7 @@ export default async function InsightsPage() {
 
   return (
     <InsightsPageClient
-      initialDigest={digest}
+      initialDigest={digest as InsightDigest | null}
       initialIsGenerating={isGenerating}
       subjects={subjects || []}
     />

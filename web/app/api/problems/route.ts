@@ -14,6 +14,7 @@ import {
   hasOnlyOwnedAssetPaths,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES, CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
+import type { Database } from '@/lib/database.types';
 import { checkContentLimit } from '@/lib/content-limits';
 import { revalidateProblemComprehensive } from '@/lib/cache-invalidation';
 import { createServiceClient } from '@/lib/supabase-utils';
@@ -182,12 +183,18 @@ async function getProblems(req: Request) {
 
   // Apply problem type filter
   if (problemTypes.length > 0) {
-    query = query.in('problem_type', problemTypes);
+    query = query.in(
+      'problem_type',
+      problemTypes as Database['public']['Enums']['problem_type_enum'][]
+    );
   }
 
   // Apply status filter
   if (statuses.length > 0) {
-    query = query.in('status', statuses);
+    query = query.in(
+      'status',
+      statuses as Database['public']['Enums']['problem_status_enum'][]
+    );
   }
 
   try {

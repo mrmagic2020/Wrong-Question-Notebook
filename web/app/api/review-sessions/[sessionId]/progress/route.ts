@@ -8,6 +8,7 @@ import {
   isValidUuid,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
+import type { ReviewSessionState } from '@/lib/types';
 import { revalidateUserStatistics } from '@/lib/cache-invalidation';
 
 async function updateProgress(
@@ -63,7 +64,9 @@ async function updateProgress(
     }
 
     // Update session state
-    const sessionState = { ...session.session_state };
+    const sessionState = {
+      ...(session.session_state as ReviewSessionState['session_state']),
+    };
     if (typeof currentIndex === 'number') {
       sessionState.current_index = currentIndex;
     }
@@ -123,7 +126,9 @@ async function updateProgress(
     }
 
     // Check if this is a read-only session (shared problem set)
-    const isReadOnly = !!session.session_state?.is_read_only;
+    const rawState =
+      session.session_state as ReviewSessionState['session_state'];
+    const isReadOnly = !!rawState?.is_read_only;
 
     // Only create result entries and update last_reviewed_date for actual
     // answers or skips — not for heartbeat/save-state-only requests.

@@ -9,6 +9,7 @@ import { ERROR_MESSAGES } from '@/lib/constants';
 import { revalidateProblemAndSubject } from '@/lib/cache-invalidation';
 import { markAnswer } from '@/lib/answer-marking';
 import { createServiceClient } from '@/lib/supabase-utils';
+import type { AnswerConfig } from '@/lib/types';
 
 export async function POST(
   req: Request,
@@ -73,7 +74,7 @@ export async function POST(
     const isCorrect = markAnswer(
       problem.problem_type,
       submitted_answer,
-      problem.answer_config ?? null,
+      (problem.answer_config as AnswerConfig | null) ?? null,
       typeof problem.correct_answer === 'string'
         ? problem.correct_answer
         : problem.correct_answer

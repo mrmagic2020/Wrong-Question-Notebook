@@ -44,7 +44,7 @@ async function getStatus(
     }
 
     // Check if expired but not yet marked
-    let status = session.status;
+    let status = session.status as QRSessionStatusResponse['status'];
     if (status === 'pending' && new Date(session.expires_at) < new Date()) {
       status = 'expired';
     }

@@ -9,7 +9,7 @@ import {
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
 import { getFilteredProblems, applySessionConfig } from '@/lib/review-utils';
-import { SessionConfig } from '@/lib/types';
+import { FilterConfig, SessionConfig } from '@/lib/types';
 import { checkProblemSetAccess } from '@/lib/problem-set-utils';
 import { createServiceClient } from '@/lib/supabase-utils';
 
@@ -97,14 +97,13 @@ async function startSession(
           { status: 400 }
         );
       }
-      const filterConfig = {
-        ...problemSet.filter_config,
-        tag_ids: problemSet.filter_config.tag_ids ?? [],
-        statuses: problemSet.filter_config.statuses ?? [],
-        problem_types: problemSet.filter_config.problem_types ?? [],
-        days_since_review: problemSet.filter_config.days_since_review ?? null,
-        include_never_reviewed:
-          problemSet.filter_config.include_never_reviewed ?? true,
+      const rawFilter = problemSet.filter_config as Partial<FilterConfig>;
+      const filterConfig: FilterConfig = {
+        tag_ids: rawFilter.tag_ids ?? [],
+        statuses: rawFilter.statuses ?? [],
+        problem_types: rawFilter.problem_types ?? [],
+        days_since_review: rawFilter.days_since_review ?? null,
+        include_never_reviewed: rawFilter.include_never_reviewed ?? true,
       };
       // For shared smart sets, use service client to bypass RLS
       const queryClient = isOwner ? supabase : createServiceClient();
@@ -135,11 +134,12 @@ async function startSession(
     }
 
     // Apply session config (randomize, limit)
-    const sessionConfig: SessionConfig = problemSet.session_config || {
-      randomize: true,
-      session_size: null,
-      auto_advance: false,
-    };
+    const sessionConfig: SessionConfig =
+      (problemSet.session_config as unknown as SessionConfig) || {
+        randomize: true,
+        session_size: null,
+        auto_advance: false,
+      };
 
     const sessionProblems = applySessionConfig(problems, sessionConfig);
     const problemIds = sessionProblems.map(p => p.id);

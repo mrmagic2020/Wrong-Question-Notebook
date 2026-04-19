@@ -6,6 +6,7 @@ import {
   createApiSuccessResponse,
 } from '@/lib/common-utils';
 import { FILE_CONSTANTS } from '@/lib/constants';
+import type { Database } from '@/lib/database.types';
 
 const ALLOWED_MIME_TYPES = [
   'image/jpeg',
@@ -98,7 +99,13 @@ export async function POST(req: NextRequest) {
   // Update profile with new avatar URL
   const { error: updateError } = await serviceSupabase
     .from('user_profiles')
-    .upsert({ id: user.id, avatar_url: avatarUrl }, { onConflict: 'id' });
+    .upsert(
+      {
+        id: user.id,
+        avatar_url: avatarUrl,
+      } as Database['public']['Tables']['user_profiles']['Insert'],
+      { onConflict: 'id' }
+    );
 
   if (updateError) {
     return NextResponse.json(
@@ -129,7 +136,13 @@ export async function DELETE() {
 
   const { error: updateError } = await serviceSupabase
     .from('user_profiles')
-    .upsert({ id: user.id, avatar_url: null }, { onConflict: 'id' });
+    .upsert(
+      {
+        id: user.id,
+        avatar_url: null,
+      } as Database['public']['Tables']['user_profiles']['Insert'],
+      { onConflict: 'id' }
+    );
 
   if (updateError) {
     return NextResponse.json(

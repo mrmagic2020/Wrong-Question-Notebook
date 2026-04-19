@@ -140,14 +140,19 @@ async function copyProblemSet(
     let sourceProblems: any[];
     if (sourceProblemSet.is_smart && sourceProblemSet.filter_config) {
       // For smart sets, resolve the current matching problems
+      const rawFilter = sourceProblemSet.filter_config as Record<
+        string,
+        unknown
+      >;
       const filterConfig: FilterConfig = {
-        tag_ids: sourceProblemSet.filter_config.tag_ids ?? [],
-        statuses: sourceProblemSet.filter_config.statuses ?? [],
-        problem_types: sourceProblemSet.filter_config.problem_types ?? [],
+        tag_ids: (rawFilter.tag_ids as string[]) ?? [],
+        statuses: (rawFilter.statuses as FilterConfig['statuses']) ?? [],
+        problem_types:
+          (rawFilter.problem_types as FilterConfig['problem_types']) ?? [],
         days_since_review:
-          sourceProblemSet.filter_config.days_since_review ?? null,
+          (rawFilter.days_since_review as number | null) ?? null,
         include_never_reviewed:
-          sourceProblemSet.filter_config.include_never_reviewed ?? true,
+          (rawFilter.include_never_reviewed as boolean) ?? true,
       };
       sourceProblems = await getFilteredProblems(
         serviceClient,
@@ -293,7 +298,7 @@ async function copyProblemSet(
       correct_answer: p.correct_answer,
       answer_config: p.answer_config,
       auto_mark: p.auto_mark || false,
-      status: 'needs_review',
+      status: 'needs_review' as const,
       solution_text: p.solution_text,
       assets: p.assets || [],
       solution_assets: p.solution_assets || [],

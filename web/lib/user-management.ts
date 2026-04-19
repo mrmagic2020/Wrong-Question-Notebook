@@ -7,6 +7,7 @@ import {
   UserActivityLogType,
   AdminSettingsType,
 } from '@/lib/schemas';
+import type { Database, Json } from '@/lib/database.types';
 import { createServiceClient } from './supabase-utils';
 import { DATABASE_CONSTANTS } from './constants';
 import { logger } from './logger';
@@ -29,7 +30,7 @@ export async function getUserProfile(
     return null;
   }
 
-  return data;
+  return data as UserProfileType;
 }
 
 /**
@@ -50,7 +51,7 @@ export async function getUserProfileWithServiceRole(
     return null;
   }
 
-  return data;
+  return data as UserProfileType;
 }
 
 // Service client is now imported from supabase-utils
@@ -149,7 +150,7 @@ export async function getAllUsers(
     return [];
   }
 
-  return data;
+  return data as UserProfileType[];
 }
 
 /**
@@ -173,7 +174,7 @@ export async function searchUsers(
     return [];
   }
 
-  return data;
+  return data as UserProfileType[];
 }
 
 /**
@@ -187,7 +188,7 @@ export async function updateUserProfile(
 
   const { data, error } = await serviceSupabase
     .from('user_profiles')
-    .update(updates)
+    .update(updates as Database['public']['Tables']['user_profiles']['Update'])
     .eq('id', userId)
     .select()
     .single();
@@ -196,7 +197,7 @@ export async function updateUserProfile(
     return null;
   }
 
-  return data;
+  return data as UserProfileType;
 }
 
 /**
@@ -318,7 +319,7 @@ export async function getRecentActivity(
     return [];
   }
 
-  return data;
+  return data as unknown as UserActivityLogType[];
 }
 
 /**
@@ -336,7 +337,7 @@ export async function logUserActivity(
     p_action: action,
     p_resource_type: resourceType,
     p_resource_id: resourceId,
-    p_details: details,
+    p_details: details as Json,
   });
 
   return !error;
@@ -357,7 +358,7 @@ export async function getAdminSettings(): Promise<AdminSettingsType[]> {
     return [];
   }
 
-  return data;
+  return data as unknown as AdminSettingsType[];
 }
 
 /**
@@ -381,7 +382,7 @@ export async function updateAdminSetting(
     .upsert(
       {
         key,
-        value,
+        value: value as Json,
         updated_by: user.id,
       },
       { onConflict: 'key' }
@@ -393,7 +394,7 @@ export async function updateAdminSetting(
     return null;
   }
 
-  return data;
+  return data as unknown as AdminSettingsType;
 }
 
 /**
@@ -414,7 +415,7 @@ export async function getUsersByRole(
     return [];
   }
 
-  return data;
+  return data as UserProfileType[];
 }
 
 /**
@@ -437,7 +438,7 @@ export async function getUserActivity(
     return [];
   }
 
-  return data;
+  return data as unknown as UserActivityLogType[];
 }
 
 /**
@@ -488,7 +489,7 @@ export async function getAllUsersWithCount(
     return { users: [], total_count: 0 };
   }
 
-  return { users: data, total_count: count || 0 };
+  return { users: data as UserProfileType[], total_count: count || 0 };
 }
 
 /**
@@ -678,7 +679,10 @@ export async function getFilteredActivity(options: {
     return { activities: [], total_count: 0 };
   }
 
-  return { activities: data, total_count: count || 0 };
+  return {
+    activities: data as unknown as UserActivityLogType[],
+    total_count: count || 0,
+  };
 }
 
 /**
@@ -701,11 +705,15 @@ export async function getAnnouncement(): Promise<{
     return null;
   }
 
-  const val = data.value as Record<string, unknown>;
+  const val = data.value as {
+    enabled?: boolean;
+    message?: string;
+    type?: 'info' | 'warning' | 'success';
+  };
   return {
-    enabled: (val.enabled as boolean) || false,
-    message: (val.message as string) || '',
-    type: (val.type as 'info' | 'warning' | 'success') || 'info',
+    enabled: val.enabled || false,
+    message: val.message || '',
+    type: val.type || 'info',
   };
 }
 
@@ -722,7 +730,7 @@ export async function setAnnouncement(
   const { error } = await serviceSupabase.from('admin_settings').upsert(
     {
       key: 'site_announcement',
-      value: { enabled, message, type },
+      value: { enabled, message, type } as unknown as Json,
       description: 'Site-wide announcement banner',
     },
     { onConflict: 'key' }

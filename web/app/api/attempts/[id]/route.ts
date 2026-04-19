@@ -7,6 +7,7 @@ import {
   handleAsyncError,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
+import type { Database, Json } from '@/lib/database.types';
 import { updateReviewSchedule } from '@/lib/spaced-repetition';
 import { createServiceClient } from '@/lib/supabase-utils';
 import {
@@ -51,9 +52,16 @@ export async function PATCH(
   }
 
   try {
+    const updatePayload: Record<string, unknown> = { ...parsed.data };
+    if (updatePayload.submitted_answer !== undefined) {
+      updatePayload.submitted_answer = updatePayload.submitted_answer as Json;
+    }
+
     const { data, error } = await supabase
       .from('attempts')
-      .update(parsed.data)
+      .update(
+        updatePayload as Database['public']['Tables']['attempts']['Update']
+      )
       .eq('id', attemptId)
       .eq('user_id', user.id)
       .select()

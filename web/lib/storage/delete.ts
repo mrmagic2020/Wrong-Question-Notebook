@@ -1,5 +1,6 @@
 // web/lib/storage/delete.ts
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/lib/database.types';
 import { FILE_CONSTANTS, DATABASE_CONSTANTS } from '../constants';
 import { createServiceClient } from '../supabase-utils';
 
@@ -8,7 +9,7 @@ import { createServiceClient } from '../supabase-utils';
  * Supabase returns both folders and files from .list(). We detect files by metadata !== null.
  */
 async function listFilesRecursive(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   prefix: string
 ): Promise<string[]> {
   const files: string[] = [];
@@ -41,7 +42,7 @@ async function listFilesRecursive(
  * (e.g. from a copied problem set).
  */
 export async function deleteProblemFiles(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   userId: string,
   problemId: string
 ) {
