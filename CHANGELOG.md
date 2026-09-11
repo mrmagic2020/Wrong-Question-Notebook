@@ -91,6 +91,7 @@ and this project adheres to [Semantic Versioning].
   - Likes, copies and view counts could be written attributed to an arbitrary user id
   - Platform-wide user and admin account totals were readable anonymously via the no-argument `get_user_statistics()`
   - RPCs the app only calls server-side are now restricted to the service role; RPCs called with the user's own session now verify the argument against `auth.uid()` and pin an empty `search_path` with schema-qualified bodies
+  - Two further routines that took no user id were still anonymously callable: `compute_problem_set_count()` disclosed the exact size of any user's private problem set, and `refresh_ranking_scores()` let an unauthenticated caller trigger unbounded global writes and aggregation across every public set. Both, plus the service-only `find_problem_by_asset()`, are now restricted to the service role
 
 ## [0.2.0-beta] - 2026-03-25
 
