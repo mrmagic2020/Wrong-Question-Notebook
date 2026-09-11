@@ -11,7 +11,11 @@
 INSERT INTO auth.users (
   instance_id, id, aud, role, email, encrypted_password,
   email_confirmed_at, created_at, updated_at,
-  raw_app_meta_data, raw_user_meta_data, is_super_admin
+  raw_app_meta_data, raw_user_meta_data, is_super_admin,
+  -- GoTrue scans these into a non-nullable Go string. They are nullable with no
+  -- default, so leaving them out makes every login fail with
+  -- "Database error querying schema". They must be '' , not NULL.
+  confirmation_token, recovery_token, email_change_token_new, email_change
 ) VALUES (
   '00000000-0000-0000-0000-000000000000',
   '00000000-0000-0000-0000-000000000001',
@@ -21,7 +25,8 @@ INSERT INTO auth.users (
   now(), now(), now(),
   '{"provider":"email","providers":["email"]}',
   '{"username":"testuser","first_name":"Test","last_name":"User"}',
-  false
+  false,
+  '', '', '', ''
 );
 
 INSERT INTO auth.identities (
@@ -47,7 +52,11 @@ INSERT INTO auth.identities (
 INSERT INTO auth.users (
   instance_id, id, aud, role, email, encrypted_password,
   email_confirmed_at, created_at, updated_at,
-  raw_app_meta_data, raw_user_meta_data, is_super_admin
+  raw_app_meta_data, raw_user_meta_data, is_super_admin,
+  -- GoTrue scans these into a non-nullable Go string. They are nullable with no
+  -- default, so leaving them out makes every login fail with
+  -- "Database error querying schema". They must be '' , not NULL.
+  confirmation_token, recovery_token, email_change_token_new, email_change
 ) VALUES (
   '00000000-0000-0000-0000-000000000000',
   '00000000-0000-0000-0000-000000000002',
@@ -57,7 +66,8 @@ INSERT INTO auth.users (
   now(), now(), now(),
   '{"provider":"email","providers":["email"]}',
   '{"username":"admin","first_name":"Admin","last_name":"User"}',
-  false
+  false,
+  '', '', '', ''
 );
 
 INSERT INTO auth.identities (
