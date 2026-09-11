@@ -23,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
       const setUrls: MetadataRoute.Sitemap = (publicSets || []).map(set => ({
         url: `${BASE_URL}/problem-sets/${set.id}`,
-        lastModified: new Date(set.updated_at),
+        lastModified: new Date(set.updated_at ?? ''),
         changeFrequency: 'weekly' as const,
         priority: 0.6,
       }));

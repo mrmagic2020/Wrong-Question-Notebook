@@ -7,6 +7,7 @@ import {
   createApiSuccessResponse,
 } from '@/lib/common-utils';
 import { CreateUserProfileDto } from '@/lib/schemas';
+import type { Database } from '@/lib/database.types';
 
 export async function GET() {
   const { user, error } = await requireUser();
@@ -96,7 +97,13 @@ export async function PATCH(req: NextRequest) {
   const serviceSupabase = createServiceClient();
   const { data, error: upsertError } = await serviceSupabase
     .from('user_profiles')
-    .upsert({ id: user.id, ...validatedData }, { onConflict: 'id' })
+    .upsert(
+      {
+        id: user.id,
+        ...validatedData,
+      } as Database['public']['Tables']['user_profiles']['Insert'],
+      { onConflict: 'id' }
+    )
     .select()
     .single();
 

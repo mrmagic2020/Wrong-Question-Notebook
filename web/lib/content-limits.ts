@@ -237,7 +237,10 @@ export async function getAllContentLimits(
 
   // Fetch all overrides in one query
   const supabase = createServiceClient();
-  let overrides: Array<{ resource_type: string; limit_value: string }> = [];
+  let overrides: Array<{
+    resource_type: string;
+    limit_value: number | string;
+  }> = [];
   try {
     const { data, error } = await supabase
       .from('content_limit_overrides')

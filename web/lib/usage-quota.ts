@@ -64,7 +64,7 @@ export async function checkAndIncrementQuota(
     throw new Error('Failed to check usage quota');
   }
 
-  return data as QuotaCheckResult;
+  return data as unknown as QuotaCheckResult;
 }
 
 /**

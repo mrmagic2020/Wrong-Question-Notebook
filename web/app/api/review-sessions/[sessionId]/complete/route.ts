@@ -11,6 +11,7 @@ import { ERROR_MESSAGES } from '@/lib/constants';
 import { calculateSessionStats } from '@/lib/review-utils';
 import { createServiceClient } from '@/lib/supabase-utils';
 import { revalidateUserReviewSchedule } from '@/lib/cache-invalidation';
+import type { ReviewSessionState } from '@/lib/types';
 
 async function completeSession(
   req: Request,
@@ -54,8 +55,10 @@ async function completeSession(
 
     // Fetch current problem statuses for delta calculation
     // For read-only sessions, use service client since problems belong to owner
-    const isReadOnly = !!session.session_state?.is_read_only;
-    const problemIds = session.session_state?.problem_ids || [];
+    const sessionState =
+      session.session_state as ReviewSessionState['session_state'];
+    const isReadOnly = !!sessionState?.is_read_only;
+    const problemIds = sessionState?.problem_ids || [];
     const currentStatuses: Record<string, string> = {};
     if (problemIds.length > 0) {
       const queryClient = isReadOnly ? createServiceClient() : supabase;
@@ -69,7 +72,10 @@ async function completeSession(
       }
     }
 
-    const summary = calculateSessionStats(session, currentStatuses);
+    const summary = calculateSessionStats(
+      session as unknown as ReviewSessionState,
+      currentStatuses
+    );
 
     // Invalidate SR cache if this was a spaced repetition session
     if (session.session_type === 'spaced_repetition') {

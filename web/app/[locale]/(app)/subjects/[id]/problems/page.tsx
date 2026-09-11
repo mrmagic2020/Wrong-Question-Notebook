@@ -9,7 +9,7 @@ import {
   createSubjectCacheTag,
   createUserCacheTag,
 } from '@/lib/cache-config';
-import { Tag } from '@/lib/types';
+import { SimpleTag } from '@/lib/types';
 import { getTranslations } from 'next-intl/server';
 
 export async function generateMetadata({
@@ -74,7 +74,7 @@ async function loadData(subjectId: string) {
 
       const p = problems ?? [];
       const ids = p.map((x: any) => x.id);
-      const tagsByProblem: Record<string, Tag[]> = {};
+      const tagsByProblem: Record<string, SimpleTag[]> = {};
 
       if (ids.length) {
         // Join problem_tag -> tags to collect tags per problem

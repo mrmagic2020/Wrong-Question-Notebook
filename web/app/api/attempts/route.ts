@@ -9,6 +9,7 @@ import {
   handleAsyncError,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
+import type { Json } from '@/lib/database.types';
 import {
   revalidateProblemAndSubject,
   revalidateUserReviewSchedule,
@@ -117,6 +118,7 @@ async function createAttempt(req: Request) {
 
     const payload = {
       ...parsed.data,
+      submitted_answer: parsed.data.submitted_answer as Json,
       user_id: user.id,
     };
 

@@ -115,14 +115,19 @@ async function copyProblem(
     // Verify the problem belongs to this set
     if (sourceProblemSet.is_smart && sourceProblemSet.filter_config) {
       // For smart sets, check this specific problem matches the filter_config
+      const rawFilter = sourceProblemSet.filter_config as Record<
+        string,
+        unknown
+      >;
       const filterConfig: FilterConfig = {
-        tag_ids: sourceProblemSet.filter_config.tag_ids ?? [],
-        statuses: sourceProblemSet.filter_config.statuses ?? [],
-        problem_types: sourceProblemSet.filter_config.problem_types ?? [],
+        tag_ids: (rawFilter.tag_ids as string[]) ?? [],
+        statuses: (rawFilter.statuses as FilterConfig['statuses']) ?? [],
+        problem_types:
+          (rawFilter.problem_types as FilterConfig['problem_types']) ?? [],
         days_since_review:
-          sourceProblemSet.filter_config.days_since_review ?? null,
+          (rawFilter.days_since_review as number | null) ?? null,
         include_never_reviewed:
-          sourceProblemSet.filter_config.include_never_reviewed ?? true,
+          (rawFilter.include_never_reviewed as boolean) ?? true,
       };
       const isMember = await isFilteredProblemMember(
         serviceClient,

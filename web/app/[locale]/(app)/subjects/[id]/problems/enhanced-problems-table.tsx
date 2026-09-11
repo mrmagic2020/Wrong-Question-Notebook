@@ -11,13 +11,7 @@ import { toast } from 'sonner';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import ProblemSetCreationDialog from '@/components/problem-set-creation-dialog';
 import AddToSetDialog from '@/components/add-to-set-dialog';
-import {
-  SearchFilters,
-  Problem,
-  SimpleTag,
-  Tag,
-  TagFilterMode,
-} from '@/lib/types';
+import { SearchFilters, Problem, SimpleTag, TagFilterMode } from '@/lib/types';
 import { useIsMobile } from '@/lib/hooks/useMediaQuery';
 import { useFilterParams } from '@/lib/hooks/useFilterParams';
 import { confirmUnsavedNavigation } from '@/lib/hooks/useUnsavedChanges';
@@ -36,7 +30,7 @@ export default function EnhancedProblemsTable({
   targetProblemSetId = null,
 }: {
   initialProblems: Problem[];
-  initialTagsByProblem: Record<string, Tag[]>;
+  initialTagsByProblem: Record<string, SimpleTag[]>;
   subjectId: string;
   availableTags: SimpleTag[];
   onProblemDeleted?: ((problemId: string) => void) | null;

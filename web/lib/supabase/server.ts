@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { ENV_VARS } from '../constants';
+import type { Database } from '@/lib/database.types';
 
 /**
  * Especially important if using Fluid compute: Don't put this client in a
@@ -10,7 +11,7 @@ import { ENV_VARS } from '../constants';
 export async function createClient() {
   const cookieStore = await cookies();
 
-  return createServerClient(
+  return createServerClient<Database>(
     process.env[ENV_VARS.SUPABASE_URL]!,
     process.env[ENV_VARS.SUPABASE_ANON_KEY]!,
     {

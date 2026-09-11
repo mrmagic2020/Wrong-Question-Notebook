@@ -66,7 +66,7 @@ async function recordView(
     await serviceClient.rpc('record_problem_set_view', {
       p_problem_set_id: id,
       p_viewer_hash: viewerHash,
-      p_user_id: user?.id || null,
+      p_user_id: user?.id ?? undefined,
     });
 
     return NextResponse.json(createApiSuccessResponse({ success: true }));

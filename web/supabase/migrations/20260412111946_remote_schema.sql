@@ -1,0 +1,12 @@
+-- Intentionally empty.
+--
+-- This version exists in the remote migration history but has no SQL recorded
+-- against it (its `statements` column is NULL). It was the first `db pull`
+-- baseline; everything it created is captured in full by the later baseline
+-- 20260416062612_remote_schema.sql.
+--
+-- The file is kept as a no-op purely so local migration files and the remote
+-- history line up. Without it, `supabase db pull` and `db push` both abort with
+-- "Remote migration versions not found in local migrations directory".
+--
+-- Do not delete, and do not repair this version as `reverted` — it genuinely ran.

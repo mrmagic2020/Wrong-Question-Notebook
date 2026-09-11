@@ -2,7 +2,8 @@
  * Review session utilities for smart filtering and session management
  */
 
-import { SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/lib/database.types';
 import {
   Problem,
   FilterConfig,
@@ -19,7 +20,7 @@ import {
  *   to fetch problems belonging to the owner. Defaults to userId.
  */
 export async function getFilteredProblems(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   userId: string,
   subjectId: string,
   filterConfig: FilterConfig,
@@ -99,7 +100,7 @@ export async function getFilteredProblems(
       ...problem,
       tags,
     };
-  });
+  }) as unknown as Problem[];
 }
 
 /**
@@ -110,7 +111,7 @@ export async function getFilteredProblems(
  *   to count problems belonging to the owner. Defaults to userId.
  */
 export async function getFilteredProblemsCount(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   userId: string,
   subjectId: string,
   filterConfig: FilterConfig,
@@ -178,7 +179,7 @@ export async function getFilteredProblemsCount(
  * restricted to a single problem ID instead of fetching all rows.
  */
 export async function isFilteredProblemMember(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   problemId: string,
   subjectId: string,
   filterConfig: FilterConfig,

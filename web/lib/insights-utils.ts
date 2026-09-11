@@ -6,6 +6,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/lib/database.types';
 import type { ErrorCategorisation, InsightDigest } from '@/lib/types';
 
 /**
@@ -21,7 +22,7 @@ export function normaliseTopicLabel(label: string): string {
  * Returns null if no digest exists.
  */
 export async function getLatestDigest(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   userId: string
 ): Promise<InsightDigest | null> {
   const { data, error } = await supabase
@@ -34,7 +35,7 @@ export async function getLatestDigest(
 
   if (error || !data) return null;
 
-  return data as InsightDigest;
+  return data as unknown as InsightDigest;
 }
 
 /**
@@ -42,7 +43,7 @@ export async function getLatestDigest(
  * Returns null if no categorisation exists.
  */
 export async function getErrorCategorisationForAttempt(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   attemptId: string,
   userId: string
 ): Promise<ErrorCategorisation | null> {
@@ -64,7 +65,7 @@ export async function getErrorCategorisationForAttempt(
  * ordered by most recent first.
  */
 export async function getErrorCategorisationsForProblem(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   problemId: string,
   userId: string
 ): Promise<ErrorCategorisation[]> {

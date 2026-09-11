@@ -41,7 +41,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import {
-  Tag,
+  SimpleTag,
   ProblemFormProps,
   MCQChoice,
   AnswerConfig,
@@ -84,27 +84,11 @@ export default function ProblemForm({
   // Key for remounting editors on form reset
   const [editorKey, setEditorKey] = useState(0);
 
-  // Helper function to transform SimpleTag to Tag
-  const transformSimpleTagsToTags = useCallback(
-    (simpleTags: typeof availableTags): Tag[] => {
-      return (
-        simpleTags?.map(tag => ({
-          ...tag,
-          subject_id: subjectId,
-          created_at: new Date().toISOString(),
-        })) || []
-      );
-    },
-    [subjectId]
-  );
-
   // Use provided tags or fallback to client-side fetching
-  const [tags, setTags] = useState<Tag[]>(
-    transformSimpleTagsToTags(availableTags)
-  );
+  const [tags, setTags] = useState<SimpleTag[]>(availableTags ?? []);
   useEffect(() => {
     if (availableTags && availableTags.length > 0) {
-      setTags(transformSimpleTagsToTags(availableTags));
+      setTags(availableTags);
     } else {
       // Fallback to client-side fetching if no tags provided
       fetch(apiUrl(`/api/tags?subject_id=${subjectId}`))
@@ -112,7 +96,7 @@ export default function ProblemForm({
         .then(j => setTags(j.data ?? []))
         .catch(() => {});
     }
-  }, [availableTags, subjectId, transformSimpleTagsToTags]);
+  }, [availableTags, subjectId]);
 
   // Tag picker - initialize with problem's existing tags if available
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>(() => {
@@ -154,7 +138,7 @@ export default function ProblemForm({
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j?.error ?? 'Failed to create tag');
 
-      const created: Tag = j.data;
+      const created: SimpleTag = j.data;
       setTags(prev => [...prev, created]);
       setSelectedTagIds(prev => [...prev, created.id]);
       setNewTagName('');
@@ -636,7 +620,7 @@ export default function ProblemForm({
             });
             const j = await res.json().catch(() => ({}));
             if (res.ok && j.data) {
-              const created: Tag = j.data;
+              const created: SimpleTag = j.data;
               setTags(prev => [...prev, created]);
               finalTagIds.push(created.id);
               createdTagNames.push(tagName);

@@ -5,7 +5,8 @@
  * algorithm, plus a database update helper.
  */
 
-import { SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/lib/database.types';
 import { SPACED_REPETITION_CONSTANTS } from './constants';
 import {
   isSameDayInTimezone,
@@ -125,7 +126,7 @@ export function calculateNextReview(
  * assessment or reviews the same problem multiple times in one day.
  */
 export async function updateReviewSchedule(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   userId: string,
   problemId: string,
   selectedStatus: 'wrong' | 'needs_review' | 'mastered',

@@ -5,6 +5,7 @@ import {
   getAdminSettings,
 } from '@/lib/user-management';
 import { CreateAdminSettingsDto } from '@/lib/schemas';
+import type { Json } from '@/lib/database.types';
 
 export async function GET() {
   try {
@@ -39,7 +40,7 @@ export async function POST(_request: NextRequest) {
 
     const { data, error } = await supabase
       .from('admin_settings')
-      .insert(validatedData)
+      .insert({ ...validatedData, value: validatedData.value as Json })
       .select()
       .single();
 
