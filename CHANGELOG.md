@@ -51,11 +51,18 @@ and this project adheres to [Semantic Versioning].
 
 ### Changed
 
+- **Local development environment**: The full Supabase stack now runs locally via Docker
+  - Committed `supabase/config.toml`, a baseline schema migration, and a `seed.sql` with two pre-made test accounts
+  - Added a storage migration that creates the `avatars` and `problem-uploads` buckets with their RLS policies, so uploads work on a fresh clone
+  - Replaced `DEPLOYMENT.md` with `CONTRIBUTING.md`, covering setup, database workflow, code quality, and deployment
+- **Node.js 24 is now required** (was 18+); added `.nvmrc` and an `engines` constraint
 - **i18n key refactor**: Dissolved the 250-key `CommonUtils` junk-drawer namespace into purpose-specific namespaces (`Editor`, `FileManager`, `CopyDialog`, `Problems`, `Statistics`, `DataTable`, `Subjects`, `ProblemSets`, `Common`), removed 100+ cross-namespace duplicate keys, and added compile-time type safety via next-intl `AppConfig` augmentation
 - **AI Extraction math formatting**: Multi-line equations now use a single KaTeX `aligned` block instead of multiple separate display math blocks, producing cleaner rendering
 - **AI Extraction classification**: Problems with visible multi-step working are now consistently classified as "extended" instead of sometimes "short", even when the final answer is a number
 
 ### Fixed
+
+- **Error categorisation reset**: Resetting a user override on an AI error categorisation now fails cleanly when the original values are missing, instead of silently leaving the overridden category in place after clearing the override flag
 
 - **Client-side search & filter**: Problem search and filtering on the subject page now runs entirely in the browser instead of making API calls, eliminating 500 errors and timeouts caused by expensive server-side tag queries
 

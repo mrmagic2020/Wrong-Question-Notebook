@@ -9,29 +9,38 @@ All application code lives in `web/`:
 ```txt
 web/
   app/              # Next.js App Router pages & API routes
-    (app)/          # Authenticated app pages (subjects, problem-sets, tags, etc.)
-    auth/           # Auth pages (login, sign-up, forgot-password, etc.)
-    api/            # API route handlers
-    page.tsx        # Landing page (public)
+    [locale]/       # Locale-segmented routes (next-intl) -- ALL pages live here
+      (app)/        # Authenticated app pages (subjects, problem-sets, tags, etc.)
+      auth/         # Auth pages (login, sign-up, forgot-password, etc.)
+      page.tsx      # Landing page (public)
+    api/            # API route handlers (NOT locale-segmented)
     layout.tsx      # Root layout (Geist font, ThemeProvider, analytics)
     globals.css     # Global styles, CSS utility classes, keyframe animations
   components/
     ui/             # shadcn/ui primitives (Button, Card, Dialog, Input, etc.)
-    landing/        # Landing page components (hero-animation.tsx)
+    landing/        # Landing page components (hero-animation, hero-scroll)
     navigation.tsx  # Shared navigation bar
     ...             # Feature-specific components
   lib/              # Utilities, Supabase clients, schemas, types
+    database.types.ts  # Generated from the DB -- never hand-edit
+  i18n/             # next-intl routing & request config
+  messages/         # Translation catalogues (en, zh-CN)
+  scripts/          # Repo tooling (i18n key checks, etc.)
+  supabase/         # Local stack: config.toml, migrations/, seed.sql
 ```
 
 ## Tech Stack
 
+- **Runtime:** Node.js 24+ (enforced via `.nvmrc` and `engines`; CI uses 24)
 - **Framework:** Next.js 16 (App Router, Turbopack dev)
 - **Language:** TypeScript (strict)
 - **Styling:** Tailwind CSS 3 + `tailwindcss-animate`
 - **Components:** shadcn/ui (Radix UI primitives + CVA)
 - **Icons:** lucide-react
 - **Font:** Geist (via `next/font/google`)
-- **Auth/DB:** Supabase (SSR client)
+- **Auth/DB:** Supabase (SSR client); local stack via Supabase CLI + Docker
+- **i18n:** next-intl (`[locale]` segment; catalogues in `messages/`)
+- **Tests:** Vitest
 - **Theme:** `next-themes` with `class` strategy, system default
 - **Rich text:** TipTap editor + KaTeX math rendering
 - **Formatting:** Prettier (single quotes, 2-space indent, LF line endings, 80 char width)
@@ -41,16 +50,59 @@ web/
 
 Run from `web/`:
 
-| Command              | Purpose                                                    |
-| -------------------- | ---------------------------------------------------------- |
-| `npm run dev`        | Start dev server (Turbopack)                               |
-| `npm run build`      | Production build                                           |
-| `npm run type-check` | TypeScript check (`tsc --noEmit`)                          |
-| `npm run lint`       | ESLint check                                               |
-| `npm run fix-all`    | Auto-fix lint + format                                     |
-| `npm run prepush`    | Full check: fix-all, type-check, lint, format-check, build |
+| Command              | Purpose                                     |
+| -------------------- | ------------------------------------------- |
+| `npm run dev`        | Start dev server (Turbopack)                |
+| `npm run build`      | Production build                            |
+| `npm run type-check` | TypeScript check (`tsc --noEmit`)           |
+| `npm run lint`       | ESLint check                                |
+| `npm run test`       | Run tests (Vitest)                          |
+| `npm run check-all`  | type-check + lint + format-check            |
+| `npm run fix-all`    | Auto-fix lint + format                      |
+| `npm run prepush`    | Full check: fix-all, check-all, test, build |
 
 Always run `npm run prepush` before committing to catch issues.
+
+## Database
+
+The full Supabase stack runs locally in Docker. `web/supabase/migrations/` is the
+single source of truth for schema -- never change the hosted project from the
+Dashboard, or local and production silently drift.
+
+| Command                                                             | Purpose                                     |
+| ------------------------------------------------------------------- | ------------------------------------------- |
+| `npx supabase start`                                                | Boot local stack (API 54321, Studio 54323)  |
+| `npx supabase db reset`                                             | Drop, replay all migrations, run `seed.sql` |
+| `npx supabase migration new <name>`                                 | Create an empty migration                   |
+| `npx supabase gen types typescript --local > lib/database.types.ts` | Regenerate types after any schema change    |
+| `npx supabase db diff --linked --schema public`                     | Check local vs production drift             |
+
+Seeded accounts: `test@example.com` / `admin@example.com`, both `password123`.
+Local email is captured by Mailpit at `http://127.0.0.1:54324`, never sent.
+
+**Migrations deploy automatically on merge to `main`** via the Supabase GitHub
+integration -- never run `supabase db push` by hand. Only migrations and the
+Edge Functions / storage buckets declared in `config.toml` are deployed; API and
+Auth config and `seed.sql` are ignored, so local-only values and test accounts
+stay local. Because a merge ships schema straight to production, always prove a
+migration with `db reset` first, and split destructive changes (drop/rename)
+across two PRs -- expand, migrate the code, then contract.
+
+Gotchas worth knowing:
+
+- **Storage buckets are rows, not schema** -- `db pull` never captures them. The
+  `avatars` and `problem-uploads` buckets and their RLS policies are created in
+  `20260911062930_storage_buckets_and_policies.sql`. Add new buckets there.
+- **`db pull` only covers `public`** -- pass `--schema storage` or `--schema auth`
+  for policies and triggers in those schemas.
+- **`SECURITY DEFINER` functions need a pinned `search_path` AND schema-qualified
+  bodies.** Setting `search_path` without qualifying the body makes every call
+  fail with `relation ... does not exist`.
+- **Write CHECK constraints as `col IN (...)`.** `pg_get_constraintdef` renders
+  them as `= ANY ((ARRAY[...])::text[])`, but re-parsing that rendering yields a
+  different parse tree, so `db diff` reports a phantom drop/re-add forever.
+- Never run `migration repair --status reverted` on a migration that genuinely
+  ran; use `npx supabase migration fetch` to recover missing local files instead.
 
 ## Changelog
 
@@ -65,7 +117,7 @@ The project maintains a changelog at `CHANGELOG.md` following the [Keep a Change
 
 ## UI Design Guidelines
 
-The landing page (`web/app/page.tsx`) is the canonical reference for WQN's visual identity. All UI work across the product should follow these conventions.
+The landing page (`web/app/[locale]/page.tsx`) is the canonical reference for WQN's visual identity. All UI work across the product should follow these conventions.
 
 ### Design Identity
 
@@ -269,7 +321,7 @@ Defined in `globals.css` under `@layer components`. Use these instead of reinven
 
 When building or redesigning any page/component:
 
-1. **Read the landing page first** (`web/app/page.tsx`) to absorb the current visual patterns
+1. **Read the landing page first** (`web/app/[locale]/page.tsx`) to absorb the current visual patterns
 2. **Use warm colors by default** -- amber/orange/rose, not cold grays or blues
 3. **Apply generous rounding** -- `rounded-2xl` for containers, `rounded-xl` for interactive elements
 4. **Always provide dark mode** -- every `bg-`, `text-`, `border-` class needs a `dark:` pair

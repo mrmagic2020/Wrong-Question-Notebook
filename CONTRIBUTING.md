@@ -33,7 +33,7 @@ The first run downloads ~2 GB of Docker images (3–10 minutes). Subsequent star
 
 When it finishes you will see a table of local URLs and API keys:
 
-```
+```txt
 Studio   → http://127.0.0.1:54323     (DB GUI)
 API      → http://127.0.0.1:54321     (REST / GraphQL)
 DB       → postgresql://postgres:postgres@127.0.0.1:54322/postgres
@@ -113,6 +113,55 @@ npx supabase db pull
 
 This generates a migration file from the diff between local migrations and the remote schema.
 
+By default `db pull` only covers the `public` schema. To capture changes made
+elsewhere, pass the schema explicitly:
+
+```bash
+npx supabase db pull --schema storage   # storage RLS policies
+npx supabase db pull --schema auth      # auth triggers & policies
+```
+
+### Storage buckets
+
+Buckets and objects are **rows** in the `storage` schema, not schema objects, so
+`db pull` never captures them no matter which `--schema` you pass. They are
+created explicitly in `20260911062930_storage_buckets_and_policies.sql`, which
+is the single source of truth for both buckets and their RLS policies:
+
+| Bucket            | Visibility | Limit  | Object path                                        |
+| ----------------- | ---------- | ------ | -------------------------------------------------- |
+| `avatars`         | public     | 2 MiB  | `{uid}/avatar`                                     |
+| `problem-uploads` | private    | 10 MiB | `user/{uid}/problems/{problemId}/{role}/{filename}`|
+
+If you add a bucket, add it to that migration rather than creating it in the
+Dashboard — otherwise it will exist in production but not on any local machine.
+
+### Deploying schema changes to production
+
+**Migrations deploy automatically.** The Supabase GitHub integration is enabled
+with **Deploy to production** pointed at `main`, so merging a PR applies any new
+migrations in `web/supabase/migrations/` to the production database. You do not
+run `supabase db push` by hand.
+
+Only three things are deployed: new migrations, Edge Functions declared in
+`config.toml`, and storage buckets declared in `config.toml`. Everything else —
+API settings, Auth settings, and `seed.sql` — is ignored, so the local-only
+values in `config.toml` (`site_url = http://127.0.0.1:3000`) and the seeded test
+accounts never reach production.
+
+Because a merge ships schema automatically, two rules matter:
+
+- **Verify before you merge.** Run `npx supabase db reset` so your migration is
+  proven against a clean database, and `npx supabase db diff --linked --schema
+  public` to confirm you are not carrying unexpected drift. The Supabase status
+  check on the PR must also be green.
+- **Destructive changes need two deploys.** Migrations and the Vercel app build
+  are triggered together and run in parallel, so the new schema is live before,
+  or alongside, the code that uses it. Additive changes (a new table, a nullable
+  column) are safe. Dropping or renaming anything breaks the currently-running
+  app the moment it applies, so expand first, migrate the code, then contract in
+  a later PR.
+
 ## Code Quality
 
 The project enforces consistent code quality through automated tooling:
@@ -156,7 +205,9 @@ Run from `web/`:
 
 ## Deploying to Vercel
 
-This section is for maintainers deploying the production application.
+This section is for maintainers deploying the production application. It covers
+the app only — database schema deploys separately and automatically, see
+[Deploying schema changes to production](#deploying-schema-changes-to-production).
 
 ### Initial setup
 
