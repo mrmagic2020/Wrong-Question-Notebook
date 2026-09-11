@@ -84,6 +84,14 @@ and this project adheres to [Semantic Versioning].
   - Tag suggestions are toggleable (click to deselect/reselect) rather than permanently removed
   - The model mimics the naming style (casing, abbreviations, language) of the user's existing tags
 
+### Security
+
+- **`SECURITY DEFINER` RPC authorisation**: Database RPCs that took a user id as an argument trusted it as proof of identity. Because the functions run as their owner, table RLS never applied to the caller, and no migration had revoked PostgreSQL's default `EXECUTE ... TO PUBLIC`, so PostgREST exposed them to `anon` and `authenticated`
+  - Any caller holding only the publishable key could read another user's problem content, correct answers, submitted answers and reflection notes via `get_uncategorised_attempts`, plus their statistics, subject breakdown and problem set progress
+  - Likes, copies and view counts could be written attributed to an arbitrary user id
+  - Platform-wide user and admin account totals were readable anonymously via the no-argument `get_user_statistics()`
+  - RPCs the app only calls server-side are now restricted to the service role; RPCs called with the user's own session now verify the argument against `auth.uid()` and pin an empty `search_path` with schema-qualified bodies
+
 ## [0.2.0-beta] - 2026-03-25
 
 ### Added
