@@ -153,10 +153,7 @@ async function deleteCategorisationOverride(
       );
     }
 
-    if (
-      !existing.original_broad_category ||
-      !existing.original_granular_tag
-    ) {
+    if (!existing.original_broad_category || !existing.original_granular_tag) {
       return NextResponse.json(
         createApiErrorResponse(
           'Cannot reset — original values are missing',
