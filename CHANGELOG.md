@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning].
 
 ## [Unreleased]
 
+## [0.3.0-beta] - 2026-09-13
+
 ### Added
 
 - **Social & Discovery for Problem Sets**: Full social engagement layer for public problem sets
@@ -92,6 +94,10 @@ and this project adheres to [Semantic Versioning].
   - Platform-wide user and admin account totals were readable anonymously via the no-argument `get_user_statistics()`
   - RPCs the app only calls server-side are now restricted to the service role; RPCs called with the user's own session now verify the argument against `auth.uid()` and pin an empty `search_path` with schema-qualified bodies
   - Two further routines that took no user id were still anonymously callable: `compute_problem_set_count()` disclosed the exact size of any user's private problem set, and `refresh_ranking_scores()` let an unauthenticated caller trigger unbounded global writes and aggregation across every public set. Both, plus the service-only `find_problem_by_asset()`, are now restricted to the service role
+  - A signed-in user could plant a status-history or review-schedule row pointing at another user's problem, then read that problem through `get_recent_study_activity` (title and subject name) or `get_due_problems_for_subject` (the full problem, including content and correct answer). These functions now only join to problems and subjects the caller owns, and status-history inserts require owning the problem, which also stops a planted row capturing the owner's real status changes
+- **Row-level security write policies**: Several policies checked a row's `user_id` but not the records it pointed at
+  - Anyone holding only the publishable key could insert error categorisations attributed to another user. A planted row blocked AI categorisation of that user's attempt, and its topic label was passed verbatim into their future AI prompts. Inserts are now restricted to the service role, and users can no longer repoint their own categorisations at another user's attempt
+  - A signed-in user could add a problem to, or move one into, another user's subject, inflating that subject's problem count. Problems can now only be created in or moved to the user's own subjects
 
 ## [0.2.0-beta] - 2026-03-25
 
@@ -281,6 +287,7 @@ and this project adheres to [Semantic Versioning].
 
 <!-- Versions -->
 
-[unreleased]: https://github.com/mrmagic2020/Wong-Question-Notebook/compare/v0.2.0-beta...HEAD
-[0.2.0-beta]: https://github.com/mrmagic2020/Wong-Question-Notebook/compare/v0.1.0-beta...v0.2.0-beta
-[0.1.0-beta]: https://github.com/mrmagic2020/Wong-Question-Notebook/releases/tag/v0.1.0-beta
+[unreleased]: https://github.com/mrmagic2020/Wrong-Question-Notebook/compare/v0.3.0-beta...HEAD
+[0.3.0-beta]: https://github.com/mrmagic2020/Wrong-Question-Notebook/compare/v0.2.0-beta...v0.3.0-beta
+[0.2.0-beta]: https://github.com/mrmagic2020/Wrong-Question-Notebook/compare/v0.1.0-beta...v0.2.0-beta
+[0.1.0-beta]: https://github.com/mrmagic2020/Wrong-Question-Notebook/releases/tag/v0.1.0-beta
