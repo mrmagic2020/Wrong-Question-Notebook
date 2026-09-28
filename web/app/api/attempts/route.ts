@@ -10,10 +10,7 @@ import {
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
 import type { Json } from '@/lib/database.types';
-import {
-  revalidateProblemAndSubject,
-  revalidateUserReviewSchedule,
-} from '@/lib/cache-invalidation';
+import { revalidateUserData } from '@/lib/cache-invalidation';
 import { updateReviewSchedule } from '@/lib/spaced-repetition';
 import { createServiceClient } from '@/lib/supabase-utils';
 import { getUserTimezone } from '@/lib/timezone-utils';
@@ -155,12 +152,6 @@ async function createAttempt(req: Request) {
       }
     }
 
-    // Invalidate cache after successful attempt creation
-    await revalidateProblemAndSubject(
-      parsed.data.problem_id,
-      problem.subject_id
-    );
-
     // Update spaced repetition schedule
     try {
       const srStatus =
@@ -181,11 +172,14 @@ async function createAttempt(req: Request) {
           srStatus,
           userTimezone
         );
-        await revalidateUserReviewSchedule(user.id);
       }
     } catch (e) {
       console.error('Failed to update review schedule:', e);
     }
+
+    // Invalidate after the last write so a concurrent render can't re-cache
+    // the pre-update schedule
+    await revalidateUserData(user.id);
 
     // Trigger AI error categorisation after the response is sent
     const triggerStatus =

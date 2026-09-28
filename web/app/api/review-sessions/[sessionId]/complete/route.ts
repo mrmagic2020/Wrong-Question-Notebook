@@ -10,7 +10,7 @@ import {
 import { ERROR_MESSAGES } from '@/lib/constants';
 import { calculateSessionStats } from '@/lib/review-utils';
 import { createServiceClient } from '@/lib/supabase-utils';
-import { revalidateUserReviewSchedule } from '@/lib/cache-invalidation';
+import { revalidateUserData } from '@/lib/cache-invalidation';
 import type { ReviewSessionState } from '@/lib/types';
 
 async function completeSession(
@@ -77,14 +77,8 @@ async function completeSession(
       currentStatuses
     );
 
-    // Invalidate SR cache if this was a spaced repetition session
-    if (session.session_type === 'spaced_repetition') {
-      try {
-        await revalidateUserReviewSchedule(user.id);
-      } catch {
-        // Best effort
-      }
-    }
+    // Completed sessions feed statistics and, for spaced repetition, due counts
+    await revalidateUserData(user.id);
 
     return NextResponse.json(
       createApiSuccessResponse({

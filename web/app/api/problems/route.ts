@@ -16,7 +16,7 @@ import {
 import { ERROR_MESSAGES, CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
 import type { Database } from '@/lib/database.types';
 import { checkContentLimit } from '@/lib/content-limits';
-import { revalidateProblemComprehensive } from '@/lib/cache-invalidation';
+import { revalidateUserData } from '@/lib/cache-invalidation';
 import { createServiceClient } from '@/lib/supabase-utils';
 
 // Cache configuration for this route
@@ -386,11 +386,7 @@ async function createProblem(req: Request) {
     }
 
     // Invalidate cache after successful creation
-    await revalidateProblemComprehensive(
-      created.id,
-      parsed.data.subject_id,
-      user.id
-    );
+    await revalidateUserData(user.id);
 
     return NextResponse.json(
       createApiSuccessResponse({

@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
 import { UpdateTagDto } from '@/lib/schemas';
-import {
-  revalidateUserTags,
-  revalidateSubjectTags,
-} from '@/lib/cache-invalidation';
+import { revalidateUserData } from '@/lib/cache-invalidation';
 
 export async function PATCH(
   req: Request,
@@ -24,14 +21,6 @@ export async function PATCH(
 
   const { id } = await params;
 
-  // Get the tag first to get subject_id for cache invalidation
-  const { data: existingTag } = await supabase
-    .from('tags')
-    .select('subject_id')
-    .eq('id', id)
-    .eq('user_id', user.id)
-    .single();
-
   const { data, error } = await supabase
     .from('tags')
     .update(parsed.data)
@@ -44,12 +33,7 @@ export async function PATCH(
     return NextResponse.json({ error: error.message }, { status: 500 });
 
   // Invalidate cache after successful update
-  if (existingTag?.subject_id) {
-    await Promise.all([
-      revalidateUserTags(user.id),
-      revalidateSubjectTags(existingTag.subject_id),
-    ]);
-  }
+  await revalidateUserData(user.id);
 
   return NextResponse.json({ data });
 }
@@ -63,14 +47,6 @@ export async function DELETE(
 
   const { id } = await params;
 
-  // Get the tag first to get subject_id for cache invalidation
-  const { data: existingTag } = await supabase
-    .from('tags')
-    .select('subject_id')
-    .eq('id', id)
-    .eq('user_id', user.id)
-    .single();
-
   // Also clears links via ON DELETE CASCADE on problem_tag.tag_id
   const { error } = await supabase
     .from('tags')
@@ -82,12 +58,7 @@ export async function DELETE(
     return NextResponse.json({ error: error.message }, { status: 500 });
 
   // Invalidate cache after successful deletion
-  if (existingTag?.subject_id) {
-    await Promise.all([
-      revalidateUserTags(user.id),
-      revalidateSubjectTags(existingTag.subject_id),
-    ]);
-  }
+  await revalidateUserData(user.id);
 
   return NextResponse.json({ ok: true });
 }

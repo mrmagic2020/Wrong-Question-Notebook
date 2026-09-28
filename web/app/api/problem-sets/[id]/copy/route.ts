@@ -12,7 +12,7 @@ import { getFilteredProblems } from '@/lib/review-utils';
 import { FilterConfig } from '@/lib/types';
 import { createServiceClient } from '@/lib/supabase-utils';
 import {
-  revalidateUserProblemSets,
+  revalidateUserData,
   revalidateDiscovery,
 } from '@/lib/cache-invalidation';
 import { checkContentLimit } from '@/lib/content-limits';
@@ -436,10 +436,7 @@ async function copyProblemSet(
     });
 
     // Invalidate cache
-    await Promise.all([
-      revalidateUserProblemSets(user.id),
-      revalidateDiscovery(),
-    ]);
+    await Promise.all([revalidateUserData(user.id), revalidateDiscovery()]);
 
     return NextResponse.json(
       createApiSuccessResponse({

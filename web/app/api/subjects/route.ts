@@ -8,7 +8,7 @@ import {
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES, CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
 import { CreateSubjectDto } from '@/lib/schemas';
-import { revalidateUserSubjects } from '@/lib/cache-invalidation';
+import { revalidateUserData } from '@/lib/cache-invalidation';
 import { checkContentLimit } from '@/lib/content-limits';
 
 // Cache configuration for this route
@@ -111,7 +111,7 @@ async function createSubject(req: Request) {
     }
 
     // Invalidate cache after successful creation
-    await revalidateUserSubjects(user.id);
+    await revalidateUserData(user.id);
 
     return NextResponse.json(createApiSuccessResponse(data), { status: 201 });
   } catch (error) {

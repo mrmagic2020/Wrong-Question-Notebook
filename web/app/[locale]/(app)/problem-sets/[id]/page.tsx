@@ -1,4 +1,3 @@
-import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import { requireUser } from '@/lib/supabase/requireUser';
 import { getProblemSetWithFullData } from '@/lib/problem-set-utils';
@@ -7,12 +6,8 @@ import { stripHtml } from '@/lib/html-sanitizer';
 import { getTranslations } from 'next-intl/server';
 import ProblemSetPageClient from './problem-set-page-client';
 import { unstable_cache } from 'next/cache';
-import {
-  CACHE_DURATIONS,
-  CACHE_TAGS,
-  createProblemSetCacheTag,
-  createUserCacheTag,
-} from '@/lib/cache-config';
+import { CACHE_DURATIONS } from '@/lib/cache-config';
+import { cacheUserData, createUserDataTag } from '@/lib/user-data-cache';
 
 export async function generateMetadata({
   params,
@@ -58,61 +53,46 @@ export async function generateMetadata({
 }
 
 async function loadProblemSet(id: string) {
-  const supabase = await createClient();
-  const { user } = await requireUser();
+  const { user, supabase } = await requireUser();
+
+  // Look up the owner so cached copies viewed by anyone are also tagged with
+  // the owner: the owner's edits must refresh other users' views of a shared
+  // set. Only the owner id is read here; access is checked in the loader.
+  const { data: ownerRow } = await createServiceClient()
+    .from('problem_sets')
+    .select('user_id')
+    .eq('id', id)
+    .maybeSingle();
+  if (!ownerRow) return null;
+  const ownerId = ownerRow.user_id;
 
   if (user) {
-    // Authenticated user: use their Supabase client with caching
-    const cachedLoadProblemSet = unstable_cache(
-      async (
-        problemSetId: string,
-        userId: string,
-        userEmail: string,
-        supabaseClient: any
-      ) => {
-        return await getProblemSetWithFullData(
-          supabaseClient,
-          problemSetId,
-          userId,
-          userEmail
-        );
-      },
-      [`problem-set-${id}-${user.id}`],
+    // Authenticated user: their RLS-scoped client, keyed per viewer. The
+    // email is part of the key because limited sharing is granted by email.
+    const userEmail = user.email || '';
+    return await cacheUserData(
+      () => getProblemSetWithFullData(supabase, id, user.id, userEmail),
       {
-        tags: [
-          CACHE_TAGS.PROBLEM_SETS,
-          createProblemSetCacheTag(CACHE_TAGS.PROBLEM_SETS, id),
-          createUserCacheTag(CACHE_TAGS.USER_PROBLEM_SETS, user.id),
-        ],
+        userId: user.id,
+        key: ['problem-set', id, userEmail],
+        alsoInvalidatedBy: [ownerId],
         revalidate: CACHE_DURATIONS.PROBLEM_SETS,
       }
     );
-
-    return await cachedLoadProblemSet(id, user.id, user.email || '', supabase);
   }
 
   // Anonymous user: use service client to bypass RLS, only public sets accessible
   const cachedLoadPublicProblemSet = unstable_cache(
-    async (problemSetId: string) => {
-      const serviceClient = createServiceClient();
-      return await getProblemSetWithFullData(
-        serviceClient,
-        problemSetId,
-        null,
-        null
-      );
-    },
+    async () =>
+      getProblemSetWithFullData(createServiceClient(), id, null, null),
     [`problem-set-public-${id}`],
     {
-      tags: [
-        CACHE_TAGS.PROBLEM_SETS,
-        createProblemSetCacheTag(CACHE_TAGS.PROBLEM_SETS, id),
-      ],
+      tags: [createUserDataTag(ownerId)],
       revalidate: CACHE_DURATIONS.PROBLEM_SETS,
     }
   );
 
-  return await cachedLoadPublicProblemSet(id);
+  return await cachedLoadPublicProblemSet();
 }
 
 async function loadSocialData(id: string, userId: string | null) {

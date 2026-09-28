@@ -10,10 +10,7 @@ import { ERROR_MESSAGES } from '@/lib/constants';
 import type { Database, Json } from '@/lib/database.types';
 import { updateReviewSchedule } from '@/lib/spaced-repetition';
 import { createServiceClient } from '@/lib/supabase-utils';
-import {
-  revalidateProblemAndSubject,
-  revalidateUserReviewSchedule,
-} from '@/lib/cache-invalidation';
+import { revalidateUserData } from '@/lib/cache-invalidation';
 import { getUserTimezone } from '@/lib/timezone-utils';
 import { performErrorCategorisation } from '@/lib/categorise-error';
 
@@ -129,16 +126,13 @@ export async function PATCH(
             parsed.data.selected_status,
             userTimezone
           );
-          await revalidateUserReviewSchedule(user.id);
         } catch (e) {
           console.error('Failed to update review schedule:', e);
         }
       }
 
       // Invalidate caches
-      if (problem) {
-        await revalidateProblemAndSubject(data.problem_id, problem.subject_id);
-      }
+      await revalidateUserData(user.id);
 
       // Trigger AI error categorisation after the response is sent
       if (

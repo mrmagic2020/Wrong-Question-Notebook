@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning].
 
 ## [Unreleased]
 
+### Fixed
+
+- **Page data caching**: The subjects, subject problems, problem review, problem sets, problem set detail and statistics pages now actually serve cached data
+  - Previously every request missed the cache and wrote a fresh, never-read entry, so pages queried the database on every load while the Data Cache kept growing
+  - Saving any change (problems, attempts, tags, subjects, problem sets, review sessions, profile) refreshes the affected pages immediately, instead of serving the old version once
+  - An owner's edits to a shared problem set now also refresh other users' cached view of it
+  - One user's edits no longer flush every other user's cached pages
+
 ## [0.3.0-beta] - 2026-09-13
 
 ### Added
