@@ -11,9 +11,7 @@ import {
 import { ERROR_MESSAGES } from '@/lib/constants';
 import { getProblemSetWithFullData } from '@/lib/problem-set-utils';
 import {
-  revalidateUserProblemSets,
-  revalidateProblemSet,
-  revalidateProblemSetPage,
+  revalidateUserData,
   revalidateDiscovery,
   revalidateSitemap,
 } from '@/lib/cache-invalidation';
@@ -229,12 +227,8 @@ async function updateProblemSet(
       }
     }
 
-    // Invalidate cache after successful update (both data cache and path/Router Cache)
-    const cacheInvalidations: Promise<void>[] = [
-      revalidateUserProblemSets(user.id),
-      revalidateProblemSet(id),
-      revalidateProblemSetPage(id),
-    ];
+    // Invalidate cache after successful update
+    const cacheInvalidations: Promise<void>[] = [revalidateUserData(user.id)];
 
     // Revalidate discovery/sitemap when discoverability-related fields change
     if (
@@ -307,10 +301,7 @@ async function deleteProblemSet(
     }
 
     // Invalidate cache after successful deletion
-    await Promise.all([
-      revalidateUserProblemSets(user.id),
-      revalidateProblemSet(id),
-    ]);
+    await revalidateUserData(user.id);
 
     return NextResponse.json(createApiSuccessResponse({ id }));
   } catch (error) {

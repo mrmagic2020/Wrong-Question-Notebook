@@ -9,7 +9,7 @@ import {
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
 import type { ReviewSessionState } from '@/lib/types';
-import { revalidateUserStatistics } from '@/lib/cache-invalidation';
+import { revalidateUserData } from '@/lib/cache-invalidation';
 
 async function updateProgress(
   req: Request,
@@ -145,9 +145,6 @@ async function updateProgress(
       if (resultError) {
         console.error('Failed to create session result:', resultError);
       }
-
-      // Invalidate statistics cache on answer/skip
-      await revalidateUserStatistics(user.id);
     }
 
     // Update problem's last_reviewed_date only when actually answered
@@ -158,6 +155,12 @@ async function updateProgress(
         .update({ last_reviewed_date: new Date().toISOString() })
         .eq('id', problemId)
         .eq('user_id', user.id);
+    }
+
+    // Answers and skips feed statistics; invalidate after the last write.
+    // Heartbeat/save-state requests change nothing the cached pages show.
+    if (wasSkipped || isAnswer) {
+      await revalidateUserData(user.id);
     }
 
     return NextResponse.json(

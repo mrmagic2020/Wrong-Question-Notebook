@@ -2,13 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import ProblemsPageClient from './problems-page-client';
 import { ROUTES } from '@/lib/constants';
 import { BackLink } from '@/components/back-link';
-import { unstable_cache } from 'next/cache';
-import {
-  CACHE_DURATIONS,
-  CACHE_TAGS,
-  createSubjectCacheTag,
-  createUserCacheTag,
-} from '@/lib/cache-config';
+import { CACHE_DURATIONS } from '@/lib/cache-config';
+import { cacheUserData } from '@/lib/user-data-cache';
 import { SimpleTag } from '@/lib/types';
 import { getTranslations } from 'next-intl/server';
 
@@ -41,10 +36,14 @@ async function loadData(subjectId: string) {
     };
   }
 
-  const cachedLoadData = unstable_cache(
-    async (subjectId: string, userId: string, supabaseClient: any) => {
+  // Typed loosely, as before this loader was cached: the generated row types
+  // don't line up with the app's hand-written Problem/Subject/stat types.
+  const db: any = supabase;
+
+  return await cacheUserData(
+    async () => {
       // Subject detail
-      const { data: subject } = await supabaseClient
+      const { data: subject } = await db
         .from('subjects')
         .select('*')
         .eq('id', subjectId)
@@ -60,12 +59,12 @@ async function loadData(subjectId: string) {
 
       // Load problems and tags in parallel
       const [{ data: problems }, { data: availableTags }] = await Promise.all([
-        supabaseClient
+        db
           .from('problems')
           .select('*')
           .eq('subject_id', subjectId)
           .order('created_at', { ascending: false }),
-        supabaseClient
+        db
           .from('tags')
           .select('id, name')
           .eq('subject_id', subjectId)
@@ -78,7 +77,7 @@ async function loadData(subjectId: string) {
 
       if (ids.length) {
         // Join problem_tag -> tags to collect tags per problem
-        const { data: links } = await supabaseClient
+        const { data: links } = await db
           .from('problem_tag')
           .select('problem_id, tags:tag_id ( id, name )')
           .in('problem_id', ids);
@@ -101,27 +100,12 @@ async function loadData(subjectId: string) {
         availableTags: availableTags ?? [],
       };
     },
-    [`subject-problems-${subjectId}-${userId}`],
     {
-      tags: [
-        CACHE_TAGS.PROBLEMS,
-        CACHE_TAGS.TAGS,
-        createSubjectCacheTag(CACHE_TAGS.PROBLEMS, subjectId),
-        createSubjectCacheTag(CACHE_TAGS.TAGS, subjectId),
-        createUserCacheTag(CACHE_TAGS.USER_PROBLEMS, userId),
-      ],
+      userId,
+      key: ['subject-problems', subjectId],
       revalidate: CACHE_DURATIONS.PROBLEMS,
     }
   );
-
-  const cachedData = await cachedLoadData(subjectId, userId, supabase);
-
-  return {
-    subject: cachedData.subject,
-    problems: cachedData.problems,
-    tagsByProblem: cachedData.tagsByProblem,
-    availableTags: cachedData.availableTags,
-  };
 }
 
 export default async function SubjectProblemsPage({

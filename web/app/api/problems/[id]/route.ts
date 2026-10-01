@@ -8,7 +8,7 @@ import {
   hasOnlyOwnedAssetPaths,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
-import { revalidateProblemComprehensive } from '@/lib/cache-invalidation';
+import { revalidateUserData } from '@/lib/cache-invalidation';
 
 // Cache configuration for this route
 export const revalidate = 300; // 5 minutes
@@ -181,7 +181,7 @@ export async function PATCH(
     tagLinks?.map((link: { tags: unknown }) => link.tags).filter(Boolean) || [];
 
   // Invalidate cache after successful update
-  await revalidateProblemComprehensive(id, updatedProblem.subject_id, user.id);
+  await revalidateUserData(user.id);
 
   return NextResponse.json(
     createApiSuccessResponse({
@@ -200,10 +200,10 @@ export async function DELETE(
 
   const { id } = await params;
 
-  // Get the problem first to get subject_id for cache invalidation
-  const { data: problem, error: fetchError } = await supabase
+  // Make sure the problem exists and belongs to the user before deleting
+  const { error: fetchError } = await supabase
     .from('problems')
-    .select('subject_id')
+    .select('id')
     .eq('id', id)
     .eq('user_id', user.id)
     .single();
@@ -232,7 +232,7 @@ export async function DELETE(
   }
 
   // Invalidate cache after successful deletion
-  await revalidateProblemComprehensive(id, problem.subject_id, user.id);
+  await revalidateUserData(user.id);
 
   return NextResponse.json(createApiSuccessResponse({ ok: true }));
 }

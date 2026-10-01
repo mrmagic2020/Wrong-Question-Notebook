@@ -39,75 +39,18 @@ export const CACHE_DURATIONS = {
 
 // Cache tags for organized invalidation
 export const CACHE_TAGS = {
-  // Data type tags
-  SUBJECTS: 'subjects',
-  PROBLEMS: 'problems',
-  PROBLEM_SETS: 'problem-sets',
-  REVIEW_SESSIONS: 'review-sessions',
-  TAGS: 'tags',
+  // Shared (not per-user) caches
   ADMIN_STATS: 'admin-stats',
   ADMIN_USERS: 'admin-users',
-  ADMIN_ACTIVITY: 'admin-activity',
-
-  STATISTICS: 'statistics',
-  REVIEW_SCHEDULE: 'review-schedule',
-  INSIGHTS: 'insights',
   DISCOVERY: 'discovery',
   SITEMAP: 'sitemap',
 
-  // User-specific tags (will be combined with user ID)
-  USER_SUBJECTS: 'user-subjects',
-  USER_PROBLEMS: 'user-problems',
-  USER_PROBLEM_SETS: 'user-problem-sets',
-  USER_REVIEW_SESSIONS: 'user-review-sessions',
-  USER_TAGS: 'user-tags',
-  USER_STATISTICS: 'user-statistics',
-  USER_REVIEW_SCHEDULE: 'user-review-schedule',
-  USER_INSIGHTS: 'user-insights',
+  // Every per-user page cache carries `user-data-{userId}`; see
+  // lib/user-data-cache.ts and revalidateUserData() in cache-invalidation.ts
+  USER_DATA: 'user-data',
 } as const;
 
 // Helper function to create user-specific cache tags
 export function createUserCacheTag(baseTag: string, userId: string): string {
   return `${baseTag}-${userId}`;
 }
-
-// Helper function to create subject-specific cache tags
-export function createSubjectCacheTag(
-  baseTag: string,
-  subjectId: string
-): string {
-  return `${baseTag}-${subjectId}`;
-}
-
-// Helper function to create problem set-specific cache tags
-export function createProblemSetCacheTag(
-  baseTag: string,
-  problemSetId: string
-): string {
-  return `${baseTag}-${problemSetId}`;
-}
-
-// Helper function to create problem-specific cache tags
-export function createProblemCacheTag(
-  baseTag: string,
-  problemId: string
-): string {
-  return `${baseTag}-${problemId}`;
-}
-
-// Cache key patterns for consistent naming
-export const CACHE_KEYS = {
-  SUBJECTS_LIST: 'subjects-list',
-  PROBLEMS_LIST: 'problems-list',
-  PROBLEM_SETS_LIST: 'problem-sets-list',
-  TAGS_LIST: 'tags-list',
-  ADMIN_STATISTICS: 'admin-statistics',
-  ADMIN_USERS_LIST: 'admin-users-list',
-  USER_STATISTICS: 'user-statistics',
-} as const;
-
-// Type definitions for better TypeScript support
-export type CacheDuration =
-  (typeof CACHE_DURATIONS)[keyof typeof CACHE_DURATIONS];
-export type CacheTag = (typeof CACHE_TAGS)[keyof typeof CACHE_TAGS];
-export type CacheKey = (typeof CACHE_KEYS)[keyof typeof CACHE_KEYS];

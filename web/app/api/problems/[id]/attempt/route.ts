@@ -6,7 +6,7 @@ import {
   handleAsyncError,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
-import { revalidateProblemAndSubject } from '@/lib/cache-invalidation';
+import { revalidateUserData } from '@/lib/cache-invalidation';
 import { markAnswer } from '@/lib/answer-marking';
 import { createServiceClient } from '@/lib/supabase-utils';
 import type { AnswerConfig } from '@/lib/types';
@@ -110,7 +110,7 @@ export async function POST(
         }
 
         // Invalidate cache after successful attempt creation
-        await revalidateProblemAndSubject(problemId, problem.subject_id);
+        await revalidateUserData(user.id);
 
         // Note: SM-2 schedule is NOT updated here. The user will confirm
         // their assessment via PATCH /api/attempts/[id] with selected_status,

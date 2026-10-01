@@ -9,10 +9,7 @@ import {
   isValidUuid,
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
-import {
-  revalidateUserProblemSets,
-  revalidateProblemSet,
-} from '@/lib/cache-invalidation';
+import { revalidateUserData } from '@/lib/cache-invalidation';
 
 // Cache configuration for this route
 export const revalidate = 300; // 5 minutes
@@ -256,10 +253,7 @@ async function addProblemsToSet(
     }
 
     // Invalidate cache after successful addition
-    await Promise.all([
-      revalidateUserProblemSets(user.id),
-      revalidateProblemSet(id),
-    ]);
+    await revalidateUserData(user.id);
 
     return NextResponse.json(
       createApiSuccessResponse({
@@ -374,10 +368,7 @@ async function removeProblemsFromSet(
     }
 
     // Invalidate cache after successful removal
-    await Promise.all([
-      revalidateUserProblemSets(user.id),
-      revalidateProblemSet(id),
-    ]);
+    await revalidateUserData(user.id);
 
     return NextResponse.json(
       createApiSuccessResponse({

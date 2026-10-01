@@ -7,10 +7,7 @@ import {
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
 import { PROBLEM_STATUS_VALUES } from '@/lib/schemas';
-import {
-  revalidateProblemAndSubject,
-  revalidateUserStatistics,
-} from '@/lib/cache-invalidation';
+import { revalidateUserData } from '@/lib/cache-invalidation';
 
 export async function PATCH(
   req: Request,
@@ -92,8 +89,7 @@ export async function PATCH(
     }
 
     // Invalidate cache after successful status update
-    await revalidateProblemAndSubject(problemId, data.subject_id);
-    await revalidateUserStatistics(user.id);
+    await revalidateUserData(user.id);
 
     return NextResponse.json(createApiSuccessResponse(data));
   } catch (error) {

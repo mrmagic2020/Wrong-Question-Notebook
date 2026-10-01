@@ -12,11 +12,7 @@ import { isFilteredProblemMember } from '@/lib/review-utils';
 import { FilterConfig } from '@/lib/types';
 import { createServiceClient } from '@/lib/supabase-utils';
 import {
-  revalidateUserSubjects,
-  revalidateUserProblems,
-  revalidateSubjectProblems,
-  revalidateUserTags,
-  revalidateSubjectTags,
+  revalidateUserData,
   revalidateDiscovery,
 } from '@/lib/cache-invalidation';
 import { checkContentLimit } from '@/lib/content-limits';
@@ -336,17 +332,7 @@ async function copyProblem(
     }
 
     // Invalidate caches for new problem (and tags if copied)
-    await Promise.all([
-      revalidateUserSubjects(user.id),
-      revalidateUserProblems(user.id),
-      revalidateSubjectProblems(target_subject_id),
-      ...(copy_tags && tagCount > 0
-        ? [
-            revalidateUserTags(user.id),
-            revalidateSubjectTags(target_subject_id),
-          ]
-        : []),
-    ]);
+    await revalidateUserData(user.id);
 
     // Record unique copy on the source problem set (idempotent per user)
     await serviceClient.rpc('record_problem_set_copy', {

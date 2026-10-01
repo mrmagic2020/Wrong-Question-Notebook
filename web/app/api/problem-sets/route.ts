@@ -10,7 +10,7 @@ import {
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES, CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
 import { checkContentLimit } from '@/lib/content-limits';
-import { revalidateUserProblemSets } from '@/lib/cache-invalidation';
+import { revalidateUserData } from '@/lib/cache-invalidation';
 
 // Cache configuration for this route
 export const revalidate = 300; // 5 minutes
@@ -268,7 +268,7 @@ async function createProblemSet(req: Request) {
     };
 
     // Invalidate cache after successful creation
-    await revalidateUserProblemSets(user.id);
+    await revalidateUserData(user.id);
 
     return NextResponse.json(createApiSuccessResponse(result), { status: 201 });
   } catch (error) {

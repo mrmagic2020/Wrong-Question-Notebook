@@ -2,14 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import ProblemReview from './problem-review';
-import { unstable_cache } from 'next/cache';
-import {
-  CACHE_DURATIONS,
-  CACHE_TAGS,
-  createSubjectCacheTag,
-  createProblemCacheTag,
-  createUserCacheTag,
-} from '@/lib/cache-config';
+import { CACHE_DURATIONS } from '@/lib/cache-config';
+import { cacheUserData } from '@/lib/user-data-cache';
 
 export async function generateMetadata({
   params,
@@ -35,15 +29,14 @@ async function loadData(subjectId: string, problemId: string) {
     return { problem: null, subject: null, allProblems: [] };
   }
 
-  const cachedLoadData = unstable_cache(
-    async (
-      subjectId: string,
-      problemId: string,
-      userId: string,
-      supabaseClient: any
-    ) => {
+  // Typed loosely, as before this loader was cached: the generated row types
+  // don't line up with the app's hand-written Problem/Subject/stat types.
+  const db: any = supabase;
+
+  return await cacheUserData(
+    async () => {
       // Get the problem with all details
-      const { data: problem, error } = await supabaseClient
+      const { data: problem, error } = await db
         .from('problems')
         .select('*')
         .eq('id', problemId)
@@ -55,21 +48,21 @@ async function loadData(subjectId: string, problemId: string) {
       }
 
       // Get the subject
-      const { data: subject } = await supabaseClient
+      const { data: subject } = await db
         .from('subjects')
         .select('*')
         .eq('id', subjectId)
         .single();
 
       // Get all problems in this subject for navigation
-      const { data: allProblems } = await supabaseClient
+      const { data: allProblems } = await db
         .from('problems')
         .select('id, title, problem_type, status')
         .eq('subject_id', subjectId)
         .order('created_at', { ascending: false });
 
       // Get tags for this problem
-      const { data: tagLinks } = await supabaseClient
+      const { data: tagLinks } = await db
         .from('problem_tag')
         .select('tags:tag_id ( id, name )')
         .eq('problem_id', problemId);
@@ -83,19 +76,12 @@ async function loadData(subjectId: string, problemId: string) {
         allProblems: allProblems || [],
       };
     },
-    [`problem-review-${subjectId}-${problemId}-${userId}`],
     {
-      tags: [
-        CACHE_TAGS.PROBLEMS,
-        createSubjectCacheTag(CACHE_TAGS.PROBLEMS, subjectId),
-        createProblemCacheTag(CACHE_TAGS.PROBLEMS, problemId),
-        createUserCacheTag(CACHE_TAGS.USER_PROBLEMS, userId),
-      ],
+      userId,
+      key: ['problem-review', subjectId, problemId],
       revalidate: CACHE_DURATIONS.PROBLEMS,
     }
   );
-
-  return await cachedLoadData(subjectId, problemId, userId, supabase);
 }
 
 export default async function ProblemReviewPage({

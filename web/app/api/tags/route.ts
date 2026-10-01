@@ -10,10 +10,7 @@ import {
 } from '@/lib/common-utils';
 import { ERROR_MESSAGES, CONTENT_LIMIT_CONSTANTS } from '@/lib/constants';
 import { checkContentLimit } from '@/lib/content-limits';
-import {
-  revalidateUserTags,
-  revalidateSubjectTags,
-} from '@/lib/cache-invalidation';
+import { revalidateUserData } from '@/lib/cache-invalidation';
 
 // Cache configuration for this route
 export const revalidate = 600; // 10 minutes
@@ -137,10 +134,7 @@ async function createTag(req: Request) {
     }
 
     // Invalidate cache after successful creation
-    await Promise.all([
-      revalidateUserTags(user.id),
-      revalidateSubjectTags(parsed.data.subject_id),
-    ]);
+    await revalidateUserData(user.id);
 
     return NextResponse.json(createApiSuccessResponse(data), { status: 201 });
   } catch (error) {

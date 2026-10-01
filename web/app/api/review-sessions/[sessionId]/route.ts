@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidateUserData } from '@/lib/cache-invalidation';
 import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
 import { withSecurity } from '@/lib/security-middleware';
 import {
@@ -193,6 +194,8 @@ async function deleteSession(
         { status: 500 }
       );
     }
+
+    await revalidateUserData(user.id);
 
     return NextResponse.json(
       createApiSuccessResponse({ id: sessionId, is_active: false })

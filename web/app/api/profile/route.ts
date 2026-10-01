@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateUserData } from '@/lib/cache-invalidation';
 import { requireUser, unauthorised } from '@/lib/supabase/requireUser';
 import { getUserProfile } from '@/lib/user-management';
 import { createServiceClient } from '@/lib/supabase-utils';
@@ -113,6 +114,8 @@ export async function PATCH(req: NextRequest) {
       { status: 500 }
     );
   }
+
+  await revalidateUserData(user.id);
 
   return NextResponse.json(createApiSuccessResponse(data));
 }

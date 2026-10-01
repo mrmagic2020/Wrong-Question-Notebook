@@ -2,12 +2,8 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import StatisticsPageClient from './statistics-page-client';
 import { createClient } from '@/lib/supabase/server';
-import { unstable_cache } from 'next/cache';
-import {
-  CACHE_DURATIONS,
-  CACHE_TAGS,
-  createUserCacheTag,
-} from '@/lib/cache-config';
+import { CACHE_DURATIONS } from '@/lib/cache-config';
+import { cacheUserData } from '@/lib/user-data-cache';
 import { getUserTimezone } from '@/lib/timezone-utils';
 import type {
   StatisticsData,
@@ -61,8 +57,12 @@ async function loadStatistics() {
 
   const userTz = await getUserTimezone(userId);
 
-  const cachedLoad = unstable_cache(
-    async (uid: string, tz: string, client: any): Promise<StatisticsData> => {
+  // Typed loosely, as before this loader was cached: the generated row types
+  // don't line up with the app's hand-written Problem/Subject/stat types.
+  const db: any = supabase;
+
+  return await cacheUserData(
+    async (): Promise<StatisticsData> => {
       const [
         overviewRes,
         streaksRes,
@@ -72,13 +72,22 @@ async function loadStatistics() {
         heatmapRes,
         recentRes,
       ] = await Promise.all([
-        client.rpc('get_user_statistics', { p_user_id: uid }),
-        client.rpc('get_study_streaks', { p_user_id: uid, p_user_tz: tz }),
-        client.rpc('get_session_statistics', { p_user_id: uid }),
-        client.rpc('get_subject_breakdown', { p_user_id: uid }),
-        client.rpc('get_weekly_progress', { p_user_id: uid, p_user_tz: tz }),
-        client.rpc('get_activity_heatmap', { p_user_id: uid, p_user_tz: tz }),
-        client.rpc('get_recent_study_activity', { p_user_id: uid }),
+        db.rpc('get_user_statistics', { p_user_id: userId }),
+        db.rpc('get_study_streaks', {
+          p_user_id: userId,
+          p_user_tz: userTz,
+        }),
+        db.rpc('get_session_statistics', { p_user_id: userId }),
+        db.rpc('get_subject_breakdown', { p_user_id: userId }),
+        db.rpc('get_weekly_progress', {
+          p_user_id: userId,
+          p_user_tz: userTz,
+        }),
+        db.rpc('get_activity_heatmap', {
+          p_user_id: userId,
+          p_user_tz: userTz,
+        }),
+        db.rpc('get_recent_study_activity', { p_user_id: userId }),
       ]);
 
       // Log individual RPC errors but fall back gracefully
@@ -119,20 +128,15 @@ async function loadStatistics() {
         recentActivity: recentRes.error
           ? []
           : ((recentRes.data as RecentStudyActivity[]) ?? []),
-        timezone: tz,
+        timezone: userTz,
       };
     },
-    [`statistics-${userId}-${userTz}`],
     {
-      tags: [
-        CACHE_TAGS.STATISTICS,
-        createUserCacheTag(CACHE_TAGS.USER_STATISTICS, userId),
-      ],
+      userId,
+      key: ['statistics', userTz],
       revalidate: CACHE_DURATIONS.STATISTICS,
     }
   );
-
-  return await cachedLoad(userId, userTz, supabase);
 }
 
 export default async function StatisticsPage() {

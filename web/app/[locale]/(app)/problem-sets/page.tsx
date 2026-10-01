@@ -4,12 +4,8 @@ import { createServiceClient } from '@/lib/supabase-utils';
 import ProblemSetsPageClient from './problem-sets-page-client';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { unstable_cache } from 'next/cache';
-import {
-  CACHE_DURATIONS,
-  CACHE_TAGS,
-  createUserCacheTag,
-} from '@/lib/cache-config';
+import { CACHE_DURATIONS } from '@/lib/cache-config';
+import { cacheUserData } from '@/lib/user-data-cache';
 import {
   ProblemSet,
   ProblemSetWithDetails,
@@ -45,22 +41,27 @@ async function loadProblemSets() {
     };
   }
 
-  const cachedLoadProblemSets = unstable_cache(
-    async (userId: string, supabaseClient: any) => {
+  const userId = user.id;
+
+  // Typed loosely, as before this loader was cached: the generated row types
+  // don't line up with the app's hand-written Problem/Subject/stat types.
+  const db: any = supabase;
+
+  return await cacheUserData(
+    async () => {
       // Fetch problem sets with subject name and manual-set count in one query
-      const { data: problemSets, error: problemSetsError } =
-        await supabaseClient
-          .from('problem_sets')
-          .select(
-            `
+      const { data: problemSets, error: problemSetsError } = await db
+        .from('problem_sets')
+        .select(
+          `
             *,
             subjects(name),
             problem_set_problems(count),
             problem_set_shares(id, shared_with_email)
           `
-          )
-          .eq('user_id', userId)
-          .order('created_at', { ascending: false });
+        )
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
       if (problemSetsError) {
         console.error('Error loading problem sets:', problemSetsError);
@@ -86,7 +87,7 @@ async function loadProblemSets() {
               ps.filter_config?.include_never_reviewed ?? true,
           };
           return getFilteredProblemsCount(
-            supabaseClient,
+            db,
             userId,
             ps.subject_id,
             filterConfig
@@ -145,17 +146,12 @@ async function loadProblemSets() {
 
       return { data: problemSetsWithData, statsMap, hasUsername };
     },
-    [`problem-sets-${user.id}`],
     {
-      tags: [
-        CACHE_TAGS.PROBLEM_SETS,
-        createUserCacheTag(CACHE_TAGS.USER_PROBLEM_SETS, user.id),
-      ],
+      userId,
+      key: ['problem-sets'],
       revalidate: CACHE_DURATIONS.PROBLEM_SETS,
     }
   );
-
-  return await cachedLoadProblemSets(user.id, supabase);
 }
 
 export default async function ProblemSetsPage() {

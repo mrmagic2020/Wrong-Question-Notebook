@@ -2,12 +2,8 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import SubjectsPageClient from './subjects-page-client';
 import { createClient } from '@/lib/supabase/server';
-import { unstable_cache } from 'next/cache';
-import {
-  CACHE_DURATIONS,
-  CACHE_TAGS,
-  createUserCacheTag,
-} from '@/lib/cache-config';
+import { CACHE_DURATIONS } from '@/lib/cache-config';
+import { cacheUserData } from '@/lib/user-data-cache';
 import { SubjectWithMetadata } from '@/lib/types';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -26,10 +22,10 @@ async function loadSubjects() {
     return { data: [] as SubjectWithMetadata[] };
   }
 
-  const cachedLoadSubjects = unstable_cache(
-    async (userId: string, supabaseClient: any) => {
+  return await cacheUserData(
+    async () => {
       // Use database function to fetch subjects with metadata in a single query
-      const { data: subjects, error } = await supabaseClient.rpc(
+      const { data: subjects, error } = await supabase.rpc(
         'get_subjects_with_metadata'
       );
 
@@ -39,19 +35,10 @@ async function loadSubjects() {
         return { data: [] as SubjectWithMetadata[] };
       }
 
-      return { data: subjects || [] };
+      return { data: (subjects || []) as SubjectWithMetadata[] };
     },
-    [`subjects-${userId}`],
-    {
-      tags: [
-        CACHE_TAGS.SUBJECTS,
-        createUserCacheTag(CACHE_TAGS.USER_SUBJECTS, userId),
-      ],
-      revalidate: CACHE_DURATIONS.SUBJECTS,
-    }
+    { userId, key: ['subjects'], revalidate: CACHE_DURATIONS.SUBJECTS }
   );
-
-  return await cachedLoadSubjects(userId, supabase);
 }
 
 export default async function SubjectsPage() {
